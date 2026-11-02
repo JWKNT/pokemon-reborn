@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>agate_double_opener_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of agate_double_opener_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Source-only Lyla/Ezra opening plan; never executes UI or reads live state.
+
+Optional --status/--navigation read explicitly named frozen staging evidence.
+Public intro, transform, actor and target verification are still required by
+the sole root controller before entering the printed normal commands.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> hashlib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> calcenon_agate_queue <span class="hljs-keyword">import</span> need
+<span class="hljs-keyword">from</span> trainer_enter <span class="hljs-keyword">import</span> installed_event,validate_pair
+
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+GAME=Path(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">source_proof</span>():
+    primary=installed_event(<span class="hljs-number">763</span>,<span class="hljs-number">45</span>);paired=installed_event(<span class="hljs-number">763</span>,<span class="hljs-number">46</span>)
+    proof=validate_pair(primary[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>],paired[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>],
+                        <span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-string">&#x27;NWCultistF&#x27;</span>,<span class="hljs-string">&#x27;Lyla &amp; Ezra&#x27;</span>)
+    trainers=(GAME/<span class="hljs-string">&#x27;Scripts/Trainers.rb&#x27;</span>).read_text()
+    battle=(GAME/<span class="hljs-string">&#x27;Scripts/Battle.rb&#x27;</span>).read_text()
+    battler=(GAME/<span class="hljs-string">&#x27;Scripts/Battler.rb&#x27;</span>).read_text()
+    need(<span class="hljs-string">&#x27;combinedParty[i] = $PokemonTemp.waitingTrainer[0][2][i]&#x27;</span> <span class="hljs-keyword">in</span> trainers <span class="hljs-keyword">and</span>
+         <span class="hljs-string">&#x27;combinedParty[6 + i] = trainer[2][i]&#x27;</span> <span class="hljs-keyword">in</span> trainers <span class="hljs-keyword">and</span>
+         <span class="hljs-string">&#x27;[$PokemonTemp.waitingTrainer[0][0], trainer[0]]&#x27;</span> <span class="hljs-keyword">in</span> trainers,
+         <span class="hljs-string">&#x27;Waiting-trainer order changed&#x27;</span>)
+    need(<span class="hljs-string">&#x27;@battlers[1].pbInitialize(@party2[sendout1], sendout1, false)&#x27;</span> <span class="hljs-keyword">in</span> battle <span class="hljs-keyword">and</span>
+         <span class="hljs-string">&#x27;@battlers[3].pbInitialize(@party2[sendout2], sendout2, false)&#x27;</span> <span class="hljs-keyword">in</span> battle <span class="hljs-keyword">and</span>
+         <span class="hljs-string">&#x27;choice = pkmn.pbOppositeOpposing&#x27;</span> <span class="hljs-keyword">in</span> battle <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;@index ^ 3&#x27;</span> <span class="hljs-keyword">in</span> battler,
+         <span class="hljs-string">&#x27;Source enemy slot/Imposter geometry changed&#x27;</span>)
+    proof.update(opponents=[<span class="hljs-string">&#x27;Lyla:Noivern@index1&#x27;</span>,<span class="hljs-string">&#x27;Ezra:Ditto@index3&#x27;</span>],
+                 own=[<span class="hljs-string">&#x27;Cryogonal@index0&#x27;</span>,<span class="hljs-string">&#x27;Mienshao@index2&#x27;</span>],ditto_copies_own_slot=<span class="hljs-number">0</span>,
+                 prerequisite=<span class="hljs-string">&#x27;reviewed simultaneous overlap; no old waiting trainer; both undefeated&#x27;</span>,
+                 source_order_note=<span class="hljs-string">&#x27;notes/agate-double-order-source-proof-2026-10-03.md&#x27;</span>)
+    <span class="hljs-keyword">return</span> proof
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">staging_proof</span>(<span class="hljs-params">status,nav</span>):
+    need(status[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">763</span> <span class="hljs-keyword">and</span> status[<span class="hljs-string">&#x27;position&#x27;</span>][<span class="hljs-number">1</span>]&gt;=<span class="hljs-number">53</span> <span class="hljs-keyword">and</span> nav[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]==<span class="hljs-number">52</span>,
+         <span class="hljs-string">&#x27;Reviewed normal southern prechain staging required&#x27;</span>)
+    need(nav.get(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;763,49,A&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>,
+         <span class="hljs-string">&#x27;Actual Antoine victory required&#x27;</span>)
+    need(<span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(nav.get(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{}).get(<span class="hljs-string">f&#x27;763,<span class="hljs-subst">{e}</span>,A&#x27;</span>,<span class="hljs-literal">False</span>) <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> [<span class="hljs-number">45</span>,<span class="hljs-number">46</span>]),
+         <span class="hljs-string">&#x27;Both Lyla/Ezra must remain undefeated&#x27;</span>)
+    party=status[<span class="hljs-string">&#x27;party&#x27;</span>]
+    need(<span class="hljs-built_in">len</span>(party)==<span class="hljs-number">6</span> <span class="hljs-keyword">and</span> {m[<span class="hljs-string">&#x27;species&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> party}==
+         {<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span>,<span class="hljs-string">&#x27;MIENSHAO&#x27;</span>,<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span>,<span class="hljs-string">&#x27;ARCANINE&#x27;</span>,<span class="hljs-string">&#x27;SWAMPERT&#x27;</span>,<span class="hljs-string">&#x27;EXCADRILL&#x27;</span>},
+         <span class="hljs-string">&#x27;Reviewed final six required&#x27;</span>)
+    cryo,mien=party[:<span class="hljs-number">2</span>]
+    need(cryo[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span> <span class="hljs-keyword">and</span> cryo[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Hexan&#x27;</span> <span class="hljs-keyword">and</span>
+         mien[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;MIENSHAO&#x27;</span>,<span class="hljs-string">&#x27;Cryo first/Mien second is required for Ditto pairing&#x27;</span>)
+    need(<span class="hljs-built_in">all</span>(m[<span class="hljs-string">&#x27;level&#x27;</span>]==<span class="hljs-number">90</span> <span class="hljs-keyword">and</span> m[<span class="hljs-string">&#x27;hp&#x27;</span>]==m[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">and</span> m[<span class="hljs-string">&#x27;status&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> party),
+         <span class="hljs-string">&#x27;Normal nurse/full HP/status-free final six required&#x27;</span>)
+    need(cryo[<span class="hljs-string">&#x27;totalhp&#x27;</span>]==<span class="hljs-number">320</span> <span class="hljs-keyword">and</span> cryo[<span class="hljs-string">&#x27;speed&#x27;</span>]==<span class="hljs-number">207</span> <span class="hljs-keyword">and</span> cryo[<span class="hljs-string">&#x27;item&#x27;</span>]==<span class="hljs-string">&#x27;FOCUSSASH&#x27;</span> <span class="hljs-keyword">and</span>
+         [m[<span class="hljs-string">&#x27;move&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> cryo[<span class="hljs-string">&#x27;moves&#x27;</span>]]==[<span class="hljs-string">&#x27;LIGHTSCREEN&#x27;</span>,<span class="hljs-string">&#x27;ICEBEAM&#x27;</span>,<span class="hljs-string">&#x27;RECOVER&#x27;</span>,<span class="hljs-string">&#x27;FREEZEDRY&#x27;</span>] <span class="hljs-keyword">and</span>
+         cryo[<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;pp&#x27;</span>]&gt;<span class="hljs-number">0</span>,
+         <span class="hljs-string">&#x27;Actual Cryo build/Sash/IceBeam slot1 differs&#x27;</span>)
+    need(mien[<span class="hljs-string">&#x27;speed&#x27;</span>]==<span class="hljs-number">217</span> <span class="hljs-keyword">and</span> mien[<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">2</span>][<span class="hljs-string">&#x27;move&#x27;</span>]==<span class="hljs-string">&#x27;FAKEOUT&#x27;</span> <span class="hljs-keyword">and</span> mien[<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">2</span>][<span class="hljs-string">&#x27;pp&#x27;</span>]&gt;<span class="hljs-number">0</span>,
+         <span class="hljs-string">&#x27;Actual Mienshao speed/FakeOut slot2 differs&#x27;</span>)
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;frozen_staging_only&#x27;</span>:<span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;position&#x27;</span>:status[<span class="hljs-string">&#x27;position&#x27;</span>],<span class="hljs-string">&#x27;lead_order&#x27;</span>:[<span class="hljs-string">&#x27;Hexan&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>]}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument(<span class="hljs-string">&#x27;--status&#x27;</span>,<span class="hljs-built_in">type</span>=Path);p.add_argument(<span class="hljs-string">&#x27;--navigation&#x27;</span>,<span class="hljs-built_in">type</span>=Path)
+    a=p.parse_args();out={<span class="hljs-string">&#x27;source_only&#x27;</span>:<span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;no_controls&#x27;</span>:<span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;source&#x27;</span>:source_proof(),
+        <span class="hljs-string">&#x27;public_gates&#x27;</span>:[<span class="hljs-string">&#x27;Lyla and Ezra actual intro&#x27;</span>,<span class="hljs-string">&#x27;Noivern and Ditto exact HUDs&#x27;</span>,
+            <span class="hljs-string">&#x27;Ditto visibly transforms into Hexan/Cryogonal before first action&#x27;</span>,
+            <span class="hljs-string">&#x27;fresh Hexan command before first move; fresh Mienshao command before second&#x27;</span>,
+            <span class="hljs-string">&#x27;actual physical target HUDs match Noivern(index1)/Ditto(index3)&#x27;</span>],
+        <span class="hljs-string">&#x27;registration_order&#x27;</span>:[
+            {<span class="hljs-string">&#x27;actor&#x27;</span>:<span class="hljs-string">&#x27;Hexan&#x27;</span>,<span class="hljs-string">&#x27;move&#x27;</span>:<span class="hljs-string">&#x27;Ice Beam&#x27;</span>,<span class="hljs-string">&#x27;slot&#x27;</span>:<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;target&#x27;</span>:<span class="hljs-string">&#x27;Noivern&#x27;</span>,<span class="hljs-string">&#x27;battler_index&#x27;</span>:<span class="hljs-number">1</span>,
+             <span class="hljs-string">&#x27;command&#x27;</span>:[<span class="hljs-string">&#x27;python3&#x27;</span>,<span class="hljs-string">&#x27;scripts/battle_move.py&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;--foe-names&#x27;</span>,<span class="hljs-string">&#x27;Noivern,Ditto&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>]},
+            {<span class="hljs-string">&#x27;actor&#x27;</span>:<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;move&#x27;</span>:<span class="hljs-string">&#x27;Fake Out&#x27;</span>,<span class="hljs-string">&#x27;slot&#x27;</span>:<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;target&#x27;</span>:<span class="hljs-string">&#x27;Ditto&#x27;</span>,<span class="hljs-string">&#x27;battler_index&#x27;</span>:<span class="hljs-number">3</span>,
+             <span class="hljs-string">&#x27;command&#x27;</span>:[<span class="hljs-string">&#x27;python3&#x27;</span>,<span class="hljs-string">&#x27;scripts/battle_move.py&#x27;</span>,<span class="hljs-string">&#x27;2&#x27;</span>,<span class="hljs-string">&#x27;3&#x27;</span>,<span class="hljs-string">&#x27;--foe-names&#x27;</span>,<span class="hljs-string">&#x27;Noivern,Ditto&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>]}],
+        <span class="hljs-string">&#x27;resolution&#x27;</span>:<span class="hljs-string">&#x27;FakeOut priority3 acts before Noivern; ordinary UI registers Cryo first, Mien second.&#x27;</span>,
+        <span class="hljs-string">&#x27;after_turn&#x27;</span>:<span class="hljs-string">&#x27;Stop for actual public messages/HP/status/foe pair. No automatic retry/nextturn.&#x27;</span>}
+    <span class="hljs-keyword">if</span> a.status <span class="hljs-keyword">or</span> a.navigation:
+        need(a.status <span class="hljs-keyword">and</span> a.navigation,<span class="hljs-string">&#x27;Pass both explicit frozen staging paths&#x27;</span>)
+        need(a.status.resolve().is_relative_to(ROOT) <span class="hljs-keyword">and</span> a.navigation.resolve().is_relative_to(ROOT),
+             <span class="hljs-string">&#x27;Frozen evidence must stay in workspace&#x27;</span>)
+        out[<span class="hljs-string">&#x27;staging&#x27;</span>]=staging_proof(json.loads(a.status.read_text()),json.loads(a.navigation.read_text()))
+        out[<span class="hljs-string">&#x27;binding&#x27;</span>]={<span class="hljs-built_in">str</span>(p):hashlib.sha256(p.read_bytes()).hexdigest() <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> [a.status,a.navigation]}
+    <span class="hljs-built_in">print</span>(json.dumps(out,indent=<span class="hljs-number">2</span>))
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:main()
+</code></pre>
+  </body>
+</html>

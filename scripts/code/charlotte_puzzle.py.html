@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>charlotte_puzzle.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of charlotte_puzzle.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute the published Charlotte puzzle solution with coordinate checks.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate,capture_ready
+<span class="hljs-keyword">import</span> re
+puzzles={
+<span class="hljs-number">1</span>:((<span class="hljs-number">9</span>,<span class="hljs-number">55</span>),<span class="hljs-string">&#x27;U2 L2 U3 R D R D R D R U2 L U L U&#x27;</span>,<span class="hljs-number">188</span>),
+<span class="hljs-number">2</span>:((<span class="hljs-number">9</span>,<span class="hljs-number">44</span>),<span class="hljs-string">&#x27;U2 R U R2 D R U4 L2 D R D L2 U L D2 L U L D2 L2 U R U2 L U R4 U&#x27;</span>,<span class="hljs-number">189</span>),
+<span class="hljs-number">3</span>:((<span class="hljs-number">9</span>,<span class="hljs-number">32</span>),<span class="hljs-string">&#x27;U2 L U L2 D L2 U R U L U R U2 L U2 R3 D2 L D R D2 R U R D R D2 R U R U R D2 R U3 L3 U L2 U L U R2 D R2 D R2 U3 L D L U L3 U&#x27;</span>,<span class="hljs-number">190</span>)}
+n=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);start,solution,counter=puzzles[n]
+keys={<span class="hljs-string">&#x27;U&#x27;</span>:(<span class="hljs-string">&#x27;up&#x27;</span>,(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)),<span class="hljs-string">&#x27;D&#x27;</span>:(<span class="hljs-string">&#x27;down&#x27;</span>,(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>)),<span class="hljs-string">&#x27;L&#x27;</span>:(<span class="hljs-string">&#x27;left&#x27;</span>,(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)),<span class="hljs-string">&#x27;R&#x27;</span>:(<span class="hljs-string">&#x27;right&#x27;</span>,(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>))}
+steps=[];x,y=start
+<span class="hljs-keyword">for</span> token <span class="hljs-keyword">in</span> solution.split():
+ k,num=re.fullmatch(<span class="hljs-string">r&#x27;([UDLR])(\d*)&#x27;</span>,token).groups();key,(dx,dy)=keys[k]
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">int</span>(num <span class="hljs-keyword">or</span> <span class="hljs-number">1</span>)):x+=dx;y+=dy;steps.append((key,(x,y)))
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;419&#x27;</span>,*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,start)],stderr=subprocess.DEVNULL))
+gray={(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])<span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values()<span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">122</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][:<span class="hljs-number">2</span>]==[counter,counter] <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">2</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span>(e[<span class="hljs-string">&#x27;list&#x27;</span>]<span class="hljs-keyword">or</span>[]))}
+visited=[p <span class="hljs-keyword">for</span> k,p <span class="hljs-keyword">in</span> steps <span class="hljs-keyword">if</span> p <span class="hljs-keyword">in</span> gray]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(visited)==<span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(visited)),<span class="hljs-string">&#x27;Solution repeats a puzzle tile&#x27;</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">set</span>(visited)==gray,(<span class="hljs-string">&#x27;Uncovered puzzle tiles&#x27;</span>,gray-<span class="hljs-built_in">set</span>(visited))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VALIDATED PUZZLE&#x27;</span>,n,<span class="hljs-string">&#x27;start&#x27;</span>,start,<span class="hljs-string">&#x27;end&#x27;</span>,(x,y),<span class="hljs-string">&#x27;steps&#x27;</span>,<span class="hljs-built_in">len</span>(steps),<span class="hljs-string">&#x27;counter tiles&#x27;</span>,<span class="hljs-built_in">len</span>(gray),flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--plan-only&#x27;</span> <span class="hljs-keyword">in</span> sys.argv:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-number">0</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">puzzle_locate</span>():
+ <span class="hljs-keyword">try</span>:<span class="hljs-keyword">return</span> locate(<span class="hljs-number">419</span>)
+ <span class="hljs-keyword">except</span> SystemExit <span class="hljs-keyword">as</span> error:
+  <span class="hljs-keyword">if</span> error.code==<span class="hljs-number">2</span> <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;repel&#x27;</span> <span class="hljs-keyword">in</span> read().lower():
+   subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/renew_repel.py&#x27;</span>),<span class="hljs-string">&#x27;--cancel&#x27;</span>],check=<span class="hljs-literal">True</span>)
+   <span class="hljs-keyword">return</span> locate(<span class="hljs-number">419</span>)
+  <span class="hljs-keyword">raise</span>
+actual=puzzle_locate()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--resume&#x27;</span> <span class="hljs-keyword">in</span> sys.argv:
+ candidates=([<span class="hljs-number">0</span>] <span class="hljs-keyword">if</span> actual==(<span class="hljs-number">419</span>,*start) <span class="hljs-keyword">else</span> [])+[j+<span class="hljs-number">1</span> <span class="hljs-keyword">for</span> j,(_,point) <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(steps) <span class="hljs-keyword">if</span> actual==(<span class="hljs-number">419</span>,*point)]
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(candidates)==<span class="hljs-number">1</span>,(<span class="hljs-string">&#x27;Resume coordinate is not unique in the solution&#x27;</span>,actual,candidates)
+ i=candidates[<span class="hljs-number">0</span>];<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RESUMING PUZZLE at step&#x27;</span>,i,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">else</span>:
+ <span class="hljs-keyword">assert</span> actual==(<span class="hljs-number">419</span>,*start),<span class="hljs-string">&#x27;Puzzle start coordinate mismatch&#x27;</span>
+ i=<span class="hljs-number">0</span>
+<span class="hljs-keyword">while</span> i&lt;<span class="hljs-built_in">len</span>(steps):
+ chunk=steps[i:i+<span class="hljs-number">8</span>]
+ <span class="hljs-keyword">try</span>:act(*[key+<span class="hljs-string">&#x27;:.12&#x27;</span><span class="hljs-keyword">for</span> key,p <span class="hljs-keyword">in</span> chunk])
+ <span class="hljs-keyword">except</span> subprocess.CalledProcessError <span class="hljs-keyword">as</span> error:
+  <span class="hljs-keyword">if</span> error.returncode!=<span class="hljs-number">2</span>:<span class="hljs-keyword">raise</span>
+  capture_ready();actual=puzzle_locate()
+  candidates=[j+<span class="hljs-number">1</span> <span class="hljs-keyword">for</span> j,(_,point) <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(steps) <span class="hljs-keyword">if</span> (<span class="hljs-number">419</span>,*point)==actual <span class="hljs-keyword">and</span> i&lt;=j+<span class="hljs-number">1</span>&lt;=i+<span class="hljs-built_in">len</span>(chunk)]
+  <span class="hljs-keyword">if</span> actual==(<span class="hljs-number">419</span>,*(start <span class="hljs-keyword">if</span> i==<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> steps[i-<span class="hljs-number">1</span>][<span class="hljs-number">1</span>])):candidates.append(i)
+  <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(candidates)==<span class="hljs-number">1</span>,(<span class="hljs-string">&#x27;Interrupted puzzle coordinate review&#x27;</span>,actual,candidates)
+  i=candidates[<span class="hljs-number">0</span>];<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUZZLE CAPTURE RECOVERED at step&#x27;</span>,i,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">continue</span>
+ t=read().lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27; hp&#x27;</span>,<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;no&#x27;</span>]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Puzzle dialogue/battle review&#x27;</span>)
+ actual=puzzle_locate();<span class="hljs-keyword">assert</span> actual==(<span class="hljs-number">419</span>,*chunk[-<span class="hljs-number">1</span>][<span class="hljs-number">1</span>]),(actual,chunk[-<span class="hljs-number">1</span>][<span class="hljs-number">1</span>])
+ i+=<span class="hljs-built_in">len</span>(chunk)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUZZLE COMPLETE&#x27;</span>,n,(x,y),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>neoteric377_restore_party.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of neoteric377_restore_party.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Withdraw the four saved core members and assemble owned Kyogre/Zapdos via normal PC controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">nameok</span>(<span class="hljs-params">name,t</span>):
+ <span class="hljs-keyword">return</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,name.lower()) <span class="hljs-keyword">in</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t.lower()) <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,name.lower(),w.lower()).ratio()&gt;=<span class="hljs-number">.8</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> t.split())
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">withdraw</span>(<span class="hljs-params">slot,name</span>):
+ keys=[<span class="hljs-string">&#x27;right:.12&#x27;</span>]*(slot%<span class="hljs-number">6</span>)+[<span class="hljs-string">&#x27;down:.12&#x27;</span>]*(slot//<span class="hljs-number">6</span>)
+ act(*[v <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> keys <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> (k,<span class="hljs-string">&#x27;wait:.18&#x27;</span>)],<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+ t=read();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;WITHDRAW TARGET&#x27;</span>,name,t,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">assert</span> nameok(name,t),t
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>);run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Move|Summary|Multi-Move|Withdraw|Item|Mark|Release|Cancel&#x27;</span>,<span class="hljs-string">&#x27;Withdraw&#x27;</span>)
+ act(<span class="hljs-string">&#x27;wait:1&#x27;</span>);t=read();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;full&#x27;</span><span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t.lower(),t
+ keys=[<span class="hljs-string">&#x27;up:.12&#x27;</span>]*(slot//<span class="hljs-number">6</span>)+[<span class="hljs-string">&#x27;left:.12&#x27;</span>]*(slot%<span class="hljs-number">6</span>)
+ act(*[v <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> keys <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> (k,<span class="hljs-string">&#x27;wait:.18&#x27;</span>)],<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+run(<span class="hljs-string">&#x27;pc_open_reviewed&#x27;</span>);run(<span class="hljs-string">&#x27;pc_select_box&#x27;</span>,<span class="hljs-number">4</span>)
+<span class="hljs-keyword">for</span> slot,name <span class="hljs-keyword">in</span> [(<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;Rayquaza&#x27;</span>),(<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;Amoonguss&#x27;</span>),(<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Cresselia&#x27;</span>),(<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;Magearna&#x27;</span>)]:withdraw(slot,name)
+run(<span class="hljs-string">&#x27;pc_select_box&#x27;</span>,<span class="hljs-number">3</span>)
+run(<span class="hljs-string">&#x27;pc_exchange_named&#x27;</span>,<span class="hljs-number">17</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;Kyogre&#x27;</span>,<span class="hljs-string">&#x27;Latios&#x27;</span>,<span class="hljs-string">&#x27;--box&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--stay-open&#x27;</span>)
+withdraw(<span class="hljs-number">15</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>)
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;No&#x27;</span>);act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Neoteric377-Training-team&#x27;</span>)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Neoteric377-Training-team-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> [p[<span class="hljs-string">&#x27;species&#x27;</span>]<span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>]]==[<span class="hljs-string">&#x27;KYOGRE&#x27;</span>,<span class="hljs-string">&#x27;RAYQUAZA&#x27;</span>,<span class="hljs-string">&#x27;AMOONGUSS&#x27;</span>,<span class="hljs-string">&#x27;CRESSELIA&#x27;</span>,<span class="hljs-string">&#x27;MAGEARNA&#x27;</span>,<span class="hljs-string">&#x27;ZAPDOS&#x27;</span>],s[<span class="hljs-string">&#x27;party&#x27;</span>]
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OWNED TRAINING PARTY VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

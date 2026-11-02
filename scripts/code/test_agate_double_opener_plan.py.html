@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_agate_double_opener_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_agate_double_opener_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure hypothetical staging fixtures; no game controls/native state reads.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> unittest
+<span class="hljs-keyword">from</span> agate_double_opener_plan <span class="hljs-keyword">import</span> source_proof,staging_proof
+
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">fixture</span>():
+    s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Agate-final-six-south-ready130-status.json&#x27;</span>).read_text())
+    n=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Agate-final-six-south-ready130-navigation.json&#x27;</span>).read_text())
+    mons={m[<span class="hljs-string">&#x27;species&#x27;</span>]:m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>]}
+    s[<span class="hljs-string">&#x27;party&#x27;</span>]=[mons[k] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span>,<span class="hljs-string">&#x27;MIENSHAO&#x27;</span>,<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span>,<span class="hljs-string">&#x27;ARCANINE&#x27;</span>,<span class="hljs-string">&#x27;SWAMPERT&#x27;</span>,<span class="hljs-string">&#x27;EXCADRILL&#x27;</span>]]
+    n[<span class="hljs-string">&#x27;self_switches&#x27;</span>][<span class="hljs-string">&#x27;763,49,A&#x27;</span>]=<span class="hljs-literal">True</span>
+    <span class="hljs-keyword">return</span> s,n
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Tests</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_installed_waiting_order_and_opposite_slot</span>(<span class="hljs-params">self</span>):
+        p=source_proof();<span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;ditto_copies_own_slot&#x27;</span>],<span class="hljs-number">0</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;opponents&#x27;</span>],[<span class="hljs-string">&#x27;Lyla:Noivern@index1&#x27;</span>,<span class="hljs-string">&#x27;Ezra:Ditto@index3&#x27;</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_reviewed_frozen_lead_and_exact_moves</span>(<span class="hljs-params">self</span>):
+        s,n=fixture();<span class="hljs-variable language_">self</span>.assertEqual(staging_proof(s,n)[<span class="hljs-string">&#x27;lead_order&#x27;</span>],[<span class="hljs-string">&#x27;Hexan&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>])
+        <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;order&#x27;</span>,<span class="hljs-string">&#x27;moves&#x27;</span>,<span class="hljs-string">&#x27;sash&#x27;</span>,<span class="hljs-string">&#x27;hp&#x27;</span>,<span class="hljs-string">&#x27;ant&#x27;</span>,<span class="hljs-string">&#x27;double&#x27;</span>]:
+            a,b=copy.deepcopy((s,n))
+            <span class="hljs-keyword">if</span> key==<span class="hljs-string">&#x27;order&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>],a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>]=a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>],a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>]
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;moves&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;move&#x27;</span>]=<span class="hljs-string">&#x27;HAZE&#x27;</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;sash&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;item&#x27;</span>]=<span class="hljs-literal">None</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;hp&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]-=<span class="hljs-number">1</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;ant&#x27;</span>:b[<span class="hljs-string">&#x27;self_switches&#x27;</span>][<span class="hljs-string">&#x27;763,49,A&#x27;</span>]=<span class="hljs-literal">False</span>
+            <span class="hljs-keyword">else</span>:b[<span class="hljs-string">&#x27;self_switches&#x27;</span>][<span class="hljs-string">&#x27;763,45,A&#x27;</span>]=<span class="hljs-literal">True</span>
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.subTest(key=key),<span class="hljs-variable language_">self</span>.assertRaises(ValueError):staging_proof(a,b)
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:unittest.main()
+</code></pre>
+  </body>
+</html>

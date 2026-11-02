@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>magikarp_jakob179.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of magikarp_jakob179.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed normal quest continuation after observed Kai victory.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ e=<span class="hljs-built_in">dict</span>(os.environ,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>);e.pop(<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>,<span class="hljs-literal">None</span>)
+ <span class="hljs-keyword">if</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;battle_batch&#x27;</span>]:e[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>,env=e)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">clear_turbo</span>():
+ <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act,read
+ p=R/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>;c=json.loads(p.read_text());t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t
+ <span class="hljs-keyword">if</span> c.get(<span class="hljs-string">&#x27;battle_turbo_enabled&#x27;</span>):
+  act(<span class="hljs-string">&#x27;m:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.35&#x27;</span>,<span class="hljs-string">&#x27;m:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.35&#x27;</span>);c.update(battle_turbo_enabled=<span class="hljs-literal">False</span>,battle_turbo=<span class="hljs-literal">False</span>);p.write_text(json.dumps(c,indent=<span class="hljs-number">2</span>))
+run(<span class="hljs-string">&#x27;ordinary_victory_tail&#x27;</span>,<span class="hljs-number">88</span>,<span class="hljs-number">8</span>,<span class="hljs-number">0</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>,<span class="hljs-string">&#x27;--world-verified&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Magikarp179-Kai-won&#x27;</span>)
+clear_turbo()
+<span class="hljs-keyword">for</span> m,e <span class="hljs-keyword">in</span> [(<span class="hljs-number">88</span>,<span class="hljs-number">14</span>),(<span class="hljs-number">95</span>,<span class="hljs-number">18</span>),(<span class="hljs-number">95</span>,<span class="hljs-number">4</span>),(<span class="hljs-number">95</span>,<span class="hljs-number">15</span>),(<span class="hljs-number">88</span>,<span class="hljs-number">4</span>),(<span class="hljs-number">85</span>,<span class="hljs-number">54</span>),(<span class="hljs-number">85</span>,<span class="hljs-number">58</span>)]:run(<span class="hljs-string">&#x27;eventq&#x27;</span>,m,e,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">527</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">527</span>,<span class="hljs-number">142</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">527</span>,<span class="hljs-number">142</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Magikarp179-Magma-clue&#x27;</span>)
+run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">524</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Magikarp179-Jakob-ready&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">524</span>,<span class="hljs-number">165</span>,<span class="hljs-string">&#x27;AQUA1&#x27;</span>,<span class="hljs-string">&#x27;Jakob&#x27;</span>,<span class="hljs-string">&#x27;--burst-dialogue&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read,act
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> read().lower();act(<span class="hljs-string">&#x27;m:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+p=R/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>;c=json.loads(p.read_text());c.update(battle_turbo_enabled=<span class="hljs-literal">True</span>,battle_turbo=<span class="hljs-literal">True</span>);p.write_text(json.dumps(c,indent=<span class="hljs-number">2</span>))
+run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Toxapex,Lapras,Sharpedo&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--stay-team-reviewed&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.70&#x27;</span>,<span class="hljs-string">&#x27;--stop-after-victory&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;JAKOB BATTLE REVIEW&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_upper_route_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_upper_route_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only Glass upper-puzzle planning from an explicitly supplied snapshot.
+
+No input, quicksave, native-state extraction, or shared navigation writes occur.
+Stage presets are hypotheses, not evidence that a move succeeded in the game.
+Temporary planner JSON isolates nav.route&#x27;s legacy implicit state-file lookup.
+
+Example:
+  python3 scripts/glass_upper_route_plan.py \
+    --state notes/Glass-10AM-paused-navigation.json --stage scanner-return \
+    --from 40 9 true --following espeon --glaceon 43 16 \
+    --query GB13Right
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">import</span> heapq
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> pathlib
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> tempfile
+<span class="hljs-keyword">from</span> contextlib <span class="hljs-keyword">import</span> contextmanager
+
+<span class="hljs-keyword">import</span> nav
+<span class="hljs-keyword">from</span> layer_route <span class="hljs-keyword">import</span> effect
+<span class="hljs-keyword">from</span> glass_positions <span class="hljs-keyword">import</span> refresh
+
+ROOT = pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-comment"># The legacy route_map.rb merges shared navigation even with explicit overrides.</span>
+<span class="hljs-comment"># This static reader deliberately omits that merge. Unspecified progress falls</span>
+<span class="hljs-comment"># back to the native saved file; the caller&#x27;s explicit snapshot wins every key.</span>
+READ_MAP_RUBY = <span class="hljs-string">r&#x27;&#x27;&#x27;
+def iv(o,k);o.instance_variable_get(&#x27;@&#x27;+k.to_s);end
+def table(o)
+ b=iv(o,:raw).pack(&#x27;C*&#x27;);h=b[0,20].unpack(&#x27;l&lt;*&#x27;)
+ {dims:h[1,3],data:b[20..].unpack(&#x27;S&lt;*&#x27;)}
+end
+id=ARGV[0].to_i
+root=&#x27;/Applications/Reborn.app/Contents/Game/Data/&#x27;
+v=load_rgss(&#x27;/Users/jw/Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;)
+m=load_rgss(root+&#x27;Map%03d.rxdata&#x27;%id)
+ts=load_rgss(root+&#x27;Tilesets.rxdata&#x27;)[iv(m,:tileset_id)]
+sw=iv(v[:switches],:data);va=iv(v[:variable],:data);ss=iv(v[:self_switches],:data)
+state=JSON.parse(ARGV[3])
+(state[&#x27;variables&#x27;]||{}).each{|k,value|va[k.to_i]=value}
+(state[&#x27;switches&#x27;]||{}).each{|k,value|sw[k.to_i]=value}
+(state[&#x27;self_switches&#x27;]||{}).each{|k,value|map,event,ch=k.split(&#x27;,&#x27;);ss[[map.to_i,event.to_i,ch]]=value}
+events=iv(m,:events).filter_map do |k,e|
+ p=iv(e,:pages).reverse.find do |pg|
+  c=iv(pg,:condition)
+  (!iv(c,:switch1_valid)||sw[iv(c,:switch1_id)]) &amp;&amp;
+  (!iv(c,:switch2_valid)||sw[iv(c,:switch2_id)]) &amp;&amp;
+  (!iv(c,:variable_valid)||(va[iv(c,:variable_id)]||0)&gt;=iv(c,:variable_value)) &amp;&amp;
+  (!iv(c,:self_switch_valid)||ss[[id,k,iv(c,:self_switch_ch)]])
+ end
+ next unless p
+ g=iv(p,:graphic)
+ [k,{x:iv(e,:x),y:iv(e,:y),name:iv(e,:name),through:iv(p,:through),
+ character:iv(g,:character_name),tile_id:iv(g,:tile_id),trigger:iv(p,:trigger),
+ move_type:iv(p,:move_type),direction:iv(g,:direction),list:plain(iv(p,:list))}]
+end.to_h
+puts JSON.generate({map:id,position:ARGV[1,2].map(&amp;:to_i),width:iv(m,:width),
+height:iv(m,:height),data:table(iv(m,:data)),passages:table(iv(ts,:passages)),
+priorities:table(iv(ts,:priorities)),terrain:table(iv(ts,:terrain_tags)),events:events})
+&#x27;&#x27;&#x27;</span>
+DIR = {<span class="hljs-string">&quot;up&quot;</span>: (<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">8</span>), <span class="hljs-string">&quot;down&quot;</span>: (<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>),
+       <span class="hljs-string">&quot;left&quot;</span>: (-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">4</span>), <span class="hljs-string">&quot;right&quot;</span>: (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">6</span>)}
+FACE = {<span class="hljs-number">2</span>: <span class="hljs-string">&quot;down&quot;</span>, <span class="hljs-number">4</span>: <span class="hljs-string">&quot;left&quot;</span>, <span class="hljs-number">6</span>: <span class="hljs-string">&quot;right&quot;</span>, <span class="hljs-number">8</span>: <span class="hljs-string">&quot;up&quot;</span>}
+BASE = {<span class="hljs-number">408</span>: <span class="hljs-number">1</span>, <span class="hljs-number">416</span>: <span class="hljs-number">1</span>, <span class="hljs-number">417</span>: <span class="hljs-number">2</span>, <span class="hljs-number">418</span>: <span class="hljs-number">0</span>, <span class="hljs-number">419</span>: <span class="hljs-number">1</span>, <span class="hljs-number">420</span>: <span class="hljs-number">0</span>, <span class="hljs-number">421</span>: <span class="hljs-number">0</span>}
+STAGES = {
+    <span class="hljs-string">&quot;current&quot;</span>: {},
+    <span class="hljs-string">&quot;upper-open&quot;</span>: BASE,
+    <span class="hljs-string">&quot;left-frozen&quot;</span>: {**BASE, <span class="hljs-number">402</span>: <span class="hljs-number">60</span>},
+    <span class="hljs-string">&quot;right-approach&quot;</span>: {**BASE, <span class="hljs-number">402</span>: <span class="hljs-number">60</span>, <span class="hljs-number">418</span>: <span class="hljs-number">1</span>, <span class="hljs-number">419</span>: <span class="hljs-number">2</span>},
+    <span class="hljs-string">&quot;right-frozen&quot;</span>: {**BASE, <span class="hljs-number">402</span>: <span class="hljs-number">60</span>, <span class="hljs-number">403</span>: <span class="hljs-number">60</span>, <span class="hljs-number">418</span>: <span class="hljs-number">1</span>, <span class="hljs-number">419</span>: <span class="hljs-number">2</span>},
+    <span class="hljs-string">&quot;scanner-return&quot;</span>: {**BASE, <span class="hljs-number">402</span>: <span class="hljs-number">60</span>, <span class="hljs-number">403</span>: <span class="hljs-number">60</span>, <span class="hljs-number">418</span>: <span class="hljs-number">1</span>, <span class="hljs-number">419</span>: <span class="hljs-number">2</span>,
+                       <span class="hljs-number">420</span>: <span class="hljs-number">1</span>, <span class="hljs-number">421</span>: <span class="hljs-number">1</span>},
+    <span class="hljs-string">&quot;door-ready&quot;</span>: {**BASE, <span class="hljs-number">402</span>: <span class="hljs-number">60</span>, <span class="hljs-number">403</span>: <span class="hljs-number">60</span>, <span class="hljs-number">418</span>: <span class="hljs-number">1</span>, <span class="hljs-number">419</span>: <span class="hljs-number">2</span>,
+                   <span class="hljs-number">420</span>: <span class="hljs-number">2</span>, <span class="hljs-number">421</span>: <span class="hljs-number">1</span>},
+}
+<span class="hljs-comment"># All pallet parts have the same native directional prompt as their core.</span>
+ACTIONS = {
+    <span class="hljs-string">&quot;GB10Right&quot;</span>: (<span class="hljs-built_in">range</span>(<span class="hljs-number">146</span>, <span class="hljs-number">153</span>), <span class="hljs-string">&quot;right&quot;</span>),
+    <span class="hljs-string">&quot;GB11Down&quot;</span>: (<span class="hljs-built_in">range</span>(<span class="hljs-number">153</span>, <span class="hljs-number">157</span>), <span class="hljs-string">&quot;down&quot;</span>),
+    <span class="hljs-string">&quot;GB11Up&quot;</span>: (<span class="hljs-built_in">range</span>(<span class="hljs-number">153</span>, <span class="hljs-number">157</span>), <span class="hljs-string">&quot;up&quot;</span>),
+    <span class="hljs-string">&quot;GB12Left&quot;</span>: (<span class="hljs-built_in">range</span>(<span class="hljs-number">157</span>, <span class="hljs-number">165</span>), <span class="hljs-string">&quot;left&quot;</span>),
+    <span class="hljs-string">&quot;GB12Right&quot;</span>: (<span class="hljs-built_in">range</span>(<span class="hljs-number">157</span>, <span class="hljs-number">165</span>), <span class="hljs-string">&quot;right&quot;</span>),
+    <span class="hljs-string">&quot;GB13Left&quot;</span>: (<span class="hljs-built_in">range</span>(<span class="hljs-number">165</span>, <span class="hljs-number">170</span>), <span class="hljs-string">&quot;left&quot;</span>),
+    <span class="hljs-string">&quot;GB13Right&quot;</span>: (<span class="hljs-built_in">range</span>(<span class="hljs-number">165</span>, <span class="hljs-number">170</span>), <span class="hljs-string">&quot;right&quot;</span>),
+    <span class="hljs-string">&quot;GB14Left&quot;</span>: (<span class="hljs-built_in">range</span>(<span class="hljs-number">170</span>, <span class="hljs-number">174</span>), <span class="hljs-string">&quot;left&quot;</span>),
+    <span class="hljs-string">&quot;GB14Right&quot;</span>: (<span class="hljs-built_in">range</span>(<span class="hljs-number">170</span>, <span class="hljs-number">174</span>), <span class="hljs-string">&quot;right&quot;</span>),
+    <span class="hljs-string">&quot;freeze-left&quot;</span>: ([<span class="hljs-number">83</span>, <span class="hljs-number">84</span>], <span class="hljs-literal">None</span>),
+    <span class="hljs-string">&quot;freeze-right&quot;</span>: ([<span class="hljs-number">85</span>, <span class="hljs-number">86</span>], <span class="hljs-literal">None</span>),
+    <span class="hljs-string">&quot;scanner&quot;</span>: ([<span class="hljs-number">174</span>], <span class="hljs-literal">None</span>),
+    <span class="hljs-string">&quot;Glaceon&quot;</span>: ([<span class="hljs-number">63</span>], <span class="hljs-literal">None</span>),
+    <span class="hljs-string">&quot;Espeon&quot;</span>: ([<span class="hljs-number">65</span>], <span class="hljs-literal">None</span>),
+}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">boolean</span>(<span class="hljs-params">value</span>):
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">str</span>(value).lower() <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;true&quot;</span>, <span class="hljs-string">&quot;1&quot;</span>, <span class="hljs-string">&quot;yes&quot;</span>): <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">str</span>(value).lower() <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;false&quot;</span>, <span class="hljs-string">&quot;0&quot;</span>, <span class="hljs-string">&quot;no&quot;</span>): <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+    <span class="hljs-keyword">raise</span> argparse.ArgumentTypeError(<span class="hljs-string">&quot;layer/switch must be true or false&quot;</span>)
+
+
+<span class="hljs-meta">@contextmanager</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">isolated_navigation</span>(<span class="hljs-params">state</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Redirect only this process&#x27;s nav lookup; never touch shared notes.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">with</span> tempfile.TemporaryDirectory(prefix=<span class="hljs-string">&quot;glass-readonly-plan-&quot;</span>) <span class="hljs-keyword">as</span> folder:
+        root = pathlib.Path(folder)
+        (root / <span class="hljs-string">&quot;notes&quot;</span>).mkdir()
+        (root / <span class="hljs-string">&quot;notes/navigation-state.json&quot;</span>).write_text(json.dumps(state))
+        original = nav.ROOT
+        nav.ROOT = root
+        <span class="hljs-keyword">try</span>:
+            <span class="hljs-keyword">yield</span>
+        <span class="hljs-keyword">finally</span>:
+            nav.ROOT = original
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Planner</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, state, start</span>):
+        <span class="hljs-variable language_">self</span>.state = copy.deepcopy(state)
+        <span class="hljs-variable language_">self</span>.start = <span class="hljs-built_in">tuple</span>(start)
+        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.start[:<span class="hljs-number">2</span>] <span class="hljs-keyword">in</span> ((<span class="hljs-number">38</span>, <span class="hljs-number">8</span>), (<span class="hljs-number">39</span>, <span class="hljs-number">8</span>)):
+            <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Starting on a gauntlet transfer tile is unsafe&quot;</span>)
+        <span class="hljs-variable language_">self</span>.maps, <span class="hljs-variable language_">self</span>.graphs = {}, {}
+        <span class="hljs-variable language_">self</span>.forbidden = {}
+        <span class="hljs-keyword">for</span> layer <span class="hljs-keyword">in</span> (<span class="hljs-literal">False</span>, <span class="hljs-literal">True</span>):
+            argument = json.dumps({
+                <span class="hljs-string">&quot;switches&quot;</span>: {**<span class="hljs-variable language_">self</span>.state.get(<span class="hljs-string">&quot;switches&quot;</span>, {}), <span class="hljs-string">&quot;410&quot;</span>: layer},
+                <span class="hljs-string">&quot;variables&quot;</span>: <span class="hljs-variable language_">self</span>.state.get(<span class="hljs-string">&quot;variables&quot;</span>, {}),
+                <span class="hljs-string">&quot;self_switches&quot;</span>: <span class="hljs-variable language_">self</span>.state.get(<span class="hljs-string">&quot;self_switches&quot;</span>, {}),
+            })
+            model = json.loads(subprocess.check_output([
+                <span class="hljs-string">&quot;ruby&quot;</span>, <span class="hljs-string">&quot;-r&quot;</span>, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&quot;scripts/read_rgss.rb&quot;</span>), <span class="hljs-string">&quot;-e&quot;</span>, READ_MAP_RUBY, <span class="hljs-string">&quot;732&quot;</span>,
+                <span class="hljs-built_in">str</span>(start[<span class="hljs-number">0</span>]), <span class="hljs-built_in">str</span>(start[<span class="hljs-number">1</span>]), argument], stderr=subprocess.DEVNULL))
+            <span class="hljs-keyword">for</span> eid, xy <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.state.get(<span class="hljs-string">&quot;positions&quot;</span>, {}).get(<span class="hljs-string">&quot;732&quot;</span>, {}).items():
+                <span class="hljs-keyword">if</span> eid <span class="hljs-keyword">in</span> model[<span class="hljs-string">&quot;events&quot;</span>]:
+                    model[<span class="hljs-string">&quot;events&quot;</span>][eid][<span class="hljs-string">&quot;x&quot;</span>], model[<span class="hljs-string">&quot;events&quot;</span>][eid][<span class="hljs-string">&quot;y&quot;</span>] = xy
+            forbidden = {(<span class="hljs-number">38</span>, <span class="hljs-number">8</span>), (<span class="hljs-number">39</span>, <span class="hljs-number">8</span>)}
+            following = [name <span class="hljs-keyword">for</span> name, sw <span class="hljs-keyword">in</span> ((<span class="hljs-string">&quot;Glaceon&quot;</span>, <span class="hljs-string">&quot;946&quot;</span>), (<span class="hljs-string">&quot;Espeon&quot;</span>, <span class="hljs-string">&quot;947&quot;</span>))
+                         <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.state.get(<span class="hljs-string">&quot;switches&quot;</span>, {}).get(sw)]
+            <span class="hljs-keyword">for</span> event <span class="hljs-keyword">in</span> model[<span class="hljs-string">&quot;events&quot;</span>].values():
+                commands = event.get(<span class="hljs-string">&quot;list&quot;</span>) <span class="hljs-keyword">or</span> []
+                <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">201</span> <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> commands):
+                    forbidden.add((event[<span class="hljs-string">&quot;x&quot;</span>], event[<span class="hljs-string">&quot;y&quot;</span>]))
+                <span class="hljs-keyword">if</span> event[<span class="hljs-string">&quot;trigger&quot;</span>] == <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(
+                        <span class="hljs-string">&#x27;pbRemoveDependency2(&quot;&#x27;</span> + name + <span class="hljs-string">&#x27;&quot;)&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(commands)
+                        <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> following):
+                    forbidden.add((event[<span class="hljs-string">&quot;x&quot;</span>], event[<span class="hljs-string">&quot;y&quot;</span>]))
+            graph_state = copy.deepcopy(<span class="hljs-variable language_">self</span>.state)
+            avoid = graph_state.setdefault(<span class="hljs-string">&quot;avoid&quot;</span>, {}).setdefault(<span class="hljs-string">&quot;732&quot;</span>, [])
+            avoid.extend([<span class="hljs-built_in">list</span>(p) <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(forbidden)])
+            <span class="hljs-keyword">with</span> isolated_navigation(graph_state):
+                graph = nav.route(model, <span class="hljs-literal">None</span>, <span class="hljs-literal">True</span>)
+            <span class="hljs-variable language_">self</span>.maps[layer], <span class="hljs-variable language_">self</span>.graphs[layer] = model, graph
+            <span class="hljs-variable language_">self</span>.forbidden[layer] = forbidden
+        <span class="hljs-variable language_">self</span>.dist, <span class="hljs-variable language_">self</span>.prev = {<span class="hljs-variable language_">self</span>.start: <span class="hljs-number">0</span>}, {<span class="hljs-variable language_">self</span>.start: <span class="hljs-literal">None</span>}
+        todo = [(<span class="hljs-number">0</span>, <span class="hljs-variable language_">self</span>.start)]
+        <span class="hljs-keyword">while</span> todo:
+            cost, point = heapq.heappop(todo)
+            <span class="hljs-keyword">if</span> cost != <span class="hljs-variable language_">self</span>.dist[point]: <span class="hljs-keyword">continue</span>
+            x, y, layer = point
+            <span class="hljs-keyword">for</span> key, (nx, ny) <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.graphs[layer].get((x, y), []):
+                dx, dy, direction = DIR[key.removeprefix(<span class="hljs-string">&quot;jump:&quot;</span>)]
+                touches = [(x + dx, y + dy), (nx, ny)] <span class="hljs-keyword">if</span> key.startswith(<span class="hljs-string">&quot;jump:&quot;</span>) <span class="hljs-keyword">else</span> [(nx, ny)]
+                <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(p <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.forbidden[layer] <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> touches): <span class="hljs-keyword">continue</span>
+                next_layer = layer
+                <span class="hljs-keyword">for</span> tile <span class="hljs-keyword">in</span> <span class="hljs-built_in">dict</span>.fromkeys(touches):
+                    <span class="hljs-keyword">for</span> event <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.maps[layer][<span class="hljs-string">&quot;events&quot;</span>].values():
+                        <span class="hljs-keyword">if</span> event[<span class="hljs-string">&quot;trigger&quot;</span>] == <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> (event[<span class="hljs-string">&quot;x&quot;</span>], event[<span class="hljs-string">&quot;y&quot;</span>]) == tile:
+                            next_layer = effect(event, direction, next_layer)
+                destination = (nx, ny, next_layer)
+                next_cost = cost + (<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> key.startswith(<span class="hljs-string">&quot;jump:&quot;</span>) <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)
+                <span class="hljs-keyword">if</span> next_cost &lt; <span class="hljs-variable language_">self</span>.dist.get(destination, <span class="hljs-built_in">float</span>(<span class="hljs-string">&quot;inf&quot;</span>)):
+                    <span class="hljs-variable language_">self</span>.dist[destination] = next_cost
+                    <span class="hljs-variable language_">self</span>.prev[destination] = (point, key,
+                        nav.action_jump(<span class="hljs-variable language_">self</span>.maps[layer], point[:<span class="hljs-number">2</span>], key))
+                    heapq.heappush(todo, (next_cost, destination))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">path</span>(<span class="hljs-params">self, target</span>):
+        target = <span class="hljs-built_in">tuple</span>(target)
+        <span class="hljs-keyword">if</span> target <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.prev: <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+        steps, cursor = [], target
+        <span class="hljs-keyword">while</span> <span class="hljs-variable language_">self</span>.prev[cursor]:
+            previous, key, action_jump = <span class="hljs-variable language_">self</span>.prev[cursor]
+            steps.append({<span class="hljs-string">&quot;from&quot;</span>: previous, <span class="hljs-string">&quot;key&quot;</span>: key, <span class="hljs-string">&quot;to&quot;</span>: cursor,
+                          <span class="hljs-string">&quot;action_jump&quot;</span>: action_jump})
+            cursor = previous
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">list</span>(<span class="hljs-built_in">reversed</span>(steps))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">interaction</span>(<span class="hljs-params">self, query</span>):
+        ids, push = ACTIONS[query]
+        candidates = []
+        <span class="hljs-keyword">for</span> layer, model <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.maps.items():
+            <span class="hljs-keyword">if</span> query <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;Glaceon&quot;</span>, <span class="hljs-string">&quot;Espeon&quot;</span>):
+                follow, flag = (<span class="hljs-string">&quot;946&quot;</span>, <span class="hljs-string">&quot;964&quot;</span>) <span class="hljs-keyword">if</span> query == <span class="hljs-string">&quot;Glaceon&quot;</span> <span class="hljs-keyword">else</span> (<span class="hljs-string">&quot;947&quot;</span>, <span class="hljs-string">&quot;965&quot;</span>)
+                <span class="hljs-comment"># Installed event: flagTrue requires410False; flagFalse410True.</span>
+                <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.state.get(<span class="hljs-string">&quot;switches&quot;</span>, {}).get(follow): <span class="hljs-keyword">continue</span>
+                <span class="hljs-keyword">if</span> layer == <span class="hljs-built_in">bool</span>(<span class="hljs-variable language_">self</span>.state.get(<span class="hljs-string">&quot;switches&quot;</span>, {}).get(flag)): <span class="hljs-keyword">continue</span>
+            <span class="hljs-keyword">for</span> eid <span class="hljs-keyword">in</span> ids:
+                event = model[<span class="hljs-string">&quot;events&quot;</span>].get(<span class="hljs-built_in">str</span>(eid))
+                <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> event <span class="hljs-keyword">or</span> event[<span class="hljs-string">&quot;trigger&quot;</span>] != <span class="hljs-number">0</span>: <span class="hljs-keyword">continue</span>
+                <span class="hljs-keyword">for</span> facing, (dx, dy, _) <span class="hljs-keyword">in</span> ((d, DIR[name]) <span class="hljs-keyword">for</span> d, name <span class="hljs-keyword">in</span> FACE.items()):
+                    <span class="hljs-keyword">if</span> push <span class="hljs-keyword">and</span> facing == <span class="hljs-number">10</span> - DIR[push][<span class="hljs-number">2</span>]: <span class="hljs-keyword">continue</span>
+                    target = (event[<span class="hljs-string">&quot;x&quot;</span>] - dx, event[<span class="hljs-string">&quot;y&quot;</span>] - dy, layer)
+                    path = <span class="hljs-variable language_">self</span>.path(target)
+                    <span class="hljs-keyword">if</span> path <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+                        candidates.append({<span class="hljs-string">&quot;event&quot;</span>: eid, <span class="hljs-string">&quot;event_position&quot;</span>: [event[<span class="hljs-string">&quot;x&quot;</span>], event[<span class="hljs-string">&quot;y&quot;</span>]],
+                            <span class="hljs-string">&quot;position&quot;</span>: target, <span class="hljs-string">&quot;face&quot;</span>: FACE[facing], <span class="hljs-string">&quot;cost&quot;</span>: <span class="hljs-variable language_">self</span>.dist[target],
+                            <span class="hljs-string">&quot;path&quot;</span>: path})
+        candidates.sort(key=<span class="hljs-keyword">lambda</span> c: (c[<span class="hljs-string">&quot;cost&quot;</span>], c[<span class="hljs-string">&quot;event&quot;</span>], c[<span class="hljs-string">&quot;position&quot;</span>]))
+        <span class="hljs-keyword">return</span> {<span class="hljs-string">&quot;query&quot;</span>: query, <span class="hljs-string">&quot;push&quot;</span>: push, <span class="hljs-string">&quot;reachable&quot;</span>: <span class="hljs-built_in">bool</span>(candidates),
+                <span class="hljs-string">&quot;candidates&quot;</span>: candidates}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">prepare</span>(<span class="hljs-params">args</span>):
+    state = json.loads(pathlib.Path(args.state).read_text())
+    state.setdefault(<span class="hljs-string">&quot;variables&quot;</span>, {}).update({<span class="hljs-built_in">str</span>(k): v <span class="hljs-keyword">for</span> k, v <span class="hljs-keyword">in</span> STAGES[args.stage].items()})
+    state.setdefault(<span class="hljs-string">&quot;switches&quot;</span>, {})[<span class="hljs-string">&quot;410&quot;</span>] = args.start[<span class="hljs-number">2</span>]
+    <span class="hljs-keyword">if</span> args.stage <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;scanner-return&quot;</span>, <span class="hljs-string">&quot;door-ready&quot;</span>):
+        state[<span class="hljs-string">&quot;switches&quot;</span>][<span class="hljs-string">&quot;958&quot;</span>] = <span class="hljs-literal">True</span>
+    <span class="hljs-keyword">for</span> item <span class="hljs-keyword">in</span> args.var:
+        key, value = item.split(<span class="hljs-string">&quot;=&quot;</span>, <span class="hljs-number">1</span>)
+        state[<span class="hljs-string">&quot;variables&quot;</span>][<span class="hljs-built_in">str</span>(<span class="hljs-built_in">int</span>(key))] = <span class="hljs-built_in">int</span>(value)
+    <span class="hljs-keyword">for</span> item <span class="hljs-keyword">in</span> args.switch:
+        key, value = item.split(<span class="hljs-string">&quot;=&quot;</span>, <span class="hljs-number">1</span>)
+        state[<span class="hljs-string">&quot;switches&quot;</span>][<span class="hljs-built_in">str</span>(<span class="hljs-built_in">int</span>(key))] = boolean(value)
+    <span class="hljs-keyword">for</span> name, eid, var, flag, following <span class="hljs-keyword">in</span> (
+            (<span class="hljs-string">&quot;glaceon&quot;</span>, <span class="hljs-number">63</span>, <span class="hljs-number">404</span>, <span class="hljs-string">&quot;964&quot;</span>, <span class="hljs-string">&quot;946&quot;</span>),
+            (<span class="hljs-string">&quot;espeon&quot;</span>, <span class="hljs-number">65</span>, <span class="hljs-number">406</span>, <span class="hljs-string">&quot;965&quot;</span>, <span class="hljs-string">&quot;947&quot;</span>)):
+        xy = <span class="hljs-built_in">getattr</span>(args, name)
+        <span class="hljs-keyword">if</span> xy <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+            state[<span class="hljs-string">&quot;variables&quot;</span>][<span class="hljs-built_in">str</span>(var)], state[<span class="hljs-string">&quot;variables&quot;</span>][<span class="hljs-built_in">str</span>(var + <span class="hljs-number">1</span>)] = xy
+            state.setdefault(<span class="hljs-string">&quot;positions&quot;</span>, {}).setdefault(<span class="hljs-string">&quot;732&quot;</span>, {})[<span class="hljs-built_in">str</span>(eid)] = xy
+            state[<span class="hljs-string">&quot;switches&quot;</span>][flag] = <span class="hljs-built_in">getattr</span>(args, name + <span class="hljs-string">&quot;_layer&quot;</span>)
+            state[<span class="hljs-string">&quot;switches&quot;</span>][following] = <span class="hljs-literal">False</span>
+    <span class="hljs-keyword">if</span> args.following != <span class="hljs-string">&quot;state&quot;</span>:
+        state[<span class="hljs-string">&quot;switches&quot;</span>].update({<span class="hljs-string">&quot;946&quot;</span>: args.following == <span class="hljs-string">&quot;glaceon&quot;</span>, <span class="hljs-string">&quot;947&quot;</span>: args.following == <span class="hljs-string">&quot;espeon&quot;</span>})
+        <span class="hljs-keyword">if</span> args.following != <span class="hljs-string">&quot;none&quot;</span>:
+            variable = <span class="hljs-number">404</span> <span class="hljs-keyword">if</span> args.following == <span class="hljs-string">&quot;glaceon&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">406</span>
+            state[<span class="hljs-string">&quot;variables&quot;</span>].update({<span class="hljs-built_in">str</span>(variable): <span class="hljs-number">0</span>, <span class="hljs-built_in">str</span>(variable + <span class="hljs-number">1</span>): <span class="hljs-number">0</span>})
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> args.no_refresh:
+        refresh(state, json.loads((ROOT / <span class="hljs-string">&quot;work/story-map-732-events.json&quot;</span>).read_text()))
+    <span class="hljs-keyword">return</span> state
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(<span class="hljs-string">&quot;--state&quot;</span>, required=<span class="hljs-literal">True</span>, <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;explicit navigation snapshot; never modified&quot;</span>)
+    parser.add_argument(<span class="hljs-string">&quot;--stage&quot;</span>, choices=STAGES, default=<span class="hljs-string">&quot;current&quot;</span>)
+    parser.add_argument(<span class="hljs-string">&quot;--from&quot;</span>, dest=<span class="hljs-string">&quot;start&quot;</span>, nargs=<span class="hljs-number">3</span>, required=<span class="hljs-literal">True</span>, metavar=(<span class="hljs-string">&quot;X&quot;</span>, <span class="hljs-string">&quot;Y&quot;</span>, <span class="hljs-string">&quot;LAYER&quot;</span>))
+    parser.add_argument(<span class="hljs-string">&quot;--following&quot;</span>, choices=(<span class="hljs-string">&quot;state&quot;</span>, <span class="hljs-string">&quot;none&quot;</span>, <span class="hljs-string">&quot;espeon&quot;</span>, <span class="hljs-string">&quot;glaceon&quot;</span>), default=<span class="hljs-string">&quot;state&quot;</span>)
+    <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;glaceon&quot;</span>, <span class="hljs-string">&quot;espeon&quot;</span>):
+        parser.add_argument(<span class="hljs-string">&quot;--&quot;</span> + name, nargs=<span class="hljs-number">2</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;waiting companion X Y&quot;</span>)
+        parser.add_argument(<span class="hljs-string">&quot;--&quot;</span> + name + <span class="hljs-string">&quot;-layer&quot;</span>, <span class="hljs-built_in">type</span>=boolean, default=<span class="hljs-literal">False</span>, <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;964/965 flag, defaultFalse=B2F&quot;</span>)
+    parser.add_argument(<span class="hljs-string">&quot;--var&quot;</span>, action=<span class="hljs-string">&quot;append&quot;</span>, default=[], <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;hypothetical N=INTEGER override&quot;</span>)
+    parser.add_argument(<span class="hljs-string">&quot;--switch&quot;</span>, action=<span class="hljs-string">&quot;append&quot;</span>, default=[], <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;hypothetical N=true/false override&quot;</span>)
+    parser.add_argument(<span class="hljs-string">&quot;--query&quot;</span>, choices=[*ACTIONS, <span class="hljs-string">&quot;all&quot;</span>, <span class="hljs-string">&quot;door-standby&quot;</span>], default=<span class="hljs-string">&quot;all&quot;</span>)
+    parser.add_argument(<span class="hljs-string">&quot;--goal&quot;</span>, nargs=<span class="hljs-number">3</span>, metavar=(<span class="hljs-string">&quot;X&quot;</span>, <span class="hljs-string">&quot;Y&quot;</span>, <span class="hljs-string">&quot;LAYER&quot;</span>))
+    parser.add_argument(<span class="hljs-string">&quot;--limit&quot;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, default=<span class="hljs-number">3</span>, <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;maximum faces per query&quot;</span>)
+    parser.add_argument(<span class="hljs-string">&quot;--no-refresh&quot;</span>, action=<span class="hljs-string">&quot;store_true&quot;</span>, <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;trust supplied observed pallet positions&quot;</span>)
+    args = parser.parse_args()
+    args.start = [<span class="hljs-built_in">int</span>(args.start[<span class="hljs-number">0</span>]), <span class="hljs-built_in">int</span>(args.start[<span class="hljs-number">1</span>]), boolean(args.start[<span class="hljs-number">2</span>])]
+    state = prepare(args)
+    planner = Planner(state, args.start)
+    output = {<span class="hljs-string">&quot;read_only&quot;</span>: <span class="hljs-literal">True</span>, <span class="hljs-string">&quot;hypothetical_stage&quot;</span>: args.stage, <span class="hljs-string">&quot;start&quot;</span>: args.start,
+              <span class="hljs-string">&quot;variables&quot;</span>: {k: state[<span class="hljs-string">&quot;variables&quot;</span>].get(k, <span class="hljs-number">0</span>) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, (<span class="hljs-number">402</span>, <span class="hljs-number">403</span>, <span class="hljs-number">408</span>, <span class="hljs-number">417</span>, <span class="hljs-number">418</span>, <span class="hljs-number">419</span>, <span class="hljs-number">420</span>, <span class="hljs-number">421</span>))},
+              <span class="hljs-string">&quot;following&quot;</span>: {name: <span class="hljs-built_in">bool</span>(state[<span class="hljs-string">&quot;switches&quot;</span>].get(sw)) <span class="hljs-keyword">for</span> name, sw <span class="hljs-keyword">in</span> ((<span class="hljs-string">&quot;Glaceon&quot;</span>, <span class="hljs-string">&quot;946&quot;</span>), (<span class="hljs-string">&quot;Espeon&quot;</span>, <span class="hljs-string">&quot;947&quot;</span>))},
+              <span class="hljs-string">&quot;door_warning&quot;</span>: <span class="hljs-string">&quot;38/39,8 transfer to immediate gauntlet autorun; both are always forbidden.&quot;</span>}
+    <span class="hljs-keyword">if</span> args.goal:
+        goal = [<span class="hljs-built_in">int</span>(args.goal[<span class="hljs-number">0</span>]), <span class="hljs-built_in">int</span>(args.goal[<span class="hljs-number">1</span>]), boolean(args.goal[<span class="hljs-number">2</span>])]
+        output[<span class="hljs-string">&quot;goal&quot;</span>] = goal
+        output[<span class="hljs-string">&quot;path&quot;</span>] = planner.path(goal)
+    <span class="hljs-keyword">else</span>:
+        queries = <span class="hljs-built_in">list</span>(ACTIONS) <span class="hljs-keyword">if</span> args.query == <span class="hljs-string">&quot;all&quot;</span> <span class="hljs-keyword">else</span> [args.query]
+        output[<span class="hljs-string">&quot;results&quot;</span>] = []
+        <span class="hljs-keyword">for</span> query <span class="hljs-keyword">in</span> queries:
+            <span class="hljs-keyword">if</span> query == <span class="hljs-string">&quot;door-standby&quot;</span>:
+                <span class="hljs-comment"># Outside the doorway, never a transfer destination itself.</span>
+                result = {<span class="hljs-string">&quot;query&quot;</span>: query, <span class="hljs-string">&quot;goals&quot;</span>: [
+                    {<span class="hljs-string">&quot;position&quot;</span>: [x, <span class="hljs-number">9</span>, layer], <span class="hljs-string">&quot;path&quot;</span>: planner.path((x, <span class="hljs-number">9</span>, layer))}
+                    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> (<span class="hljs-number">38</span>, <span class="hljs-number">39</span>) <span class="hljs-keyword">for</span> layer <span class="hljs-keyword">in</span> (<span class="hljs-literal">False</span>, <span class="hljs-literal">True</span>)]}
+            <span class="hljs-keyword">else</span>:
+                result = planner.interaction(query)
+                result[<span class="hljs-string">&quot;candidate_count&quot;</span>] = <span class="hljs-built_in">len</span>(result[<span class="hljs-string">&quot;candidates&quot;</span>])
+                result[<span class="hljs-string">&quot;candidates&quot;</span>] = result[<span class="hljs-string">&quot;candidates&quot;</span>][:<span class="hljs-built_in">max</span>(args.limit, <span class="hljs-number">0</span>)]
+                <span class="hljs-keyword">if</span> query.startswith(<span class="hljs-string">&quot;GB&quot;</span>):
+                    result[<span class="hljs-string">&quot;requires_actual_Espeon_following&quot;</span>] = <span class="hljs-literal">True</span>
+                <span class="hljs-keyword">if</span> query.startswith(<span class="hljs-string">&quot;freeze&quot;</span>):
+                    result[<span class="hljs-string">&quot;requires_actual_Glaceon_following&quot;</span>] = <span class="hljs-literal">True</span>
+            output[<span class="hljs-string">&quot;results&quot;</span>].append(result)
+    <span class="hljs-built_in">print</span>(json.dumps(output, indent=<span class="hljs-number">2</span>))
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    main()
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>magikarp_claret180.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of magikarp_claret180.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed normal quest continuation after observed Kai victory.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ e=<span class="hljs-built_in">dict</span>(os.environ,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>);e.pop(<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>,<span class="hljs-literal">None</span>)
+ <span class="hljs-keyword">if</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;battle_batch&#x27;</span>]:e[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>,env=e)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">clear_turbo</span>():
+ <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act,read
+ p=R/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>;c=json.loads(p.read_text());t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t
+ <span class="hljs-keyword">if</span> c.get(<span class="hljs-string">&#x27;battle_turbo_enabled&#x27;</span>):
+  act(<span class="hljs-string">&#x27;m:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.35&#x27;</span>,<span class="hljs-string">&#x27;m:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.35&#x27;</span>);c.update(battle_turbo_enabled=<span class="hljs-literal">False</span>,battle_turbo=<span class="hljs-literal">False</span>);p.write_text(json.dumps(c,indent=<span class="hljs-number">2</span>))
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--repel-active&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Sylveon&#x27;</span>)
+ run(<span class="hljs-string">&#x27;field_repel&#x27;</span>,<span class="hljs-string">&#x27;Super Repel&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">523</span>,<span class="hljs-number">42</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Magikarp180-Claret-ready&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">533</span>,<span class="hljs-number">52</span>,<span class="hljs-string">&#x27;Casanova&#x27;</span>,<span class="hljs-string">&#x27;Claret&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act,read
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> read().lower();act(<span class="hljs-string">&#x27;m:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+p=R/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>;c=json.loads(p.read_text());c.update(battle_turbo_enabled=<span class="hljs-literal">True</span>,battle_turbo=<span class="hljs-literal">True</span>);p.write_text(json.dumps(c,indent=<span class="hljs-number">2</span>))
+run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Ninetales,Zoroark&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.55&#x27;</span>,<span class="hljs-string">&#x27;--stop-after-victory&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CLARET OPENING REVIEW: switch Gigalith at real Ninetales offer, Rock Slide&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

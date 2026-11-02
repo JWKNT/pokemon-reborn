@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mart_open.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mart_open.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Advance an inspected vendor greeting, stopping at its purchase list.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">20</span>):
+ t=read();low=t.lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;how many&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;yes&#x27;</span> <span class="hljs-keyword">in</span> low.splitlines() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;no&#x27;</span> <span class="hljs-keyword">in</span> low.splitlines():<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected purchase prompt&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(re.findall(<span class="hljs-string">r&#x27;\$\s*\d&#x27;</span>,t))&gt;=<span class="hljs-number">4</span>:
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PRICE LIST READY&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;buy&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;sell&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;quit&#x27;</span>,<span class="hljs-string">&#x27;money:&#x27;</span>,<span class="hljs-string">&#x27;honey:&#x27;</span>]):
+  act(<span class="hljs-string">&#x27;c:0.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;$&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;cancel&#x27;</span>,<span class="hljs-string">&#x27;chancel&#x27;</span>,<span class="hljs-string">&#x27;chncel&#x27;</span>]):<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;how many&#x27;</span>,<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;no\n&#x27;</span>,<span class="hljs-string">&#x27;choose a pok&#x27;</span>,<span class="hljs-string">&#x27;pp:&#x27;</span>]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Vendor greeting review&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(low.splitlines())&lt;<span class="hljs-number">2</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Vendor dialogue missing&#x27;</span>)
+ act(<span class="hljs-string">&#x27;c:0.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Vendor greeting limit&#x27;</span>)
+</code></pre>
+  </body>
+</html>

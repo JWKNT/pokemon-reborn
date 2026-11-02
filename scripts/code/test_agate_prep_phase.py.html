@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_agate_prep_phase.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_agate_prep_phase.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure phase fixtures using explicit historical data; never executes UI.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> unittest
+
+<span class="hljs-keyword">from</span> agate_prep_phase <span class="hljs-keyword">import</span> BASE_EV, FINAL_MOVES, PRE_EV, ROOT, plan
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">snapshot</span>(<span class="hljs-params">mid=<span class="hljs-number">355</span></span>):
+    s = json.loads((ROOT / <span class="hljs-string">&quot;notes/Glass-post-gauntlet-attempt-1-status.json&quot;</span>).read_text())
+    s[<span class="hljs-string">&quot;map&quot;</span>] = mid
+    <span class="hljs-keyword">return</span> s
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">training</span>(<span class="hljs-params">spa</span>):
+    s = snapshot(<span class="hljs-number">519</span>)
+    cf = <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&quot;party&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;COFAGRIGUS&quot;</span>)
+    cf.update(nature=<span class="hljs-string">&quot;TIMID&quot;</span>, item=<span class="hljs-string">&quot;POWERLENS&quot;</span>, ev=<span class="hljs-built_in">list</span>(PRE_EV), hp=<span class="hljs-number">252</span>, totalhp=<span class="hljs-number">252</span>)
+    cf[<span class="hljs-string">&quot;ev&quot;</span>][<span class="hljs-number">3</span>] = spa
+    cf[<span class="hljs-string">&quot;moves&quot;</span>] = [<span class="hljs-built_in">dict</span>(move=m, pp=<span class="hljs-number">15</span>) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> FINAL_MOVES]
+    <span class="hljs-keyword">return</span> s
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AgatePrepTest</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_source_correct_shop_targets_and_budget</span>(<span class="hljs-params">self</span>):
+        s = snapshot()
+        s[<span class="hljs-string">&quot;bag&quot;</span>][<span class="hljs-string">&quot;contents&quot;</span>].update(POMEGBERRY=<span class="hljs-number">0</span>, POWERLENS=<span class="hljs-number">0</span>)
+        cmds = plan(<span class="hljs-string">&quot;shops&quot;</span>, s)
+        <span class="hljs-variable language_">self</span>.assertIn({<span class="hljs-string">&quot;script&quot;</span>: <span class="hljs-string">&quot;eventq&quot;</span>, <span class="hljs-string">&quot;args&quot;</span>: [<span class="hljs-number">355</span>, <span class="hljs-number">136</span>, <span class="hljs-string">&quot;talk&quot;</span>]}, cmds)
+        <span class="hljs-variable language_">self</span>.assertIn({<span class="hljs-string">&quot;script&quot;</span>: <span class="hljs-string">&quot;eventq&quot;</span>, <span class="hljs-string">&quot;args&quot;</span>: [<span class="hljs-number">355</span>, <span class="hljs-number">83</span>, <span class="hljs-string">&quot;talk&quot;</span>]}, cmds)
+        s[<span class="hljs-string">&quot;trainer&quot;</span>][<span class="hljs-string">&quot;money&quot;</span>] = <span class="hljs-number">16999</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            plan(<span class="hljs-string">&quot;shops&quot;</span>, s)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_already_owned_supplies_not_purchased_twice</span>(<span class="hljs-params">self</span>):
+        s = snapshot()
+        s[<span class="hljs-string">&quot;bag&quot;</span>][<span class="hljs-string">&quot;contents&quot;</span>].update(POMEGBERRY=<span class="hljs-number">4</span>, POWERLENS=<span class="hljs-number">1</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(plan(<span class="hljs-string">&quot;shops&quot;</span>, s), [])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_collected_old_scale_never_used</span>(<span class="hljs-params">self</span>):
+        s = snapshot(<span class="hljs-number">715</span>)
+        s[<span class="hljs-string">&quot;bag&quot;</span>][<span class="hljs-string">&quot;contents&quot;</span>][<span class="hljs-string">&quot;HEARTSCALE&quot;</span>] = <span class="hljs-number">0</span>
+        cmds = plan(<span class="hljs-string">&quot;scale&quot;</span>, s)
+        <span class="hljs-variable language_">self</span>.assertEqual(cmds[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;args&quot;</span>], [<span class="hljs-number">715</span>, <span class="hljs-number">64</span>, <span class="hljs-string">&quot;item&quot;</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_build_exact_replacements_and_partial_state_rejected</span>(<span class="hljs-params">self</span>):
+        s = snapshot()
+        s[<span class="hljs-string">&quot;bag&quot;</span>][<span class="hljs-string">&quot;contents&quot;</span>].update(TIMIDMINT=<span class="hljs-number">1</span>, POMEGBERRY=<span class="hljs-number">4</span>, TM97=<span class="hljs-number">1</span>,
+                                       HEARTSCALE=<span class="hljs-number">1</span>, POWERLENS=<span class="hljs-number">1</span>)
+        cmds = plan(<span class="hljs-string">&quot;build&quot;</span>, s)
+        <span class="hljs-variable language_">self</span>.assertIn({<span class="hljs-string">&quot;internal&quot;</span>: <span class="hljs-string">&quot;hex-reminder&quot;</span>, <span class="hljs-string">&quot;index&quot;</span>: <span class="hljs-number">6</span>}, cmds)
+        <span class="hljs-variable language_">self</span>.assertIn({<span class="hljs-string">&quot;script&quot;</span>: <span class="hljs-string">&quot;teach_machine&quot;</span>, <span class="hljs-string">&quot;args&quot;</span>: [<span class="hljs-string">&quot;TM97&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&quot;</span>, <span class="hljs-string">&quot;Dark Pulse&quot;</span>, <span class="hljs-number">3</span>]}, cmds)
+        cf = <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&quot;party&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;COFAGRIGUS&quot;</span>)
+        cf[<span class="hljs-string">&quot;ev&quot;</span>][<span class="hljs-number">0</span>] = <span class="hljs-number">232</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            plan(<span class="hljs-string">&quot;build&quot;</span>, s)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_single_ko_pilot_before_two_ko_finish</span>(<span class="hljs-params">self</span>):
+        first = plan(<span class="hljs-string">&quot;training-pilot&quot;</span>, training(<span class="hljs-number">0</span>))
+        last = plan(<span class="hljs-string">&quot;training-finish&quot;</span>, training(<span class="hljs-number">32</span>))
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-built_in">next</span>(c <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> first <span class="hljs-keyword">if</span> c[<span class="hljs-string">&quot;script&quot;</span>] == <span class="hljs-string">&quot;train_wild_bulk&quot;</span>)[<span class="hljs-string">&quot;args&quot;</span>][:<span class="hljs-number">3</span>],
+                         [<span class="hljs-string">&quot;Cofagrigus&quot;</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-built_in">next</span>(c <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> last <span class="hljs-keyword">if</span> c[<span class="hljs-string">&quot;script&quot;</span>] == <span class="hljs-string">&quot;train_wild_bulk&quot;</span>)[<span class="hljs-string">&quot;args&quot;</span>][:<span class="hljs-number">3</span>],
+                         [<span class="hljs-string">&quot;Cofagrigus&quot;</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>])
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            plan(<span class="hljs-string">&quot;training-finish&quot;</span>, training(<span class="hljs-number">80</span>))
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            plan(<span class="hljs-string">&quot;training-finish&quot;</span>, training(<span class="hljs-number">128</span>))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_mint_flag_overrides_original_nature</span>(<span class="hljs-params">self</span>):
+        s=training(<span class="hljs-number">0</span>)
+        cf=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&quot;party&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>]==<span class="hljs-string">&quot;COFAGRIGUS&quot;</span>)
+        cf.update(nature=<span class="hljs-string">&quot;CALM&quot;</span>, natureflag=<span class="hljs-string">&quot;TIMID&quot;</span>)
+        <span class="hljs-variable language_">self</span>.assertTrue(plan(<span class="hljs-string">&quot;training-pilot&quot;</span>,s))
+        cf[<span class="hljs-string">&quot;natureflag&quot;</span>]=<span class="hljs-string">&quot;CALM&quot;</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError): plan(<span class="hljs-string">&quot;training-pilot&quot;</span>,s)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_changed_actor_slot_or_status_fails_training</span>(<span class="hljs-params">self</span>):
+        s = training(<span class="hljs-number">0</span>)
+        cf = <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&quot;party&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;COFAGRIGUS&quot;</span>)
+        cf[<span class="hljs-string">&quot;moves&quot;</span>][<span class="hljs-number">3</span>][<span class="hljs-string">&quot;move&quot;</span>] = <span class="hljs-string">&quot;DESTINYBOND&quot;</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            plan(<span class="hljs-string">&quot;training-pilot&quot;</span>, s)
+        s = training(<span class="hljs-number">0</span>)
+        cf = <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&quot;party&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;COFAGRIGUS&quot;</span>)
+        cf[<span class="hljs-string">&quot;status&quot;</span>] = <span class="hljs-string">&quot;POISON&quot;</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            plan(<span class="hljs-string">&quot;training-pilot&quot;</span>, s)
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    unittest.main()
+</code></pre>
+  </body>
+</html>

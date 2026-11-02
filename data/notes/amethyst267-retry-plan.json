@@ -1,0 +1,15 @@
+{
+  "source": "Owned frozen prebattle party and installed trainer/field data, read outside battle after reset",
+  "mawile_normal_speed": 141,
+  "mawile_after_xspeed": 282,
+  "primarina_speed": 186,
+  "plan": [
+    "Mega Swords Dance on initial Aurora Veil",
+    "X Speed while Ninetales attacks",
+    "Brick Break removes Aurora Veil and knocks out Ninetales",
+    "Iron Head Primarina before its attack",
+    "Sucker Punch attacking Lopunny; stop on setup",
+    "Iron Head slower Fairy opponents; preserve guarded per-foe decisions"
+  ],
+  "attempt1": "Reset after losing Mawile and Cresselia; complete footage retained"
+}

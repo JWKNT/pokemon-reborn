@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>layer_walk.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of layer_walk.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute a bounded Route 2 layered path; verify coordinates and update planning notes.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> layer_route <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+hold_straights=<span class="hljs-string">&#x27;--hold-straights&#x27;</span> <span class="hljs-keyword">in</span> sys.argv
+args=[a <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">if</span> a!=<span class="hljs-string">&#x27;--hold-straights&#x27;</span>]
+mid,tx,ty=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,args[<span class="hljs-number">1</span>:<span class="hljs-number">4</span>]);ground=<span class="hljs-built_in">bool</span>(<span class="hljs-built_in">int</span>(args[<span class="hljs-number">4</span>]))
+target_ground=<span class="hljs-built_in">bool</span>(<span class="hljs-built_in">int</span>(args[<span class="hljs-number">5</span>])) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(args)&gt;<span class="hljs-number">5</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">ordinary_wtc_wild</span>(<span class="hljs-params">text</span>):
+ <span class="hljs-keyword">if</span> mid <span class="hljs-keyword">in</span> [<span class="hljs-number">358</span>,<span class="hljs-number">360</span>]:
+  approved=[<span class="hljs-string">&#x27;rufflet&#x27;</span>,<span class="hljs-string">&#x27;hawlucha&#x27;</span>,<span class="hljs-string">&#x27;meditite&#x27;</span>,<span class="hljs-string">&#x27;boldore&#x27;</span>,<span class="hljs-string">&#x27;rhyhorn&#x27;</span>,<span class="hljs-string">&#x27;rhydon&#x27;</span>,<span class="hljs-string">&#x27;ursaring&#x27;</span>,<span class="hljs-string">&#x27;machoke&#x27;</span>,<span class="hljs-string">&#x27;trapinch&#x27;</span>,<span class="hljs-string">&#x27;rockruff&#x27;</span>,<span class="hljs-string">&#x27;donphan&#x27;</span>,<span class="hljs-string">&#x27;mienfoo&#x27;</span>,<span class="hljs-string">&#x27;absol&#x27;</span>,<span class="hljs-string">&#x27;noctowl&#x27;</span>,<span class="hljs-string">&#x27;vullaby&#x27;</span>]
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (<span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">or</span> re.search(<span class="hljs-string">r&#x27;\bhp\b&#x27;</span>,text)) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> text <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> approved):<span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+  rows=[json.loads(l)<span class="hljs-keyword">for</span> l <span class="hljs-keyword">in</span>(ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).read_text().splitlines()]
+  <span class="hljs-keyword">return</span> <span class="hljs-built_in">any</span>(r[<span class="hljs-string">&#x27;epoch&#x27;</span>]&gt;=action_started <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;appeared&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]).lower() <span class="hljs-keyword">or</span> re.search(<span class="hljs-string">r&#x27;\bwild\b&#x27;</span>,<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]),re.I))<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows)
+ <span class="hljs-keyword">if</span> mid <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">set</span>(<span class="hljs-built_in">range</span>(<span class="hljs-number">468</span>,<span class="hljs-number">477</span>))|<span class="hljs-built_in">set</span>(<span class="hljs-built_in">range</span>(<span class="hljs-number">479</span>,<span class="hljs-number">506</span>)):<span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+ approved=[<span class="hljs-string">&#x27;gulp&#x27;</span>,<span class="hljs-string">&#x27;grimer&#x27;</span>]
+ <span class="hljs-keyword">if</span> json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;548&#x27;</span>):
+  approved+=[<span class="hljs-string">&#x27;muk&#x27;</span>,<span class="hljs-string">&#x27;sualot&#x27;</span>,<span class="hljs-string">&#x27;swalot&#x27;</span>]
+ <span class="hljs-keyword">return</span> (<span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">or</span> re.search(<span class="hljs-string">r&#x27;\bhp\b&#x27;</span>,text)) <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> text <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> approved)
+mm,x,y=locate(mid)
+<span class="hljs-keyword">assert</span> mm==mid
+stalls=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> iteration <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">45</span>):
+ <span class="hljs-keyword">if</span> (x,y)==(tx,ty) <span class="hljs-keyword">and</span> (target_ground <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> ground==target_ground):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;LAYER ROUTE COMPLETE&#x27;</span>,mid,x,y,ground,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ steps=plan(mid,x,y,ground,tx,ty,target_ground);chunk=[]
+ <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> steps:
+  chunk.append(s)
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(chunk)&gt;=<span class="hljs-number">28</span> <span class="hljs-keyword">or</span> s[<span class="hljs-string">&#x27;from&#x27;</span>][<span class="hljs-number">2</span>]!=s[<span class="hljs-string">&#x27;to&#x27;</span>][<span class="hljs-number">2</span>]:<span class="hljs-keyword">break</span>
+ seq=[]
+ <span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> chunk:
+  key=step[<span class="hljs-string">&#x27;key&#x27;</span>]
+  <span class="hljs-keyword">if</span> step.get(<span class="hljs-string">&#x27;action_jump&#x27;</span>):seq.extend([key[<span class="hljs-number">5</span>:]+<span class="hljs-string">&#x27;:.03&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.9&#x27;</span>])
+  <span class="hljs-keyword">elif</span> key.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):seq.extend([key[<span class="hljs-number">5</span>:]+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.9&#x27;</span>])
+  <span class="hljs-keyword">else</span>:seq.append(key+<span class="hljs-string">&#x27;:.12&#x27;</span>)
+ <span class="hljs-keyword">if</span> hold_straights:
+  compact=[]
+  <span class="hljs-keyword">for</span> key,items <span class="hljs-keyword">in</span> groupby(seq):
+   n=<span class="hljs-built_in">len</span>(<span class="hljs-built_in">list</span>(items))
+   <span class="hljs-keyword">if</span> key.endswith(<span class="hljs-string">&#x27;:.12&#x27;</span>) <span class="hljs-keyword">and</span> n&gt;<span class="hljs-number">1</span>:compact.append(key.split(<span class="hljs-string">&#x27;:&#x27;</span>)[<span class="hljs-number">0</span>]+<span class="hljs-string">&#x27;:&#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">round</span>(n*<span class="hljs-number">.1</span>+<span class="hljs-number">.02</span>,<span class="hljs-number">3</span>)))
+   <span class="hljs-keyword">else</span>:compact.extend([key]*n)
+  seq=compact
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;LAYER SEGMENT&#x27;</span>, (x,y,ground),<span class="hljs-string">&#x27;to&#x27;</span>,chunk[-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;to&#x27;</span>],<span class="hljs-built_in">len</span>(chunk),flush=<span class="hljs-literal">True</span>)
+ action_started=time.time()
+ <span class="hljs-keyword">try</span>:act(*seq)
+ <span class="hljs-keyword">except</span> subprocess.CalledProcessError <span class="hljs-keyword">as</span> error:
+  <span class="hljs-keyword">if</span> error.returncode!=<span class="hljs-number">2</span>:<span class="hljs-keyword">raise</span>
+  recovered=<span class="hljs-literal">False</span>
+  <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">30</span>):
+   health=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+   recovered=health.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">and</span> time.time()-health.get(<span class="hljs-string">&#x27;epoch&#x27;</span>,<span class="hljs-number">0</span>)&lt;<span class="hljs-number">2</span>
+   <span class="hljs-keyword">if</span> recovered:<span class="hljs-keyword">break</span>
+   time.sleep(<span class="hljs-number">.5</span>)
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> recovered:<span class="hljs-keyword">raise</span>
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CAPTURE RECOVERED; observe actual layer-route endpoint&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+ r=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(a[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> r).lower()
+ <span class="hljs-comment"># A wild transition can begin just after the last walking input. Observe</span>
+ <span class="hljs-comment"># the fade before opening coordinate UI, rather than treating black as world.</span>
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>):
+  im=Image.<span class="hljs-built_in">open</span>(STATE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=im.size
+  pixels=<span class="hljs-built_in">list</span>(im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.06</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.08</span>),<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.94</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.88</span>))).getdata())
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">max</span>(p)&lt;<span class="hljs-number">25</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> pixels)/<span class="hljs-built_in">len</span>(pixels)&lt;<span class="hljs-number">.9</span>:<span class="hljs-keyword">break</span>
+  act(<span class="hljs-string">&#x27;wait:2&#x27;</span>);r=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(a[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> r).lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;repel&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27;&#x27;</span>.join(text.split()) <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;woreoff&#x27;</span>,<span class="hljs-string">&#x27;uoreoff&#x27;</span>]):
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/renew_repel.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+  r=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(a[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> r).lower()
+ <span class="hljs-comment"># These positively identified ordinary wild encounters occur on WTC mud.</span>
+ <span class="hljs-comment"># Never auto-escape a trainer, PULSE boss, or unidentified battle.</span>
+ <span class="hljs-keyword">if</span> ordinary_wtc_wild(text):
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>),<span class="hljs-string">&#x27;--since&#x27;</span>,<span class="hljs-built_in">str</span>(action_started)],check=<span class="hljs-literal">True</span>)
+  r=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(a[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> r).lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> text <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27; hp&#x27;</span>,<span class="hljs-string">&#x27;wild &#x27;</span>,<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;no&#x27;</span>,<span class="hljs-string">&#x27;wore off&#x27;</span>,<span class="hljs-string">&#x27;uore off&#x27;</span>]) <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(a[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.73</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(a[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">22</span> <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> r):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Route dialogue/battle review: &#x27;</span>+text)
+ <span class="hljs-keyword">try</span>:mm,nx,ny=locate(mid)
+ <span class="hljs-keyword">except</span> SystemExit <span class="hljs-keyword">as</span> error:
+  <span class="hljs-keyword">if</span> error.code!=<span class="hljs-number">2</span>:<span class="hljs-keyword">raise</span>
+  late=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> ordinary_wtc_wild(late):<span class="hljs-keyword">raise</span>
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>),<span class="hljs-string">&#x27;--since&#x27;</span>,<span class="hljs-built_in">str</span>(action_started)],check=<span class="hljs-literal">True</span>)
+  mm,nx,ny=locate(mid)
+ <span class="hljs-keyword">assert</span> mm==mid
+ candidates={(s[<span class="hljs-string">&#x27;to&#x27;</span>][<span class="hljs-number">0</span>],s[<span class="hljs-string">&#x27;to&#x27;</span>][<span class="hljs-number">1</span>],s[<span class="hljs-string">&#x27;to&#x27;</span>][<span class="hljs-number">2</span>]) <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> chunk <span class="hljs-keyword">if</span> <span class="hljs-built_in">tuple</span>(s[<span class="hljs-string">&#x27;to&#x27;</span>][:<span class="hljs-number">2</span>])==(nx,ny)}
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> candidates:
+  <span class="hljs-comment"># A held direction can take one extra ordinary step just after a forced</span>
+  <span class="hljs-comment"># stair move. Only accept that exact witnessed endpoint and inspected layer.</span>
+  <span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> chunk:
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> step[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):<span class="hljs-keyword">continue</span>
+   k=step[<span class="hljs-string">&#x27;key&#x27;</span>][<span class="hljs-number">5</span>:];dx,dy,d=DIR[k];ex,ey,eg=step[<span class="hljs-string">&#x27;to&#x27;</span>]
+   <span class="hljs-keyword">if</span> (nx,ny)!=(ex+dx,ey+dy):<span class="hljs-keyword">continue</span>
+   model=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(nx),<span class="hljs-built_in">str</span>(ny),json.dumps({<span class="hljs-string">&#x27;switches&#x27;</span>:{<span class="hljs-string">&#x27;410&#x27;</span>:eg}})],stderr=subprocess.DEVNULL))
+   <span class="hljs-keyword">for</span> ev <span class="hljs-keyword">in</span> model[<span class="hljs-string">&#x27;events&#x27;</span>].values():
+    <span class="hljs-keyword">if</span> ev[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> (ev[<span class="hljs-string">&#x27;x&#x27;</span>],ev[<span class="hljs-string">&#x27;y&#x27;</span>])==(nx,ny):eg=effect(ev,d,eg)
+   candidates.add((nx,ny,eg));<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OBSERVED EXTRA STEP AFTER STAIR&#x27;</span>,nx,ny,eg,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> (nx,ny)==(x,y):candidates.add((x,y,ground));stalls+=<span class="hljs-number">1</span>
+ <span class="hljs-keyword">else</span>:stalls=<span class="hljs-number">0</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(candidates)!=<span class="hljs-number">1</span> <span class="hljs-keyword">or</span> stalls&gt;=<span class="hljs-number">3</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Layer position review: &#x27;</span>+<span class="hljs-built_in">str</span>((nx,ny,candidates)))
+ x,y,ground=<span class="hljs-built_in">next</span>(<span class="hljs-built_in">iter</span>(candidates))
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v.setdefault(<span class="hljs-string">&#x27;switches&#x27;</span>,{})[<span class="hljs-string">&#x27;410&#x27;</span>]=ground;p.write_text(json.dumps(v))
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Layer route iteration limit&#x27;</span>)
+</code></pre>
+  </body>
+</html>

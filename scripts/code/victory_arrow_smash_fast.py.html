@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_arrow_smash_fast.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_arrow_smash_fast.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Short public-coordinate corrections for a reviewed hazard cart/lever.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> shutil,time
+E=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);label=sys.argv[<span class="hljs-number">2</span>];<span class="hljs-keyword">assert</span> E <span class="hljs-keyword">in</span> [<span class="hljs-number">62</span>,<span class="hljs-number">63</span>,<span class="hljs-number">64</span>]
+<span class="hljs-keyword">assert</span> re.fullmatch(<span class="hljs-string">r&#x27;[A-Za-z0-9-]+&#x27;</span>,label)
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> t.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;787&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],stderr=subprocess.DEVNULL));e=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(E)]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">frozen_stop</span>(<span class="hljs-params">message</span>):
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_open.py&#x27;</span>)],check=<span class="hljs-literal">True</span>);<span class="hljs-keyword">raise</span> SystemExit(message)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">public_position</span>():
+ act(<span class="hljs-string">&#x27;d:.6&#x27;</span>,<span class="hljs-string">&#x27;wait:.1&#x27;</span>);epoch=time.time()
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">30</span>):
+  h=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+  <span class="hljs-keyword">if</span> h.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">and</span> h.get(<span class="hljs-string">&#x27;preview_epoch&#x27;</span>,<span class="hljs-number">0</span>)&gt;=epoch <span class="hljs-keyword">and</span> time.time()-h[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;<span class="hljs-number">2</span>:<span class="hljs-keyword">break</span>
+  time.sleep(<span class="hljs-number">.05</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Fresh coordinate capture unavailable&#x27;</span>)
+ cp=ROOT/<span class="hljs-string">&#x27;work/rapid-hazard-coordinates.png&#x27;</span>;shutil.copyfile(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>,cp)
+ rows=json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>),<span class="hljs-built_in">str</span>(cp)]));txt=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RAPID PUBLIC COORDINATES&#x27;</span>,txt,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">match</span>=re.search(<span class="hljs-string">r&quot;X\s*(\d+)\s*[,.;]?\s*Y[\s\x27\u2019]*(\d+)\s*[,.;]?\s*map\s*(\d+)&quot;</span>,txt,re.I)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">match</span>:frozen_stop(<span class="hljs-string">&#x27;Coordinate review&#x27;</span>)
+ sx,sy,m=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,<span class="hljs-keyword">match</span>.groups())
+ <span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+ <span class="hljs-keyword">from</span> coordinate_digits <span class="hljs-keyword">import</span> fix_coordinates
+ canvas=Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;work/capture-preview-frame-template.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+ canvas.paste(Image.<span class="hljs-built_in">open</span>(cp).resize((<span class="hljs-number">2048</span>,<span class="hljs-number">1536</span>)),(<span class="hljs-number">112</span>,<span class="hljs-number">134</span>))
+ native=ROOT/<span class="hljs-string">&#x27;work/rapid-coordinates-native.png&#x27;</span>;canvas.save(native)
+ fixed=fix_coordinates(native,(sx,sy,m))
+ <span class="hljs-keyword">if</span> fixed!=(sx,sy,m):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUBLIC DIGIT TEMPLATE CORRECTION&#x27;</span>,(sx,sy,m),<span class="hljs-string">&#x27;-&gt;&#x27;</span>,fixed,flush=<span class="hljs-literal">True</span>)
+ sx,sy,m=fixed;<span class="hljs-keyword">assert</span> m==<span class="hljs-number">787</span>
+ <span class="hljs-keyword">return</span> sx,sy
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>);seen=[]
+<span class="hljs-keyword">for</span> attempt <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">20</span>):
+ sx,sy=public_position();v[<span class="hljs-string">&#x27;position&#x27;</span>]=[sx,sy];seen.append((sx,sy))
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(seen)&gt;=<span class="hljs-number">4</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(seen[-<span class="hljs-number">4</span>:]))==<span class="hljs-number">1</span>:frozen_stop(<span class="hljs-string">&#x27;No route progress&#x27;</span>)
+ options=[]
+ <span class="hljs-keyword">for</span> dx,dy,k <span class="hljs-keyword">in</span> [(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;up&#x27;</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;down&#x27;</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;left&#x27;</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;right&#x27;</span>)]:
+  dest=(e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy)
+  <span class="hljs-keyword">try</span>:options.append((<span class="hljs-built_in">len</span>(route(v,dest)),dest,k,route(v,dest)))
+  <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">pass</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> options:frozen_stop(<span class="hljs-string">&#x27;No interaction approach&#x27;</span>)
+ _,goal,facing,path=<span class="hljs-built_in">min</span>(options);<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(path)&lt;<span class="hljs-number">110</span>;complete=<span class="hljs-built_in">len</span>(path)&lt;=<span class="hljs-number">6</span>;chunk=path <span class="hljs-keyword">if</span> complete <span class="hljs-keyword">else</span> path[:<span class="hljs-number">6</span>]
+ g=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);cur=(sx,sy);seq=[]
+ <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> chunk:
+  nxt=<span class="hljs-built_in">next</span>(n <span class="hljs-keyword">for</span> kk,n <span class="hljs-keyword">in</span> g[cur]<span class="hljs-keyword">if</span> kk==k)
+  <span class="hljs-keyword">if</span> k.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):seq += [k[<span class="hljs-number">5</span>:]+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:&#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">max</span>(<span class="hljs-number">.9</span>,<span class="hljs-number">.2</span>*(<span class="hljs-built_in">abs</span>(nxt[<span class="hljs-number">0</span>]-cur[<span class="hljs-number">0</span>])+<span class="hljs-built_in">abs</span>(nxt[<span class="hljs-number">1</span>]-cur[<span class="hljs-number">1</span>]))))]
+  <span class="hljs-keyword">else</span>:seq.append(k+<span class="hljs-string">&#x27;:.12&#x27;</span>)
+  cur=nxt
+ <span class="hljs-keyword">if</span> complete:
+  <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Kernel.pbRockSmash&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(e[<span class="hljs-string">&#x27;list&#x27;</span>])
+  <span class="hljs-keyword">assert</span> cur==goal;seq += [<span class="hljs-string">&#x27;wait:.3&#x27;</span>]+[facing+(<span class="hljs-string">&#x27;:.03&#x27;</span><span class="hljs-keyword">if</span> E==<span class="hljs-number">148</span> <span class="hljs-keyword">else</span><span class="hljs-string">&#x27;:.18&#x27;</span>)]+[<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:&#x27;</span>+(<span class="hljs-string">&#x27;10&#x27;</span><span class="hljs-keyword">if</span> E <span class="hljs-keyword">in</span> [<span class="hljs-number">122</span>,<span class="hljs-number">128</span>,<span class="hljs-number">132</span>,<span class="hljs-number">133</span>,<span class="hljs-number">140</span>,<span class="hljs-number">141</span>]<span class="hljs-keyword">else</span> (<span class="hljs-string">&#x27;2&#x27;</span><span class="hljs-keyword">if</span> E==<span class="hljs-number">148</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;.7&#x27;</span>))]
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RAPID INTERACTION CHUNK&#x27;</span>,E,(sx,sy),goal,chunk,complete,flush=<span class="hljs-literal">True</span>);act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.1&#x27;</span>,*seq)
+ <span class="hljs-keyword">if</span> complete:<span class="hljs-keyword">break</span>
+ act(<span class="hljs-string">&#x27;wait:.25&#x27;</span>)
+<span class="hljs-keyword">else</span>:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_open.py&#x27;</span>)],check=<span class="hljs-literal">True</span>);<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Approach limit&#x27;</span>)
+
+<span class="hljs-comment"># Resolve only the normal Rock Smash prompt, stopping on a wild battle.</span>
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/dialog.py&#x27;</span>),<span class="hljs-string">&#x27;--yes&#x27;</span>,<span class="hljs-string">&#x27;--limit=10&#x27;</span>],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),label],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_open.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-comment"># Verify the visibly smashed event in this freshly written owned map snapshot.</span>
+ruby=<span class="hljs-string">&quot;require_relative &#x27;scripts/read_rgss&#x27;;v=load_rgss(ARGV[0]);e=v[:Map].instance_variable_get(:@events)[ARGV[1].to_i];puts JSON.generate({map:v[:map_id],erased:e.instance_variable_get(:@erased)})&quot;</span>
+frozen=ROOT/<span class="hljs-string">&#x27;backups&#x27;</span>/<span class="hljs-string">f&#x27;Aster-<span class="hljs-subst">{label}</span>.rxdata&#x27;</span>
+proof=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;-e&#x27;</span>,ruby,<span class="hljs-built_in">str</span>(frozen),<span class="hljs-built_in">str</span>(E)],cwd=ROOT,stderr=subprocess.DEVNULL))
+<span class="hljs-keyword">assert</span> proof=={<span class="hljs-string">&#x27;map&#x27;</span>:<span class="hljs-number">787</span>,<span class="hljs-string">&#x27;erased&#x27;</span>:<span class="hljs-literal">True</span>},(<span class="hljs-string">&#x27;Rock was not erased&#x27;</span>,proof)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-overrides.json&#x27;</span>;n=json.loads(p.read_text());n.setdefault(<span class="hljs-string">&#x27;787&#x27;</span>,[])
+<span class="hljs-keyword">if</span> E <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> n[<span class="hljs-string">&#x27;787&#x27;</span>]:n[<span class="hljs-string">&#x27;787&#x27;</span>].append(E)
+p.write_text(json.dumps(n)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NORMAL ROCK SMASH VERIFIED&#x27;</span>,E,proof,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

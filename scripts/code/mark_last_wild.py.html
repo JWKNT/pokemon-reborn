@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mark_last_wild.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mark_last_wild.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> bgm_span <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> sys,time,re
+name=sys.argv[<span class="hljs-number">1</span>].lower();rows=[json.loads(l) <span class="hljs-keyword">for</span> l <span class="hljs-keyword">in</span> (ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).read_text().splitlines()];rows=[<span class="hljs-built_in">dict</span>(r,low=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]).lower()) <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows]
+starts=[i <span class="hljs-keyword">for</span> i,r <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(rows) <span class="hljs-keyword">if</span> name <span class="hljs-keyword">in</span> r[<span class="hljs-string">&#x27;low&#x27;</span>] <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;angry&#x27;</span> <span class="hljs-keyword">in</span> r[<span class="hljs-string">&#x27;low&#x27;</span>] <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;appeared&#x27;</span> <span class="hljs-keyword">in</span> r[<span class="hljs-string">&#x27;low&#x27;</span>])]
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> starts:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No encounter introduction&#x27;</span>)
+i=starts[-<span class="hljs-number">1</span>];r=rows[i:];start=r[<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;epoch&#x27;</span>]-<span class="hljs-number">2</span>
+faint=<span class="hljs-built_in">next</span>((x[<span class="hljs-string">&#x27;epoch&#x27;</span>] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> r <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fainted&#x27;</span> <span class="hljs-keyword">in</span> x[<span class="hljs-string">&#x27;low&#x27;</span>]),<span class="hljs-literal">None</span>)
+<span class="hljs-keyword">if</span> faint <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No confirmed faint&#x27;</span>)
+end=<span class="hljs-built_in">next</span>((x[<span class="hljs-string">&#x27;epoch&#x27;</span>] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> r <span class="hljs-keyword">if</span> x[<span class="hljs-string">&#x27;epoch&#x27;</span>]&gt;faint <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;roars triumphantly&#x27;</span> <span class="hljs-keyword">in</span> x[<span class="hljs-string">&#x27;low&#x27;</span>]),time.time())
+append_span(start,faint,wild_track());append_span(faint,end,<span class="hljs-string">&#x27;Victory!&#x27;</span>);<span class="hljs-built_in">print</span>(name,start,faint,end)
+</code></pre>
+  </body>
+</html>

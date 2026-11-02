@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>flee.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of flee.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Flee an identified wild encounter; stop if escape fails.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">from</span> bgm_span <span class="hljs-keyword">import</span> append_span,wild_track
+started=time.time()-<span class="hljs-number">3</span>
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--since&#x27;</span> <span class="hljs-keyword">in</span> sys.argv:
+ since=<span class="hljs-built_in">float</span>(sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--since&#x27;</span>)+<span class="hljs-number">1</span>])
+ <span class="hljs-comment"># A completed earlier wild in this capture must not stretch a later cue</span>
+ <span class="hljs-comment"># across intervening gameplay when the caller supplies the session start.</span>
+ <span class="hljs-keyword">for</span> mp <span class="hljs-keyword">in</span> (ROOT/<span class="hljs-string">&#x27;recordings&#x27;</span>).glob(<span class="hljs-string">&#x27;session-???.json&#x27;</span>):
+  meta=json.loads(mp.read_text());override=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{mp.stem}</span>-music-overrides.json&#x27;</span>
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> override.exists():<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">for</span> span <span class="hljs-keyword">in</span> json.loads(override.read_text()):
+   end=meta[<span class="hljs-string">&#x27;start_epoch&#x27;</span>]+span[<span class="hljs-string">&#x27;end&#x27;</span>]
+   <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;Battle- Wild&#x27;</span> <span class="hljs-keyword">in</span> span.get(<span class="hljs-string">&#x27;track&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>) <span class="hljs-keyword">and</span> since&lt;end&lt;time.time():since=end
+ screens=[json.loads(z) <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> (ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).read_text().splitlines()]
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">battle_observation</span>(<span class="hljs-params">z</span>):
+  text=<span class="hljs-string">&#x27; &#x27;</span>.join(z[<span class="hljs-string">&#x27;text&#x27;</span>]).lower()
+  <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> (re.search(<span class="hljs-string">r&#x27;\bfight\b|\bwild\b&#x27;</span>,text) <span class="hljs-keyword">or</span> <span class="hljs-number">1</span>&lt;=<span class="hljs-built_in">len</span>(re.findall(<span class="hljs-string">r&#x27;\bhp\b&#x27;</span>,text))&lt;=<span class="hljs-number">2</span>)
+ observed=<span class="hljs-built_in">next</span>((z <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> screens <span class="hljs-keyword">if</span> z[<span class="hljs-string">&#x27;epoch&#x27;</span>]&gt;=since <span class="hljs-keyword">and</span> battle_observation(z)),<span class="hljs-literal">None</span>)
+ <span class="hljs-keyword">if</span> observed:started=<span class="hljs-built_in">max</span>(since,observed[<span class="hljs-string">&#x27;epoch&#x27;</span>]-<span class="hljs-number">2</span>)
+tried=<span class="hljs-literal">False</span>
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">12</span>):
+ t=read();<span class="hljs-built_in">print</span>(t.replace(<span class="hljs-string">&#x27;\n&#x27;</span>,<span class="hljs-string">&#x27; | &#x27;</span>),flush=<span class="hljs-literal">True</span>);lo=t.lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;stored in box&#x27;</span>,<span class="hljs-string">&#x27;transferred to&#x27;</span>,<span class="hljs-string">&#x27;party is full&#x27;</span>]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Capture dialogue review&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> lo:
+  <span class="hljs-keyword">if</span> tried:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;ESCAPE REVIEW&#x27;</span>)
+  tried=<span class="hljs-literal">True</span>
+  act(<span class="hljs-string">&#x27;right:0.22&#x27;</span>,<span class="hljs-string">&#x27;down:0.22&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;prevents escaping&#x27;</span> <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,lo) <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;couldntescape&#x27;</span>,<span class="hljs-string">&#x27;cantescape&#x27;</span>]):
+  act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;ESCAPE REVIEW: failed run acknowledged; next command ready&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fainted&#x27;</span> <span class="hljs-keyword">in</span> lo:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;ESCAPE REVIEW&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;safely&#x27;</span> <span class="hljs-keyword">in</span> lo:act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;pp:&#x27;</span> <span class="hljs-keyword">in</span> lo:act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:0.4&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;hp&#x27;</span> <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;wild&#x27;</span> <span class="hljs-keyword">in</span> lo:act(<span class="hljs-string">&#x27;wait:1&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(t.splitlines())&lt;=<span class="hljs-number">4</span>:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OVERWORLD&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;REVIEW&#x27;</span>)
+
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Escape animation timeout&#x27;</span>)
+
+track = wild_track()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--battle-track&#x27;</span> <span class="hljs-keyword">in</span> sys.argv:
+ track = sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--battle-track&#x27;</span>) + <span class="hljs-number">1</span>]
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(p.stem == track <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> pathlib.Path(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Audio/BGM&#x27;</span>).iterdir()), <span class="hljs-string">&#x27;Unknown installed battle track&#x27;</span>
+append_span(started,time.time(),track)
+</code></pre>
+  </body>
+</html>

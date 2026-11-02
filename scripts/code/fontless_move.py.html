@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>fontless_move.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of fontless_move.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One manually reviewed Terra move via normal keys; public command guard only.
+
+No live game/save/battle-log reads. Caller identifies sprites and desired slot
+from the rendered screen and frozen entry roster. Stops after this one turn.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> sys,json,time
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,act,read
+slot=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);<span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;=slot&lt;<span class="hljs-number">4</span>
+music=json.loads((ROOT/<span class="hljs-string">&#x27;work/active-trainer-music.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> (music[<span class="hljs-string">&#x27;class&#x27;</span>],music[<span class="hljs-string">&#x27;name&#x27;</span>],<span class="hljs-built_in">str</span>(music[<span class="hljs-string">&#x27;map&#x27;</span>]))==(<span class="hljs-string">&#x27;TERRA&#x27;</span>,<span class="hljs-string">&#x27;T3RR4&#x27;</span>,<span class="hljs-string">&#x27;778&#x27;</span>)
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;bag&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;bae&#x27;</span> <span class="hljs-keyword">in</span> t) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;run&#x27;</span> <span class="hljs-keyword">in</span> t,<span class="hljs-string">&#x27;Public command screen required&#x27;</span>
+act(<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>,<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;up:.12&#x27;</span>,*([<span class="hljs-string">&#x27;right:.12&#x27;</span>] <span class="hljs-keyword">if</span> slot%<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> []),*([<span class="hljs-string">&#x27;down:.12&#x27;</span>] <span class="hljs-keyword">if</span> slot//<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> []),<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:5&#x27;</span>)
+<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

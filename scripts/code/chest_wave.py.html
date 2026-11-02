@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>chest_wave.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of chest_wave.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute a bounded reviewed matchup, then freeze the map immediately.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> sys,subprocess,json,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> snap,act
+<span class="hljs-keyword">from</span> chest_safe_pause <span class="hljs-keyword">import</span> classify
+actor,slot,foe=sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">4</span>]
+began=time.time()
+log=ROOT/<span class="hljs-string">f&#x27;work/chest-<span class="hljs-subst">{foe}</span>-<span class="hljs-subst">{<span class="hljs-built_in">int</span>(time.time())}</span>.log&#x27;</span>
+<span class="hljs-keyword">with</span> log.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;w&#x27;</span>) <span class="hljs-keyword">as</span> f:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_batch.py&#x27;</span>),actor,slot,<span class="hljs-string">&#x27;--foes&#x27;</span>,foe,<span class="hljs-string">&#x27;--wild&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-string">&#x27;5&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.4&#x27;</span>,<span class="hljs-string">&#x27;--stop-phrase&#x27;</span>,<span class="hljs-string">&#x27;saphira&#x27;</span>,<span class="hljs-string">&#x27;--world-pause&#x27;</span>],stdout=f,stderr=subprocess.STDOUT)
+r=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> r).lower()
+<span class="hljs-keyword">if</span> classify(r)==<span class="hljs-string">&#x27;bag&#x27;</span>:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ACTUAL BAG PAUSE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">elif</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;hp&#x27;</span>,<span class="hljs-string">&#x27;choose a pok&#x27;</span>,<span class="hljs-string">&#x27;fainted&#x27;</span>,<span class="hljs-string">&#x27;saphira&#x27;</span>]):
+ act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>,<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.5&#x27;</span>);r=snap()
+ <span class="hljs-keyword">assert</span> classify(r)==<span class="hljs-string">&#x27;bag&#x27;</span>,<span class="hljs-string">&#x27;Actual Bag pause needs prompt review&#x27;</span>
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ACTUAL BAG PAUSE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BATTLE/DIALOGUE REVIEW&#x27;</span>,t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(log,flush=<span class="hljs-literal">True</span>)
+
+rows=[json.loads(l) <span class="hljs-keyword">for</span> l <span class="hljs-keyword">in</span> (ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).read_text().splitlines()]
+recent=[r <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> r[<span class="hljs-string">&#x27;epoch&#x27;</span>]&gt;=began]
+faints=[r <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> recent <span class="hljs-keyword">if</span> foe.lower() <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]).lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;fainte&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]).lower()]
+<span class="hljs-keyword">if</span> faints <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">4</span>:
+ <span class="hljs-keyword">from</span> bgm_span <span class="hljs-keyword">import</span> append_span,wild_track
+ wave=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">4</span>]);control=json.loads((ROOT/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>).read_text());p=ROOT/control[<span class="hljs-string">&#x27;active_gauntlet_journal&#x27;</span>];j=json.loads(p.read_text());<span class="hljs-keyword">assert</span> j[<span class="hljs-string">&#x27;result&#x27;</span>]==<span class="hljs-string">&#x27;active&#x27;</span> <span class="hljs-keyword">and</span> wave <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [w[<span class="hljs-string">&#x27;wave&#x27;</span>]<span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> j[<span class="hljs-string">&#x27;waves&#x27;</span>]]
+ j[<span class="hljs-string">&#x27;waves&#x27;</span>].append({<span class="hljs-string">&#x27;wave&#x27;</span>:wave,<span class="hljs-string">&#x27;foe&#x27;</span>:foe,<span class="hljs-string">&#x27;result&#x27;</span>:<span class="hljs-string">&#x27;victory&#x27;</span>,<span class="hljs-string">&#x27;public_evidence&#x27;</span>:faints[-<span class="hljs-number">1</span>],<span class="hljs-string">&#x27;worker_log&#x27;</span>:<span class="hljs-built_in">str</span>(log.relative_to(ROOT))});p.write_text(json.dumps(j,indent=<span class="hljs-number">2</span>))
+ append_span(began,faints[-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;epoch&#x27;</span>],wild_track());append_span(faints[-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;epoch&#x27;</span>],time.time(),<span class="hljs-string">&#x27;Victory!&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;WAVE RECORDED&#x27;</span>,wave,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

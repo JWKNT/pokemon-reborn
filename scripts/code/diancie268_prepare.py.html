@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>diancie268_prepare.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of diancie268_prepare.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Train an owned reserve and teach the inspected Dive machine through normal menus.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,pathlib,subprocess,sys
+R=pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+label=<span class="hljs-string">&#x27;Diancie268-Party&#x27;</span>;s=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> [m[<span class="hljs-string">&#x27;species&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>]]==[<span class="hljs-string">&#x27;MAWILE&#x27;</span>,<span class="hljs-string">&#x27;CRESSELIA&#x27;</span>,<span class="hljs-string">&#x27;MIENSHAO&#x27;</span>,<span class="hljs-string">&#x27;ALTARIA&#x27;</span>,<span class="hljs-string">&#x27;AMOONGUSS&#x27;</span>,<span class="hljs-string">&#x27;SWAMPERT&#x27;</span>]
+ruby=<span class="hljs-string">&quot;&quot;&quot;require_relative &#x27;scripts/read_rgss&#x27;;MAXIMUMLEVEL=200
+load &#x27;/Applications/Reborn.app/Contents/Game/Scripts/PBExperience.rb&#x27;
+load &#x27;/Applications/Reborn.app/Contents/Game/Scripts/Reborn/montext.rb&#x27;
+p=plain(load_rgss(ARGV[0])[:Trainer])[&#x27;party&#x27;];m=p.find{|a|a[&#x27;species&#x27;]==:ALTARIA};g=MONHASH[m[&#x27;species&#x27;]].values.first[:GrowthRate];goal=PBExp.pbGetExpInternal(116,g);puts JSON.generate({exp:m[&#x27;exp&#x27;],goal:goal,xl:[0,((goal-m[&#x27;exp&#x27;])/30000.0).ceil].max})&quot;&quot;&quot;</span>
+plan=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;-e&#x27;</span>,ruby,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;backups&#x27;</span>/<span class="hljs-string">f&#x27;Aster-<span class="hljs-subst">{label}</span>.rxdata&#x27;</span>)],cwd=R,stderr=subprocess.DEVNULL))
+<span class="hljs-keyword">assert</span> plan[<span class="hljs-string">&#x27;xl&#x27;</span>]&lt;=s[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;EXPCANDYXL&#x27;</span>];<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ALTARIA CANDY&#x27;</span>,plan,flush=<span class="hljs-literal">True</span>)
+(R/<span class="hljs-string">&#x27;work/Diancie268-altaria-candy.json&#x27;</span>).write_text(json.dumps(plan,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> plan[<span class="hljs-string">&#x27;xl&#x27;</span>]:run(<span class="hljs-string">&#x27;train_candy_one&#x27;</span>,<span class="hljs-string">&#x27;Altaria&#x27;</span>,plan[<span class="hljs-string">&#x27;xl&#x27;</span>],<span class="hljs-string">&#x27;XL&#x27;</span>)
+run(<span class="hljs-string">&#x27;teach_machine&#x27;</span>,<span class="hljs-string">&#x27;TMX6 Dive&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;Dive&#x27;</span>,<span class="hljs-number">0</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;heal&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Diancie268-Trained&#x27;</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>chest_tyran15.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of chest_tyran15.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed Tyrantrum wave and public-pixel interception of Knight Edgard12.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">slot,turns,finish=<span class="hljs-literal">False</span></span>):
+ env=os.environ.copy()
+ <span class="hljs-keyword">if</span> finish:env.update(REBORN_FAST_CHEST_TRANSITION=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_POST_BATTLE_GOAL=<span class="hljs-string">&#x27;27,44&#x27;</span>,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>)
+ <span class="hljs-keyword">if</span> finish <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;--checkpoint-after-tyran&#x27;</span> <span class="hljs-keyword">in</span> sys.argv:env[<span class="hljs-string">&#x27;REBORN_POST_BATTLE_CHECKPOINT&#x27;</span>]=<span class="hljs-string">&#x27;Saphira-Tyran-win&#x27;</span>+<span class="hljs-built_in">str</span>(json.loads((ROOT/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;session&#x27;</span>])
+ cmd=[sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_batch.py&#x27;</span>),<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-built_in">str</span>(slot),<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Tyrantrum&#x27;</span>,<span class="hljs-string">&#x27;--wild&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-built_in">str</span>(turns),<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--world-pause&#x27;</span> <span class="hljs-keyword">if</span> finish <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;--status-move&#x27;</span>]
+ r=subprocess.run(cmd,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=<span class="hljs-literal">True</span>)
+ <span class="hljs-built_in">print</span>(r.stdout,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">assert</span> r.returncode==<span class="hljs-number">0</span>
+ <span class="hljs-keyword">return</span> r.stdout
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">15</span>):
+ t=read().lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;what will&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">break</span>
+ act(<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;No command screen&#x27;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;tyrantrum&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;cofagrigus&#x27;</span> <span class="hljs-keyword">in</span> t
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;was burned&#x27;</span> <span class="hljs-keyword">in</span> run(<span class="hljs-number">2</span>,<span class="hljs-number">1</span>).lower(),<span class="hljs-string">&#x27;Burn not confirmed&#x27;</span>
+run(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

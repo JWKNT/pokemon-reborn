@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>map_brief.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of map_brief.py"><code class="hljs language-python"><span class="hljs-keyword">import</span> json,sys
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> loadmap
+v=loadmap();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Map&#x27;</span>,v[<span class="hljs-string">&#x27;map&#x27;</span>],<span class="hljs-string">&#x27;position&#x27;</span>,v[<span class="hljs-string">&#x27;position&#x27;</span>])
+<span class="hljs-keyword">for</span> k,e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items():
+ cmds=e[<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">or</span> []
+ lines=[<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>]) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cmds <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">101</span>,<span class="hljs-number">201</span>,<span class="hljs-number">355</span>,<span class="hljs-number">655</span>]]
+ <span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;character&#x27;</span>] <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span> <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cmds):
+  <span class="hljs-built_in">print</span>(k,(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]),e[<span class="hljs-string">&#x27;name&#x27;</span>],e[<span class="hljs-string">&#x27;character&#x27;</span>],<span class="hljs-string">&#x27; | &#x27;</span>.join(lines)[:<span class="hljs-number">1100</span>])
+</code></pre>
+  </body>
+</html>

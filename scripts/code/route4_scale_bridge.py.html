@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>route4_scale_bridge.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of route4_scale_bridge.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Source-bound Route4 Heart Scale bridge, dry-run unless --execute.
+
+Imports ordinary UI helpers ONLY inside execution methods. No controls,
+captures, current planner/native/save or active logs are read in development.
+Reuse calcenon queue world/position/page guards, layer_walk, surface_walk,
+eventq and the single requested normal checkpoint. Never blind-replay.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> hashlib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> calcenon_agate_queue <span class="hljs-keyword">import</span> Runner <span class="hljs-keyword">as</span> ExistingRunner, event, need, selected_page
+
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+PHASES=(<span class="hljs-string">&#x27;all&#x27;</span>,<span class="hljs-string">&#x27;dock&#x27;</span>,<span class="hljs-string">&#x27;board&#x27;</span>,<span class="hljs-string">&#x27;cross&#x27;</span>,<span class="hljs-string">&#x27;pickup&#x27;</span>)
+SURF_SPRITES=(<span class="hljs-string">&#x27;boy_surf&#x27;</span>,<span class="hljs-string">&#x27;girl_surf&#x27;</span>,<span class="hljs-string">&#x27;boy2_surf&#x27;</span>,<span class="hljs-string">&#x27;girl2_surf&#x27;</span>,<span class="hljs-string">&#x27;nb_surf&#x27;</span>,<span class="hljs-string">&#x27;nb2_surf&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">source_proof</span>():
+    anchor,item=event(<span class="hljs-number">715</span>,<span class="hljs-number">97</span>),event(<span class="hljs-number">715</span>,<span class="hljs-number">64</span>)
+    need((anchor[<span class="hljs-string">&#x27;x&#x27;</span>],anchor[<span class="hljs-string">&#x27;y&#x27;</span>])==(<span class="hljs-number">50</span>,<span class="hljs-number">25</span>),<span class="hljs-string">&#x27;Layer anchor moved&#x27;</span>)
+    p=anchor[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>]
+    need(p[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(v <span class="hljs-keyword">for</span> k,v <span class="hljs-keyword">in</span> p[<span class="hljs-string">&#x27;condition&#x27;</span>].items() <span class="hljs-keyword">if</span> k.endswith(<span class="hljs-string">&#x27;_valid&#x27;</span>)),
+         <span class="hljs-string">&#x27;Layer anchor must be unconditional player-touch&#x27;</span>)
+    need([(c[<span class="hljs-string">&#x27;code&#x27;</span>],c[<span class="hljs-string">&#x27;parameters&#x27;</span>]) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> p[<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]!=<span class="hljs-number">0</span>]==[(<span class="hljs-number">121</span>,[<span class="hljs-number">410</span>,<span class="hljs-number">410</span>,<span class="hljs-number">0</span>])],
+         <span class="hljs-string">&#x27;Layer anchor must have only the source410True setter&#x27;</span>)
+    need((item[<span class="hljs-string">&#x27;x&#x27;</span>],item[<span class="hljs-string">&#x27;y&#x27;</span>])==(<span class="hljs-number">57</span>,<span class="hljs-number">20</span>),<span class="hljs-string">&#x27;Heart Scale event moved&#x27;</span>)
+    need(item[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;parameters&#x27;</span>]==[<span class="hljs-number">12</span>,<span class="hljs-string">&#x27;Kernel.pbItemBall(:HEARTSCALE)&#x27;</span>],
+         <span class="hljs-string">&#x27;Pickup must be normal Heart Scale item-ball&#x27;</span>)
+    need(<span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">123</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;indent&#x27;</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>]==[<span class="hljs-string">&#x27;A&#x27;</span>,<span class="hljs-number">0</span>]
+             <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> item[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>]),<span class="hljs-string">&#x27;Pickup self-A must follow success condition&#x27;</span>)
+    <span class="hljs-keyword">return</span> [{<span class="hljs-string">&#x27;map&#x27;</span>:<span class="hljs-number">715</span>,<span class="hljs-string">&#x27;event&#x27;</span>:e[<span class="hljs-string">&#x27;id&#x27;</span>],<span class="hljs-string">&#x27;sha256&#x27;</span>:hashlib.sha256(json.dumps(e,sort_keys=<span class="hljs-literal">True</span>).encode()).hexdigest()}
+            <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> (anchor,item)]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">preflight</span>(<span class="hljs-params">status</span>):
+    party=status.get(<span class="hljs-string">&#x27;party&#x27;</span>,[])
+    need(<span class="hljs-built_in">len</span>(party)==<span class="hljs-number">6</span> <span class="hljs-keyword">and</span> party[<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;level&#x27;</span>]==<span class="hljs-number">90</span>,<span class="hljs-string">&#x27;Frozen six and level90 lead required&#x27;</span>)
+    need(party[<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]==party[<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">and</span> party[<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;status&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>,
+         <span class="hljs-string">&#x27;Heal lead before the dry approach&#x27;</span>)
+    need(<span class="hljs-built_in">any</span>(p.get(<span class="hljs-string">&#x27;species&#x27;</span>)==<span class="hljs-string">&#x27;SWAMPERT&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;SURF&#x27;</span> <span class="hljs-keyword">in</span> {m[<span class="hljs-string">&#x27;move&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> p.get(<span class="hljs-string">&#x27;moves&#x27;</span>,[])}
+             <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> party),<span class="hljs-string">&#x27;Frozen owned Swampert must know Surf&#x27;</span>)
+    bag=status.get(<span class="hljs-string">&#x27;bag&#x27;</span>,{}).get(<span class="hljs-string">&#x27;contents&#x27;</span>,{})
+    need(bag.get(<span class="hljs-string">&#x27;HEARTSCALE&#x27;</span>,<span class="hljs-number">0</span>)==<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;Already own a Scale: skip this pickup rather than duplicate it&#x27;</span>)
+    need(bag.get(<span class="hljs-string">&#x27;SUPERREPEL&#x27;</span>,<span class="hljs-number">0</span>)&gt;<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;Owned SuperRepel required for this walk&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">proposal</span>(<span class="hljs-params">layer=<span class="hljs-literal">None</span></span>):
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;status&#x27;</span>:<span class="hljs-string">&#x27;source proposal, not executed&#x27;</span>,<span class="hljs-string">&#x27;arrival&#x27;</span>:[<span class="hljs-number">715</span>,<span class="hljs-number">65</span>,<span class="hljs-number">17</span>],
+            <span class="hljs-string">&#x27;observed_layer_argument&#x27;</span>:layer,<span class="hljs-string">&#x27;steps&#x27;</span>:[
+        [<span class="hljs-string">&#x27;layer_walk&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">50</span>,<span class="hljs-number">23</span>,<span class="hljs-string">&#x27;OBSERVED410&#x27;</span> <span class="hljs-keyword">if</span> layer <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> layer,<span class="hljs-number">0</span>],
+        {<span class="hljs-string">&#x27;ordinary_keys&#x27;</span>:[<span class="hljs-string">&#x27;down:.03&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>],<span class="hljs-string">&#x27;only_choice&#x27;</span>:<span class="hljs-string">&#x27;verified Surf Yes/No → Yes&#x27;</span>,
+         <span class="hljs-string">&#x27;require&#x27;</span>:<span class="hljs-string">&#x27;715[50,24] and exact visible installed Surf avatar&#x27;</span>},
+        {<span class="hljs-string">&#x27;ordinary_keys&#x27;</span>:[<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>],<span class="hljs-string">&#x27;require&#x27;</span>:<span class="hljs-string">&#x27;715[50,25] genuine overworld/Surf&#x27;</span>,
+         <span class="hljs-string">&#x27;completed_source_only&#x27;</span>:<span class="hljs-string">&#x27;715E97 sets planner410True&#x27;</span>},
+        [<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">57</span>,<span class="hljs-number">21</span>],[<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">64</span>,<span class="hljs-string">&#x27;item&#x27;</span>],
+        {<span class="hljs-string">&#x27;require&#x27;</span>:<span class="hljs-string">&#x27;visible Heart Scale acquisition, then one normal checkpoint&#x27;</span>,
+         <span class="hljs-string">&#x27;checkpoint&#x27;</span>:<span class="hljs-string">&#x27;Route4-Scale-129&#x27;</span>,<span class="hljs-string">&#x27;proof&#x27;</span>:<span class="hljs-string">&#x27;postbag HEARTSCALE&gt;=1 and native715,64,A=True&#x27;</span>}],
+        <span class="hljs-string">&#x27;source_proof&#x27;</span>:source_proof(),
+        <span class="hljs-string">&#x27;stop&#x27;</span>:<span class="hljs-string">&#x27;Any capture restart/interruption, encounter, wrong coordinate/page/avatar or unknown dialogue. Re-observe and choose a fresh phase; never replay existing journal.&#x27;</span>}
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Runner</span>(<span class="hljs-title class_ inherited__">ExistingRunner</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self,args,binding</span>):
+        <span class="hljs-variable language_">self</span>.args=args;<span class="hljs-variable language_">self</span>.path=args.journal.resolve()
+        need(<span class="hljs-variable language_">self</span>.path.is_relative_to(ROOT) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.path.exists(),
+             <span class="hljs-string">&#x27;Use a new workspace journal after reviewing any partial previous run&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.journal={<span class="hljs-string">&#x27;frozen_status_sha256&#x27;</span>:binding,<span class="hljs-string">&#x27;source_proof&#x27;</span>:source_proof(),
+                      <span class="hljs-string">&#x27;phase&#x27;</span>:args.phase,<span class="hljs-string">&#x27;events&#x27;</span>:[],<span class="hljs-string">&#x27;pending&#x27;</span>:<span class="hljs-literal">None</span>}
+        <span class="hljs-variable language_">self</span>.write()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">health</span>(<span class="hljs-params">self</span>):
+        h=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+        need(h.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span> <span class="hljs-keyword">and</span> time.time()-h.get(<span class="hljs-string">&#x27;epoch&#x27;</span>,<span class="hljs-number">0</span>)&lt;<span class="hljs-number">2</span>,
+             <span class="hljs-string">&#x27;Recording health is not fresh; no input&#x27;</span>)
+        <span class="hljs-keyword">return</span> h
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">self,script,*args</span>):
+        before=<span class="hljs-variable language_">self</span>.health()
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>]={<span class="hljs-string">&#x27;script&#x27;</span>:script,<span class="hljs-string">&#x27;args&#x27;</span>:<span class="hljs-built_in">list</span>(args),<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time()};<span class="hljs-variable language_">self</span>.write()
+        result=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{script}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],
+                              capture_output=<span class="hljs-literal">True</span>,text=<span class="hljs-literal">True</span>,check=<span class="hljs-literal">True</span>)
+        <span class="hljs-built_in">print</span>(result.stdout,flush=<span class="hljs-literal">True</span>)
+        after=<span class="hljs-variable language_">self</span>.health()
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;ordinary-helper-returned&#x27;</span>,script=script,args=<span class="hljs-built_in">list</span>(args),stdout=result.stdout)
+        <span class="hljs-comment"># Existing movement helper may recover and replan, but this bridge never</span>
+        <span class="hljs-comment"># proceeds into its next phase on a restarted capture without review.</span>
+        need(before.get(<span class="hljs-string">&#x27;pid&#x27;</span>)==after.get(<span class="hljs-string">&#x27;pid&#x27;</span>) <span class="hljs-keyword">and</span>
+             before.get(<span class="hljs-string">&#x27;restart_count&#x27;</span>,<span class="hljs-number">0</span>)==after.get(<span class="hljs-string">&#x27;restart_count&#x27;</span>,<span class="hljs-number">0</span>),
+             <span class="hljs-string">&#x27;Capture restarted during helper: stop and re-observe actual endpoint&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>]=<span class="hljs-literal">None</span>;<span class="hljs-variable language_">self</span>.write()
+        <span class="hljs-keyword">return</span> result.stdout
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">keys</span>(<span class="hljs-params">self,*keys</span>):
+        <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act
+        before=<span class="hljs-variable language_">self</span>.health()
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>]={<span class="hljs-string">&#x27;normal_keys&#x27;</span>:<span class="hljs-built_in">list</span>(keys),<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time()};<span class="hljs-variable language_">self</span>.write()
+        act(*keys)
+        after=<span class="hljs-variable language_">self</span>.health()
+        need(before.get(<span class="hljs-string">&#x27;pid&#x27;</span>)==after.get(<span class="hljs-string">&#x27;pid&#x27;</span>) <span class="hljs-keyword">and</span>
+             before.get(<span class="hljs-string">&#x27;restart_count&#x27;</span>,<span class="hljs-number">0</span>)==after.get(<span class="hljs-string">&#x27;restart_count&#x27;</span>,<span class="hljs-number">0</span>),
+             <span class="hljs-string">&#x27;Capture restarted during keys; stop without replay&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;ordinary-keys-returned&#x27;</span>,keys=<span class="hljs-built_in">list</span>(keys));<span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>]=<span class="hljs-literal">None</span>;<span class="hljs-variable language_">self</span>.write()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">surf_visible</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> snap,NATIVE
+        <span class="hljs-keyword">from</span> sprite_sensor <span class="hljs-keyword">import</span> detect
+        snap()
+        names=(<span class="hljs-variable language_">self</span>.args.surf_sprite,) <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.args.surf_sprite <span class="hljs-keyword">else</span> SURF_SPRITES
+        matches={name:detect(NATIVE,name,scale=<span class="hljs-variable language_">self</span>.args.sprite_scale) <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> names}
+        hits=[(name,p) <span class="hljs-keyword">for</span> name,poses <span class="hljs-keyword">in</span> matches.items() <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> poses]
+        need(<span class="hljs-built_in">len</span>(hits)==<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Surf avatar must match one exact installed sprite; inspect public screenshot&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;public-surf-avatar-confirmed&#x27;</span>,sprite=hits[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>],pose=hits[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>],
+                    screenshot=<span class="hljs-built_in">str</span>(NATIVE))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">dock</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">715</span>,(<span class="hljs-number">715</span>,<span class="hljs-number">65</span>,<span class="hljs-number">17</span>))
+        need(<span class="hljs-variable language_">self</span>.nav().get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;410&#x27;</span>,<span class="hljs-literal">False</span>)==<span class="hljs-built_in">bool</span>(<span class="hljs-variable language_">self</span>.args.layer),
+             <span class="hljs-string">&#x27;Observed layer argument disagrees with completed planner evidence&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">50</span>,<span class="hljs-number">23</span>,<span class="hljs-variable language_">self</span>.args.layer,<span class="hljs-number">0</span>)
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">715</span>,(<span class="hljs-number">715</span>,<span class="hljs-number">50</span>,<span class="hljs-number">23</span>))
+        need(<span class="hljs-variable language_">self</span>.nav().get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;410&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">False</span>,<span class="hljs-string">&#x27;Dry dock requires observed410False&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">board</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">715</span>,(<span class="hljs-number">715</span>,<span class="hljs-number">50</span>,<span class="hljs-number">23</span>))
+        need(<span class="hljs-variable language_">self</span>.nav().get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;410&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">False</span>,<span class="hljs-string">&#x27;Board only from verified lower dry dock&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.keys(<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>)
+        <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">6</span>):
+            text=read();compact=re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,text.lower());<span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;boarding-public-text&#x27;</span>,text=text)
+            need(<span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\bfight\b|\bhp\b|\bwild\b|pp:&#x27;</span>,text.lower()),<span class="hljs-string">&#x27;Encounter interrupted boarding&#x27;</span>)
+            <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;surf&#x27;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;wouldyouliketo&#x27;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;youliketosurf&#x27;</span> <span class="hljs-keyword">in</span> compact):
+                <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>)
+            <span class="hljs-keyword">elif</span> <span class="hljs-string">&#x27;usedsurf&#x27;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;surf!&#x27;</span> <span class="hljs-keyword">in</span> text.lower():
+                <span class="hljs-variable language_">self</span>.keys(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+            <span class="hljs-keyword">else</span>:
+                <span class="hljs-variable language_">self</span>.world();<span class="hljs-keyword">break</span>
+        <span class="hljs-keyword">else</span>:
+            <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Surf boarding messages did not resolve&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">715</span>,(<span class="hljs-number">715</span>,<span class="hljs-number">50</span>,<span class="hljs-number">24</span>));<span class="hljs-variable language_">self</span>.surf_visible()
+        <span class="hljs-variable language_">self</span>.keys(<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">715</span>,(<span class="hljs-number">715</span>,<span class="hljs-number">50</span>,<span class="hljs-number">25</span>));<span class="hljs-variable language_">self</span>.surf_visible()
+        <span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">715</span>,<span class="hljs-number">97</span>,<span class="hljs-number">0</span>)
+        <span class="hljs-variable language_">self</span>.mirror(<span class="hljs-number">715</span>,<span class="hljs-number">97</span>,<span class="hljs-number">0</span>)
+        need(<span class="hljs-variable language_">self</span>.nav()[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;410&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;Only witnessed E97 completion can establish surf layer&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cross</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">715</span>,(<span class="hljs-number">715</span>,<span class="hljs-number">50</span>,<span class="hljs-number">25</span>));<span class="hljs-variable language_">self</span>.surf_visible()
+        need(<span class="hljs-variable language_">self</span>.nav().get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;410&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;Cross requires witnessed E97 layer&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">57</span>,<span class="hljs-number">21</span>)
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">715</span>,(<span class="hljs-number">715</span>,<span class="hljs-number">57</span>,<span class="hljs-number">21</span>))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pickup</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">715</span>,(<span class="hljs-number">715</span>,<span class="hljs-number">57</span>,<span class="hljs-number">21</span>));<span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">715</span>,<span class="hljs-number">64</span>,<span class="hljs-number">0</span>)
+        out=<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">64</span>,<span class="hljs-string">&#x27;item&#x27;</span>)
+        compact=re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,out.lower())
+        need(<span class="hljs-string">&#x27;heartscale&#x27;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;obtained&#x27;</span>,<span class="hljs-string">&#x27;found&#x27;</span>,<span class="hljs-string">&#x27;put&#x27;</span>,<span class="hljs-string">&#x27;bag&#x27;</span>)),
+             <span class="hljs-string">&#x27;Missing visible Heart Scale acquisition: inspect before any checkpoint&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;visible-heartscale-acquisition&#x27;</span>,evidence=out)
+        <span class="hljs-variable language_">self</span>.world();<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-variable language_">self</span>.args.checkpoint)
+        after=json.loads((ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{self.args.checkpoint}</span>-status.json&#x27;</span>).read_text())
+        nav=json.loads((ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{self.args.checkpoint}</span>-navigation.json&#x27;</span>).read_text())
+        need(after.get(<span class="hljs-string">&#x27;map&#x27;</span>)==<span class="hljs-number">715</span> <span class="hljs-keyword">and</span> after.get(<span class="hljs-string">&#x27;bag&#x27;</span>,{}).get(<span class="hljs-string">&#x27;contents&#x27;</span>,{}).get(<span class="hljs-string">&#x27;HEARTSCALE&#x27;</span>,<span class="hljs-number">0</span>)&gt;=<span class="hljs-number">1</span>,
+             <span class="hljs-string">&#x27;Post-checkpoint bag did not prove the Scale&#x27;</span>)
+        need(nav.get(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;715,64,A&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>,
+             <span class="hljs-string">&#x27;Native checkpoint did not prove successful pickup self-A&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;heartscale-native-checkpoint-balanced&#x27;</span>,checkpoint=<span class="hljs-variable language_">self</span>.args.checkpoint,
+                    scale_count=after[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;HEARTSCALE&#x27;</span>])
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument(<span class="hljs-string">&#x27;--execute&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;--phase&#x27;</span>,choices=PHASES,default=<span class="hljs-string">&#x27;all&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--from-phase&#x27;</span>,choices=PHASES[<span class="hljs-number">1</span>:],<span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;Explicit reviewed suffix resume; always use a fresh journal&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--layer&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,choices=(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>));p.add_argument(<span class="hljs-string">&#x27;--frozen-status&#x27;</span>,<span class="hljs-built_in">type</span>=Path)
+    p.add_argument(<span class="hljs-string">&#x27;--journal&#x27;</span>,<span class="hljs-built_in">type</span>=Path,default=ROOT/<span class="hljs-string">&#x27;work/route4-scale-129-progress.json&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--checkpoint&#x27;</span>,default=<span class="hljs-string">&#x27;Route4-Scale-129&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--surf-sprite&#x27;</span>,choices=SURF_SPRITES);p.add_argument(<span class="hljs-string">&#x27;--sprite-scale&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,choices=(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>),default=<span class="hljs-number">4</span>)
+    args=p.parse_args()
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> args.execute:
+        <span class="hljs-keyword">if</span> args.frozen_status:preflight(json.loads(args.frozen_status.read_text()))
+        <span class="hljs-built_in">print</span>(json.dumps(proposal(args.layer),indent=<span class="hljs-number">2</span>));<span class="hljs-keyword">return</span>
+    need(args.frozen_status <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;Explicit frozen outside-battle party/bag evidence required&#x27;</span>)
+    path=args.frozen_status.resolve();need(path.is_relative_to(ROOT),<span class="hljs-string">&#x27;Frozen evidence must be in workspace&#x27;</span>)
+    raw=path.read_bytes();preflight(json.loads(raw))
+    need(args.phase <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;all&#x27;</span>,<span class="hljs-string">&#x27;dock&#x27;</span>) <span class="hljs-keyword">or</span> args.layer <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;Supply actually observed410 for dry approach&#x27;</span>)
+    need(args.checkpoint.replace(<span class="hljs-string">&#x27;-&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).replace(<span class="hljs-string">&#x27;_&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).isalnum(),<span class="hljs-string">&#x27;Unsafe checkpoint label&#x27;</span>)
+    runner=Runner(args,hashlib.sha256(raw).hexdigest())
+    <span class="hljs-keyword">try</span>:
+        phases = (<span class="hljs-string">&#x27;dock&#x27;</span>,<span class="hljs-string">&#x27;board&#x27;</span>,<span class="hljs-string">&#x27;cross&#x27;</span>,<span class="hljs-string">&#x27;pickup&#x27;</span>) <span class="hljs-keyword">if</span> args.phase==<span class="hljs-string">&#x27;all&#x27;</span> <span class="hljs-keyword">else</span> (args.phase,)
+        <span class="hljs-keyword">if</span> args.from_phase:
+            need(args.phase == <span class="hljs-string">&#x27;all&#x27;</span>, <span class="hljs-string">&#x27;--from-phase requires the default all phase&#x27;</span>)
+            phases = phases[phases.index(args.from_phase):]
+        <span class="hljs-keyword">for</span> phase <span class="hljs-keyword">in</span> phases:
+            <span class="hljs-built_in">getattr</span>(runner,phase)();runner.record(<span class="hljs-string">&#x27;phase-completed&#x27;</span>,phase=phase)
+    <span class="hljs-keyword">except</span> BaseException <span class="hljs-keyword">as</span> error:
+        runner.record(<span class="hljs-string">&#x27;stopped-requires-actual-state-review&#x27;</span>,error=<span class="hljs-built_in">str</span>(error),pending=runner.journal[<span class="hljs-string">&#x27;pending&#x27;</span>])
+        <span class="hljs-keyword">raise</span>
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:main()
+</code></pre>
+  </body>
+</html>

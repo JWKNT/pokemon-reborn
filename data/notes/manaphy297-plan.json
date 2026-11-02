@@ -1,0 +1,30 @@
+{
+  "route": "Solved Mirage707\u2192709\u2192708\u2192690\u2192673\u2192674 E144\u2192861; deepwater42,21\u2192863 E1\u2192862",
+  "splash_route": [
+    [
+      66,
+      6
+    ],
+    [
+      118,
+      119,
+      117
+    ],
+    "door123",
+    [
+      38,
+      48,
+      100
+    ],
+    "door76",
+    [
+      72
+    ],
+    "door70",
+    "boss129"
+  ],
+  "battle": "Lead Zapdos Fly to surface. Inspect actual seed/speed and field change before committing. Volcanion Haze available for Tail Glow; Magearna Calm Mind special bulk; reserve Amoonguss for Clear Smog if needed. Capture Manaphy after win.",
+  "native_source": "Installed MANAPHY trainer and fieldtext.rb Underwater/WaterSurface; no active battle reads.",
+  "field_verified": "Installed Underwater: nonwater speed0.5; Electric2x; Fire0. Fly/Dive/Bounce changes to WaterSurface. WaterSurface: grounded nonwater speed0.75, Electric1.5 except airborne, Fire0.5 unless airborne, Ground0. Surface seeds giveSpDef+1/AquaRing; underwaterseeds giveWaterType+Speed1. FirstHeliolisk keeps consumed underwaterseed until switches.",
+  "matchups": "Fly lead Zapdos; Mawile sets SD against physical Dhelmise if safe; Swampert Surf for Nidoking after resurfacing, Electric immunity; Magearna AuraSphere Tyranitar and FlashCannon/boosts; Cress Moonblast Drampa; Zapdos Discharge Manaphy; Volcanion Haze emergency TailGlow reset."
+}

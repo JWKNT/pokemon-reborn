@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>reviewed_railnet_entry.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of reviewed_railnet_entry.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Queue reviewed Devon approach, fleeing only known Railnet wild Noibat.
+Uses normal controls; pauses at Arclight&#x27;s readiness choice.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> re
+steps=[(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-string">&#x27;228&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;enter&#x27;</span>),(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-string">&#x27;229&#x27;</span>,<span class="hljs-string">&#x27;150&#x27;</span>,<span class="hljs-string">&#x27;talk&#x27;</span>),(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-string">&#x27;229&#x27;</span>,<span class="hljs-string">&#x27;150&#x27;</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--until-choice&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)]
+<span class="hljs-keyword">for</span> command <span class="hljs-keyword">in</span> steps:
+ <span class="hljs-keyword">for</span> attempt <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">8</span>):
+  t=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;noibat&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> re.search(<span class="hljs-string">r&#x27;\bhp\b&#x27;</span>,t)):
+   subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+  started=time.time();r=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/command[<span class="hljs-number">0</span>]),*command[<span class="hljs-number">1</span>:]])
+  <span class="hljs-keyword">if</span> r.returncode==<span class="hljs-number">0</span>:<span class="hljs-keyword">break</span>
+  now=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;noibat&#x27;</span> <span class="hljs-keyword">in</span> now <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> now <span class="hljs-keyword">or</span> re.search(<span class="hljs-string">r&#x27;\bhp\b&#x27;</span>,now)):
+   rows=[json.loads(l)<span class="hljs-keyword">for</span> l <span class="hljs-keyword">in</span> (ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).read_text().splitlines()]
+   anchor=<span class="hljs-built_in">next</span>((x[<span class="hljs-string">&#x27;epoch&#x27;</span>]<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> x[<span class="hljs-string">&#x27;epoch&#x27;</span>]&gt;=started <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;wild&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>]).lower()),time.time()-<span class="hljs-number">4</span>)
+   subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>),<span class="hljs-string">&#x27;--since&#x27;</span>,<span class="hljs-built_in">str</span>(anchor)],check=<span class="hljs-literal">True</span>);<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">if</span> command[<span class="hljs-number">0</span>]==<span class="hljs-string">&#x27;eventq.py&#x27;</span> <span class="hljs-keyword">and</span> command[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]==(<span class="hljs-string">&#x27;229&#x27;</span>,<span class="hljs-string">&#x27;150&#x27;</span>) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;arc:&#x27;</span> <span class="hljs-keyword">in</span> now <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;lowdo&#x27;</span> <span class="hljs-keyword">in</span> now:
+   <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Inspected Arclight readiness scene reached&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">if</span> command[<span class="hljs-number">0</span>]==<span class="hljs-string">&#x27;eventq.py&#x27;</span> <span class="hljs-keyword">and</span> command[<span class="hljs-number">1</span>]==<span class="hljs-string">&#x27;228&#x27;</span>:
+   <span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+   m,x,y=locate()
+   <span class="hljs-keyword">if</span> m==<span class="hljs-number">229</span>:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Reviewed entry reached despite interrupted transfer&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected approach interruption&#x27;</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Railnet wild encounter budget exhausted&#x27;</span>)
+</code></pre>
+  </body>
+</html>

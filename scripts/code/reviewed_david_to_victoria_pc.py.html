@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>reviewed_david_to_victoria_pc.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of reviewed_david_to_victoria_pc.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finish the observed David victory and reach Devon&#x27;s PC using native inputs.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,read,act
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> subprocess,sys,json
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+    subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/s),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+
+run(<span class="hljs-string">&#x27;victory_outro.py&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">626</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-battle&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music.py&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>,<span class="hljs-string">&#x27;--world-verified&#x27;</span>)
+run(<span class="hljs-string">&#x27;mark_event.py&#x27;</span>,<span class="hljs-number">626</span>,<span class="hljs-number">7</span>)
+run(<span class="hljs-string">&#x27;devon_walk.py&#x27;</span>,<span class="hljs-number">626</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;--go&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">626</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">627</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+v=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;339&#x27;</span>]=<span class="hljs-number">26</span>;(ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;627,5,8&#x27;</span>)
+act(<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:3&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+v=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;339&#x27;</span>]=<span class="hljs-number">27</span>;(ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">627</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">628</span>)==(<span class="hljs-number">628</span>,<span class="hljs-number">30</span>,<span class="hljs-number">8</span>),<span class="hljs-string">&#x27;Devon trap transfer requires review&#x27;</span>
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text())
+v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;339&#x27;</span>]=<span class="hljs-number">28</span>;v.setdefault(<span class="hljs-string">&#x27;switches&#x27;</span>,{})[<span class="hljs-string">&#x27;777&#x27;</span>]=<span class="hljs-literal">False</span>
+p.write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;devon_pc_prepare.py&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DAVID CLEARED; VICTORIA ROSTER SAVED AT PC&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

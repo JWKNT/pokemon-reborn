@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>find_field_items.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of find_field_items.rb"><code class="hljs language-ruby">require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">iv</span>(<span class="hljs-params">o,k</span>);o.instance_variable_get(<span class="hljs-string">&#x27;@&#x27;</span>+k.to_s);<span class="hljs-keyword">end</span>
+root=<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data/&#x27;</span>
+v=load_rgss(<span class="hljs-variable constant_">ENV</span>.fetch(<span class="hljs-string">&#x27;REBORN_FROZEN_SAVE&#x27;</span>,<span class="hljs-string">&#x27;/Users/jw/Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>))
+sw=iv(v[<span class="hljs-symbol">:switches</span>],<span class="hljs-symbol">:data</span>);va=iv(v[<span class="hljs-symbol">:variable</span>],<span class="hljs-symbol">:data</span>);ss=iv(v[<span class="hljs-symbol">:self_switches</span>],<span class="hljs-symbol">:data</span>)
+n=<span class="hljs-variable constant_">JSON</span>.parse(<span class="hljs-title class_">File</span>.read(<span class="hljs-title class_">File</span>.expand_path(<span class="hljs-string">&#x27;../notes/navigation-state.json&#x27;</span>,__dir__)))
+(n[<span class="hljs-string">&#x27;variables&#x27;</span>]|<span class="hljs-params"></span>|{}).each{|<span class="hljs-params">k,x</span>|va[k.to_i]=x};(n[<span class="hljs-string">&#x27;switches&#x27;</span>]|<span class="hljs-params"></span>|{}).each{|<span class="hljs-params">k,x</span>|sw[k.to_i]=x};(n[<span class="hljs-string">&#x27;self_switches&#x27;</span>]|<span class="hljs-params"></span>|{}).each{|<span class="hljs-params">k,x</span>|a,b,c=k.split(<span class="hljs-string">&#x27;,&#x27;</span>);ss[[a.to_i,b.to_i,c]]=x}
+info=load_rgss(root+<span class="hljs-string">&#x27;MapInfos.rxdata&#x27;</span>);hits=[]
+(<span class="hljs-variable constant_">ARGV</span>.empty? ? (<span class="hljs-number">350</span>..<span class="hljs-number">456</span>).to_a : <span class="hljs-variable constant_">ARGV</span>.map(&amp;<span class="hljs-symbol">:to_i</span>)).each <span class="hljs-keyword">do</span> |<span class="hljs-params">id</span>|
+ <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> <span class="hljs-title class_">File</span>.exist?(root+<span class="hljs-string">&#x27;Map%03d.rxdata&#x27;</span>%id)
+ m=load_rgss(root+<span class="hljs-string">&#x27;Map%03d.rxdata&#x27;</span>%id)
+ iv(m,<span class="hljs-symbol">:events</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">eid,e</span>|
+  pg=iv(e,<span class="hljs-symbol">:pages</span>).reverse.find <span class="hljs-keyword">do</span> |<span class="hljs-params">p</span>|
+   c=iv(p,<span class="hljs-symbol">:condition</span>)
+   (!iv(c,<span class="hljs-symbol">:switch1_valid</span>)|<span class="hljs-params"></span>|sw[iv(c,<span class="hljs-symbol">:switch1_id</span>)])&amp;&amp;(!iv(c,<span class="hljs-symbol">:switch2_valid</span>)|<span class="hljs-params"></span>|sw[iv(c,<span class="hljs-symbol">:switch2_id</span>)])&amp;&amp;(!iv(c,<span class="hljs-symbol">:variable_valid</span>)|<span class="hljs-params"></span>|(va[iv(c,<span class="hljs-symbol">:variable_id</span>)]|<span class="hljs-params"></span>|<span class="hljs-number">0</span>)&gt;=iv(c,<span class="hljs-symbol">:variable_value</span>))&amp;&amp;(!iv(c,<span class="hljs-symbol">:self_switch_valid</span>)|<span class="hljs-params"></span>|ss[[id,eid,iv(c,<span class="hljs-symbol">:self_switch_ch</span>)]])
+  <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> pg
+  cs=plain(iv(pg,<span class="hljs-symbol">:list</span>));s=cs.select{|<span class="hljs-params">c</span>|[<span class="hljs-number">111</span>,<span class="hljs-number">126</span>,<span class="hljs-number">355</span>,<span class="hljs-number">655</span>].<span class="hljs-keyword">include</span>?(c[<span class="hljs-symbol">:code</span>]|<span class="hljs-params"></span>|c[<span class="hljs-string">&#x27;code&#x27;</span>])}.to_s
+  items=(<span class="hljs-variable constant_">ENV</span>[<span class="hljs-string">&#x27;REBORN_FIND_ITEMS&#x27;</span>] ? <span class="hljs-variable constant_">ENV</span>[<span class="hljs-string">&#x27;REBORN_FIND_ITEMS&#x27;</span>].split(<span class="hljs-string">&#x27;,&#x27;</span>) : [<span class="hljs-string">&#x27;HEARTSCALE&#x27;</span>,<span class="hljs-string">&#x27;SYNTHETICSEED&#x27;</span>]).select{|<span class="hljs-params">x</span>|s.<span class="hljs-keyword">include</span>?(x)&amp;&amp;s.match?(<span class="hljs-regexp">/pbReceiveItem|Kernel.pbReceiveItem|HiddenItem|pbItemBall/</span>)}
+  <span class="hljs-keyword">next</span> <span class="hljs-keyword">if</span> items.empty?
+  hits&lt;&lt;{<span class="hljs-symbol">map:</span>id,<span class="hljs-symbol">name:</span>iv(info[id],<span class="hljs-symbol">:name</span>),<span class="hljs-symbol">event:</span>eid,<span class="hljs-symbol">x:</span>iv(e,<span class="hljs-symbol">:x</span>),<span class="hljs-symbol">y:</span>iv(e,<span class="hljs-symbol">:y</span>),<span class="hljs-symbol">items:</span>items}
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(hits)
+</code></pre>
+  </body>
+</html>

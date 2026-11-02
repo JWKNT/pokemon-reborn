@@ -1,0 +1,64 @@
+{
+  "basis": "Frozen owned Logic200-solved and installed public scripts; proposals only",
+  "resources": {
+    "money": 125567,
+    "heart_scales": 1,
+    "power_items_owned": [
+      "Weight",
+      "Bracer",
+      "Lens",
+      "Band",
+      "Anklet"
+    ]
+  },
+  "boxed": {
+    "Gyarados": "Lv95 Intimidate, Brave,252Atk/252Speed; Waterfall/Outrage/Crunch/DD. HP310 Atk333 Def172 SpD220 Spe198. IV Atk1 Speed2. Nature repair highly valuable; not assume perfect IV.",
+    "Gigalith": "Lv95 Sturdy (not Sand Stream),Docile252HP252Atk;StoneEdge/Bulldoze/SR/RockSlide. HP334 Atk338 Def269 SpD161 Spe73.",
+    "Cofagrigus": "Lv95 effectiveTimid,172HP/252Def/80SpA;Room/Hex/Wisp/Curse. HP265 Def351 SpA221 SpD230 Spe71.",
+    "Mawile": "New catch Lv90 Box1 slot17, SheerForce Careful, noEVs, IV9/18/26/31/9/14; PlayRough/IronHead/Swallow/SpitUp. HP198 Atk174 Def181 SpA117 SpD123 Spe107. 1QuickBall. Frozen Mawile200-caught owned snapshot, work/200-mawile-owned.json.",
+    "Chatot": "Gift from Taka on bridge, Lv100 BigPecks Careful noEVs, IV31/10/15/31/19/31. HeatWave/Encore/NastyPlot/Boomburst; HP293 SpA198 Spe218. Box0 slot17. Frozen Chatot201-received."
+  },
+  "prep_proposal": "At Florinia PC bring Fly carrier and refresh whole box build. Legal resupply and EV training; prioritize Mienshao fullAtk/Speed and nature, consider fast offensive Cryogonal or alternate team. Do not spend all funds on medicine.",
+  "nature_service": "Map326E3 current page normal aChangeNature costs2HeartScales; one owned so collect/fish more before travel. Old first-page random service is obsolete.",
+  "berry_price": 500,
+  "berry_effect": "20EV decrease each in installed version; Poweritems replace yields with32 of selected stat.",
+  "route_helpers": "saphira_circus_build.py berry phase pattern; saphira_pair_training.py RailnetNoibat/Woobat normal pairtraining; fly_to.py defaultTranquill. Do not rerun dated checkpoint assertions.",
+  "heartscale_candidates_uncollected_frozen201": [
+    [
+      144,
+      12,
+      50,
+      11
+    ],
+    [
+      209,
+      314,
+      92,
+      57
+    ],
+    [
+      234,
+      6,
+      41,
+      53
+    ],
+    [
+      678,
+      8,
+      18,
+      14
+    ],
+    [
+      691,
+      8,
+      34,
+      46
+    ],
+    [
+      788,
+      60,
+      22,
+      15
+    ]
+  ]
+}

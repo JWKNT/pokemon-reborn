@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>league221_tree_hunt.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of league221_tree_hunt.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded visible Headbutt hunting; retain desired birds, flee other inspected tree species.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">for</span> attempt <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">8</span>):
+ began=time.time();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TREE ATTEMPT&#x27;</span>,attempt+<span class="hljs-number">1</span>,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/league221_headbutt.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+ t=read().lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;swablu&#x27;</span>,<span class="hljs-string">&#x27;altaria&#x27;</span>]):
+  (ROOT/<span class="hljs-string">&#x27;work/221-target-encounter.json&#x27;</span>).write_text(json.dumps({<span class="hljs-string">&#x27;began&#x27;</span>:began,<span class="hljs-string">&#x27;public_text&#x27;</span>:t}));<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TARGET READY&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;pineco&#x27;</span>,<span class="hljs-string">&#x27;forretress&#x27;</span>,<span class="hljs-string">&#x27;aipom&#x27;</span>,<span class="hljs-string">&#x27;ambipom&#x27;</span>]):
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>),<span class="hljs-string">&#x27;--since&#x27;</span>,<span class="hljs-built_in">str</span>(began)],check=<span class="hljs-literal">True</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t).replace(<span class="hljs-string">&#x27;pokemonreborn&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>))&lt;<span class="hljs-number">3</span>:<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unrecognized tree result&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Hunt bound; inspect before another batch&#x27;</span>)
+</code></pre>
+  </body>
+</html>

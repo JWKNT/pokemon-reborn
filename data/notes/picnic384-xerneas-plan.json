@@ -1,0 +1,15 @@
+{
+  "battle": 221,
+  "source": "Installed Map889 event35 page0 and trainer table; no live battle state",
+  "party": [
+    "Magearna",
+    "Kyogre",
+    "Latias",
+    "Darkrai",
+    "Rayquaza",
+    "Mewtwo"
+  ],
+  "plan": "Magearna Trick Room / Kyogre Protect; Magearna Calm Mind / Kyogre Water Spout; assess public health and enemies each turn, use spread attacks to gain Soul Heart. Psychic Terrain boosts Calm Mind by two stages and Trick Room to eight turns. Avoid spending all Water Spout PP on repeatedly boosting Cosmoem.",
+  "recording": 384,
+  "status": "prebattle, supplies route underway"
+}

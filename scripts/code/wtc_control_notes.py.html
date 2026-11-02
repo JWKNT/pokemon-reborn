@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>wtc_control_notes.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of wtc_control_notes.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Model an OBSERVED water-control interaction into navigation notes only.
+
+Interprets the installed, deterministic control/common-event commands. It never
+edits game files or runs commands inside the game. Invoke after the real button
+has been pressed, while notes still describe the state before that press.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> copy
+
+<span class="hljs-keyword">from</span> wtc_model <span class="hljs-keyword">import</span> predict
+old,eid,new=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">4</span>])
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;state=json.loads(p.read_text())
+state,current,budget=predict(state,old,eid)
+positions=state[<span class="hljs-string">&#x27;positions&#x27;</span>];<span class="hljs-built_in">vars</span>=state[<span class="hljs-string">&#x27;variables&#x27;</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">value</span>(<span class="hljs-params">i</span>):<span class="hljs-keyword">return</span> <span class="hljs-built_in">vars</span>.get(<span class="hljs-built_in">str</span>(i),<span class="hljs-number">0</span>) <span class="hljs-keyword">or</span> <span class="hljs-number">0</span>
+<span class="hljs-keyword">assert</span> current==new,(<span class="hljs-string">&#x27;Control-model map mismatch&#x27;</span>,current,new)
+<span class="hljs-keyword">assert</span> locate(new)[<span class="hljs-number">0</span>]==new,<span class="hljs-string">&#x27;Observed transfer required before committing notes&#x27;</span>
+evidence={<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;from_map&#x27;</span>:old,<span class="hljs-string">&#x27;event&#x27;</span>:eid,<span class="hljs-string">&#x27;to_map&#x27;</span>:new,<span class="hljs-string">&#x27;instructions&#x27;</span>:budget,<span class="hljs-string">&#x27;positions&#x27;</span>:positions[<span class="hljs-built_in">str</span>(new)],<span class="hljs-string">&#x27;water_levels&#x27;</span>:{<span class="hljs-built_in">str</span>(k):value(k)<span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">256</span>,<span class="hljs-number">265</span>)}}
+(ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">f&#x27;wtc-control-<span class="hljs-subst">{<span class="hljs-built_in">int</span>(time.time())}</span>.json&#x27;</span>).write_text(json.dumps(evidence,indent=<span class="hljs-number">2</span>))
+p.write_text(json.dumps(state))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OBSERVED WATER CONTROL MODELED IN NOTES&#x27;</span>,old,eid,new,budget,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

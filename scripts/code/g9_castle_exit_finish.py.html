@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g9_castle_exit_finish.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g9_castle_exit_finish.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">navset</span>(<span class="hljs-params">stage</span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;159&#x27;</span>]=stage;p.write_text(json.dumps(v))
+navset(<span class="hljs-number">1</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;293,9,38,down,wait:2&#x27;</span>)
+navset(<span class="hljs-number">2</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">293</span>,<span class="hljs-number">31</span>)
+navset(<span class="hljs-number">3</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;423&#x27;</span>]=<span class="hljs-literal">True</span>
+<span class="hljs-keyword">for</span> sw <span class="hljs-keyword">in</span> [<span class="hljs-number">295</span>,<span class="hljs-number">299</span>,<span class="hljs-number">303</span>,<span class="hljs-number">301</span>,<span class="hljs-number">304</span>,<span class="hljs-number">306</span>,<span class="hljs-number">308</span>,<span class="hljs-number">311</span>,<span class="hljs-number">313</span>,<span class="hljs-number">315</span>,<span class="hljs-number">317</span>,<span class="hljs-number">318</span>,<span class="hljs-number">319</span>,<span class="hljs-number">320</span>,<span class="hljs-number">321</span>,<span class="hljs-number">322</span>,<span class="hljs-number">323</span>]:v[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(sw)]=<span class="hljs-literal">False</span>
+p.write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">292</span>,<span class="hljs-number">22</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=5&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OUTSIDE CASTLE AND HEALED — INSPECT BEFORE MAZE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>silva367_round.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of silva367_round.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One installed Silva v4 matchup, using the public UI and normal candy reward.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json, os, re, subprocess, sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+root = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+label = sys.argv[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">assert</span> re.fullmatch(<span class="hljs-string">r&#x27;Postgame\d+-Silva\d+&#x27;</span>, label)
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> (root / <span class="hljs-string">&#x27;notes&#x27;</span> / (label + <span class="hljs-string">&#x27;-status.json&#x27;</span>)).exists()
+env = <span class="hljs-built_in">dict</span>(os.environ, REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>, REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>, REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;112&#x27;</span>)
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script, *args</span>):
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SILVA ROUND&#x27;</span>, script, *args, flush=<span class="hljs-literal">True</span>)
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(root / <span class="hljs-string">&#x27;scripts&#x27;</span> / (script + <span class="hljs-string">&#x27;.py&#x27;</span>)), *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, args)], env=env, check=<span class="hljs-literal">True</span>)
+
+foes = [<span class="hljs-string">&#x27;Xatu&#x27;</span>, <span class="hljs-string">&#x27;Natu&#x27;</span>, <span class="hljs-string">&#x27;Carracosta&#x27;</span>, <span class="hljs-string">&#x27;Weavile&#x27;</span>, <span class="hljs-string">&#x27;Mawile&#x27;</span>]
+(root / <span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>).write_text(json.dumps({<span class="hljs-string">&#x27;expected_foes&#x27;</span>: foes, <span class="hljs-string">&#x27;scope&#x27;</span>: <span class="hljs-string">&#x27;Installed Silva v4, Grand Hall common79.&#x27;</span>}, indent=<span class="hljs-number">2</span>))
+run(<span class="hljs-string">&#x27;party_front&#x27;</span>, <span class="hljs-string">&#x27;Zapdos&#x27;</span>)
+run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>, <span class="hljs-number">38</span>, <span class="hljs-number">43</span>, <span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>, <span class="hljs-string">&#x27;start&#x27;</span>, <span class="hljs-string">&#x27;PSYCHIC_Male&#x27;</span>, <span class="hljs-string">&#x27;Silva&#x27;</span>, <span class="hljs-string">&#x27;--map&#x27;</span>, <span class="hljs-number">38</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>, <span class="hljs-string">&#x27;Yes|No&#x27;</span>, <span class="hljs-string">&#x27;Yes&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>, <span class="hljs-number">38</span>, <span class="hljs-number">43</span>, <span class="hljs-string">&#x27;PSYCHIC_Male&#x27;</span>, <span class="hljs-string">&#x27;Silva&#x27;</span>, <span class="hljs-string">&#x27;--expand-common&#x27;</span>, <span class="hljs-string">&#x27;--active-dialogue&#x27;</span>, <span class="hljs-string">&#x27;--past-choice&#x27;</span>, <span class="hljs-string">&#x27;--resume-intro&#x27;</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--enable-battle-turbo&#x27;</span> <span class="hljs-keyword">in</span> sys.argv: run(<span class="hljs-string">&#x27;play&#x27;</span>, <span class="hljs-string">&#x27;m:.12&#x27;</span>, <span class="hljs-string">&#x27;wait:.4&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>, <span class="hljs-string">&#x27;Zapdos&#x27;</span>, <span class="hljs-number">1</span>, <span class="hljs-string">&#x27;--foes&#x27;</span>, <span class="hljs-string">&#x27;,&#x27;</span>.join(foes), <span class="hljs-string">&#x27;--turns&#x27;</span>, <span class="hljs-number">8</span>, <span class="hljs-string">&#x27;--stay&#x27;</span>, <span class="hljs-string">&#x27;--stay-team-reviewed&#x27;</span>, <span class="hljs-string">&#x27;--watch&#x27;</span>, <span class="hljs-string">&#x27;--min-hp&#x27;</span>, <span class="hljs-number">.35</span>, <span class="hljs-string">&#x27;--stop-after-victory&#x27;</span>)
+run(<span class="hljs-string">&#x27;grandhall_reward&#x27;</span>)
+run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>, <span class="hljs-string">&#x27;finish&#x27;</span>, <span class="hljs-string">&#x27;--world-verified&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>, label)
+state = json.loads((root / <span class="hljs-string">&#x27;notes&#x27;</span> / (label + <span class="hljs-string">&#x27;-status.json&#x27;</span>)).read_text())
+<span class="hljs-keyword">assert</span> state[<span class="hljs-string">&#x27;map&#x27;</span>] == <span class="hljs-number">38</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(mon[<span class="hljs-string">&#x27;hp&#x27;</span>] == mon[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">and</span> mon[<span class="hljs-string">&#x27;status&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">for</span> mon <span class="hljs-keyword">in</span> state[<span class="hljs-string">&#x27;party&#x27;</span>])
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SILVA REWARD VERIFIED&#x27;</span>, label, <span class="hljs-string">&#x27;XL&#x27;</span>, state[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>].get(<span class="hljs-string">&#x27;EXPCANDYXL&#x27;</span>), flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

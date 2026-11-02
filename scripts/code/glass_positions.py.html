@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_positions.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_positions.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only Glass pallet geometry from installed controller and observed puzzle notes.
+Only computes a planner snapshot. Never writes the game or save.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,json,pathlib
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">refresh</span>(<span class="hljs-params">v,source</span>):
+ variables={<span class="hljs-built_in">int</span>(k):z <span class="hljs-keyword">for</span> k,z <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;variables&#x27;</span>].items()};positions={<span class="hljs-built_in">int</span>(k):[e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]] <span class="hljs-keyword">for</span> k,e <span class="hljs-keyword">in</span> source.items()}
+ cs=source[<span class="hljs-string">&#x27;64&#x27;</span>][<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>];start=<span class="hljs-built_in">next</span>(i <span class="hljs-keyword">for</span> i,c <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(cs)<span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">111</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][:<span class="hljs-number">2</span>]==[<span class="hljs-number">1</span>,<span class="hljs-number">408</span>])
+ branch={}
+ <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs[start:]:
+  code,indent,a=c[<span class="hljs-string">&#x27;code&#x27;</span>],c[<span class="hljs-string">&#x27;indent&#x27;</span>],c[<span class="hljs-string">&#x27;parameters&#x27;</span>]
+  parent=<span class="hljs-built_in">all</span>(b <span class="hljs-keyword">for</span> k,b <span class="hljs-keyword">in</span> branch.items()<span class="hljs-keyword">if</span> k&lt;indent)
+  <span class="hljs-keyword">if</span> code==<span class="hljs-number">111</span>:
+   <span class="hljs-keyword">assert</span> a[<span class="hljs-number">0</span>]==<span class="hljs-number">1</span>,(<span class="hljs-string">&#x27;Unreviewed pallet controller condition&#x27;</span>,a)
+   operand=variables.get(a[<span class="hljs-number">3</span>],<span class="hljs-number">0</span>)<span class="hljs-keyword">if</span> a[<span class="hljs-number">2</span>]<span class="hljs-keyword">else</span> a[<span class="hljs-number">3</span>];left=variables.get(a[<span class="hljs-number">1</span>],<span class="hljs-number">0</span>)
+   branch[indent]=parent <span class="hljs-keyword">and</span> [left==operand,left&gt;=operand,left&lt;=operand,left&gt;operand,left&lt;operand,left!=operand][a[<span class="hljs-number">4</span>]]
+  <span class="hljs-keyword">elif</span> code==<span class="hljs-number">411</span>:branch[indent]=parent <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> branch[indent]
+  <span class="hljs-keyword">elif</span> code==<span class="hljs-number">412</span>:branch.pop(indent,<span class="hljs-literal">None</span>)
+  <span class="hljs-keyword">elif</span> parent <span class="hljs-keyword">and</span> code==<span class="hljs-number">122</span>:
+   <span class="hljs-keyword">assert</span> a[<span class="hljs-number">0</span>]==a[<span class="hljs-number">1</span>] <span class="hljs-keyword">and</span> a[<span class="hljs-number">3</span>]<span class="hljs-keyword">in</span>[<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">6</span>],a
+   <span class="hljs-keyword">if</span> a[<span class="hljs-number">3</span>]==<span class="hljs-number">0</span>:operand=a[<span class="hljs-number">4</span>]
+   <span class="hljs-keyword">elif</span> a[<span class="hljs-number">3</span>]==<span class="hljs-number">1</span>:operand=variables.get(a[<span class="hljs-number">4</span>],<span class="hljs-number">0</span>)
+   <span class="hljs-keyword">else</span>:operand=positions[a[<span class="hljs-number">4</span>]][a[<span class="hljs-number">5</span>]]
+   variables[a[<span class="hljs-number">0</span>]]=[operand,variables.get(a[<span class="hljs-number">0</span>],<span class="hljs-number">0</span>)+operand,variables.get(a[<span class="hljs-number">0</span>],<span class="hljs-number">0</span>)-operand][a[<span class="hljs-number">2</span>]]
+  <span class="hljs-keyword">elif</span> parent <span class="hljs-keyword">and</span> code==<span class="hljs-number">202</span>:
+   eid,mode,x,y,_=a;positions[eid]=[x,y]<span class="hljs-keyword">if</span> mode==<span class="hljs-number">0</span> <span class="hljs-keyword">else</span>[variables.get(x,<span class="hljs-number">0</span>),variables.get(y,<span class="hljs-number">0</span>)]
+ <span class="hljs-keyword">for</span> eid,var <span class="hljs-keyword">in</span> [(<span class="hljs-number">63</span>,<span class="hljs-number">404</span>),(<span class="hljs-number">65</span>,<span class="hljs-number">406</span>)]:
+  <span class="hljs-keyword">if</span> variables.get(var,<span class="hljs-number">0</span>)!=<span class="hljs-number">0</span>:positions[eid]=[variables[var],variables.get(var+<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)]
+ v.setdefault(<span class="hljs-string">&#x27;positions&#x27;</span>,{}).setdefault(<span class="hljs-string">&#x27;732&#x27;</span>,{}).update({<span class="hljs-built_in">str</span>(eid):xy <span class="hljs-keyword">for</span> eid,xy <span class="hljs-keyword">in</span> positions.items()<span class="hljs-keyword">if</span> source[<span class="hljs-built_in">str</span>(eid)][<span class="hljs-string">&#x27;name&#x27;</span>].startswith(<span class="hljs-string">&#x27;GB&#x27;</span>) <span class="hljs-keyword">or</span> eid <span class="hljs-keyword">in</span>[<span class="hljs-number">63</span>,<span class="hljs-number">65</span>]})
+ <span class="hljs-keyword">return</span> v
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());source=json.loads((ROOT/<span class="hljs-string">&#x27;work/story-map-732-events.json&#x27;</span>).read_text());p.write_text(json.dumps(refresh(v,source)))
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PLANNER PALLET GEOMETRY REFRESHED FROM OBSERVED STATE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

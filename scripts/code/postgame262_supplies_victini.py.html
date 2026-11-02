@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>postgame262_supplies_victini.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of postgame262_supplies_victini.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Sell one owned treasure, restock, and accept Randall&#x27;s inspected Victini lead.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+s=json.loads((R/<span class="hljs-string">&#x27;notes/Postgame262-Will2-Cap120-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">38</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(m[<span class="hljs-string">&#x27;level&#x27;</span>]==<span class="hljs-number">120</span> <span class="hljs-keyword">and</span> m[<span class="hljs-string">&#x27;hp&#x27;</span>]==m[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>])
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>].get(<span class="hljs-string">&#x27;STARPIECE&#x27;</span>,<span class="hljs-number">0</span>)&gt;=<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]+<span class="hljs-number">4900</span>&gt;=<span class="hljs-number">13600</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SUPPLY/QUEST&#x27;</span>,n,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--after-sale&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Buy|Sell|Quit&#x27;</span>,<span class="hljs-string">&#x27;Sell&#x27;</span>)
+ run(<span class="hljs-string">&#x27;shop_sell_one&#x27;</span>,<span class="hljs-string">&#x27;Star Piece&#x27;</span>,<span class="hljs-number">4900</span>)
+run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Buy|Sell|Quit&#x27;</span>,<span class="hljs-string">&#x27;Buy&#x27;</span>)
+run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-number">1200</span>);run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">520</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">520</span>,<span class="hljs-number">67</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">369</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;mart_open&#x27;</span>)
+run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,<span class="hljs-string">&#x27;Timer Ball&#x27;</span>,<span class="hljs-number">10</span>,<span class="hljs-number">1000</span>);run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Postgame262-Supplied&#x27;</span>)
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">369</span>,<span class="hljs-number">520</span>);run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">527</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>)
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">527</span>,<span class="hljs-number">826</span>);run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">826</span>,<span class="hljs-number">827</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">827</span>,<span class="hljs-number">51</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--yes&#x27;</span>,<span class="hljs-string">&#x27;--limit=40&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Postgame262-VictiniQuest&#x27;</span>)
+<span class="hljs-keyword">assert</span> json.loads((R/<span class="hljs-string">&#x27;notes/Postgame262-VictiniQuest-navigation.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;613&#x27;</span>]==<span class="hljs-number">1</span>
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VICTINI QUEST ACCEPTED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

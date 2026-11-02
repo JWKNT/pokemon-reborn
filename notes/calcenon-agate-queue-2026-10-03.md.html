@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Calcenon prep queue after Hypno">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="calcenon-agate-queue-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/calcenon-agate-queue-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/calcenon-agate-queue-2026-10-03.md.html">
+    <title>calcenon-agate-queue-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">calcenon-agate-queue-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 5.5 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · committed Oct 3 17:56</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Calcenon prep queue after Hypno</h2>
+<p>Source-only development; no game/recorder input, live native/runtime read or save edit was executed. New helper: <code>scripts/calcenon_agate_queue.py</code>, dry-run by default. Installed events were exported to <code>work/calcenon-agate-prep-source.json</code>; default validation re-reads only those installed event assets, not native state. Python syntax, exact transfers and page-selection fixtures passed.</p>
+<p>Independent source-only sibling review found no blocking route/control guard issue. It caught a title-normalization typo in both first-dialogue anchors: the lowercased screen now removes lowercased <code>pokemon reborn</code>, allowing short Hardy lines to match despite the window title. Recompiled without controls.</p>
+<h3>Approved sequence and boundaries</h3>
+<ol>
+<li>At the actually observed post-recovery Calcenon413[77,26], completed planning39149: Shelly413E46 page0 is optional for the quest (sets1023 only), but included by default for the story. <code>--skip-shelly</code> omits it. Eve413E93 <strong>page0 only</strong> sets39150. Do not replay Eve: page1 is the four-way PULSE information menu. Then413E67 enters417[11,28] and immediately starts417E29p0 when878false, orE30p1 when878true. The queue requires a visible installed house line before advancing the autorun. Both branches have no choice/battle and finish39151,988/989true. Exit417E6→413[28,32]. Planning effects are reflected only after observed completion, apart from the house entrance503 effect which is reflected after its installed house dialogue is positively seen.</li>
+<li>Center413E68→415[10,10], nurse415E4/common1: choose <strong>Yes</strong> by visible labels, then normal healing. PC415E7 opens afresh, requires <strong>Box1</strong>; exchange Box1slot12 <strong>Tranquill</strong> for party index1 <strong>Klinklang</strong>. Source <code>Storage.rb:1942</code> resets the fresh box cursor to0. Existing <code>pc_exchange_named.py</code> verifies both incoming and outgoing names; the new wrapper then verifies all six party cards at their expected positions, opens Tranquill&#39;s ordinary menu and verifies its Fly option. No HM/moves are taught. Exit415E8→413[45,28].</li>
+<li>Ordinary approach413E21→418[17,7]→418E2→412[12,18]. Use one owned SuperRepel normally; existing route helpers renew only on visible expiry. Climbs:412E1→710[23,49];710E2→711[20,58];711E3→713[17,24]; <strong>layer_walk713→48,36 using observed410</strong>;713E5→714[17,10];714E3→715[65,17]. Every transfer is checked at its exact observed endpoint. Stop there. This repeats the successful resupply climb prefix; it calls none of the obsolete Glass story sections, and never visits already-collected710E64.</li>
+</ol>
+<p>The runner conservatively rejects any still-active automatic trainer/boss page on each approach map, before movement. A remote unbeaten trainer can therefore stop a safe-looking queue: inspect/review a narrower route manually, rather than suppressing the guard. Unexpected battles, choices, dialogue, ambiguous party cards, missing Fly, coordinate disagreement or helper failures stop without further queued actions.</p>
+<h3>Commands for root (not executed during development)</h3>
+<p>Print the installed-source proposal:</p>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="sh example"><code class="hljs">python3 scripts/calcenon_agate_queue.py</code></pre>
+<p>Once root has verified that its frozen post-Hypno party evidence is still unchanged (six members, Arcanine90 lead, Klinklang party1, Swampert Surf/RockClimb, at least3 owned SuperRepels), execute the whole queue while recording:</p>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="sh example"><code class="hljs">python3 scripts/calcenon_agate_queue.py --execute --party-status notes/ACTUAL-FROZEN-POST-HYPNO-status.json --journal work/calcenon-agate-queue-run1.json</code></pre>
+<p>The frozen party file may predate the recovery cutscenes: it supplies unchanged party/bag evidence, not a claim that Calcenon coordinates were saved there. Each movement phase independently reads the rendered overworld/coordinates and completed planning391. Root must not reuse that old party file after changing party, moves or spending its prerequisite Repels. The helper inserts <strong>no save/checkpoint</strong>; take one meaningful native checkpoint after the completed briefing/prep if useful.</p>
+<p>Separate phase runs use <code>--phase briefing</code>, <code>--phase carrier</code> or <code>--phase approach</code>. <code>--stop-phase briefing</code>/<code>carrier</code> ends an automatic chain there. Standalone <code>approach</code> requires freshly verified carrier party evidence (Tranquill1 knows Fly, healthy full-HP90 lead, Swampert Surf/RockClimb,3Repels). The optional <code>--climb-index N</code> starts at the source map of climbN (0=412,1=710,2=711,3=713,4=714); it sends no initial Repel and is appropriate only after root reviews the interrupted route and confirms active Repel. Any run requires a <strong>new journal</strong>, while preserving the previous failure/pending receipt. No automatic journal replay/resume is permitted.</p>
+<p>For the new Scale, follow <code>notes/heartscale-normal-route-2026-10-03.md</code>:715dry layer→50,23; normal Surf boarding→50,24; Down→50,25 proves410true; surface route→57,21; faceUP for715E64. This helper intentionally stops before those actions.</p>
+<p>After the Scale is actually collected and a fresh normal checkpoint proves Tranquill1/Fly, HeartScale≥1 and <strong>dry715[57,21]</strong>, the optional separate leg is:</p>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="sh example"><code class="hljs">python3 scripts/calcenon_agate_queue.py --phase fly-circus --execute --party-status notes/ACTUAL-POST-SCALE-status.json --journal work/calcenon-circus-fly-run1.json</code></pre>
+<p>That leg calls existing <code>fly_to355</code>, which checks actual outdoor map metadata, owned carrier menu, already visited Fly destination and exact Circus arrival. It cannot Fly from the indoor center, the brief recovery autorun or the water dock. Root&#39;s Circus purchases/build/training remain in the separate reviewed Agate prep phase script. No Agate fight is started here.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

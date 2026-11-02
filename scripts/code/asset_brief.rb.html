@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>asset_brief.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of asset_brief.rb"><code class="hljs language-ruby">require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+<span class="hljs-variable constant_">ARGV</span>.each <span class="hljs-keyword">do</span> |<span class="hljs-params">id</span>|
+ m=load_rgss(<span class="hljs-string">&quot;/Applications/Reborn.app/Contents/Game/Data/Map%03d.rxdata&quot;</span> % id.to_i)
+ puts <span class="hljs-string">&quot;MAP <span class="hljs-subst">#{id}</span>&quot;</span>
+ m.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">k,e</span>|
+  pages=e.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@pages</span>)
+  text=pages.flat_map{|<span class="hljs-params">p</span>| p.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@list</span>).filter_map{|<span class="hljs-params">c</span>| a=c.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@parameters</span>); code=c.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@code</span>); a.inspect <span class="hljs-keyword">if</span> [<span class="hljs-number">101</span>,<span class="hljs-number">201</span>,<span class="hljs-number">355</span>,<span class="hljs-number">655</span>].<span class="hljs-keyword">include</span>?(code) |<span class="hljs-params"></span>| (code==<span class="hljs-number">111</span> &amp;&amp; a.to_s.match?(<span class="hljs-regexp">/pbTrainerBattle|pbDoubleTrainerBattle|pbItemBall/</span>))}}.uniq
+  <span class="hljs-keyword">next</span> <span class="hljs-keyword">if</span> text.empty?
+  puts <span class="hljs-string">&quot;<span class="hljs-subst">#{k}</span> [<span class="hljs-subst">#{e.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@x</span>)}</span>,<span class="hljs-subst">#{e.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@y</span>)}</span>] <span class="hljs-subst">#{e.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@name</span>)}</span>: <span class="hljs-subst">#{text.join(<span class="hljs-string">&#x27; | &#x27;</span>)}</span>&quot;</span>
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+</code></pre>
+  </body>
+</html>

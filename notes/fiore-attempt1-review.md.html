@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Fiore attempt 1 review — 2026-10-01">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="fiore-attempt1-review.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/fiore-attempt1-review.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/fiore-attempt1-review.md.html">
+    <title>fiore-attempt1-review.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">fiore-attempt1-review.md</h1>
+        <p class="task-meta">Markdown · 3.3 KB · <a href="/pokemon-reborn/reasoning/14/">Task 14</a> · first used Oct 1 17:45</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Fiore attempt 1 review — 2026-10-01</h2>
+<p>This is completed observation, not future AI/RNG inspection. Session089 major113 ended as a normal reset at the time cutoff. No victory; no major-video addition. Full journey retains all turns, mistakes, items, switch decisions and reset; decision-only menu idle time is removed. Saved party/supplies were restored by loading the verified outside checkpoint.</p>
+<p>Before the next attempt, rebuild the plan. The previous plan cannot be treated as validated: enemy EVs were omitted from several speed/damage estimates. Gyarados is faster than our 155-Speed Cryogonal; switching or half-reviving Cryogonal into it is unsafe because Stone Edge can kill before Freeze-Dry. Ground Krookodile can arrive before Ampharos&#39;s queued Discharge. Arcanine&#39;s actual ability is Flash Fire, so it offers no Intimidate support.</p>
+<p>The largest operator error was selecting Cryogonal&#39;s Recover(slot2) instead of Ice Beam(slot1) during Trick Room. It died to Haxorus before contributing. New battle_named_move.py resolves the exact saved actor/move ID; use it for variable actions. Do not assume slots across party members. Check a fresh command/target before queuing a new foe.</p>
+<p>A second mistake was planning revives as full healing. Installed19.5.43 ItemEffects.rb confirms Cotton Candy and Funnel Cake restore HALF HP. Herbal Tea copies MAXREVIVE/full healing. Hyper Potion restores120; Ultra Potion200. Account for enemy attacks in the item-use turn and heal bench revives before switching when necessary. Do not repeat an automatic heal policy with an ineffective move on an asleep target or a .9 threshold that burns potions unnecessarily.</p>
+<p>Round1 Diana/Kenan was won with Florinia, followed by automatic full engine healing. Round2 eliminated Walrein, Mamoswine, Haxorus, Krookodile, Roserade, Gyarados, Starmie and Scizor, but Florinia&#39;s six members and most of ours were lost. It ended with injured Cofagrigus facing Weavile/Rhyperior; Destiny Bond failed because Rock Slide flinched it. The reset was for the time cutoff, not a disguised recorded victory/loss.</p>
+<p>Recorded defeated mons do not imply the remaining team was beaten. Blake still had Weavile/Alolan Sandslash; Fern still had Rhyperior/Decidueye. Round3 Solaris/John was never entered. Actual saved BeatSolaris183=true selects Julia for round3, not the alternative partner. All trainer-column sprites/builds must remain in any eventual successful major113/114 segment.</p>
+<p>Potential revisions to evaluate before play: optimize Mienshao&#39;s attack/speed EVs and held item (Exp.Share provides no battle protection); give Cryogonal a verified speed plan or choose a safer Electric counter for Gyarados; use Ground-immune/speed control support without abandoning the overall three-round roster. Read installed EVs, natures, abilities, fields and source move damage. Confirm availability/cost before committing to new members/items. Neither Ciel nor the earlier Fiore proposal is validated by this attempt.</p>
+<p>Current location is safe outside map359[50,55], allLv75 healthy. Existing route helpers return to Circus for normal training/supply/PC access; wtc_waterfall_exit now accounts for the observed direct arrival on map359, avoiding an obsolete second ascent. F12 is a reload, never the final OS quit. Shutdown verification confirms the actual game process is gone.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

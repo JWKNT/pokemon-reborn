@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g9_iolia_mutate.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g9_iolia_mutate.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> g9_iolia_purple <span class="hljs-keyword">import</span> *
+<span class="hljs-comment"># Activate purple crystal and its new exit, then the southern blue bridge.</span>
+crystal(<span class="hljs-number">343</span>,<span class="hljs-number">1</span>,<span class="hljs-number">453</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;348,13,25,down:0.22,wait:1&#x27;</span>)
+crystal(<span class="hljs-number">335</span>,<span class="hljs-number">130</span>,<span class="hljs-number">442</span>)
+red(<span class="hljs-number">335</span>,<span class="hljs-number">5</span>,<span class="hljs-number">6</span>,<span class="hljs-number">170</span>)
+crystal(<span class="hljs-number">344</span>,<span class="hljs-number">1</span>,<span class="hljs-number">454</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;349,25,18,right:0.22,wait:1&#x27;</span>)
+<span class="hljs-comment"># Return through the purple cave to the central bank.</span>
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;335,43,30,up:0.22,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;348,9,9,left:0.22,wait:1&#x27;</span>)
+reset_rocks(<span class="hljs-number">335</span>,<span class="hljs-number">140</span>,<span class="hljs-number">142</span>);reset_rocks(<span class="hljs-number">334</span>,<span class="hljs-number">7</span>);reset_rocks(<span class="hljs-number">333</span>,<span class="hljs-number">65</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">335</span>,<span class="hljs-number">142</span>,<span class="hljs-string">&#x27;smash&#x27;</span>);run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">335</span>,<span class="hljs-number">140</span>,<span class="hljs-string">&#x27;smash&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;335,35,0,up:0.22,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">334</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;smash&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;334,31,0,up:0.22,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">333</span>,<span class="hljs-number">65</span>,<span class="hljs-string">&#x27;smash&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;333,10,41,down:0.22,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">334</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;342,16,32,down:0.22,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">335</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;349,19,27,down:0.22,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;335,33,42&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NEAR LIGHT SHARD: preserve it for after Bennett; prepare and save.&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

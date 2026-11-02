@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>practice_emile.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of practice_emile.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Repeat the verified four-badge Emile matchup, with automatic postbattle healing supplied by the game.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">*args</span>):
+ p=subprocess.Popen([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/args[<span class="hljs-number">0</span>]),*args[<span class="hljs-number">1</span>:]],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=<span class="hljs-literal">True</span>);out=[]
+ <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> p.stdout:<span class="hljs-built_in">print</span>(line,end=<span class="hljs-string">&#x27;&#x27;</span>,flush=<span class="hljs-literal">True</span>);out.append(line)
+ <span class="hljs-keyword">if</span> p.wait():<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Helper failed&#x27;</span>)
+ <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;&#x27;</span>.join(out)
+<span class="hljs-keyword">for</span> cycle <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>])):
+ t=read().lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(t.splitlines())&gt;<span class="hljs-number">3</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Expected overworld at Emile&#x27;</span>)
+ act(<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.8&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.8&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+ out=run(<span class="hljs-string">&#x27;battle_batch.py&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Servine&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-string">&#x27;2&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.4&#x27;</span>)
+ <span class="hljs-keyword">for</span> stage <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>):
+  t=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (<span class="hljs-string">&#x27;change pok&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;switch your&#x27;</span> <span class="hljs-keyword">in</span> t):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Expected free switch&#x27;</span>)
+  <span class="hljs-keyword">import</span> re
+  upcoming=re.findall(<span class="hljs-string">r&#x27;send\s*in\s*(quilava|gardevoir|nidoking)&#x27;</span>,out.lower())
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> upcoming:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Upcoming opponent was not observed&#x27;</span>)
+  foe=upcoming[-<span class="hljs-number">1</span>];actor=<span class="hljs-string">&#x27;Drapion&#x27;</span> <span class="hljs-keyword">if</span> foe==<span class="hljs-string">&#x27;gardevoir&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Swampert&#x27;</span>
+  act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>);run(<span class="hljs-string">&#x27;party_pick.py&#x27;</span>,actor)
+  <span class="hljs-keyword">if</span> foe==<span class="hljs-string">&#x27;gardevoir&#x27;</span>:
+   run(<span class="hljs-string">&#x27;battle_batch.py&#x27;</span>,<span class="hljs-string">&#x27;Drapion&#x27;</span>,<span class="hljs-string">&#x27;2&#x27;</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Gardevoir&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.5&#x27;</span>)
+   out=run(<span class="hljs-string">&#x27;battle_batch.py&#x27;</span>,<span class="hljs-string">&#x27;Drapion&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Gardevoir&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-string">&#x27;4&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.18&#x27;</span>)
+  <span class="hljs-keyword">else</span>:out=run(<span class="hljs-string">&#x27;battle_batch.py&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;2&#x27;</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,foe,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-string">&#x27;3&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.35&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;bonus&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> out.lower() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;candy&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> out.lower():<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Reward not verified&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;EMILE COMPLETE&#x27;</span>,cycle+<span class="hljs-number">1</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

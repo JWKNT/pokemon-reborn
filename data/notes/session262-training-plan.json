@@ -1,0 +1,43 @@
+{
+  "written_epoch": 1791598517.531657,
+  "Volcanion": {
+    "ev_target": [
+      252,
+      0,
+      0,
+      252,
+      0,
+      0
+    ],
+    "nature": "Hardy",
+    "moves": {
+      "slot1": "Flamethrower replaces Body Slam via owned TM35"
+    },
+    "hp_first_two_ko": "Verified native EV64 at Postgame262-VolcanionHP64",
+    "faster_encounters": "Reviewed safe Opal horizontal grass strip, bounded six-pass movement; no confirmation inputs during hunting",
+    "Noctowl50": "Installed moves Air Slash,Uproar,Roost,Moonblast. Flamethrower110 OHKO; stop unexpected outcome."
+  },
+  "next_quest": "Randall827E51: Victini quest613. Earlier summary incorrectly labeled Simon618 as Diancie: actual618 is Celebi. Diancie is626. No quests newly accepted yet.",
+  "EV_verified": {
+    "checkpoint": "Postgame262-VolcanionEV",
+    "ev": [
+      252,
+      0,
+      0,
+      252,
+      0,
+      0
+    ],
+    "HP": 399,
+    "level": 110
+  },
+  "corrected_tier4_quest_map": {
+    "611": "Danielle: Flora/Shaymin",
+    "613": "Randall: Victini",
+    "616": "Smeargle: Zeraora",
+    "618": "Simon: Celebi",
+    "619": "Zero: Hoopa",
+    "627": "Cass: Meloetta"
+  },
+  "separate_quest": "Diancie is626, not Simon618."
+}

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_hazard_interact.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_hazard_interact.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Source-reviewed lower main-room cart/lever, starting and ending in Party.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> hazard_position <span class="hljs-keyword">import</span> party_position
+E=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);<span class="hljs-keyword">assert</span> E <span class="hljs-keyword">in</span> [<span class="hljs-number">118</span>,<span class="hljs-number">122</span>,<span class="hljs-number">128</span>,<span class="hljs-number">130</span>,<span class="hljs-number">132</span>,<span class="hljs-number">133</span>,<span class="hljs-number">134</span>,<span class="hljs-number">136</span>,<span class="hljs-number">140</span>,<span class="hljs-number">141</span>]
+label=sys.argv[<span class="hljs-number">2</span>];<span class="hljs-keyword">assert</span> re.fullmatch(<span class="hljs-string">r&#x27;[A-Za-z0-9-]+&#x27;</span>,label)
+m,sx,sy=party_position();<span class="hljs-keyword">assert</span> m==<span class="hljs-number">784</span>
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;784&#x27;</span>,<span class="hljs-built_in">str</span>(sx),<span class="hljs-built_in">str</span>(sy)],stderr=subprocess.DEVNULL));e=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(E)]
+options=[]
+<span class="hljs-keyword">for</span> dx,dy,k <span class="hljs-keyword">in</span> [(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;up&#x27;</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;down&#x27;</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;left&#x27;</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;right&#x27;</span>)]:
+ target=(e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy)
+ <span class="hljs-keyword">try</span>:options.append((<span class="hljs-built_in">len</span>(route(v,target)),target,k,route(v,target)))
+ <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">pass</span>
+_,goal,k,path=<span class="hljs-built_in">min</span>(options);<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(path)&lt;<span class="hljs-number">110</span>
+g=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);cur=(sx,sy);seq=[]
+<span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> path:
+ nxt=<span class="hljs-built_in">next</span>(n <span class="hljs-keyword">for</span> kk,n <span class="hljs-keyword">in</span> g[cur] <span class="hljs-keyword">if</span> kk==key)
+ <span class="hljs-keyword">if</span> key.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):seq += [key[<span class="hljs-number">5</span>:]+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:&#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">max</span>(<span class="hljs-number">.9</span>,<span class="hljs-number">.2</span>*(<span class="hljs-built_in">abs</span>(nxt[<span class="hljs-number">0</span>]-cur[<span class="hljs-number">0</span>])+<span class="hljs-built_in">abs</span>(nxt[<span class="hljs-number">1</span>]-cur[<span class="hljs-number">1</span>]))))]
+ <span class="hljs-keyword">else</span>:seq.append(key+<span class="hljs-string">&#x27;:.12&#x27;</span>)
+ cur=nxt
+<span class="hljs-keyword">assert</span> cur==goal
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;HAZARD INTERACTION&#x27;</span>,E,goal,k,path,flush=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,*seq,k+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:&#x27;</span>+(<span class="hljs-string">&#x27;10&#x27;</span> <span class="hljs-keyword">if</span> E <span class="hljs-keyword">in</span> [<span class="hljs-number">122</span>,<span class="hljs-number">128</span>,<span class="hljs-number">132</span>,<span class="hljs-number">133</span>,<span class="hljs-number">140</span>,<span class="hljs-number">141</span>] <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;.6&#x27;</span>))
+t=read().lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;repel&#x27;</span>,<span class="hljs-string">&#x27;used &#x27;</span>,<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;no&#x27;</span>]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Public interruption review&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),label],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_open.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;INTERACTION SAVED&#x27;</span>,label,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

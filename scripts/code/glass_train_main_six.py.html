@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_train_main_six.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_train_main_six.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Build the owned Glass roster to Lv90 using normal PC and candy menus.
+Requires Circus overworld, reviewed Box1 slots and completed Indra training.
+Leaves Fly carrier in party; trained Klinklang is stored in Box1 slot12.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> math
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">exchange</span>(<span class="hljs-params">boxslot,partyslot,incoming,outgoing</span>):
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;pc_open_reviewed&#x27;</span>);run(<span class="hljs-string">&#x27;pc_exchange_named&#x27;</span>,boxslot,partyslot,incoming,outgoing)
+exchange(<span class="hljs-number">6</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Klinklang&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>)
+run(<span class="hljs-string">&#x27;train_candy_one&#x27;</span>,<span class="hljs-string">&#x27;Klinklang&#x27;</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;XL&#x27;</span>)
+exchange(<span class="hljs-number">12</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Excadrill&#x27;</span>,<span class="hljs-string">&#x27;Klinklang&#x27;</span>)
+exchange(<span class="hljs-number">5</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;Ludicolo&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Glass-training-roster&#x27;</span>)
+raw=subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;-e&#x27;</span>,<span class="hljs-string">&quot;require_relative &#x27;scripts/read_rgss&#x27;;v=load_rgss(ARGV[0]);puts JSON.generate(v[:Trainer].instance_variable_get(:@party).map{|p|plain(p).slice(&#x27;species&#x27;,&#x27;name&#x27;,&#x27;level&#x27;,&#x27;exp&#x27;)})&quot;</span>,<span class="hljs-built_in">str</span>(pathlib.Path.home()/<span class="hljs-string">&#x27;Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>)],cwd=ROOT,stderr=subprocess.DEVNULL)
+party=json.loads(raw);expected=[<span class="hljs-string">&#x27;ARCANINE&#x27;</span>,<span class="hljs-string">&#x27;EXCADRILL&#x27;</span>,<span class="hljs-string">&#x27;SWAMPERT&#x27;</span>,<span class="hljs-string">&#x27;MIENSHAO&#x27;</span>,<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span>,<span class="hljs-string">&#x27;TRANQUILL&#x27;</span>]
+<span class="hljs-keyword">assert</span> [p[<span class="hljs-string">&#x27;species&#x27;</span>]<span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> party]==expected,party
+exp90={<span class="hljs-string">&#x27;ARCANINE&#x27;</span>:<span class="hljs-number">90</span>**<span class="hljs-number">3</span>*<span class="hljs-number">5</span>//<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;EXCADRILL&#x27;</span>:<span class="hljs-number">90</span>**<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;SWAMPERT&#x27;</span>:<span class="hljs-number">6</span>*<span class="hljs-number">90</span>**<span class="hljs-number">3</span>//<span class="hljs-number">5</span>-<span class="hljs-number">15</span>*<span class="hljs-number">90</span>**<span class="hljs-number">2</span>+<span class="hljs-number">100</span>*<span class="hljs-number">90</span>-<span class="hljs-number">140</span>,<span class="hljs-string">&#x27;MIENSHAO&#x27;</span>:<span class="hljs-number">6</span>*<span class="hljs-number">90</span>**<span class="hljs-number">3</span>//<span class="hljs-number">5</span>-<span class="hljs-number">15</span>*<span class="hljs-number">90</span>**<span class="hljs-number">2</span>+<span class="hljs-number">100</span>*<span class="hljs-number">90</span>-<span class="hljs-number">140</span>,<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span>:<span class="hljs-number">90</span>**<span class="hljs-number">3</span>}
+<span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> party[:<span class="hljs-number">5</span>]:
+ <span class="hljs-keyword">assert</span> p[<span class="hljs-string">&#x27;level&#x27;</span>]&lt;=<span class="hljs-number">90</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">isinstance</span>(p[<span class="hljs-string">&#x27;exp&#x27;</span>],<span class="hljs-built_in">int</span>),p
+ count=<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,math.ceil((exp90[p[<span class="hljs-string">&#x27;species&#x27;</span>]]-p[<span class="hljs-string">&#x27;exp&#x27;</span>])/<span class="hljs-number">30000</span>))
+ <span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;=count&lt;=<span class="hljs-number">5</span>,(p,count)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VERIFIED NATIVE CANDY PLAN&#x27;</span>,p,<span class="hljs-string">&#x27;XL&#x27;</span>,count,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> count:run(<span class="hljs-string">&#x27;train_candy_one&#x27;</span>,p[<span class="hljs-string">&#x27;name&#x27;</span>],count,<span class="hljs-string">&#x27;XL&#x27;</span>)
+run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Protective Pads&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>)
+run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Spell Tag&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Glass-main-six-trained&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MAIN FIVE Lv90 NATIVE CHECKPOINT; KLINKLANG Lv90 BOX1 SLOT12&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

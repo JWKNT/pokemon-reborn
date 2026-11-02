@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mirage_ladder_push.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mirage_ladder_push.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded normal ladder pushes; verify resulting puzzle positions with a native save.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> sys,json,subprocess,time,copy
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,act,read
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> route_readonly <span class="hljs-keyword">import</span> route
+mid,eid,count=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]),<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]),<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">4</span>]);direction=sys.argv[<span class="hljs-number">3</span>];label=sys.argv[<span class="hljs-number">5</span>]
+<span class="hljs-keyword">assert</span> mid==<span class="hljs-number">882</span> <span class="hljs-keyword">and</span> eid <span class="hljs-keyword">in</span> [<span class="hljs-number">20</span>,<span class="hljs-number">35</span>,<span class="hljs-number">36</span>,<span class="hljs-number">40</span>,<span class="hljs-number">41</span>] <span class="hljs-keyword">and</span> <span class="hljs-number">1</span>&lt;=count&lt;=<span class="hljs-number">12</span>
+dx,dy={<span class="hljs-string">&#x27;up&#x27;</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;down&#x27;</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;left&#x27;</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;right&#x27;</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)}[direction]
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],stderr=subprocess.DEVNULL));e=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)]
+<span class="hljs-keyword">assert</span> e[<span class="hljs-string">&#x27;tile_id&#x27;</span>]==<span class="hljs-number">839</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">209</span> <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>])
+x,y=e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>];blocked={(z[<span class="hljs-string">&#x27;x&#x27;</span>],z[<span class="hljs-string">&#x27;y&#x27;</span>]) <span class="hljs-keyword">for</span> k,z <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items() <span class="hljs-keyword">if</span> k!=<span class="hljs-built_in">str</span>(eid) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> z[<span class="hljs-string">&#x27;through&#x27;</span>]}
+gv=copy.deepcopy(v);gv[<span class="hljs-string">&#x27;events&#x27;</span>].pop(<span class="hljs-built_in">str</span>(eid));gv[<span class="hljs-string">&#x27;position&#x27;</span>]=[-<span class="hljs-number">1</span>,-<span class="hljs-number">1</span>];gv[<span class="hljs-string">&#x27;ignore_ice&#x27;</span>]=<span class="hljs-literal">True</span>;g=route(gv,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">ice</span>(<span class="hljs-params">p</span>):
+ w,h=v[<span class="hljs-string">&#x27;width&#x27;</span>],v[<span class="hljs-string">&#x27;height&#x27;</span>]
+ <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>]:
+  tag=v[<span class="hljs-string">&#x27;terrain&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][v[<span class="hljs-string">&#x27;data&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][p[<span class="hljs-number">0</span>]+w*p[<span class="hljs-number">1</span>]+w*h*z]]
+  <span class="hljs-keyword">if</span> tag <span class="hljs-keyword">and</span> tag!=<span class="hljs-number">13</span>:<span class="hljs-keyword">return</span> tag==<span class="hljs-number">12</span>
+ <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+pos=(x,y)
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(count):
+ dest=(pos[<span class="hljs-number">0</span>]+dx,pos[<span class="hljs-number">1</span>]+dy)
+ <span class="hljs-keyword">assert</span> (direction,dest) <span class="hljs-keyword">in</span> g.get(pos,[]) <span class="hljs-keyword">and</span> dest <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> blocked,(<span class="hljs-string">&#x27;Unsafe push&#x27;</span>,pos,dest)
+ <span class="hljs-keyword">while</span> ice(dest):
+  nn=(dest[<span class="hljs-number">0</span>]+dx,dest[<span class="hljs-number">1</span>]+dy)
+  <span class="hljs-keyword">if</span> (direction,nn) <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> g.get(dest,[]) <span class="hljs-keyword">or</span> nn <span class="hljs-keyword">in</span> blocked:<span class="hljs-keyword">break</span>
+  dest=nn
+ pos=dest
+expected=<span class="hljs-built_in">list</span>(pos)
+stand=(x-dx,y-dy)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">f&#x27;<span class="hljs-subst">{mid}</span>,<span class="hljs-subst">{stand[<span class="hljs-number">0</span>]}</span>,<span class="hljs-subst">{stand[<span class="hljs-number">1</span>]}</span>&#x27;</span>],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">assert</span> locate(mid)==(mid,*stand)
+act(direction+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>)
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(count):
+ t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;no\n&#x27;</span>,<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;wild&#x27;</span>,<span class="hljs-string">&#x27;hp&#x27;</span>,<span class="hljs-string">&#x27;would you&#x27;</span>]),(<span class="hljs-string">&#x27;Unexpected screen&#x27;</span>,t)
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:3&#x27;</span>)
+ <span class="hljs-keyword">if</span> i+<span class="hljs-number">1</span>&lt;count:act(direction+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.25&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),label],check=<span class="hljs-literal">True</span>)
+n=json.loads((ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-navigation.json&#x27;</span>).read_text());actual=n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-built_in">str</span>(mid)][<span class="hljs-built_in">str</span>(eid)];<span class="hljs-keyword">assert</span> actual==expected,(<span class="hljs-string">&#x27;Ladder result differs&#x27;</span>,actual,expected)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;LADDER GROUP VERIFIED&#x27;</span>,eid,actual,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

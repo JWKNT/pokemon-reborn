@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>raikou248_approach.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of raikou248_approach.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Enter Raikou&#x27;s island and checkpoint immediately before the reviewed touch event.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,sys,subprocess,json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RAIKOU APPROACH&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Sylveon&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">289</span>,<span class="hljs-number">91</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;834,92,31&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Postgame248-RaikouReady&#x27;</span>)
+s=json.loads((R/<span class="hljs-string">&#x27;notes/Postgame248-RaikouReady-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Sylveon&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(p[<span class="hljs-string">&#x27;hp&#x27;</span>]==p[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>])
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RAIKOU READY; battle not triggered&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

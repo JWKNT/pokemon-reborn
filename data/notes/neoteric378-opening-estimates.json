@@ -1,0 +1,27 @@
+{
+  "epoch": 1791993535.883958,
+  "method": "Offline ordinary damage estimates from installed trainer roster, field multipliers and owned frozen IVs; no runtime state. Rounded approximations; not a simulator.",
+  "Kyogre145_Primal_Quiet_SpA": 701,
+  "Tyranitar_HP": 581,
+  "Terrakion_HP": 555,
+  "full_water_spout_rain_Tyranitar_AV": [
+    717,
+    843
+  ],
+  "full_water_spout_rain_Terrakion": [
+    1173,
+    1380
+  ],
+  "Magearna_CM1_DG_Ttar_sand_AV": [
+    286,
+    337
+  ],
+  "Magearna_CM1_DG_Ttar_rain_AV": [
+    430,
+    506
+  ],
+  "Magearna_CM1_DG_Terrakion": [
+    702,
+    826
+  ]
+}

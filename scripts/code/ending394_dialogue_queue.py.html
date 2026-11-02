@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ending394_dialogue_queue.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ending394_dialogue_queue.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded normal UI epilogue queue; match only inspected choice-free ending pages.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+pages=json.loads((ROOT/<span class="hljs-string">&#x27;work/394-ending-dialogue-pages.json&#x27;</span>).read_text())
+blocks=[]
+<span class="hljs-keyword">for</span> key,p <span class="hljs-keyword">in</span> pages.items():
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">102</span>,<span class="hljs-number">103</span>,<span class="hljs-number">104</span>,<span class="hljs-number">301</span>] <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>])<span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;pbTrainerBattle&#x27;</span>,<span class="hljs-string">&#x27;pbWildBattle&#x27;</span>]) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> p[<span class="hljs-string">&#x27;list&#x27;</span>])
+ bs=[]
+ <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> p[<span class="hljs-string">&#x27;list&#x27;</span>]:
+  <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">101</span>:bs.append(<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]))
+  <span class="hljs-keyword">elif</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">401</span> <span class="hljs-keyword">and</span> bs:bs[-<span class="hljs-number">1</span>]+=<span class="hljs-string">&#x27; &#x27;</span>+<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>])
+ <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> bs:blocks.append((key,b))
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">norm</span>(<span class="hljs-params">s</span>):<span class="hljs-keyword">return</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,s.lower().replace(<span class="hljs-string">&#x27;pokemon reborn&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).replace(<span class="hljs-string">&#x27;\\pn&#x27;</span>,<span class="hljs-string">&#x27;aster&#x27;</span>))
+<span class="hljs-keyword">for</span> iteration <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">40</span>):
+ r=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> r);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ENDING PUBLIC&#x27;</span>,text,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-comment"># No movement or inputs to automatic credits, choices, or unfamiliar screens.</span>
+ matches=<span class="hljs-built_in">sorted</span>((difflib.SequenceMatcher(<span class="hljs-literal">None</span>,norm(text),norm(b)).ratio(),k,b) <span class="hljs-keyword">for</span> k,b <span class="hljs-keyword">in</span> blocks)
+ score,k,b=matches[-<span class="hljs-number">1</span>]
+ <span class="hljs-keyword">if</span> score&lt;<span class="hljs-number">.68</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">len</span>(norm(text))&lt;<span class="hljs-number">8</span>:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ENDING REVIEW STOP&#x27;</span>,score,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ mid,eid,page=k.split(<span class="hljs-string">&#x27;/&#x27;</span>);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MATCHED ENDING SOURCE&#x27;</span>,k,b,flush=<span class="hljs-literal">True</span>)
+ result=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/linear_dialog.py&#x27;</span>),mid,eid,<span class="hljs-string">&#x27;--source-page&#x27;</span>,page,<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--log-scripted-bgm&#x27;</span>])
+ act(<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+ <span class="hljs-keyword">if</span> result.returncode <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">1</span>]:<span class="hljs-keyword">raise</span> SystemExit(result.returncode)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Ending scene budget reached&#x27;</span>)
+</code></pre>
+  </body>
+</html>

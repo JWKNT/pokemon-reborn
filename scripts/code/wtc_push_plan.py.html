@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>wtc_push_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of wtc_push_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Plan normal WTC trash pushes from installed tiles, without any game writes/input.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> sys,json,subprocess,heapq,itertools
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque
+<span class="hljs-keyword">from</span> layer_route <span class="hljs-keyword">import</span> ROOT,plan,route,effect,DIR
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">solve</span>(<span class="hljs-params">mid,sx,sy,ground,goals,limit=<span class="hljs-number">25000</span></span>):
+ ids=<span class="hljs-built_in">list</span>(goals);v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(sx),<span class="hljs-built_in">str</span>(sy),json.dumps({<span class="hljs-string">&#x27;switches&#x27;</span>:{<span class="hljs-string">&#x27;410&#x27;</span>:<span class="hljs-literal">True</span>}})],stderr=subprocess.DEVNULL))
+ initial=<span class="hljs-built_in">tuple</span>((v[<span class="hljs-string">&#x27;events&#x27;</span>][i][<span class="hljs-string">&#x27;x&#x27;</span>],v[<span class="hljs-string">&#x27;events&#x27;</span>][i][<span class="hljs-string">&#x27;y&#x27;</span>])<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> ids)
+ target=<span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">tuple</span>(goals[i])<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> ids)
+ <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> ids:v[<span class="hljs-string">&#x27;events&#x27;</span>].pop(i)
+ graph=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+ floor={}
+ <span class="hljs-keyword">for</span> p,edges <span class="hljs-keyword">in</span> graph.items():
+  <span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> edges:
+   d=DIR[k.removeprefix(<span class="hljs-string">&#x27;jump:&#x27;</span>)][<span class="hljs-number">2</span>];new=<span class="hljs-literal">True</span>
+   <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values():
+    <span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> (e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])==n:new=effect(e,d,new)
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> new <span class="hljs-keyword">or</span> k.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):<span class="hljs-keyword">continue</span>
+   floor.setdefault(p,[]).append((k,n))
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">reach</span>(<span class="hljs-params">pos,boxes</span>):
+  blocked=<span class="hljs-built_in">set</span>(boxes);seen={pos};todo=[pos]
+  <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> todo:
+   <span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> floor.get(p,[]):
+    <span class="hljs-keyword">if</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> blocked <span class="hljs-keyword">and</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> seen:seen.add(n);todo.append(n)
+  <span class="hljs-keyword">return</span> seen
+ <span class="hljs-keyword">if</span> ground:start=(sx,sy)
+ <span class="hljs-keyword">else</span>:
+  options=[]
+  <span class="hljs-keyword">for</span> x,y <span class="hljs-keyword">in</span> initial:
+   <span class="hljs-keyword">for</span> dx,dy,d <span class="hljs-keyword">in</span> DIR.values():
+    p=(x-dx,y-dy)
+    <span class="hljs-keyword">try</span>:steps=plan(mid,sx,sy,ground,*p,<span class="hljs-literal">True</span>);options.append((<span class="hljs-built_in">len</span>(steps),p))
+    <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">pass</span>
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> options:<span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;No initial floor access&#x27;</span>)
+  start=<span class="hljs-built_in">min</span>(options)[<span class="hljs-number">1</span>]
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">h</span>(<span class="hljs-params">boxes</span>):<span class="hljs-keyword">return</span> <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">abs</span>(x-tx)+<span class="hljs-built_in">abs</span>(y-ty)<span class="hljs-keyword">for</span>(x,y),(tx,ty)<span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(boxes,target))
+ serial=itertools.count();q=[(h(initial),<span class="hljs-number">0</span>,<span class="hljs-built_in">next</span>(serial),start,initial,[])];seen={};expanded=<span class="hljs-number">0</span>
+ <span class="hljs-keyword">while</span> q:
+  _,cost,_,pos,boxes,pushes=heapq.heappop(q);r=reach(pos,boxes);key=(<span class="hljs-built_in">min</span>(r),boxes)
+  <span class="hljs-keyword">if</span> cost&gt;=seen.get(key,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):<span class="hljs-keyword">continue</span>
+  seen[key]=cost;expanded+=<span class="hljs-number">1</span>
+  <span class="hljs-keyword">if</span> boxes==target:<span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;map&#x27;</span>:mid,<span class="hljs-string">&#x27;initial&#x27;</span>:<span class="hljs-built_in">dict</span>(<span class="hljs-built_in">zip</span>(ids,initial)),<span class="hljs-string">&#x27;goals&#x27;</span>:goals,<span class="hljs-string">&#x27;pushes&#x27;</span>:pushes,<span class="hljs-string">&#x27;states&#x27;</span>:expanded}
+  <span class="hljs-keyword">if</span> expanded&gt;limit:<span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Push planning bound exceeded&#x27;</span>)
+  <span class="hljs-keyword">for</span> i,(x,y)<span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(boxes):
+   <span class="hljs-keyword">for</span> k,(dx,dy,d)<span class="hljs-keyword">in</span> DIR.items():
+    before=(x-dx,y-dy);after=(x+dx,y+dy)
+    <span class="hljs-keyword">if</span> before <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> r <span class="hljs-keyword">or</span> after <span class="hljs-keyword">in</span> boxes <span class="hljs-keyword">or</span> (k,after)<span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> floor.get((x,y),[]):<span class="hljs-keyword">continue</span>
+    new=<span class="hljs-built_in">list</span>(boxes);new[i]=after;new=<span class="hljs-built_in">tuple</span>(new);c=cost+<span class="hljs-number">1</span>
+    action={<span class="hljs-string">&#x27;event&#x27;</span>:<span class="hljs-built_in">int</span>(ids[i]),<span class="hljs-string">&#x27;direction&#x27;</span>:k,<span class="hljs-string">&#x27;box_to&#x27;</span>:<span class="hljs-built_in">list</span>(after)}
+    heapq.heappush(q,(c+h(new),c,<span class="hljs-built_in">next</span>(serial),(x,y),new,pushes+[action]))
+ <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;No normal push solution&#x27;</span>)
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ mid,sx,sy,g=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">5</span>]);<span class="hljs-built_in">print</span>(json.dumps(solve(mid,sx,sy,<span class="hljs-built_in">bool</span>(g),json.loads(sys.argv[<span class="hljs-number">5</span>])),indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>terrain302_fennekin_route.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of terrain302_fennekin_route.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed post-restoration 7th Street route, through normal UI only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os, subprocess, sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+env = <span class="hljs-built_in">dict</span>(os.environ, REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>, REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+steps = [
+    (<span class="hljs-string">&#x27;city_enter&#x27;</span>, <span class="hljs-number">38</span>, <span class="hljs-number">519</span>),
+    (<span class="hljs-string">&#x27;fly_to&#x27;</span>, <span class="hljs-number">524</span>, <span class="hljs-string">&#x27;--carrier&#x27;</span>, <span class="hljs-string">&#x27;Zapdos&#x27;</span>),
+    (<span class="hljs-string">&#x27;city_enter&#x27;</span>, <span class="hljs-number">524</span>, <span class="hljs-number">168</span>),
+    (<span class="hljs-string">&#x27;city_enter&#x27;</span>, <span class="hljs-number">168</span>, <span class="hljs-number">324</span>),
+    (<span class="hljs-string">&#x27;city_enter&#x27;</span>, <span class="hljs-number">324</span>, <span class="hljs-number">327</span>),
+    (<span class="hljs-string">&#x27;city_enter&#x27;</span>, <span class="hljs-number">327</span>, <span class="hljs-number">478</span>),
+    (<span class="hljs-string">&#x27;eventq&#x27;</span>, <span class="hljs-number">478</span>, <span class="hljs-number">13</span>, <span class="hljs-string">&#x27;enter&#x27;</span>),
+    (<span class="hljs-string">&#x27;city_enter&#x27;</span>, <span class="hljs-number">478</span>, <span class="hljs-number">505</span>),
+    (<span class="hljs-string">&#x27;wtc_room_exit&#x27;</span>, <span class="hljs-number">505</span>, <span class="hljs-number">504</span>),
+    (<span class="hljs-string">&#x27;wtc_room_exit&#x27;</span>, <span class="hljs-number">504</span>, <span class="hljs-number">502</span>),
+]
+start = <span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv) &gt; <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-number">0</span> &lt;= start &lt; <span class="hljs-built_in">len</span>(steps)
+<span class="hljs-keyword">for</span> i, (name, *args) <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(steps[start:], start):
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TERRAIN ACCESS STAGE&#x27;</span>, i, name, *args, flush=<span class="hljs-literal">True</span>)
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>.py&#x27;</span>),
+                    *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, args)], env=env, check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PERIDOT GRID ARRIVAL; review upper-plane storage button35&#x27;</span>, flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

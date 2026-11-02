@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>code_keys.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of code_keys.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Build digit adjustments from a visually verified value; no game access.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> sys
+old,new=sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>];<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(old)==<span class="hljs-built_in">len</span>(new)==<span class="hljs-number">4</span>
+keys=[<span class="hljs-string">&#x27;right&#x27;</span>]
+<span class="hljs-keyword">for</span> i,(x,y) <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(<span class="hljs-built_in">zip</span>(old,new)):
+ d=(<span class="hljs-built_in">int</span>(y)-<span class="hljs-built_in">int</span>(x))%<span class="hljs-number">10</span>;keys+=[<span class="hljs-string">&#x27;up&#x27;</span>]*d <span class="hljs-keyword">if</span> d&lt;=<span class="hljs-number">5</span> <span class="hljs-keyword">else</span> [<span class="hljs-string">&#x27;down&#x27;</span>]*(<span class="hljs-number">10</span>-d)
+ <span class="hljs-keyword">if</span> i&lt;<span class="hljs-number">3</span>:keys.append(<span class="hljs-string">&#x27;right&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27; &#x27;</span>.join(keys))
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_nw_cliff_event.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_nw_cliff_event.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Approach reviewed Victory Road events through ordinary two-step Rock Climbs.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> copy
+mid,eid=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]),<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]);kind=sys.argv[<span class="hljs-number">3</span>]<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">3</span> <span class="hljs-keyword">else</span><span class="hljs-string">&#x27;talk&#x27;</span>
+<span class="hljs-keyword">assert</span> mid <span class="hljs-keyword">in</span> [<span class="hljs-number">786</span>,<span class="hljs-number">811</span>,<span class="hljs-number">812</span>]
+allowed={<span class="hljs-number">16</span>,<span class="hljs-number">67</span>,<span class="hljs-number">96</span>,<span class="hljs-number">98</span>,<span class="hljs-number">99</span>}<span class="hljs-keyword">if</span> mid <span class="hljs-keyword">in</span> [<span class="hljs-number">786</span>,<span class="hljs-number">811</span>]<span class="hljs-keyword">else</span>{<span class="hljs-number">58</span>,<span class="hljs-number">59</span>,<span class="hljs-number">60</span>,<span class="hljs-number">61</span>,<span class="hljs-number">62</span>,<span class="hljs-number">63</span>,<span class="hljs-number">88</span>,<span class="hljs-number">106</span>,<span class="hljs-number">107</span>,<span class="hljs-number">108</span>,<span class="hljs-number">109</span>,<span class="hljs-number">110</span>}
+dirs=[(<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),(<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),(<span class="hljs-string">&#x27;left&#x27;</span>,-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">plan</span>(<span class="hljs-params">v</span>):
+ target=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)];graph=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+ goals=[(target[<span class="hljs-string">&#x27;x&#x27;</span>]+dx,target[<span class="hljs-string">&#x27;y&#x27;</span>]+dy)<span class="hljs-keyword">for</span> _,dx,dy <span class="hljs-keyword">in</span> dirs]
+ cliffs=[]
+ <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> allowed:
+  e=v[<span class="hljs-string">&#x27;events&#x27;</span>].get(<span class="hljs-built_in">str</span>(k))
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> e <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;Kernel.pbRockClimb&#x27;</span><span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(e[<span class="hljs-string">&#x27;list&#x27;</span>]):<span class="hljs-keyword">continue</span>
+  rr=[c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;list&#x27;</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>]<span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">209</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]==-<span class="hljs-number">1</span>]
+  <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(rr)==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> [c[<span class="hljs-string">&#x27;code&#x27;</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> rr[<span class="hljs-number">0</span>]].count(<span class="hljs-number">12</span>)==<span class="hljs-number">2</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]<span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>,<span class="hljs-number">12</span>)<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> rr[<span class="hljs-number">0</span>]),k
+  <span class="hljs-keyword">for</span> direction,dx,dy <span class="hljs-keyword">in</span> dirs:
+   a=(e[<span class="hljs-string">&#x27;x&#x27;</span>]-dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]-dy);b=(e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy)
+   <span class="hljs-keyword">if</span> graph.get(a)<span class="hljs-keyword">and</span> graph.get(b):cliffs.append((k,a,b,direction))
+ todo=[(<span class="hljs-number">0</span>,<span class="hljs-built_in">tuple</span>(v[<span class="hljs-string">&#x27;position&#x27;</span>]),[])];seen=<span class="hljs-built_in">set</span>()
+ <span class="hljs-keyword">while</span> todo:
+  cost,pos,steps=heapq.heappop(todo)
+  <span class="hljs-keyword">if</span> pos <span class="hljs-keyword">in</span> seen:<span class="hljs-keyword">continue</span>
+  seen.add(pos);vv=<span class="hljs-built_in">dict</span>(v,position=<span class="hljs-built_in">list</span>(pos))
+  <span class="hljs-keyword">for</span> goal <span class="hljs-keyword">in</span> goals:
+   <span class="hljs-keyword">try</span>:route(vv,goal);<span class="hljs-keyword">return</span> steps
+   <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">pass</span>
+  <span class="hljs-keyword">for</span> k,a,b,direction <span class="hljs-keyword">in</span> cliffs:
+   <span class="hljs-keyword">if</span> b <span class="hljs-keyword">in</span> seen:<span class="hljs-keyword">continue</span>
+   <span class="hljs-keyword">try</span>:path=route(vv,a)
+   <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">continue</span>
+   heapq.heappush(todo,(cost+<span class="hljs-built_in">len</span>(path)+<span class="hljs-number">10</span>,b,steps+[(k,a,b,direction)]))
+ <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No route even through reviewed NW cliffs&#x27;</span>)
+<span class="hljs-keyword">for</span> attempt <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">7</span>):
+ m,x,y=locate(mid);<span class="hljs-keyword">assert</span> m==mid
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],stderr=subprocess.DEVNULL));steps=plan(v)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> steps:
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(eid),kind],check=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ k,a,b,direction=steps[<span class="hljs-number">0</span>];<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NORMAL CLIFF&#x27;</span>,k,a,b,direction,flush=<span class="hljs-literal">True</span>)
+ p=ROOT/<span class="hljs-string">&#x27;work/nw-cliff-route.json&#x27;</span>;p.write_text(json.dumps([[mid,x,y,*a,[]]]))
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/queue_route.py&#x27;</span>),<span class="hljs-built_in">str</span>(p),<span class="hljs-string">&#x27;--from-verified&#x27;</span>],check=<span class="hljs-literal">True</span>)
+ act(direction+<span class="hljs-string">&#x27;:.18&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/dialog.py&#x27;</span>),<span class="hljs-string">&#x27;--yes&#x27;</span>,<span class="hljs-string">&#x27;--limit=10&#x27;</span>],check=<span class="hljs-literal">True</span>)
+ actual=locate(mid);<span class="hljs-keyword">assert</span> actual==(mid,*b),(<span class="hljs-string">&#x27;Climb landing differs&#x27;</span>,actual,b)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Cliff route exceeded six transitions&#x27;</span>)
+</code></pre>
+  </body>
+</html>

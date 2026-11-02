@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>party_take_named.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of party_take_named.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Take an inspected held item from a named party member, ordinary menus.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+name=sys.argv[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;party_open&#x27;</span>);run(<span class="hljs-string">&#x27;party_pick&#x27;</span>,name,<span class="hljs-string">&#x27;--single&#x27;</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Summary|Switch|Item|Rename|Cancel&#x27;</span>,<span class="hljs-string">&#x27;Item&#x27;</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Give|Take|Cancel&#x27;</span>,<span class="hljs-string">&#x27;Take&#x27;</span>)
+t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> t.lower()<span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;received&#x27;</span>,<span class="hljs-string">&#x27;took&#x27;</span>,<span class="hljs-string">&#x27;taken&#x27;</span>]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Held item take result review&#x27;</span>)
+act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+</code></pre>
+  </body>
+</html>

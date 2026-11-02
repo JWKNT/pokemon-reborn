@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Sanctum330 preplan (read-only assets, not yet played)">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="g9-stealth-plan.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/g9-stealth-plan.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/g9-stealth-plan.md.html">
+    <title>g9-stealth-plan.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">g9-stealth-plan.md</h1>
+        <p class="task-meta">Markdown · 4.6 KB · <a href="/pokemon-reborn/reasoning/10/">Task 10</a> · written Sep 28 12:49</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Sanctum330 preplan (read-only assets, not yet played)</h2>
+<p>work/g9-stealth-guards.json fullsource, g9-stealth-map.json planning432true/528false, scriptg9_stealth_plan.py conservativestationary/allpossiblevision. Start24,38→library48,20 pathsafeALLpossibleguardvision: up2→24,36 right14→38,36 up4→38,32 right4→42,32 up7→42,25 right4→46,25 up5→46,20 right2→48,20 thenRIGHTinto332. Readallgreenbooks andSpellTag/HolyField.
+LaterpathNOTsafeautoqueuedwithouttiming. Guard25starts32,12 butMOVES, so planningmustupdateposition/removeonlyforpathanalysis; leavingdefaultcoordblocksentireleftmaze andfalselysaysNoPath. DoNOTtreatasremovedingame. Fullgeometrypathafterlibrary(rightedge48,20): left2to46,20 thenup11to46,9 left14to32,9 down7to32,16 left12to20,16 down7to20,23 left11to9,23 up11to9,12 left4to5,12 up4to5,8 right4to9,8 up4to9,4 right14to23,4 up3to23,1 right2to25,1 thenUPexit. Musthandlevisionphasesbelow!
+Fixedguards15(3,34D),16(46,31D),18(41,21D),19(37,4R),20(7,4L),21(24,5D),22(32,18D),23(27,29D),24(20,25D),26(21,9D),27(13,16R), reach5tiles. ActualgamepbEventCanReachPlayerchecksLOS passability, notthroughwalls.
+Dynamic17(41,18)Right/Up wait12 each: crossRIGHTsightrow18atx46when17facesUP, thenupbeyond18. At46,20walkUPthrough46,18when17UP; up to46,9safe.
+25patrol32,12DOWN4to32,16LEFT6to26,16RIGHT6to32,16UP4to32,12, speed/freqsourceworkfile. Needpockets:32,17belowrightend,28,17/18belowmiddle. Walkdown32corridorbehindguardwhenDOWN/left; drop32,17belowrow16. OnceguardheadsUPfrom32,16, moveUPto32,16 LEFT4to28,16 DOWN1to28,17. WaitguardpassesLEFTtoward26thenRIGHTpast28; oncegoingRIGHTaway, moveUP28,16 LEFT8to20,16 DOWN7to20,23. Don&#39;tstepinfrontofhimwhenhefacesyou! Screenshottemplatecantracklocaltrchar110direction ifneeded; allUIonly.
+28(9,26)Up/Leftwait10each(range6): holdat10,23thenwhenLEFTmoveLEFTto9,23+UP4to9,19(escapeUPsight). Needfastkeyhelperifnormal.3keygapsriskshortwindow. Onlyrunafterseeingphase. ThenadvanceUPto9,16safeoutside29Downrange.
+29(9,10)Down/Upwait18each(range5): from9,16whenUP, moveUP4to9,12 LEFT4to5,12, escapingDownline. Thenrestpathabovefixed20/21to25,1safe. Sourcewalkthroughusescheckpoints; savebeforestealth+afterlibraryreasonable,notequicksaveeverymove. Ifcaughtreturns33116,6,Klefkicanreopen; noforcedbattle.
+Thesearegeometry/timingplansonly, VERIFYactualsprites/coordinatesbeforecrossings. Don&#39;tblindrunallpath.</p>
+<p>Revised patrol25 safety: DO NOT stand32,9 waiting: when patrol25facesUPat32,12itsvisioncanreachthatcolumn. Use33,9(sideofcolumn), watch32,12turnDOWN, thenLEFToneandholdDOWN<del>1.5s tofollowbehindguarduntil32,17 (guard22at32,18blocksovershoot,facesDOWN). PatrolgoesDOWN4thenLEFT6thenRIGHT6thenUP4(speed3slowerthanplayer); enteringbehindonDOWNgives</del>3secbeforeitreturnsUP. From32,17watch32,15UP, thenUP1LEFT4DOWN1to28,17. From28,17watch29,16RIGHT, thenUP1LEFT8DOWN7to20,23. Confirmactualcoordinatesaftereach, nofakepositionassumptions.
+World turboOFF (readhistoricnotes/System); battle turboONseparate. DO NOTtoggleM/TABforstealth. Player~.1sec/tile whileNPCspeed3~.2sec/tile; rotatingguardwaitparametersare*2-1framesat40fps (17~.6sec,28~.5sec,29~.9sec), givingnormalplayercrossingwindows. New scripts/watch_guard.py useslivewindowpixels(sprite_match.py masks installedtrchar110), normalized512x384gamefromraw2272x1816crop112,134→2160,1670. Playerframeanchorcenter256/ground208, guardframe32x44; argsPX PY GX GY DIRECTION followedkey_fastkeys. Requiresobservedoppositedirectionthenchosenphase; thresholduntested1500/margin1.2, MUSTvisuallycheckfirstcrop/matchbeforeliveaction. No game memory access. Needtestafterrecord053starts. For17stand46,19watch41,18UPthenup:1.02to46,9. For28stand10,23watch9,26LEFTthenleft:.05 up:.42 to9,19 (timingtightreview),29from9,16watch9,10UPthenup:.42 left:.42. Helpercurrentlyrequiresfullguardcropwithinviewport;29dy−6maytopnegative, needapproachfrom10,15orsafeoffsetandadjustORcropclampifnecessary.
+FIRSTpatrolattemptFAILEDnotbecauseentry: successfullyreached32,17butpausedmodelforinspection, thenwatchUPrequiredseeingDOWNfirst; UPfirstpasswasignoredandnextDOWNcaughtplayer. 32,17onlyTEMPORARILYsafe! ReloadedlibraryviaF12 (session053288.5sec, titlecue291.5→350.5RebornTheme). BattleTurboRESETmustTABinfirstbattleonly,worldnormalremains. Newattemptqueueswatch33,9guard32,13DOWN left.12/down1.5--quiet-end IMMEDIATELYthenwatch32,17guard32,15UP--on-phase--quiet-end up.12/left.42/down.12. Don&#39;tinspect/pausebetween! watch_guardfaststatictemplatesonly2dirs/pat0; movingguardsmarginY16andall4patterns, andsprite_matchsubsamples8not3. Firstguard17PROVENsuccessUp1.02from46,19→46,9,confidenceerror15versusother2882. StationaryNPCfullspriteatgameanchorx256+(dx32)-16,y208+(dy32)-44, rawcropverified.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

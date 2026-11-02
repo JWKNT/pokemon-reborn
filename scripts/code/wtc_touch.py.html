@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>wtc_touch.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of wtc_touch.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bump an inspected automatic Titania water control and verify its real transfer.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> wtc_model <span class="hljs-keyword">import</span> predict
+
+old, eid, new, x, y, target_ground = <span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>, sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">7</span>])
+key = sys.argv[<span class="hljs-number">7</span>]
+delta = {<span class="hljs-string">&#x27;up&#x27;</span>: (<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>), <span class="hljs-string">&#x27;down&#x27;</span>: (<span class="hljs-number">0</span>, <span class="hljs-number">1</span>), <span class="hljs-string">&#x27;left&#x27;</span>: (-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>), <span class="hljs-string">&#x27;right&#x27;</span>: (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>)}
+<span class="hljs-keyword">assert</span> key <span class="hljs-keyword">in</span> delta
+actual = locate(old)
+<span class="hljs-keyword">assert</span> actual[<span class="hljs-number">0</span>] == old
+s = json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+v = json.loads(subprocess.check_output(
+    [<span class="hljs-string">&#x27;ruby&#x27;</span>, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>), <span class="hljs-built_in">str</span>(old), *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, actual[<span class="hljs-number">1</span>:])],
+    stderr=subprocess.DEVNULL))
+e = v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)]
+cs = e[<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">or</span> []
+<span class="hljs-keyword">assert</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] == <span class="hljs-number">122</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>] <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">256</span>, <span class="hljs-number">265</span>) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs)
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">101</span>, <span class="hljs-number">102</span>, <span class="hljs-number">103</span>, <span class="hljs-number">104</span>, <span class="hljs-number">301</span>, <span class="hljs-number">355</span>, <span class="hljs-number">655</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs)
+dx, dy = delta[key]
+<span class="hljs-keyword">assert</span> (e[<span class="hljs-string">&#x27;x&#x27;</span>], e[<span class="hljs-string">&#x27;y&#x27;</span>]) == (x+dx, y+dy)
+_, predicted, _ = predict(s, old, eid)
+<span class="hljs-keyword">assert</span> predicted == new
+subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/layer_walk.py&#x27;</span>), <span class="hljs-built_in">str</span>(old),
+                <span class="hljs-built_in">str</span>(x), <span class="hljs-built_in">str</span>(y), <span class="hljs-built_in">str</span>(<span class="hljs-built_in">int</span>(s[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;410&#x27;</span>, <span class="hljs-literal">False</span>))),
+                <span class="hljs-built_in">str</span>(target_ground)], check=<span class="hljs-literal">True</span>)
+act(key+<span class="hljs-string">&#x27;:.12&#x27;</span>, <span class="hljs-string">&#x27;wait:2&#x27;</span>)
+subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/wtc_control_notes.py&#x27;</span>),
+                <span class="hljs-built_in">str</span>(old), <span class="hljs-built_in">str</span>(eid), <span class="hljs-built_in">str</span>(new)], check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

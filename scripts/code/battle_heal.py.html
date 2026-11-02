@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>battle_heal.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of battle_heal.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">heal</span>():
+ t=read().lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Heal needs command menu&#x27;</span>)
+ <span class="hljs-comment"># Call only with Fight selected (the training driver restores it each turn).</span>
+ act(<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.8&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;items&#x27;</span> <span class="hljs-keyword">in</span> read().lower():act(<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-string">&#x27;wait:0.5&#x27;</span>)
+ <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">14</span>):
+  t=read().lower();flat=<span class="hljs-string">&#x27;&#x27;</span>.join(t.split())
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;medicine&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;medieine&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;nedicine&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:
+   <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Heal pocket review&#x27;</span>)
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;60hp&#x27;</span> <span class="hljs-keyword">in</span> flat:<span class="hljs-keyword">break</span>
+  act(<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;wait:0.2&#x27;</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Super Potion selection review&#x27;</span>)
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.8&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.6&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:3&#x27;</span>)
+ 
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">20</span>):
+  t=read()
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">or</span> (<span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> t.lower().count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>):<span class="hljs-keyword">break</span>
+  act(<span class="hljs-string">&#x27;wait:0.5&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;HEALED&#x27;</span>,t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:heal()
+</code></pre>
+  </body>
+</html>

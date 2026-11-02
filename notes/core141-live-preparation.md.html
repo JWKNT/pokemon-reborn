@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Calcenon current continuation">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="core141-live-preparation.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/core141-live-preparation.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/core141-live-preparation.md.html">
+    <title>core141-live-preparation.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">core141-live-preparation.md</h1>
+        <p class="task-meta">Markdown · 4.3 KB · <a href="/pokemon-reborn/reasoning/20/">Task 20</a> · first used Oct 4 04:42</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Calcenon current continuation</h2>
+<p>Session140 fully edited and both archives verified; journey38561frames, sha824267bb3c9fb6c7ce58be0d4e54710f41b31600ee3f6b70846fc94b867c7fe5. Sources140 cleaned948818363bytes; protected079/080 retained.</p>
+<p>Fresh game22242 born1791102159; hourly due1791105759. Recorder141 begins1791102184.4052439. Native Diana141-entry-ready party KG95/Swamp95/Cofa95/Arc95/Krick62/Sylv95. SylvHP252SpDef252 measuredHP351,SpAtk257,SpDef297,Spe127; noitem. Arc Intimidate. Krick FocusSash176HP101Speed with PerishSong5PP; reserve for PULSE. MaxPotion13 after buying8, money12124.</p>
+<p>Diana first command normalTab enabledbattleTurbo, worldOFF. Two XSpDef then twoShiftGear then twoXAttack, Ultra1 onGrumpig. Its next arrival afterGrumpig is Salazzle, not trainer-table order: react actual visible named arrivals. Ordinary freeSwitch declinedautomatically, now normalSwamp switch.</p>
+<p>Perish plan in notes/Perish140-pulse-source-review.json supersedes Curse/HeartScale/MetalSound detours and earlier invalid doubles partner Xitems. Main story and postgame continue to95% usage used.</p>
+<h3>Observed move-grid correction</h3>
+<p>Battle move helper slots are row-major screen cells; native moves array uses different visual ordering. KG screen GearGrind0/Discharge1/MirrorShot2/ShiftGear3. Swamp screen Waterfall0/Surf1/Earthquake2/RockClimb3. Sylv Wish0/HealBell1/MistyTerrain2/Moonblast3. Arc Safeguard0/Crunch1/Flamethrower2/MorningSun3. Never infer helper slot directly from native array index. Diana Swamp really used Surf1 toKO Salazzle. Sylv attemptedMisty1 really usedHealBell1; retain as actual move. Source-trainer member order is not arrivalorder; Noctowl switched toVileplume duringXSpeed. OneXSpeed spent, noXSpecialyet at that boundary.</p>
+<h3>Move-grid clarification from actual screenshot</h3>
+<p>OCR lists move text column-first; that output order caused the mistaken slot correction above. Actual grid visual inspected: Arc Safeguard0/Flamethrower1/Crunch2/MorningSun3. Native order is correct row-major, OCR output is not. Original SylvMistyTerrain1 is correct; later2wasHealBell. Original SwampEQ1 is correct (notSurf). Disregard the prior correction paragraph. Need finished battle logs to reconcile exact moves after actualwin.</p>
+<p>Sylv speed2 only, noSpAtk/noSpDef items used: both setup guards stopped duringheals beforeboost. OwnQ actualAtk152SpA257SpD297Speed254 beforeArc switch confirms. FirstMistyTerrain1 occurred; subsequentHealBell2 and repeatedheals exhausted temporaryterrain. PSN developedlater. ArcSafeguard0 at220HP thenSludge+hail leaves41; normalKGswitch immunePoison butGigaDrain+hail leaves106. Finite recovery1SG1XAttack onPlume, GGPlume+Noct, stopMan. Original move-grid slots are authoritative; prior correction was OCR-column mistake.</p>
+<p>Swamp B glyph is male gender, not burn. FullHealSwamp had no effect and left normal pending party selection; recovered that pending item by selecting poisonedSylv. SwampSPD1 applied normally143HP thenMax gives245HP, nofaint. Battle_item now stops on no-effect instead of reporting success.</p>
+<p>Static Claw correction: installed montext45562 PULSEFormWater/Dragon CONTRARY, notWonderGuard. Sylv+6SpAtkMoonblast shouldOHKO673HPClaw; fromfull330HP afterpriorKO can survive firstunboostedOriginPulsecrit withSpDef297. KrickPerish remainsMime strategy andfallback; no automaticZero sacrifice needed ifactualSylvstronghealthyandPPavailable. RecheckWeavIceShardSnowyMountaincritical beforeZero; Def133 HP351canOHKOinbadcriticalfieldbranch. FutureEVDeftrainingproposalsnotexecuted.</p>
+<p>Man switched toNoctowl duringbenchmedicine beforeanySwampEQ! Man stillalive, do NOTclaimdown. RecoveredpendingFullHeal requirednormalBag use, notpartyreuse; original no-effectunconsumed. Swamp245→226 duringcureSylv; benchMaxSylv applied, NoctHurricane missedSwamp; ownerHP207. NormalSylv switch351→168HP. CurrentfinitefinalSylv planSPD2+Speed1+Spec3, approvedvisibleNoct/Man, thenMisty1 andMoonblast3.</p>
+<h3>Completed Diana authoritative correction</h3>
+<p>ObservedWIN andnormalcheckpointDiana141-won map41451,27. Actual64-round native completedlog is NoFieldSingles, notSnowyMountain. Snowy overworld/weather does not determine this battlefield. All snowy modifier calculations above are inapplicable toDiana. FuturefieldverificationmustuseOWN Q FieldEffect publicpage beforeplanning. No reset, no ownfaint duringDiana. Exactitems in notes/Diana141-completed-reconciliation.json.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

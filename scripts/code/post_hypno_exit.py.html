@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>post_hypno_exit.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of post_hypno_exit.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Guarded ordinary controls: post-Hypno758 loop and recovery to Calcenon.
+
+Import/source validation send no inputs. --execute requires the frozen verified
+Hypno post-bag report BEFORE recovery, medicine, held-item or PC changes.
+Whitelisted story touches stop movement queues at the first meaningful event.
+No future battle is started. Root retains ownership of recording/archive/saves.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> __future__ <span class="hljs-keyword">import</span> annotations
+
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> difflib
+<span class="hljs-keyword">import</span> functools
+<span class="hljs-keyword">import</span> hashlib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> pathlib
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> time
+
+ROOT = pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+STATE_FILE = ROOT / <span class="hljs-string">&quot;notes/navigation-state.json&quot;</span>
+RECEIPTS = ROOT / <span class="hljs-string">&quot;work/post-hypno-batch-progress.json&quot;</span>
+PHASES = [<span class="hljs-string">&quot;zel&quot;</span>, <span class="hljs-string">&quot;shade&quot;</span>, <span class="hljs-string">&quot;luna&quot;</span>, <span class="hljs-string">&quot;void-exit&quot;</span>, <span class="hljs-string">&quot;recovery&quot;</span>]
+TOUCHES = {<span class="hljs-number">758</span>: {<span class="hljs-number">17</span>, <span class="hljs-number">36</span>, <span class="hljs-number">62</span>, <span class="hljs-number">63</span>, <span class="hljs-number">89</span>, <span class="hljs-number">91</span>, <span class="hljs-number">92</span>, <span class="hljs-number">28</span>, <span class="hljs-number">99</span>, <span class="hljs-number">100</span>, <span class="hljs-number">30</span>, <span class="hljs-number">101</span>, <span class="hljs-number">102</span>, <span class="hljs-number">103</span>, <span class="hljs-number">107</span>, <span class="hljs-number">108</span>, <span class="hljs-number">35</span>},
+           <span class="hljs-number">759</span>: {<span class="hljs-number">4</span>, <span class="hljs-number">6</span>, <span class="hljs-number">7</span>, <span class="hljs-number">8</span>, <span class="hljs-number">9</span>, <span class="hljs-number">10</span>, <span class="hljs-number">11</span>, <span class="hljs-number">12</span>, <span class="hljs-number">5</span>}}
+FOLLOW = {<span class="hljs-number">89</span>: (<span class="hljs-number">90</span>, <span class="hljs-number">1</span>), <span class="hljs-number">30</span>: (<span class="hljs-number">104</span>, <span class="hljs-number">0</span>), <span class="hljs-number">101</span>: (<span class="hljs-number">104</span>, <span class="hljs-number">0</span>),
+          <span class="hljs-number">102</span>: (<span class="hljs-number">105</span>, <span class="hljs-number">0</span>), <span class="hljs-number">103</span>: (<span class="hljs-number">105</span>, <span class="hljs-number">0</span>), <span class="hljs-number">107</span>: (<span class="hljs-number">31</span>, <span class="hljs-number">1</span>), <span class="hljs-number">108</span>: (<span class="hljs-number">31</span>, <span class="hljs-number">1</span>)}
+RECOVERY = [(<span class="hljs-number">735</span>, <span class="hljs-number">4</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">715</span>, <span class="hljs-number">85</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">734</span>, <span class="hljs-number">16</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">735</span>, <span class="hljs-number">7</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">735</span>, <span class="hljs-number">4</span>, <span class="hljs-number">2</span>)]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">need</span>(<span class="hljs-params">value, message</span>):
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> value:
+        <span class="hljs-keyword">raise</span> ValueError(message)
+
+
+<span class="hljs-meta">@functools.lru_cache(<span class="hljs-params">maxsize=<span class="hljs-literal">None</span></span>)</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">source_event</span>(<span class="hljs-params">mid, eid</span>):
+    <span class="hljs-keyword">return</span> json.loads(subprocess.check_output(
+        [<span class="hljs-string">&quot;ruby&quot;</span>, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&quot;scripts/event_dump.rb&quot;</span>), <span class="hljs-built_in">str</span>(mid), <span class="hljs-built_in">str</span>(eid)],
+        stderr=subprocess.DEVNULL))
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">no_battle_or_choice</span>(<span class="hljs-params">commands, *, anna_choice=<span class="hljs-literal">False</span></span>):
+    choices = [c <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> commands <span class="hljs-keyword">if</span> c[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">102</span>]
+    need(<span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&quot;code&quot;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">103</span>, <span class="hljs-number">104</span>, <span class="hljs-number">301</span>] <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(token <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(c[<span class="hljs-string">&quot;parameters&quot;</span>])
+                 <span class="hljs-keyword">for</span> token <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;pbTrainerBattle&quot;</span>, <span class="hljs-string">&quot;pbDoubleTrainerBattle&quot;</span>, <span class="hljs-string">&quot;pbWildBattle&quot;</span>])
+                 <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> commands), <span class="hljs-string">&quot;Installed source contains an unapproved input or battle&quot;</span>)
+    need(<span class="hljs-keyword">not</span> choices <span class="hljs-keyword">or</span> anna_choice <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(choices) == <span class="hljs-number">1</span> <span class="hljs-keyword">and</span>
+         choices[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;parameters&quot;</span>][<span class="hljs-number">0</span>] == [<span class="hljs-string">&quot;Yes&quot;</span>, <span class="hljs-string">&quot;No&quot;</span>], <span class="hljs-string">&quot;Installed source contains an unapproved choice&quot;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">validate_sources</span>():
+    proof = []
+    pairs = {(mid, eid) <span class="hljs-keyword">for</span> mid, ids <span class="hljs-keyword">in</span> TOUCHES.items() <span class="hljs-keyword">for</span> eid <span class="hljs-keyword">in</span> ids}
+    pairs |= {(<span class="hljs-number">758</span>, eid) <span class="hljs-keyword">for</span> eid <span class="hljs-keyword">in</span> [<span class="hljs-number">33</span>, <span class="hljs-number">34</span>, <span class="hljs-number">90</span>, <span class="hljs-number">104</span>, <span class="hljs-number">105</span>, <span class="hljs-number">31</span>]}
+    <span class="hljs-keyword">for</span> mid, eid <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(pairs):
+        event = source_event(mid, eid)
+        <span class="hljs-keyword">for</span> page <span class="hljs-keyword">in</span> event[<span class="hljs-string">&quot;pages&quot;</span>]:
+            no_battle_or_choice(page[<span class="hljs-string">&quot;list&quot;</span>])
+        proof.append({<span class="hljs-string">&quot;map&quot;</span>: mid, <span class="hljs-string">&quot;event&quot;</span>: eid, <span class="hljs-string">&quot;position&quot;</span>: [event[<span class="hljs-string">&quot;x&quot;</span>], event[<span class="hljs-string">&quot;y&quot;</span>]], <span class="hljs-string">&quot;approved&quot;</span>: <span class="hljs-literal">True</span>})
+    <span class="hljs-keyword">for</span> mid, eid, page_index <span class="hljs-keyword">in</span> RECOVERY:
+        page = source_event(mid, eid)[<span class="hljs-string">&quot;pages&quot;</span>][page_index]
+        need(page[<span class="hljs-string">&quot;trigger&quot;</span>] == <span class="hljs-number">3</span>, <span class="hljs-string">f&quot;Expected automatic recovery scene <span class="hljs-subst">{mid}</span>E<span class="hljs-subst">{eid}</span>p<span class="hljs-subst">{page_index}</span>&quot;</span>)
+        no_battle_or_choice(page[<span class="hljs-string">&quot;list&quot;</span>], anna_choice=(mid, eid, page_index) == (<span class="hljs-number">735</span>, <span class="hljs-number">4</span>, <span class="hljs-number">2</span>))
+        proof.append({<span class="hljs-string">&quot;map&quot;</span>: mid, <span class="hljs-string">&quot;event&quot;</span>: eid, <span class="hljs-string">&quot;page&quot;</span>: page_index, <span class="hljs-string">&quot;autorun&quot;</span>: <span class="hljs-literal">True</span>})
+    <span class="hljs-keyword">return</span> proof
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">frozen_post_gate</span>(<span class="hljs-params">status_path, report_path</span>):
+    status_path, report_path = status_path.resolve(), report_path.resolve()
+    need(status_path.is_relative_to(ROOT) <span class="hljs-keyword">and</span> report_path.is_relative_to(ROOT), <span class="hljs-string">&quot;Use explicit frozen R evidence only&quot;</span>)
+    status, report = [json.loads(path.read_text()) <span class="hljs-keyword">for</span> path <span class="hljs-keyword">in</span> [status_path, report_path]]
+    <span class="hljs-comment"># status_full.rb intentionally exports only a small switch subset and</span>
+    <span class="hljs-comment"># omits1874. Victory is bound by the retained125 reconciliation; the full</span>
+    <span class="hljs-comment"># navigation snapshot&#x27;s1874 is checked independently before any UI input.</span>
+    need(status.get(<span class="hljs-string">&quot;map&quot;</span>) == <span class="hljs-number">758</span>, <span class="hljs-string">&quot;Frozen outside-battle Hypno post-status on758 required&quot;</span>)
+    need(report.get(<span class="hljs-string">&quot;status&quot;</span>) == <span class="hljs-string">&quot;verified_counts&quot;</span> <span class="hljs-keyword">and</span> report.get(<span class="hljs-string">&quot;errors&quot;</span>) == [] <span class="hljs-keyword">and</span>
+         report.get(<span class="hljs-string">&quot;native_save_inventories_verified&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>,
+         <span class="hljs-string">&quot;Freeze and reconcile native post-Hypno bag BEFORE running this route&quot;</span>)
+    rows = report.get(<span class="hljs-string">&quot;per_round&quot;</span>, [])
+    need(<span class="hljs-built_in">len</span>(rows) == <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> rows[<span class="hljs-number">0</span>].get(<span class="hljs-string">&quot;major_id&quot;</span>) == <span class="hljs-number">125</span>, <span class="hljs-string">&quot;Require the one-Hypno125 item report&quot;</span>)
+    bound = report.get(<span class="hljs-string">&quot;evidence&quot;</span>, {}).get(<span class="hljs-string">&quot;after&quot;</span>, {})
+    need(bound.get(<span class="hljs-string">&quot;sha256&quot;</span>) == hashlib.sha256(status_path.read_bytes()).hexdigest(),
+         <span class="hljs-string">&quot;Item report is not bound to this exact frozen post-status&quot;</span>)
+    need(<span class="hljs-built_in">isinstance</span>(status.get(<span class="hljs-string">&quot;bag&quot;</span>, {}).get(<span class="hljs-string">&quot;contents&quot;</span>), <span class="hljs-built_in">dict</span>), <span class="hljs-string">&quot;Frozen complete post-bag inventory missing&quot;</span>)
+    <span class="hljs-keyword">return</span> status
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">record</span>(<span class="hljs-params">kind, **data</span>):
+    value = json.loads(RECEIPTS.read_text()) <span class="hljs-keyword">if</span> RECEIPTS.exists() <span class="hljs-keyword">else</span> {<span class="hljs-string">&quot;events&quot;</span>: []}
+    value[<span class="hljs-string">&quot;events&quot;</span>].append({<span class="hljs-string">&quot;epoch&quot;</span>: time.time(), <span class="hljs-string">&quot;kind&quot;</span>: kind, **data})
+    RECEIPTS.write_text(json.dumps(value, indent=<span class="hljs-number">2</span>) + <span class="hljs-string">&quot;\n&quot;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">normalized</span>(<span class="hljs-params">text</span>):
+    <span class="hljs-keyword">return</span> re.sub(<span class="hljs-string">&quot;[^a-z]&quot;</span>, <span class="hljs-string">&quot;&quot;</span>, text.lower()).replace(<span class="hljs-string">&quot;pokemonreborn&quot;</span>, <span class="hljs-string">&quot;&quot;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">mirror_page</span>(<span class="hljs-params">mid, eid, page</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Planner-note effects only, AFTER the approved scene actually settles.&quot;&quot;&quot;</span>
+    state = json.loads(STATE_FILE.read_text())
+    <span class="hljs-keyword">for</span> command <span class="hljs-keyword">in</span> page[<span class="hljs-string">&quot;list&quot;</span>]:
+        <span class="hljs-keyword">if</span> command[<span class="hljs-string">&quot;indent&quot;</span>] != <span class="hljs-number">0</span>:
+            <span class="hljs-keyword">continue</span>
+        a = command[<span class="hljs-string">&quot;parameters&quot;</span>]
+        <span class="hljs-keyword">if</span> command[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">123</span>:
+            state.setdefault(<span class="hljs-string">&quot;self_switches&quot;</span>, {})[<span class="hljs-string">f&quot;<span class="hljs-subst">{mid}</span>,<span class="hljs-subst">{eid}</span>,<span class="hljs-subst">{a[<span class="hljs-number">0</span>]}</span>&quot;</span>] = a[<span class="hljs-number">1</span>] == <span class="hljs-number">0</span>
+        <span class="hljs-keyword">elif</span> command[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">121</span> <span class="hljs-keyword">and</span> a[<span class="hljs-number">0</span>] == a[<span class="hljs-number">1</span>]:
+            state.setdefault(<span class="hljs-string">&quot;switches&quot;</span>, {})[<span class="hljs-built_in">str</span>(a[<span class="hljs-number">0</span>])] = a[<span class="hljs-number">2</span>] == <span class="hljs-number">0</span>
+        <span class="hljs-keyword">elif</span> command[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">122</span> <span class="hljs-keyword">and</span> a[<span class="hljs-number">0</span>] == a[<span class="hljs-number">1</span>] <span class="hljs-keyword">and</span> a[<span class="hljs-number">2</span>:<span class="hljs-number">4</span>] == [<span class="hljs-number">0</span>, <span class="hljs-number">0</span>]:
+            state.setdefault(<span class="hljs-string">&quot;variables&quot;</span>, {})[<span class="hljs-built_in">str</span>(a[<span class="hljs-number">0</span>])] = a[<span class="hljs-number">4</span>]
+    STATE_FILE.write_text(json.dumps(state) + <span class="hljs-string">&quot;\n&quot;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">model</span>(<span class="hljs-params">mid, xy</span>):
+    value = json.loads(subprocess.check_output(
+        [<span class="hljs-string">&quot;ruby&quot;</span>, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&quot;scripts/route_map.rb&quot;</span>), <span class="hljs-built_in">str</span>(mid), *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, xy)], stderr=subprocess.DEVNULL))
+    state = json.loads(STATE_FILE.read_text())
+    <span class="hljs-keyword">if</span> mid == <span class="hljs-number">758</span>:
+        need(state.get(<span class="hljs-string">&quot;switches&quot;</span>, {}).get(<span class="hljs-string">&quot;1874&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>, <span class="hljs-string">&quot;Source planning status must confirm Hypno won&quot;</span>)
+        need(<span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(<span class="hljs-string">&quot;pbTrainerBattle&quot;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(e.get(<span class="hljs-string">&quot;list&quot;</span>, [])) <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> value[<span class="hljs-string">&quot;events&quot;</span>].values()),
+             <span class="hljs-string">&quot;Unexpected active battle event in post-Hypno model&quot;</span>)
+        <span class="hljs-comment"># Installed animations remove these actors at their END. The saved</span>
+        <span class="hljs-comment"># planner may retain original coordinates until the next normal save.</span>
+        <span class="hljs-keyword">if</span> state.get(<span class="hljs-string">&quot;self_switches&quot;</span>, {}).get(<span class="hljs-string">&quot;758,90,A&quot;</span>):
+            value[<span class="hljs-string">&quot;events&quot;</span>][<span class="hljs-string">&quot;25&quot;</span>].update(character=<span class="hljs-string">&quot;&quot;</span>, through=<span class="hljs-literal">True</span>)
+        <span class="hljs-keyword">if</span> state.get(<span class="hljs-string">&quot;variables&quot;</span>, {}).get(<span class="hljs-string">&quot;391&quot;</span>, <span class="hljs-number">0</span>) &gt;= <span class="hljs-number">33</span>:
+            value[<span class="hljs-string">&quot;events&quot;</span>][<span class="hljs-string">&quot;26&quot;</span>].update(character=<span class="hljs-string">&quot;&quot;</span>, through=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">return</span> value
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">prefix_at_first_touch</span>(<span class="hljs-params">value, nodes, keys, chunk_limit, phase</span>):
+    keys, nodes = keys[:chunk_limit], nodes[:chunk_limit + <span class="hljs-number">1</span>]
+    <span class="hljs-keyword">for</span> i, xy <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(nodes[<span class="hljs-number">1</span>:], <span class="hljs-number">1</span>):
+        hits = [(<span class="hljs-built_in">int</span>(eid), event) <span class="hljs-keyword">for</span> eid, event <span class="hljs-keyword">in</span> value[<span class="hljs-string">&quot;events&quot;</span>].items()
+                <span class="hljs-keyword">if</span> event[<span class="hljs-string">&quot;trigger&quot;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>] <span class="hljs-keyword">and</span> (event[<span class="hljs-string">&quot;x&quot;</span>], event[<span class="hljs-string">&quot;y&quot;</span>]) == xy <span class="hljs-keyword">and</span>
+                <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&quot;code&quot;</span>] <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>, <span class="hljs-number">108</span>, <span class="hljs-number">408</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> event.get(<span class="hljs-string">&quot;list&quot;</span>, []))]
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> hits:
+            <span class="hljs-keyword">continue</span>
+        need(<span class="hljs-built_in">len</span>(hits) == <span class="hljs-number">1</span>, <span class="hljs-string">f&quot;Ambiguous story touch at<span class="hljs-subst">{value[<span class="hljs-string">&#x27;map&#x27;</span>]}</span><span class="hljs-subst">{xy}</span>&quot;</span>)
+        eid, event = hits[<span class="hljs-number">0</span>]
+        need(eid <span class="hljs-keyword">in</span> TOUCHES.get(value[<span class="hljs-string">&quot;map&quot;</span>], <span class="hljs-built_in">set</span>()), <span class="hljs-string">f&quot;Unplanned story touch<span class="hljs-subst">{value[<span class="hljs-string">&#x27;map&#x27;</span>]}</span>E<span class="hljs-subst">{eid}</span>; no batch sent&quot;</span>)
+        need(<span class="hljs-keyword">not</span> (value[<span class="hljs-string">&quot;map&quot;</span>] == <span class="hljs-number">758</span> <span class="hljs-keyword">and</span> eid == <span class="hljs-number">35</span> <span class="hljs-keyword">and</span> phase != <span class="hljs-string">&quot;luna&quot;</span>), <span class="hljs-string">&quot;Luna transfer reached outside its phase&quot;</span>)
+        need(<span class="hljs-keyword">not</span> (value[<span class="hljs-string">&quot;map&quot;</span>] == <span class="hljs-number">759</span> <span class="hljs-keyword">and</span> eid == <span class="hljs-number">5</span> <span class="hljs-keyword">and</span> phase != <span class="hljs-string">&quot;void-exit&quot;</span>), <span class="hljs-string">&quot;Void exit reached outside its phase&quot;</span>)
+        <span class="hljs-keyword">return</span> keys[:i], nodes[:i + <span class="hljs-number">1</span>], (eid, event)
+    <span class="hljs-keyword">return</span> keys, nodes, <span class="hljs-literal">None</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">settle</span>(<span class="hljs-params">mid, eid, active, *, transfer=<span class="hljs-literal">False</span></span>):
+    <span class="hljs-keyword">from</span> void_batch_route <span class="hljs-keyword">import</span> textbox, world_guard
+    <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read
+    event = source_event(mid, eid)
+    matching = [page <span class="hljs-keyword">for</span> page <span class="hljs-keyword">in</span> event[<span class="hljs-string">&quot;pages&quot;</span>] <span class="hljs-keyword">if</span> page[<span class="hljs-string">&quot;list&quot;</span>] == active[<span class="hljs-string">&quot;list&quot;</span>]]
+    need(matching, <span class="hljs-string">f&quot;Active source page differs for<span class="hljs-subst">{mid}</span>E<span class="hljs-subst">{eid}</span>&quot;</span>)
+    page = matching[-<span class="hljs-number">1</span>]
+    commands = <span class="hljs-built_in">list</span>(page[<span class="hljs-string">&quot;list&quot;</span>])
+    follower = FOLLOW.get(eid) <span class="hljs-keyword">if</span> mid == <span class="hljs-number">758</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+    <span class="hljs-keyword">if</span> follower:
+        follow_event = source_event(mid, follower[<span class="hljs-number">0</span>])
+        follow_page = follow_event[<span class="hljs-string">&quot;pages&quot;</span>][follower[<span class="hljs-number">1</span>]]
+        commands += follow_page[<span class="hljs-string">&quot;list&quot;</span>]
+    no_battle_or_choice(commands)
+    text = read()
+    blocks = []
+    <span class="hljs-keyword">for</span> command <span class="hljs-keyword">in</span> commands:
+        <span class="hljs-keyword">if</span> command[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">101</span>:
+            blocks.append(<span class="hljs-built_in">str</span>(command[<span class="hljs-string">&quot;parameters&quot;</span>][<span class="hljs-number">0</span>]))
+        <span class="hljs-keyword">elif</span> command[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">401</span> <span class="hljs-keyword">and</span> blocks:
+            blocks[-<span class="hljs-number">1</span>] += <span class="hljs-string">&quot; &quot;</span> + <span class="hljs-built_in">str</span>(command[<span class="hljs-string">&quot;parameters&quot;</span>][<span class="hljs-number">0</span>])
+    <span class="hljs-keyword">if</span> textbox() <span class="hljs-keyword">and</span> blocks:
+        n = normalized(text)
+        need(<span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>, n, normalized(block)).ratio() &gt;= <span class="hljs-number">.50</span> <span class="hljs-keyword">for</span> block <span class="hljs-keyword">in</span> blocks),
+             <span class="hljs-string">f&quot;Visible dialogue does not match approved<span class="hljs-subst">{mid}</span>E<span class="hljs-subst">{eid}</span>: <span class="hljs-subst">{text}</span>&quot;</span>)
+    args = [<span class="hljs-string">&quot;--burst&quot;</span>, <span class="hljs-string">&quot;--world-settle&quot;</span>, <span class="hljs-string">&quot;20&quot;</span> <span class="hljs-keyword">if</span> follower <span class="hljs-keyword">or</span> eid <span class="hljs-keyword">in</span> [<span class="hljs-number">91</span>, <span class="hljs-number">92</span>, <span class="hljs-number">33</span>, <span class="hljs-number">34</span>, <span class="hljs-number">35</span>] <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;9&quot;</span>]
+    <span class="hljs-keyword">if</span> follower:
+        <span class="hljs-comment"># Existing helper applies --source-page after --follow-source; avoid</span>
+        <span class="hljs-comment"># combining them or it would discard the follower&#x27;s source commands.</span>
+        args += [<span class="hljs-string">&quot;--follow-source&quot;</span>, <span class="hljs-built_in">str</span>(mid), <span class="hljs-built_in">str</span>(follower[<span class="hljs-number">0</span>])]
+    <span class="hljs-keyword">else</span>:
+        args += [<span class="hljs-string">&quot;--source-page&quot;</span>, <span class="hljs-built_in">str</span>(event[<span class="hljs-string">&quot;pages&quot;</span>].index(page))]
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&quot;code&quot;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">241</span>, <span class="hljs-number">242</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> commands):
+        args += [<span class="hljs-string">&quot;--log-scripted-bgm&quot;</span>]
+    run(<span class="hljs-string">&quot;linear_dialog&quot;</span>, mid, eid, *args)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> transfer:
+        world_guard()
+    mirror_page(mid, eid, page)
+    <span class="hljs-keyword">if</span> follower:
+        mirror_page(mid, follower[<span class="hljs-number">0</span>], follow_page)
+    record(<span class="hljs-string">&quot;approved-scene-settled&quot;</span>, <span class="hljs-built_in">map</span>=mid, event=eid, follow=follower)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script, *args</span>):
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&quot;scripts&quot;</span> / (script + <span class="hljs-string">&quot;.py&quot;</span>)), *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, args)], check=<span class="hljs-literal">True</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">walk</span>(<span class="hljs-params">mid, goal, phase, chunk_limit, transfer_map=<span class="hljs-literal">None</span></span>):
+    <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act
+    <span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+    <span class="hljs-keyword">from</span> void_batch_route <span class="hljs-keyword">import</span> world_guard
+    <span class="hljs-keyword">from</span> void_static_paths <span class="hljs-keyword">import</span> path
+    seen = []
+    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">150</span>):
+        world_guard()
+        actual, x, y = locate(mid)
+        need(actual == mid, <span class="hljs-string">f&quot;Unexpected map<span class="hljs-subst">{actual}</span>; expected<span class="hljs-subst">{mid}</span>&quot;</span>)
+        world_guard()
+        <span class="hljs-keyword">if</span> (x, y) == goal:
+            <span class="hljs-keyword">return</span> actual, x, y
+        seen.append((x, y))
+        need(<span class="hljs-built_in">len</span>(seen) &lt; <span class="hljs-number">3</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(seen[-<span class="hljs-number">3</span>:])) &gt; <span class="hljs-number">1</span>, <span class="hljs-string">&quot;Repeated coordinate; movement timing/actor review&quot;</span>)
+        value = model(mid, (x, y))
+        keys, nodes = path(value, (x, y), goal)
+        keys, nodes, stop = prefix_at_first_touch(value, nodes, keys, chunk_limit, phase)
+        need(keys, <span class="hljs-string">&quot;Empty planned route away from target&quot;</span>)
+        sequence = []
+        <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> keys:
+            sequence.extend([key[<span class="hljs-number">5</span>:] + <span class="hljs-string">&quot;:.12&quot;</span>, <span class="hljs-string">&quot;wait:.9&quot;</span>] <span class="hljs-keyword">if</span> key.startswith(<span class="hljs-string">&quot;jump:&quot;</span>) <span class="hljs-keyword">else</span> [key + <span class="hljs-string">&quot;:.12&quot;</span>])
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;POST-HYPNO SEGMENT&quot;</span>, mid, (x, y), <span class="hljs-string">&quot;-&gt;&quot;</span>, nodes[-<span class="hljs-number">1</span>], <span class="hljs-built_in">len</span>(keys), <span class="hljs-string">&quot;touch&quot;</span>, stop[<span class="hljs-number">0</span>] <span class="hljs-keyword">if</span> stop <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>, flush=<span class="hljs-literal">True</span>)
+        <span class="hljs-keyword">try</span>:
+            act(*sequence)
+        <span class="hljs-keyword">except</span> subprocess.CalledProcessError <span class="hljs-keyword">as</span> error:
+            <span class="hljs-keyword">if</span> error.returncode != <span class="hljs-number">2</span>:
+                <span class="hljs-keyword">raise</span>
+            <span class="hljs-comment"># A capture interruption may stop midway through a movement batch.</span>
+            <span class="hljs-comment"># Restore capture, require a genuine overworld, and replan from the</span>
+            <span class="hljs-comment"># next observed coordinate rather than replaying unexecuted keys.</span>
+            <span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> capture_ready
+            capture_ready()
+            world_guard()
+            record(<span class="hljs-string">&quot;capture-recovered-replan&quot;</span>, <span class="hljs-built_in">map</span>=mid, planned_endpoint=<span class="hljs-built_in">list</span>(nodes[-<span class="hljs-number">1</span>]))
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;CAPTURE RECOVERED; replan from actual coordinate&quot;</span>, flush=<span class="hljs-literal">True</span>)
+            <span class="hljs-keyword">continue</span>
+        <span class="hljs-keyword">if</span> stop:
+            eid, active = stop
+            is_exit = (mid, eid) == (<span class="hljs-number">759</span>, <span class="hljs-number">5</span>)
+            <span class="hljs-keyword">if</span> is_exit:
+                <span class="hljs-comment">#735 immediately starts the first recovery autorun. No extra</span>
+                <span class="hljs-comment"># coordinate hotkey/dialogue taps are sent during that scene.</span>
+                record(<span class="hljs-string">&quot;void-exit-touch-sent&quot;</span>, <span class="hljs-built_in">map</span>=<span class="hljs-number">759</span>, event=<span class="hljs-number">5</span>, expected_map=<span class="hljs-number">735</span>)
+                <span class="hljs-keyword">return</span> <span class="hljs-number">735</span>, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>
+            settle(mid, eid, active, transfer=transfer_map <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> eid == <span class="hljs-number">35</span>)
+            <span class="hljs-keyword">if</span> transfer_map <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> eid == <span class="hljs-number">35</span>:
+                actual = locate(transfer_map)
+                need(actual[<span class="hljs-number">0</span>] == transfer_map, <span class="hljs-string">&quot;Luna did not reach759&quot;</span>)
+                <span class="hljs-keyword">return</span> actual
+    <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Post-Hypno movement limit&quot;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">recovery</span>():
+    <span class="hljs-string">&quot;&quot;&quot;Source-bound autoruns; Anna is the only approved choice in the chain.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act, read, snap
+    <span class="hljs-keyword">from</span> void_batch_route <span class="hljs-keyword">import</span> textbox, world_guard
+    <span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+    blocks, music_anchors, music_seen = [], [], <span class="hljs-built_in">set</span>()
+    <span class="hljs-keyword">for</span> mid, eid, pi <span class="hljs-keyword">in</span> RECOVERY:
+        cs = source_event(mid, eid)[<span class="hljs-string">&quot;pages&quot;</span>][pi][<span class="hljs-string">&quot;list&quot;</span>]
+        no_battle_or_choice(cs, anna_choice=(mid, eid, pi) == (<span class="hljs-number">735</span>, <span class="hljs-number">4</span>, <span class="hljs-number">2</span>))
+        <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs:
+            <span class="hljs-keyword">if</span> c[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">101</span>:
+                blocks.append(<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&quot;parameters&quot;</span>][<span class="hljs-number">0</span>]))
+            <span class="hljs-keyword">elif</span> c[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">401</span> <span class="hljs-keyword">and</span> blocks:
+                blocks[-<span class="hljs-number">1</span>] += <span class="hljs-string">&quot; &quot;</span> + <span class="hljs-built_in">str</span>(c[<span class="hljs-string">&quot;parameters&quot;</span>][<span class="hljs-number">0</span>])
+        <span class="hljs-comment"># Autoruns cross maps without a safe coordinate hotkey. Preserve their</span>
+        <span class="hljs-comment"># installed BGM changes using actually observed following text anchors.</span>
+        <span class="hljs-keyword">for</span> index, command <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(cs):
+            <span class="hljs-keyword">if</span> command[<span class="hljs-string">&quot;code&quot;</span>] <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">241</span>, <span class="hljs-number">242</span>]:
+                <span class="hljs-keyword">continue</span>
+            following = []
+            <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs[index + <span class="hljs-number">1</span>:]:
+                <span class="hljs-keyword">if</span> c[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">101</span>:
+                    <span class="hljs-keyword">if</span> following:
+                        <span class="hljs-keyword">break</span>
+                    following = [<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&quot;parameters&quot;</span>][<span class="hljs-number">0</span>])]
+                <span class="hljs-keyword">elif</span> c[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">401</span> <span class="hljs-keyword">and</span> following:
+                    following.append(<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&quot;parameters&quot;</span>][<span class="hljs-number">0</span>]))
+            <span class="hljs-keyword">if</span> following:
+                audio = command[<span class="hljs-string">&quot;parameters&quot;</span>][<span class="hljs-number">0</span>]
+                track = audio.get(<span class="hljs-string">&quot;name&quot;</span>) <span class="hljs-keyword">if</span> command[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">241</span> <span class="hljs-keyword">and</span> audio.get(<span class="hljs-string">&quot;volume&quot;</span>, <span class="hljs-number">100</span>) &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;__silence__&quot;</span>
+                music_anchors.append(((mid, eid, pi, index), normalized(<span class="hljs-string">&quot; &quot;</span>.join(following)), track))
+    norms = [normalized(block) <span class="hljs-keyword">for</span> block <span class="hljs-keyword">in</span> blocks]
+    anchor = normalized(<span class="hljs-string">&quot;ANNA: you&#x27;re coming too, right?&quot;</span>)
+    last, repeats, empty = <span class="hljs-string">&quot;&quot;</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>
+    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1500</span>):
+        rows = snap()
+        text = <span class="hljs-string">&quot;\n&quot;</span>.join(row[<span class="hljs-string">&quot;text&quot;</span>] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows)
+        low, n = text.lower(), normalized(text)
+        <span class="hljs-keyword">for</span> identity, anchor_text, track <span class="hljs-keyword">in</span> music_anchors:
+            <span class="hljs-keyword">if</span> identity <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> music_seen <span class="hljs-keyword">and</span> difflib.SequenceMatcher(<span class="hljs-literal">None</span>, n, anchor_text).ratio() &gt;= <span class="hljs-number">.70</span>:
+                <span class="hljs-keyword">with</span> (ROOT / <span class="hljs-string">&quot;recordings/music-events.jsonl&quot;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&quot;a&quot;</span>) <span class="hljs-keyword">as</span> stream:
+                    stream.write(json.dumps({<span class="hljs-string">&quot;epoch&quot;</span>: time.time(), <span class="hljs-string">&quot;bgm&quot;</span>: {<span class="hljs-string">&quot;name&quot;</span>: track},
+                                             <span class="hljs-string">&quot;map&quot;</span>: identity[<span class="hljs-number">0</span>], <span class="hljs-string">&quot;event&quot;</span>: identity[<span class="hljs-number">1</span>], <span class="hljs-string">&quot;source_page&quot;</span>: identity[<span class="hljs-number">2</span>],
+                                             <span class="hljs-string">&quot;command_index&quot;</span>: identity[<span class="hljs-number">3</span>], <span class="hljs-string">&quot;source&quot;</span>: <span class="hljs-string">&quot;inspected-scripted-BGM&quot;</span>,
+                                             <span class="hljs-string">&quot;evidence&quot;</span>: text}) + <span class="hljs-string">&quot;\n&quot;</span>)
+                music_seen.add(identity)
+        labels = {row[<span class="hljs-string">&quot;text&quot;</span>].strip().lower() <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows}
+        need(<span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&quot;\bhp\b|\bpp:|choose a pok&quot;</span>, low) <span class="hljs-keyword">and</span>
+             <span class="hljs-keyword">not</span> <span class="hljs-built_in">all</span>(label <span class="hljs-keyword">in</span> labels <span class="hljs-keyword">for</span> label <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;fight&quot;</span>, <span class="hljs-string">&quot;bag&quot;</span>, <span class="hljs-string">&quot;run&quot;</span>]),
+             <span class="hljs-string">&quot;Recovery interrupted by battle/party screen&quot;</span>)
+        <span class="hljs-keyword">if</span> labels &amp; {<span class="hljs-string">&quot;yes&quot;</span>, <span class="hljs-string">&quot;no&quot;</span>, <span class="hljs-string">&quot;ves&quot;</span>, <span class="hljs-string">&quot;tes&quot;</span>, <span class="hljs-string">&quot;mo&quot;</span>, <span class="hljs-string">&quot;ro&quot;</span>}:
+            need(difflib.SequenceMatcher(<span class="hljs-literal">None</span>, n, anchor).ratio() &gt;= <span class="hljs-number">.48</span> <span class="hljs-keyword">or</span> <span class="hljs-string">&quot;comingtooright&quot;</span> <span class="hljs-keyword">in</span> n,
+                 <span class="hljs-string">&quot;Unrecognized recovery choice; no answer sent&quot;</span>)
+            run(<span class="hljs-string">&quot;choose_dialog&quot;</span>, <span class="hljs-string">&quot;Yes|No&quot;</span>, <span class="hljs-string">&quot;Yes&quot;</span>)
+            run(<span class="hljs-string">&quot;linear_dialog&quot;</span>, <span class="hljs-number">735</span>, <span class="hljs-number">4</span>, <span class="hljs-string">&quot;--source-page&quot;</span>, <span class="hljs-number">2</span>, <span class="hljs-string">&quot;--past-choice&quot;</span>, <span class="hljs-string">&quot;--world-settle&quot;</span>, <span class="hljs-number">12</span>)
+            world_guard()
+            arrived = locate(<span class="hljs-number">413</span>)
+            need(arrived[<span class="hljs-number">0</span>] == <span class="hljs-number">413</span>, <span class="hljs-string">&quot;Anna travel did not reach Calcenon&quot;</span>)
+            <span class="hljs-comment"># Only the completed Yes branch, not the mutually exclusive No.</span>
+            state = json.loads(STATE_FILE.read_text())
+            state.setdefault(<span class="hljs-string">&quot;variables&quot;</span>, {})[<span class="hljs-string">&quot;391&quot;</span>] = <span class="hljs-number">49</span>
+            state.setdefault(<span class="hljs-string">&quot;switches&quot;</span>, {})[<span class="hljs-string">&quot;921&quot;</span>] = <span class="hljs-literal">True</span>
+            STATE_FILE.write_text(json.dumps(state) + <span class="hljs-string">&quot;\n&quot;</span>)
+            record(<span class="hljs-string">&quot;recovery-anna-yes-completed&quot;</span>, <span class="hljs-built_in">map</span>=<span class="hljs-number">413</span>, position=<span class="hljs-built_in">list</span>(arrived[<span class="hljs-number">1</span>:]))
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;SAFE CALCENON ARRIVAL&quot;</span>, arrived, <span class="hljs-string">&quot;bag/medicine/PC flows remain root-owned&quot;</span>, flush=<span class="hljs-literal">True</span>)
+            <span class="hljs-keyword">return</span>
+        <span class="hljs-keyword">if</span> text != last:
+            <span class="hljs-built_in">print</span>(text, flush=<span class="hljs-literal">True</span>)
+        repeats = repeats + <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> n == normalized(last) <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+        last = text
+        need(repeats &lt; <span class="hljs-number">8</span> <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> textbox(), <span class="hljs-string">&quot;Repeated recovery dialogue; no blind replay&quot;</span>)
+        matched = <span class="hljs-built_in">bool</span>(n) <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>, n, block).ratio() &gt;= <span class="hljs-number">.52</span> <span class="hljs-keyword">for</span> block <span class="hljs-keyword">in</span> norms)
+        <span class="hljs-keyword">try</span>:
+            <span class="hljs-keyword">if</span> textbox() <span class="hljs-keyword">or</span> matched:
+                empty = <span class="hljs-number">0</span>
+                act(<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-string">&quot;wait:.35&quot;</span>)
+            <span class="hljs-keyword">else</span>:
+                empty += <span class="hljs-number">1</span>
+                need(empty &lt;= <span class="hljs-number">90</span>, <span class="hljs-string">&quot;Recovery settled without Anna&#x27;s inspected choice; review actual map/phase&quot;</span>)
+                act(<span class="hljs-string">&quot;wait:.5&quot;</span>)
+        <span class="hljs-keyword">except</span> subprocess.CalledProcessError <span class="hljs-keyword">as</span> error:
+            <span class="hljs-keyword">if</span> error.returncode != <span class="hljs-number">2</span>:
+                <span class="hljs-keyword">raise</span>
+            <span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> capture_ready
+            capture_ready()
+            record(<span class="hljs-string">&quot;recovery-capture-restored-reread&quot;</span>, observed_text=text)
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;CAPTURE RECOVERED; re-read current dialogue without replay&quot;</span>, flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Recovery scene limit; resume --from-phase recovery after inspecting the actual dialogue&quot;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">execute</span>(<span class="hljs-params">args, frozen</span>):
+    <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act
+    <span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+    <span class="hljs-keyword">from</span> void_batch_route <span class="hljs-keyword">import</span> world_guard
+    state = json.loads(STATE_FILE.read_text())
+    need(state.get(<span class="hljs-string">&quot;switches&quot;</span>, {}).get(<span class="hljs-string">&quot;1874&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>, <span class="hljs-string">&quot;Root&#x27;s normal post-Hypno checkpoint must sync1874True&quot;</span>)
+    <span class="hljs-keyword">if</span> args.from_phase == <span class="hljs-string">&quot;recovery&quot;</span>:
+        recovery()
+        <span class="hljs-keyword">return</span>
+    world_guard()
+    actual = locate()
+    <span class="hljs-keyword">if</span> args.from_phase:
+        first = PHASES.index(args.from_phase)
+    <span class="hljs-keyword">elif</span> actual[<span class="hljs-number">0</span>] == <span class="hljs-number">758</span>:
+        first = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">elif</span> actual[<span class="hljs-number">0</span>] == <span class="hljs-number">759</span>:
+        first = <span class="hljs-number">3</span>
+    <span class="hljs-keyword">else</span>:
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;At an automatic recovery dialogue use explicit --from-phase recovery, not coordinate resume&quot;</span>)
+    <span class="hljs-keyword">for</span> phase <span class="hljs-keyword">in</span> PHASES[first:]:
+        <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;recovery&quot;</span>:
+            recovery()
+        <span class="hljs-keyword">elif</span> phase == <span class="hljs-string">&quot;void-exit&quot;</span>:
+            need(locate()[<span class="hljs-number">0</span>] == <span class="hljs-number">759</span>, <span class="hljs-string">&quot;Void exit phase expects759 overworld&quot;</span>)
+            walk(<span class="hljs-number">759</span>, (<span class="hljs-number">43</span>, <span class="hljs-number">191</span>), phase, args.chunk_tiles, transfer_map=<span class="hljs-number">735</span>)
+        <span class="hljs-keyword">else</span>:
+            need(locate()[<span class="hljs-number">0</span>] == <span class="hljs-number">758</span>, <span class="hljs-string">f&quot;<span class="hljs-subst">{phase}</span> phase expects758 overworld&quot;</span>)
+            eid, goal, facing = {<span class="hljs-string">&quot;zel&quot;</span>: (<span class="hljs-number">33</span>, (<span class="hljs-number">11</span>, <span class="hljs-number">146</span>), <span class="hljs-string">&quot;right&quot;</span>),
+                                 <span class="hljs-string">&quot;shade&quot;</span>: (<span class="hljs-number">34</span>, (<span class="hljs-number">17</span>, <span class="hljs-number">180</span>), <span class="hljs-string">&quot;down&quot;</span>),
+                                 <span class="hljs-string">&quot;luna&quot;</span>: (<span class="hljs-number">35</span>, (<span class="hljs-number">40</span>, <span class="hljs-number">176</span>), <span class="hljs-literal">None</span>)}[phase]
+            state = json.loads(STATE_FILE.read_text())
+            <span class="hljs-keyword">if</span> state.get(<span class="hljs-string">&quot;self_switches&quot;</span>, {}).get(<span class="hljs-string">f&quot;758,<span class="hljs-subst">{eid}</span>,A&quot;</span>):
+                <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;SOURCE-COMPLETED PHASE&quot;</span>, phase, flush=<span class="hljs-literal">True</span>)
+            <span class="hljs-keyword">else</span>:
+                walk(<span class="hljs-number">758</span>, goal, phase, args.chunk_tiles, transfer_map=<span class="hljs-number">759</span> <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;luna&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>)
+                <span class="hljs-keyword">if</span> facing:
+                    active = model(<span class="hljs-number">758</span>, goal)[<span class="hljs-string">&quot;events&quot;</span>][<span class="hljs-built_in">str</span>(eid)]
+                    act(facing + <span class="hljs-string">&quot;:.03&quot;</span>, <span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-string">&quot;wait:.6&quot;</span>)
+                    settle(<span class="hljs-number">758</span>, eid, active)
+        <span class="hljs-comment"># Input receipt is not transfer/story proof. The forced recovery chain</span>
+        <span class="hljs-comment"># itself is verified only at the final Calcenon coordinate check.</span>
+        record(<span class="hljs-string">&quot;phase-touch-sent&quot;</span> <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;void-exit&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;phase-completed&quot;</span>, phase=phase)
+        <span class="hljs-keyword">if</span> args.stop_phase == phase:
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;STOPPED AFTER APPROVED TOUCH; RECOVERY UNVERIFIED&quot;</span> <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;void-exit&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;STOPPED AFTER APPROVED PHASE&quot;</span>, phase, flush=<span class="hljs-literal">True</span>)
+            <span class="hljs-keyword">return</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(<span class="hljs-string">&quot;--execute&quot;</span>, action=<span class="hljs-string">&quot;store_true&quot;</span>)
+    parser.add_argument(<span class="hljs-string">&quot;--from-phase&quot;</span>, choices=PHASES)
+    parser.add_argument(<span class="hljs-string">&quot;--stop-phase&quot;</span>, choices=PHASES)
+    parser.add_argument(<span class="hljs-string">&quot;--chunk-tiles&quot;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, default=<span class="hljs-number">56</span>)
+    parser.add_argument(<span class="hljs-string">&quot;--post-status&quot;</span>, <span class="hljs-built_in">type</span>=pathlib.Path)
+    parser.add_argument(<span class="hljs-string">&quot;--item-report&quot;</span>, <span class="hljs-built_in">type</span>=pathlib.Path)
+    args = parser.parse_args()
+    need(<span class="hljs-number">1</span> &lt;= args.chunk_tiles &lt;= <span class="hljs-number">84</span>, <span class="hljs-string">&quot;Chunk bound must be1..84&quot;</span>)
+    proof = validate_sources()
+    <span class="hljs-built_in">print</span>(json.dumps({<span class="hljs-string">&quot;proposal&quot;</span>: <span class="hljs-literal">True</span>, <span class="hljs-string">&quot;phases&quot;</span>: PHASES, <span class="hljs-string">&quot;source_validation&quot;</span>: proof,
+                      <span class="hljs-string">&quot;recovery_is_uninterrupted_autoruns&quot;</span>: <span class="hljs-literal">True</span>,
+                      <span class="hljs-string">&quot;no_controllable_715_scale_window&quot;</span>: <span class="hljs-literal">True</span>}, indent=<span class="hljs-number">2</span>), flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">if</span> args.execute:
+        need(args.post_status <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> args.item_report <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>,
+             <span class="hljs-string">&quot;--execute requires frozen --post-status and verified --item-report&quot;</span>)
+        frozen = frozen_post_gate(args.post_status, args.item_report)
+        execute(args, frozen)
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    main()
+</code></pre>
+  </body>
+</html>

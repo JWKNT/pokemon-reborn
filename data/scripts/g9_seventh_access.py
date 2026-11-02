@@ -1,0 +1,21 @@
+from play import *
+import nav
+def run(*args): subprocess.run([sys.executable,str(ROOT/'scripts'/args[0]),*args[1:]],check=True)
+def stage(**vals):
+ p=ROOT/'notes/navigation-state.json';v=json.loads(p.read_text());v['variables'].update(vals);p.write_text(json.dumps(v))
+stage(**{'95':13})
+act('c','wait:1');run('linear_dialog.py','165','14','--active')
+stage(**{'159':5})
+p=ROOT/'notes/navigation-state.json';v=json.loads(p.read_text());v['switches']['423']=False;p.write_text(json.dumps(v))
+nav.save();print(read(),flush=True)
+run('q.py','165,31,12,right,wait:2','79,8,19,left,wait:2','424,3,5,left,wait:2')
+run('eventq.py','80','30','enter')
+run('q.py','168,30,10,up,wait:1')
+run('linear_dialog.py','168','3','--active')
+run('eventq.py','168','8','enter')
+run('eventq.py','168','13','talk')
+run('choose_dialog.py','7th Street|Lapis Ward','7th Street')
+run('linear_dialog.py','168','13','--active','--past-choice')
+stage(**{'79':1})
+run('eventq.py','168','11','enter')
+run('eventq.py','168','15','enter')

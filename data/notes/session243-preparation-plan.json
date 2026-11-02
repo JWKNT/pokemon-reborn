@@ -1,0 +1,21 @@
+{
+  "epoch": 1791427989.7569962,
+  "objective": "Calm Mind TM04 and Honedge via Mirage Tower; strengthen future teams through normal controls. Suicune/Raikou remain pending.",
+  "team_change": "Excadrill100 restored from Box1slot5 for Rock Smash; Cofagrigus108 now in that slot. Full party healed120 nurse.",
+  "native_checkpoint": "Postgame243-Healed (before PC exchange)",
+  "static_item_findings": {
+    "TM04": "677event27; Mirage Tower six puzzles",
+    "Leftovers": "782Azer requires spirit thresholds;517Spyce grocery quest;425penthouse requires stickers. None acquired."
+  },
+  "source_guide": "https://bigjra.github.io/reborn/#mirage-tower",
+  "puzzle_sequences": [
+    "U3 R2",
+    "U2 L2 D4 R2",
+    "D L D3 L4 D R D3 R4 D",
+    "D3 R U R3 D R D2 R",
+    "R5 D3 R2 D3 R L2 U L4 R3",
+    "R5 L D6 L3 U4 L D U2"
+  ],
+  "stop": "95% used or Oct8 17:30America/New_York; enter cleanup by21:00UTC",
+  "guide_sequences_status": "STALE guide differs installed version. Use source-solved work/243-mirage-solved.json exclusively."
+}

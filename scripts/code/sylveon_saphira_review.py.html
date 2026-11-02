@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>sylveon_saphira_review.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of sylveon_saphira_review.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure, hypothetical Sylveon/Noivern source review; never imports controls.
+
+Inputs are two named installed-source extracts. No runtime save, UI, AI,
+battle log, future RNG, active recording, or native inspection is used.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> fractions <span class="hljs-keyword">import</span> Fraction <span class="hljs-keyword">as</span> F
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+<span class="hljs-keyword">from</span> nonmega_saphira_review <span class="hljs-keyword">import</span> calc
+<span class="hljs-keyword">from</span> saphira_damage_review <span class="hljs-keyword">import</span> stats
+
+ROOT = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+EVS = [<span class="hljs-number">252</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">252</span>, <span class="hljs-number">4</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">backed_up_field_after_defog</span>(<span class="hljs-params">layers</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Model only the installed breakField pop, not Defog&#x27;s availability.&quot;&quot;&quot;</span>
+    remaining = <span class="hljs-built_in">list</span>(layers)[:-<span class="hljs-number">1</span>]
+    <span class="hljs-keyword">return</span> remaining[-<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> remaining <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;INDOOR&quot;</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">incoming</span>(<span class="hljs-params">noivern_stats, sylveon_stats, field, *, spdef_stage=<span class="hljs-number">0</span>,
+             enemy_spatk_stage=<span class="hljs-number">1</span></span>):
+    fairy_defense = F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> field == <span class="hljs-string">&quot;MISTY&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+    result = {<span class="hljs-string">&quot;DRAGONPULSE&quot;</span>: {<span class="hljs-string">&quot;ordinary&quot;</span>: [<span class="hljs-number">0</span>, <span class="hljs-number">0</span>], <span class="hljs-string">&quot;critical&quot;</span>: [<span class="hljs-number">0</span>, <span class="hljs-number">0</span>]}}
+    <span class="hljs-keyword">for</span> move, power, flash_fire <span class="hljs-keyword">in</span> ((<span class="hljs-string">&quot;FLAMETHROWER&quot;</span>, <span class="hljs-number">90</span>, F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>)),
+                                    (<span class="hljs-string">&quot;BOOMBURST&quot;</span>, <span class="hljs-number">140</span>, <span class="hljs-number">1</span>)):
+        options = <span class="hljs-built_in">dict</span>(attack_stage=enemy_spatk_stage,
+                       defense_stage=spdef_stage,
+                       attack_multiplier=flash_fire,
+                       defense_multiplier=fairy_defense,
+                       field_multiplier=F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> field == <span class="hljs-string">&quot;DRAGONSDEN&quot;</span> <span class="hljs-keyword">and</span> move == <span class="hljs-string">&quot;FLAMETHROWER&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)
+        result[move] = {
+            <span class="hljs-string">&quot;ordinary&quot;</span>: calc(<span class="hljs-number">95</span>, power, noivern_stats[<span class="hljs-number">3</span>], sylveon_stats[<span class="hljs-number">4</span>], **options),
+            <span class="hljs-string">&quot;critical&quot;</span>: calc(<span class="hljs-number">95</span>, power, noivern_stats[<span class="hljs-number">3</span>], sylveon_stats[<span class="hljs-number">4</span>], critical=<span class="hljs-literal">True</span>, **options),
+        }
+    <span class="hljs-keyword">return</span> result
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">moonblast</span>(<span class="hljs-params">noivern_stats, sylveon_stats, field, *, spatk_stage=<span class="hljs-number">0</span></span>):
+    <span class="hljs-keyword">return</span> calc(<span class="hljs-number">95</span>, <span class="hljs-number">95</span>, sylveon_stats[<span class="hljs-number">3</span>], noivern_stats[<span class="hljs-number">4</span>],
+                attack_stage=spatk_stage,
+                defense_multiplier=F(<span class="hljs-number">13</span>, <span class="hljs-number">10</span>) <span class="hljs-keyword">if</span> field == <span class="hljs-string">&quot;DRAGONSDEN&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>,
+                power_multiplier=F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> field == <span class="hljs-string">&quot;MISTY&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>,
+                stab=F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>), effectiveness=<span class="hljs-number">2</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">build_report</span>():
+    species = json.loads((ROOT / <span class="hljs-string">&quot;work/saphira-capture-options-source.json&quot;</span>).read_text())[<span class="hljs-string">&quot;species&quot;</span>]
+    rows = json.loads((ROOT / <span class="hljs-string">&quot;work/saphira-installed-team.json&quot;</span>).read_text())[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]
+    noivern = <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;NOIVERN&quot;</span>)
+    ns = stats(noivern, species)
+    builds = []
+    <span class="hljs-keyword">for</span> iv <span class="hljs-keyword">in</span> (<span class="hljs-number">0</span>, <span class="hljs-number">15</span>, <span class="hljs-number">31</span>):
+        proposed = <span class="hljs-built_in">dict</span>(species=<span class="hljs-string">&quot;SYLVEON&quot;</span>, level=<span class="hljs-number">95</span>, nature=<span class="hljs-string">&quot;CALM&quot;</span>,
+                        iv=[iv] * <span class="hljs-number">6</span>, ev=EVS)
+        s = stats(proposed, species)
+        fields = {}
+        <span class="hljs-keyword">for</span> field <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;DRAGONSDEN&quot;</span>, <span class="hljs-string">&quot;MISTY&quot;</span>, <span class="hljs-string">&quot;INDOOR&quot;</span>):
+            fields[field] = {
+                <span class="hljs-string">&quot;incoming&quot;</span>: incoming(ns, s, field),
+                <span class="hljs-string">&quot;incoming_after_one_x_spdef&quot;</span>: incoming(ns, s, field, spdef_stage=<span class="hljs-number">2</span>),
+                <span class="hljs-string">&quot;moonblast&quot;</span>: moonblast(ns, s, field),
+                <span class="hljs-string">&quot;moonblast_after_one_x_spatk&quot;</span>: moonblast(ns, s, field, spatk_stage=<span class="hljs-number">2</span>),
+            }
+        builds.append(<span class="hljs-built_in">dict</span>(proposed_iv=proposed[<span class="hljs-string">&quot;iv&quot;</span>], stats=s,
+                           burn_tick=s[<span class="hljs-number">0</span>] // <span class="hljs-number">16</span>, fields=fields))
+    minimum_spdef = {}
+    <span class="hljs-keyword">for</span> hp <span class="hljs-keyword">in</span> (<span class="hljs-number">345</span>, <span class="hljs-number">359</span>, <span class="hljs-number">374</span>):
+        <span class="hljs-keyword">for</span> defense <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, <span class="hljs-number">1000</span>):
+            test = [hp, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">214</span>, defense, <span class="hljs-number">0</span>]
+            ceiling = <span class="hljs-built_in">max</span>(v[<span class="hljs-string">&quot;critical&quot;</span>][<span class="hljs-number">1</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> incoming(ns, test, <span class="hljs-string">&quot;DRAGONSDEN&quot;</span>).values())
+            <span class="hljs-keyword">if</span> hp &gt; ceiling + hp // <span class="hljs-number">16</span> + <span class="hljs-number">2</span>:
+                minimum_spdef[<span class="hljs-built_in">str</span>(hp)] = <span class="hljs-built_in">dict</span>(spdef=defense, critical_ceiling=ceiling,
+                                               burn_tick=hp // <span class="hljs-number">16</span>, rounding_margin=<span class="hljs-number">2</span>)
+                <span class="hljs-keyword">break</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">dict</span>(scope=<span class="hljs-string">&quot;Source-only future proposal, not an acquired/trained party claim&quot;</span>,
+                stat_order=[<span class="hljs-string">&quot;HP&quot;</span>, <span class="hljs-string">&quot;Atk&quot;</span>, <span class="hljs-string">&quot;Def&quot;</span>, <span class="hljs-string">&quot;SpA&quot;</span>, <span class="hljs-string">&quot;SpD&quot;</span>, <span class="hljs-string">&quot;Spe&quot;</span>],
+                recommended_level=<span class="hljs-number">95</span>, recommended_nature=<span class="hljs-string">&quot;CALM&quot;</span>, recommended_ev=EVS,
+                noivern=ns, noivern_moves=noivern[<span class="hljs-string">&quot;moves&quot;</span>], noivern_has_roost=<span class="hljs-string">&quot;ROOST&quot;</span> <span class="hljs-keyword">in</span> noivern[<span class="hljs-string">&quot;moves&quot;</span>],
+                builds=builds, minimum_first_misty_spdef=minimum_spdef,
+                caveats=[<span class="hljs-string">&quot;Uses seed +1 SpA, persistent Flash Fire and all relevant field multipliers.&quot;</span>,
+                         <span class="hljs-string">&quot;Critical ignores positive SpDef stages, but retains Misty&#x27;s Fairy defense multiplier.&quot;</span>,
+                         <span class="hljs-string">&quot;Public field, HP, status, elapsed turns and observed SpA drops must govern each action.&quot;</span>,
+                         <span class="hljs-string">&quot;Defog/expiry restores actual backup; no AI, damage-roll or opponent-healing prediction.&quot;</span>,
+                         <span class="hljs-string">&quot;Add two HP rounding margin and residual-status damage to displayed attack ceilings.&quot;</span>])
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    <span class="hljs-built_in">print</span>(json.dumps(build_report(), indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

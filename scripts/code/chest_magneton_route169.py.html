@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>chest_magneton_route169.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of chest_magneton_route169.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Follow reviewed static ground/ledge route to Magneton; halt on public interruption.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> chest_safe_pause <span class="hljs-keyword">import</span> classify,finish_bag_entry
+path=json.loads((ROOT/<span class="hljs-string">&#x27;work/169-magneton-route.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> classify(snap())==<span class="hljs-string">&#x27;bag&#x27;</span>
+act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>,<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>)
+<span class="hljs-keyword">for</span> start <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">0</span>,<span class="hljs-built_in">len</span>(path),<span class="hljs-number">18</span>):
+ seq=[]
+ <span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> path[start:start+<span class="hljs-number">18</span>]:
+  <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> step[<span class="hljs-string">&#x27;action&#x27;</span>]
+  jump=step[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>);key=step[<span class="hljs-string">&#x27;key&#x27;</span>].removeprefix(<span class="hljs-string">&#x27;jump:&#x27;</span>)
+  seq += [key+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.70&#x27;</span> <span class="hljs-keyword">if</span> jump <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;wait:.10&#x27;</span>]
+ act(*seq)
+ rows=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> rows);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CHUNK&#x27;</span>,start,t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(x[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(x[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">10</span> <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> rows):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Public interruption; no further route inputs&#x27;</span>)
+act(<span class="hljs-string">&#x27;right:.08&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+rows=snap();<span class="hljs-built_in">print</span>(rows,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(x[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(x[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">10</span> <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> rows):
+ act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>,<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>);finish_bag_entry();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BAG PAUSED; verify endpoint&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

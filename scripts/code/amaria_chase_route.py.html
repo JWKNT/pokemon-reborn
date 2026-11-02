@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>amaria_chase_route.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of amaria_chase_route.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Locate wandering Amaria from current game pixels, then approach with normal keys.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> route,groupby
+sys.path.insert(<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;/tmp/reborn-vision-deps&#x27;</span>)
+<span class="hljs-keyword">import</span> cv2,numpy <span class="hljs-keyword">as</span> np
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+m,e=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]);<span class="hljs-keyword">assert</span> m <span class="hljs-keyword">in</span>[<span class="hljs-number">680</span>,<span class="hljs-number">683</span>]
+sheet=np.array(Image.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Graphics/Characters/trchar069e.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>))
+<span class="hljs-keyword">for</span> iteration <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">18</span>):
+ actual=locate(m);<span class="hljs-keyword">assert</span> actual[<span class="hljs-number">0</span>]==m
+ <span class="hljs-comment"># The coordinate frame froze the NPC while it was displayed. Match that</span>
+ <span class="hljs-comment"># untouched screenshot; position conversion uses the verified512x384 viewport.</span>
+ im=Image.<span class="hljs-built_in">open</span>(NATIVE);<span class="hljs-keyword">assert</span> im.size==(<span class="hljs-number">2272</span>,<span class="hljs-number">1816</span>)
+ canvas=im.crop((<span class="hljs-number">112</span>,<span class="hljs-number">132</span>,<span class="hljs-number">2160</span>,<span class="hljs-number">1668</span>)).resize((<span class="hljs-number">512</span>,<span class="hljs-number">384</span>),Image.Resampling.NEAREST)
+ gray=cv2.cvtColor(np.array(canvas.convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)),cv2.COLOR_RGB2GRAY);hits=[]
+ <span class="hljs-keyword">for</span> yy <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  <span class="hljs-keyword">for</span> xx <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+   tpl=sheet[yy*<span class="hljs-number">42</span>:(yy+<span class="hljs-number">1</span>)*<span class="hljs-number">42</span>,xx*<span class="hljs-number">42</span>:(xx+<span class="hljs-number">1</span>)*<span class="hljs-number">42</span>]
+   result=cv2.matchTemplate(gray,cv2.cvtColor(tpl[:,:,:<span class="hljs-number">3</span>],cv2.COLOR_RGB2GRAY),cv2.TM_CCOEFF_NORMED,mask=tpl[:,:,<span class="hljs-number">3</span>]);result[~np.isfinite(result)]=<span class="hljs-number">0</span>
+   _,score,_,xy=cv2.minMaxLoc(result);hits.append((score,xy,xx,yy))
+ score,xy,xx,yy=<span class="hljs-built_in">max</span>(hits)
+ <span class="hljs-keyword">assert</span> score&gt;=<span class="hljs-number">.82</span>,(<span class="hljs-string">&#x27;Amaria sprite not confidently visible&#x27;</span>,score,xy)
+ npc=(<span class="hljs-built_in">round</span>(actual[<span class="hljs-number">1</span>]+(xy[<span class="hljs-number">0</span>]+<span class="hljs-number">21</span>-<span class="hljs-number">256</span>)/<span class="hljs-number">32</span>),<span class="hljs-built_in">round</span>(actual[<span class="hljs-number">2</span>]+(xy[<span class="hljs-number">1</span>]+<span class="hljs-number">42</span>-<span class="hljs-number">208</span>)/<span class="hljs-number">32</span>))
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VISIBLE AMARIA&#x27;</span>,iteration,<span class="hljs-string">&#x27;score&#x27;</span>,<span class="hljs-built_in">round</span>(score,<span class="hljs-number">3</span>),<span class="hljs-string">&#x27;player&#x27;</span>,actual,<span class="hljs-string">&#x27;NPC&#x27;</span>,npc,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">with</span>(ROOT/<span class="hljs-string">&#x27;recordings/npc-observations.jsonl&#x27;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>)<span class="hljs-keyword">as</span> f:f.write(json.dumps({<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;map&#x27;</span>:m,<span class="hljs-string">&#x27;event&#x27;</span>:e,<span class="hljs-string">&#x27;player&#x27;</span>:actual,<span class="hljs-string">&#x27;sprite_score&#x27;</span>:score,<span class="hljs-string">&#x27;sprite_frame&#x27;</span>:[xx,yy],<span class="hljs-string">&#x27;sprite_origin&#x27;</span>:xy,<span class="hljs-string">&#x27;estimated_tile&#x27;</span>:npc,<span class="hljs-string">&#x27;source&#x27;</span>:<span class="hljs-string">&#x27;current native screenshot; installed sprite-sheet match&#x27;</span>})+<span class="hljs-string">&#x27;\n&#x27;</span>)
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(m),<span class="hljs-built_in">str</span>(actual[<span class="hljs-number">1</span>]),<span class="hljs-built_in">str</span>(actual[<span class="hljs-number">2</span>])],stderr=subprocess.DEVNULL))
+ v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(e)][<span class="hljs-string">&#x27;x&#x27;</span>],v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(e)][<span class="hljs-string">&#x27;y&#x27;</span>]=npc
+ choices=[]
+ <span class="hljs-keyword">for</span> dx,dy,k <span class="hljs-keyword">in</span>[(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;up&#x27;</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;down&#x27;</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;left&#x27;</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;right&#x27;</span>)]:
+  goal=(npc[<span class="hljs-number">0</span>]+dx,npc[<span class="hljs-number">1</span>]+dy)
+  <span class="hljs-keyword">try</span>:steps=route(v,goal);choices.append((<span class="hljs-built_in">len</span>(steps),goal,k,steps))
+  <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">pass</span>
+ <span class="hljs-keyword">assert</span> choices,<span class="hljs-string">&#x27;No visible NPC approach&#x27;</span>
+ n,goal,facing,steps=<span class="hljs-built_in">min</span>(choices)
+ <span class="hljs-keyword">if</span> n:
+  act(*[key+<span class="hljs-string">&#x27;:.12&#x27;</span><span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> steps[:<span class="hljs-number">4</span>]]);<span class="hljs-keyword">continue</span>
+ act(facing+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.4&#x27;</span>);text=read();<span class="hljs-built_in">print</span>(text,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;amaria&#x27;</span><span class="hljs-keyword">in</span> text.lower():<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;AMARIA DIALOGUE VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Wandering NPC chase budget exhausted&#x27;</span>)
+</code></pre>
+  </body>
+</html>

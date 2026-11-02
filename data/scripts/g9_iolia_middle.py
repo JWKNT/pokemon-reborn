@@ -1,0 +1,21 @@
+from g9_iolia_first import *
+def crystal(m,e,s):
+ run('eventq.py',m,e,'talk')
+ t=read().lower()
+ if 'reacted' not in t:raise SystemExit('Crystal activation not observed: '+t)
+ run('linear_dialog.py',m,e,'--active')
+ p=ROOT/'notes/navigation-state.json';v=json.loads(p.read_text());v['switches'][str(s)]=True;p.write_text(json.dumps(v))
+if __name__=='__main__':
+ crystal(335,101,441)
+ run('q.py','335,18,2,up:0.22,wait:1')
+ run('q.py','342,25,7,right:0.22,wait:1')
+ run('q.py','334,16,0,up:0.22,wait:1')
+ crystal(333,18,439)
+ crystal(333,70,444)
+ run('q.py','333,31,41,down:0.22,wait:1')
+ crystal(334,5,446)
+ run('eventq.py',334,7,'smash')
+ run('q.py','334,35,22,down:0.22,wait:1')
+ crystal(335,57,440)
+ crystal(335,136,447)
+ print('MIDDLE CRYSTALS COMPLETE; inspect onward.',flush=True)

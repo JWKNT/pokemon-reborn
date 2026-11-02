@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="2026-10-02 late scrapyard update: native first train663E22 completed, V363=1 at81,50; Rock12 cleared(S832); two Magnet Pull Nosepass…">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="gym15-route-and-battle-plan.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/gym15-route-and-battle-plan.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/gym15-route-and-battle-plan.md.html">
+    <title>gym15-route-and-battle-plan.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">gym15-route-and-battle-plan.md</h1>
+        <p class="task-meta">Markdown · 3.8 KB · <a href="/pokemon-reborn/reasoning/16/">Task 16</a> · first used Oct 2 22:03</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><p>2026-10-02 late scrapyard update: native first train663E22 completed, V363=1 at81,50; Rock12 cleared(S832); two Magnet Pull Nosepass forced a normal Excadrill Earthquake, then Taka healed. Second train663E35 completedV364=1 at54,51. Recording111 active. Full journeys retain this wild encounter. Route uses native movement/installed map read-only; no native variables, saves or RNG are modified. Cardinal maze exits increment380 when not retracing the previous direction, so repeatedly moving in the same direction is a normal-control route candidate; verify actual stairs before entering. New coordinate reuse is optional REBORN_COORD_CACHE=1, only fresh coordinates with matching last action record and current overworld screenshot.</p>
+<p>X items are in the native Medicine pocket (pbGetPocket; savedPokemonBag pockets2), flaggedbattleitem so target is the activebattler. Use battle_item defaultMedicine --active, never a nonexistent Battle Items pocket. Installed Battle_Scene.pbItemMenu3308+ confirms this. Titania preliminary need2XDefend,2XSpeed,1XSpDef plusSDonFairy. Gastrodon preparationmust calculate actualcapturedspeed; do notassume2XSpeed beatsfieldSwiftSwimLudicolo/Kingdra.</p>
+<p>NativePuzzleShare: after fourengines, normalScrapyardWhiteShard663E173 wasvisible and explicitlyshowed “Scrapyardtrainpuzzlecompletiondetectedfromanothersavefile.” Nativecheckpointreadconfirmed switches2226Blindstep and2227PuzzleSkipPasswordbothnil; noextra passwordenabledorchanged. ChosevisibleYes togame-providedskip, native transfer693[11,20], V3716. Normal693E17Taka/Europaintroductionfollows, partnerdeparts36210/827false. Train numbers inguidefiguresdonotmatchnativeeventnames; ifreturningforitems, E102isupwardhillengineandE75horizontalnear6, notnecessarilyguide(4). No nativeedits.</p>
+<p>Native-source correction: Rylin is event 71 on the active S878 route (event 70 is S877 alternate); source has two pages, not three. Ordinary linked Nido trainer entry uses class KNIGHT/name Asmus; engine links Isadan automatically. Xander defeated first try; Mawile Sucker Punch crit did 80, restored 1 Ultra Potion outside battle.</p>
+<p>Confirmed S878 native route selects TITANIA2/Titania0 on 702E5 page1; team identical to TITANIA1, only speech differs. Corrected major config and opponent export. Asmus and Isadan were two native single battles from separate approaches, both Excadrill EQ OHKOs without damage.</p>
+<p>Knights all won first try. Lancelot: Pyroar burned Swampert; Delphox crit Psyshock through earlier Crunch Defense drop knocked it out. Free Arcanine replacement used Crunch twice for victory. Restored Swampert with1 RevivalHerb and Arcanine with1 UltraPotion. Rylin E71 cleared with Klinklang GearGrind even through AuroraVeil, all party currently full HP. Exc EQ5PP remains; afterDragon use702bluepit→698E69→666, common80 recovery machine666E9[23,3] restores full party+PP, shop666E11 andPC666E10. UltraPotion native200HP, not255.</p>
+<p>Correction after inspecting FULL Lin branch: native362&gt;=1 turns878ON;877ON is the ELSE branch and does not run. Earlier planning notes had wrongly set both; Castle-knights-cleared fresh native checkpoint resyncs truth. Active fall trigger is698E80..85 (x36), not86..91(x34). Native fall source314 restores entire party and PP.</p>
+<p>Titania120 attempt1 reset legitimately at party selection after Round13; full journey retains it. Burned Sand switched out after seed-contact Attack drop (-3); enemyExc setSwordsDance as CFWisp missed. SmartStrike gains BOTH move1.5 and Steel1.5 here, never alwayscrit (nativepbCritRate confirms ordinary24 denominator). CF boost plan underestimated this; 2Ultra2XDef1Revive spent on failed attempt, all restored by native reload. Attempt2 directArcFlame Sand, Exc EQ Emp, ownXSpeed during enemyExc seed turn, EQkill; boost onKlef safer. No activebattle/AIlogreads; completed reset log consulted.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

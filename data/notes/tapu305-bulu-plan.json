@@ -1,0 +1,9 @@
+{
+  "major": 181,
+  "opener": "Volcanion Flamethrower1 targetFerrothorn1; MagearnaTrickRoom3; observe result before next action.",
+  "field": "Grassy Fire1.5 versus grounded; EQ/Surfhalved; SludgeWavechangesCorrosive.",
+  "wild": "Bulu115 last4moves NaturesMadness ZenHeadbutt Megahorn SkullBash. Do NOT FlashCannon orFlamethrower. VolcanionSteamresisted for chip; inspect HP afterone. Magearna resistsall damaging moves except NatureMadness. Catchbeforequesttail.",
+  "boundary": "Record victory before any blind advances. Close only rendered victoryHUD/world. Trainer_music finish before wild. No active native log reads.",
+  "checkpoint": "Bulu305-Ready normalpreboss planned",
+  "created": 1791760226.9057689
+}

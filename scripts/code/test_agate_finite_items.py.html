@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_agate_finite_items.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_agate_finite_items.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure synthetic receipt/source fixtures; never execute UI or a child process.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> types <span class="hljs-keyword">import</span> SimpleNamespace
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> unittest
+<span class="hljs-keyword">from</span> agate_finite_items <span class="hljs-keyword">import</span> (ACTOR,LOW_HP_ERROR,MAX_HP,ROOT,classify_child,
+                               helper_argv,run_plan,validate_foes,validate_output,validate_plan)
+<span class="hljs-keyword">from</span> agate_finite_items <span class="hljs-keyword">import</span> (GAME,installed_field_change_messages,pilot_receipt,
+                               negative_own_stat_message)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">command</span>(<span class="hljs-params">foes=(<span class="hljs-params"><span class="hljs-string">&#x27;Ludicolo&#x27;</span>,<span class="hljs-string">&#x27;Beheeyem&#x27;</span></span>),actor=ACTOR</span>):
+    <span class="hljs-keyword">return</span> [{<span class="hljs-string">&#x27;text&#x27;</span>:n,<span class="hljs-string">&#x27;x&#x27;</span>:<span class="hljs-number">.08</span>,<span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.12</span>+i*<span class="hljs-number">.12</span>} <span class="hljs-keyword">for</span> i,n <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(foes)]+[
+        {<span class="hljs-string">&#x27;text&#x27;</span>:actor,<span class="hljs-string">&#x27;x&#x27;</span>:<span class="hljs-number">.59</span>,<span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.48</span>},{<span class="hljs-string">&#x27;text&#x27;</span>:<span class="hljs-string">&#x27;What will&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>:<span class="hljs-number">.09</span>,<span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.76</span>},
+        {<span class="hljs-string">&#x27;text&#x27;</span>:actor+<span class="hljs-string">&#x27; do?&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>:<span class="hljs-number">.09</span>,<span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.83</span>},{<span class="hljs-string">&#x27;text&#x27;</span>:<span class="hljs-string">&#x27;FIGHT&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>:<span class="hljs-number">.63</span>,<span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.76</span>},
+        {<span class="hljs-string">&#x27;text&#x27;</span>:<span class="hljs-string">&#x27;BAG&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>:<span class="hljs-number">.81</span>,<span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.76</span>},{<span class="hljs-string">&#x27;text&#x27;</span>:<span class="hljs-string">&#x27;RIUN&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>:<span class="hljs-number">.79</span>,<span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.84</span>}]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">child</span>(<span class="hljs-params">step,*,low=<span class="hljs-literal">False</span>,mode=<span class="hljs-string">&#x27;warmup&#x27;</span>,foes=<span class="hljs-literal">None</span></span>):
+    foes=foes <span class="hljs-keyword">or</span> [<span class="hljs-string">&#x27;Ludicolo&#x27;</span>,<span class="hljs-string">&#x27;Beheeyem&#x27;</span>]
+    args=SimpleNamespace(item=step[<span class="hljs-string">&#x27;item&#x27;</span>],mode=mode,move_slot=<span class="hljs-literal">None</span>,target=<span class="hljs-literal">None</span>,target_foe=<span class="hljs-literal">None</span>)
+    r={<span class="hljs-string">&#x27;kind&#x27;</span>:<span class="hljs-string">&#x27;agate_public_one_reviewed_action&#x27;</span>,<span class="hljs-string">&#x27;mode&#x27;</span>:mode,<span class="hljs-string">&#x27;expected_actor&#x27;</span>:ACTOR,
+       <span class="hljs-string">&#x27;expected_total_hp&#x27;</span>:MAX_HP,<span class="hljs-string">&#x27;min_hp&#x27;</span>:step[<span class="hljs-string">&#x27;min_hp&#x27;</span>],<span class="hljs-string">&#x27;expected_foes&#x27;</span>:foes,
+       <span class="hljs-string">&#x27;explicit_action&#x27;</span>:{<span class="hljs-string">&#x27;item&#x27;</span>:step[<span class="hljs-string">&#x27;item&#x27;</span>],<span class="hljs-string">&#x27;move_slot&#x27;</span>:<span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;target&#x27;</span>:<span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;target_foe&#x27;</span>:<span class="hljs-literal">None</span>},
+       <span class="hljs-string">&#x27;pending&#x27;</span>:<span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;journal_issues&#x27;</span>:[],<span class="hljs-string">&#x27;final_capture_epoch&#x27;</span>:<span class="hljs-number">99.5</span>,
+       <span class="hljs-string">&#x27;final_rows&#x27;</span>:command(foes),<span class="hljs-string">&#x27;initial_hp_proof&#x27;</span>:{<span class="hljs-string">&#x27;hp&#x27;</span>:<span class="hljs-number">100</span> <span class="hljs-keyword">if</span> low <span class="hljs-keyword">else</span> <span class="hljs-number">252</span>,<span class="hljs-string">&#x27;total_hp&#x27;</span>:<span class="hljs-number">252</span>},
+       <span class="hljs-string">&#x27;helpers&#x27;</span>:[],<span class="hljs-string">&#x27;result&#x27;</span>:<span class="hljs-string">&#x27;stopped_for_review&#x27;</span> <span class="hljs-keyword">if</span> low <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;helpers_returned&#x27;</span>,
+       <span class="hljs-string">&#x27;final_classification&#x27;</span>:<span class="hljs-string">&#x27;review_required&#x27;</span> <span class="hljs-keyword">if</span> low <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>,
+       <span class="hljs-string">&#x27;public_screens&#x27;</span>:[{<span class="hljs-string">&#x27;first_epoch&#x27;</span>:<span class="hljs-number">99</span>,<span class="hljs-string">&#x27;text&#x27;</span>:[<span class="hljs-string">&#x27;FIGHT&#x27;</span>,<span class="hljs-string">&#x27;BAG&#x27;</span>,<span class="hljs-string">&#x27;RIUN&#x27;</span>]}],
+       <span class="hljs-string">&#x27;nonturn_ui_actions&#x27;</span>:[]}
+    <span class="hljs-keyword">if</span> low:r[<span class="hljs-string">&#x27;error&#x27;</span>]=LOW_HP_ERROR
+    <span class="hljs-keyword">else</span>:
+        r[<span class="hljs-string">&#x27;helpers&#x27;</span>]=[{<span class="hljs-string">&#x27;argv&#x27;</span>:helper_argv(args,{}),<span class="hljs-string">&#x27;returncode&#x27;</span>:<span class="hljs-number">0</span>},
+                      {<span class="hljs-string">&#x27;argv&#x27;</span>:[sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],<span class="hljs-string">&#x27;returncode&#x27;</span>:<span class="hljs-number">0</span>}]
+        r[<span class="hljs-string">&#x27;final_hp_proof&#x27;</span>]={<span class="hljs-string">&#x27;hp&#x27;</span>:<span class="hljs-number">200</span>,<span class="hljs-string">&#x27;total_hp&#x27;</span>:<span class="hljs-number">252</span>}
+        r[<span class="hljs-string">&#x27;final_guard&#x27;</span>]={<span class="hljs-string">&#x27;capture_epoch&#x27;</span>:<span class="hljs-number">99.5</span>}
+    <span class="hljs-keyword">return</span> r
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Tests</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">classify</span>(<span class="hljs-params">self,r,step,returncode=<span class="hljs-number">2</span></span>):
+        <span class="hljs-keyword">return</span> classify_child(r,mode=<span class="hljs-string">&#x27;warmup&#x27;</span>,foes=[<span class="hljs-string">&#x27;Ludicolo&#x27;</span>,<span class="hljs-string">&#x27;Beheeyem&#x27;</span>],step=step,
+                              returncode=returncode,now=<span class="hljs-number">100</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_strict_literal_plan_and_cap</span>(<span class="hljs-params">self</span>):
+        good=[{<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Sp.Def&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">170</span>}]
+        <span class="hljs-variable language_">self</span>.assertEqual(validate_plan(good),good)
+        <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> [[],good*<span class="hljs-number">9</span>,[{<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">1</span>}],[{<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Defend&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-literal">True</span>}],
+                  [{<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Defend&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">253</span>}],[{<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Defend&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;target&#x27;</span>:<span class="hljs-string">&#x27;partner&#x27;</span>}]]:
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):validate_plan(p)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_known_exact_mode_foes_and_new_output</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.assertEqual(validate_foes(<span class="hljs-string">&#x27;warmup&#x27;</span>,[<span class="hljs-string">&#x27;Beheeyem&#x27;</span>,<span class="hljs-string">&#x27;Ludicolo&#x27;</span>]),[<span class="hljs-string">&#x27;Beheeyem&#x27;</span>,<span class="hljs-string">&#x27;Ludicolo&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(validate_foes(<span class="hljs-string">&#x27;ricardo&#x27;</span>,[<span class="hljs-string">&#x27;Blaziken&#x27;</span>]),[<span class="hljs-string">&#x27;Blaziken&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(validate_foes(<span class="hljs-string">&#x27;solaris&#x27;</span>,[<span class="hljs-string">&#x27;Garchomp&#x27;</span>]),[<span class="hljs-string">&#x27;Garchomp&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(validate_foes(<span class="hljs-string">&#x27;antoine&#x27;</span>,[<span class="hljs-string">&#x27;Tyranitar&#x27;</span>]),[<span class="hljs-string">&#x27;Tyranitar&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(validate_foes(<span class="hljs-string">&#x27;lylaezra&#x27;</span>,[<span class="hljs-string">&#x27;Mantine&#x27;</span>,<span class="hljs-string">&#x27;Kommo-o&#x27;</span>]),[<span class="hljs-string">&#x27;Mantine&#x27;</span>,<span class="hljs-string">&#x27;Kommo-o&#x27;</span>])
+        <span class="hljs-keyword">for</span> mode,foes <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;warmup&#x27;</span>,[<span class="hljs-string">&#x27;Ludicolo&#x27;</span>]),(<span class="hljs-string">&#x27;warmup&#x27;</span>,[<span class="hljs-string">&#x27;Ludicolo&#x27;</span>,<span class="hljs-string">&#x27;Ludicolo&#x27;</span>]),
+                         (<span class="hljs-string">&#x27;warmup&#x27;</span>,[<span class="hljs-string">&#x27;Ludicolo&#x27;</span>,<span class="hljs-string">&#x27;Garchomp&#x27;</span>]),(<span class="hljs-string">&#x27;solaris&#x27;</span>,[<span class="hljs-string">&#x27;Staraptor&#x27;</span>,<span class="hljs-string">&#x27;Scizor&#x27;</span>]),
+                         (<span class="hljs-string">&#x27;ricardo&#x27;</span>,[<span class="hljs-string">&#x27;Unknown&#x27;</span>]),(<span class="hljs-string">&#x27;antoine&#x27;</span>,[<span class="hljs-string">&#x27;Mamoswine&#x27;</span>,<span class="hljs-string">&#x27;Lurantis&#x27;</span>]),
+                         (<span class="hljs-string">&#x27;lylaezra&#x27;</span>,[<span class="hljs-string">&#x27;Mamoswine&#x27;</span>,<span class="hljs-string">&#x27;Ditto&#x27;</span>]),(<span class="hljs-string">&#x27;lylaezra&#x27;</span>,[<span class="hljs-string">&#x27;Ditto&#x27;</span>])]:
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):validate_foes(mode,foes)
+        <span class="hljs-keyword">for</span> path <span class="hljs-keyword">in</span> [ROOT,Path(<span class="hljs-string">&#x27;/tmp/agate-outside-workspace-fixture&#x27;</span>)]:
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):validate_output(path)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_exact_no_action_low_hp_exception</span>(<span class="hljs-params">self</span>):
+        step={<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Sp.Def&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">170</span>};r=child(step,low=<span class="hljs-literal">True</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-variable language_">self</span>.classify(r,step)[<span class="hljs-string">&#x27;outcome&#x27;</span>],<span class="hljs-string">&#x27;low_hp_no_action&#x27;</span>)
+        <span class="hljs-keyword">for</span> mutate <span class="hljs-keyword">in</span> [<span class="hljs-keyword">lambda</span> x:x.update(pending={<span class="hljs-string">&#x27;dispatch&#x27;</span>:<span class="hljs-string">&#x27;unknown&#x27;</span>}),
+                       <span class="hljs-keyword">lambda</span> x:x.update(helpers=[{<span class="hljs-string">&#x27;returncode&#x27;</span>:<span class="hljs-number">0</span>}]),
+                       <span class="hljs-keyword">lambda</span> x:x.update(error=LOW_HP_ERROR+<span class="hljs-string">&#x27;?&#x27;</span>),
+                       <span class="hljs-keyword">lambda</span> x:x.update(error=<span class="hljs-string">&#x27;ValueError: Expected foe changed&#x27;</span>),
+                       <span class="hljs-keyword">lambda</span> x:x.update(final_capture_error=<span class="hljs-string">&#x27;Recorder restarted&#x27;</span>),
+                       <span class="hljs-keyword">lambda</span> x:x.update(pre_action_guard={}),
+                       <span class="hljs-keyword">lambda</span> x:x.update(initial_hp_proof={<span class="hljs-string">&#x27;hp&#x27;</span>:<span class="hljs-number">170</span>,<span class="hljs-string">&#x27;total_hp&#x27;</span>:<span class="hljs-number">252</span>}),
+                       <span class="hljs-keyword">lambda</span> x:x.update(initial_hp_proof={<span class="hljs-string">&#x27;hp&#x27;</span>:<span class="hljs-number">100</span>,<span class="hljs-string">&#x27;total_hp&#x27;</span>:<span class="hljs-number">270</span>})]:
+            bad=copy.deepcopy(r);mutate(bad)
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):<span class="hljs-variable language_">self</span>.classify(bad,step)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_success_requires_exact_helpers_hp_and_fresh_same_foes</span>(<span class="hljs-params">self</span>):
+        step={<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Sp.Def&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">170</span>};r=child(step)
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-variable language_">self</span>.classify(r,step,<span class="hljs-number">0</span>)[<span class="hljs-string">&#x27;final_hp&#x27;</span>],<span class="hljs-number">200</span>)
+        <span class="hljs-keyword">for</span> mutate <span class="hljs-keyword">in</span> [<span class="hljs-keyword">lambda</span> x:x[<span class="hljs-string">&#x27;helpers&#x27;</span>][<span class="hljs-number">0</span>].update(returncode=<span class="hljs-number">2</span>),
+                       <span class="hljs-keyword">lambda</span> x:x.update(final_rows=command((<span class="hljs-string">&#x27;Ludicolo&#x27;</span>,<span class="hljs-string">&#x27;Cryogonal&#x27;</span>))),
+                       <span class="hljs-keyword">lambda</span> x:x.update(final_rows=command(actor=<span class="hljs-string">&#x27;Arcanine&#x27;</span>)),
+                       <span class="hljs-keyword">lambda</span> x:x.update(final_classification=<span class="hljs-string">&#x27;visible_victory_message&#x27;</span>),
+                       <span class="hljs-keyword">lambda</span> x:x.update(final_guard={<span class="hljs-string">&#x27;capture_epoch&#x27;</span>:<span class="hljs-number">80</span>}),
+                       <span class="hljs-keyword">lambda</span> x:x.update(final_hp_proof={<span class="hljs-string">&#x27;hp&#x27;</span>:<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;total_hp&#x27;</span>:<span class="hljs-number">252</span>}),
+                       <span class="hljs-keyword">lambda</span> x:x.update(public_screens=[{<span class="hljs-string">&#x27;text&#x27;</span>:[<span class="hljs-string">&quot;Defense won&#x27;t go any higher!&quot;</span>]}])]:
+            bad=copy.deepcopy(r);mutate(bad)
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):<span class="hljs-variable language_">self</span>.classify(bad,step,<span class="hljs-number">0</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_one_heal_then_new_retry_and_no_second_heal</span>(<span class="hljs-params">self</span>):
+        plan=[{<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Sp.Def&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">170</span>}];calls=[]
+        <span class="hljs-keyword">def</span> <span class="hljs-title function_">invoke</span>(<span class="hljs-params">step,index,role,n</span>):
+            calls.append((role,step,n))
+            <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;outcome&#x27;</span>:<span class="hljs-string">&#x27;low_hp_no_action&#x27;</span>} <span class="hljs-keyword">if</span> role==<span class="hljs-string">&#x27;item&#x27;</span> <span class="hljs-keyword">else</span> {<span class="hljs-string">&#x27;outcome&#x27;</span>:<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>,<span class="hljs-string">&#x27;final_hp&#x27;</span>:<span class="hljs-number">200</span>}
+        result=run_plan(plan,invoke)
+        <span class="hljs-variable language_">self</span>.assertEqual(result[<span class="hljs-string">&#x27;result&#x27;</span>],<span class="hljs-string">&#x27;complete&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual([r[<span class="hljs-number">0</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> calls],[<span class="hljs-string">&#x27;item&#x27;</span>,<span class="hljs-string">&#x27;one-heal&#x27;</span>,<span class="hljs-string">&#x27;retry-once&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(calls[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>],{<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">1</span>})
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(n <span class="hljs-keyword">for</span> _,_,n <span class="hljs-keyword">in</span> calls)),<span class="hljs-number">3</span>)
+        calls=[]
+        <span class="hljs-keyword">def</span> <span class="hljs-title function_">retry_low</span>(<span class="hljs-params">step,index,role,n</span>):
+            calls.append(role)
+            <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;outcome&#x27;</span>:<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>,<span class="hljs-string">&#x27;final_hp&#x27;</span>:<span class="hljs-number">200</span>} <span class="hljs-keyword">if</span> role==<span class="hljs-string">&#x27;one-heal&#x27;</span> <span class="hljs-keyword">else</span> {<span class="hljs-string">&#x27;outcome&#x27;</span>:<span class="hljs-string">&#x27;low_hp_no_action&#x27;</span>}
+        result=run_plan(plan,retry_low)
+        <span class="hljs-variable language_">self</span>.assertEqual(result[<span class="hljs-string">&#x27;result&#x27;</span>],<span class="hljs-string">&#x27;stopped_for_review&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(calls,[<span class="hljs-string">&#x27;item&#x27;</span>,<span class="hljs-string">&#x27;one-heal&#x27;</span>,<span class="hljs-string">&#x27;retry-once&#x27;</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_post_heal_below_threshold_or_partial_receipt_stops</span>(<span class="hljs-params">self</span>):
+        plan=[{<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Defend&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">170</span>}];calls=[]
+        <span class="hljs-keyword">def</span> <span class="hljs-title function_">low_heal</span>(<span class="hljs-params">step,index,role,n</span>):
+            calls.append(role)
+            <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;outcome&#x27;</span>:<span class="hljs-string">&#x27;low_hp_no_action&#x27;</span>} <span class="hljs-keyword">if</span> role==<span class="hljs-string">&#x27;item&#x27;</span> <span class="hljs-keyword">else</span> {<span class="hljs-string">&#x27;outcome&#x27;</span>:<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>,<span class="hljs-string">&#x27;final_hp&#x27;</span>:<span class="hljs-number">169</span>}
+        result=run_plan(plan,low_heal)
+        <span class="hljs-variable language_">self</span>.assertEqual(result[<span class="hljs-string">&#x27;result&#x27;</span>],<span class="hljs-string">&#x27;stopped_for_review&#x27;</span>);<span class="hljs-variable language_">self</span>.assertEqual(calls,[<span class="hljs-string">&#x27;item&#x27;</span>,<span class="hljs-string">&#x27;one-heal&#x27;</span>])
+        calls=[]
+        <span class="hljs-keyword">def</span> <span class="hljs-title function_">partial</span>(<span class="hljs-params">step,index,role,n</span>):
+            calls.append(role);<span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Pending helper outcome unknown&#x27;</span>)
+        result=run_plan(plan,partial)
+        <span class="hljs-variable language_">self</span>.assertEqual(result[<span class="hljs-string">&#x27;result&#x27;</span>],<span class="hljs-string">&#x27;stopped_for_review&#x27;</span>);<span class="hljs-variable language_">self</span>.assertEqual(calls,[<span class="hljs-string">&#x27;item&#x27;</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_hard_16_invocation_cap_without_hidden_replays</span>(<span class="hljs-params">self</span>):
+        calls=[]
+        <span class="hljs-keyword">def</span> <span class="hljs-title function_">invoke</span>(<span class="hljs-params">step,index,role,n</span>):
+            calls.append((index,role,n))
+            <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;outcome&#x27;</span>:<span class="hljs-string">&#x27;low_hp_no_action&#x27;</span>} <span class="hljs-keyword">if</span> role==<span class="hljs-string">&#x27;item&#x27;</span> <span class="hljs-keyword">else</span> {<span class="hljs-string">&#x27;outcome&#x27;</span>:<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>,<span class="hljs-string">&#x27;final_hp&#x27;</span>:<span class="hljs-number">252</span>}
+        result=run_plan([{<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Defend&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">170</span>}]*<span class="hljs-number">8</span>,invoke)
+        <span class="hljs-variable language_">self</span>.assertEqual(result[<span class="hljs-string">&#x27;result&#x27;</span>],<span class="hljs-string">&#x27;stopped_for_review&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-built_in">len</span>(calls),<span class="hljs-number">16</span>);<span class="hljs-variable language_">self</span>.assertEqual(result[<span class="hljs-string">&#x27;completed_items&#x27;</span>],<span class="hljs-number">5</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(result[<span class="hljs-string">&#x27;automatic_heal_wrapper_invocations&#x27;</span>],<span class="hljs-number">5</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(calls[-<span class="hljs-number">1</span>],(<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;item&#x27;</span>,<span class="hljs-number">16</span>))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_completed_recent_same_mode_pilot_without_reusing_old_hp</span>(<span class="hljs-params">self</span>):
+        step={<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Sp.Def&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">170</span>};r=child(step);r[<span class="hljs-string">&#x27;end_epoch&#x27;</span>]=<span class="hljs-number">100</span>
+        p=pilot_receipt(r,mode=<span class="hljs-string">&#x27;warmup&#x27;</span>,foes=[<span class="hljs-string">&#x27;Ludicolo&#x27;</span>,<span class="hljs-string">&#x27;Beheeyem&#x27;</span>],now=<span class="hljs-number">101</span>)
+        <span class="hljs-variable language_">self</span>.assertNotIn(<span class="hljs-string">&#x27;initial_hp&#x27;</span>,p);<span class="hljs-variable language_">self</span>.assertNotIn(<span class="hljs-string">&#x27;final_hp&#x27;</span>,p)
+        <span class="hljs-variable language_">self</span>.assertEqual(pilot_receipt(r,mode=<span class="hljs-string">&#x27;warmup&#x27;</span>,foes=[<span class="hljs-string">&#x27;Beheeyem&#x27;</span>,<span class="hljs-string">&#x27;Ludicolo&#x27;</span>],now=<span class="hljs-number">101</span>)[<span class="hljs-string">&#x27;foes&#x27;</span>],[<span class="hljs-string">&#x27;Beheeyem&#x27;</span>,<span class="hljs-string">&#x27;Ludicolo&#x27;</span>])
+        <span class="hljs-keyword">for</span> mutate <span class="hljs-keyword">in</span> [<span class="hljs-keyword">lambda</span> x:x.update(pending={<span class="hljs-string">&#x27;action&#x27;</span>:<span class="hljs-string">&#x27;unknown&#x27;</span>}),
+                       <span class="hljs-keyword">lambda</span> x:x.update(result=<span class="hljs-string">&#x27;stopped_for_review&#x27;</span>),
+                       <span class="hljs-keyword">lambda</span> x:x.update(end_epoch=-<span class="hljs-number">900</span>),
+                       <span class="hljs-keyword">lambda</span> x:x.update(expected_foes=[<span class="hljs-string">&#x27;Ludicolo&#x27;</span>,<span class="hljs-string">&#x27;Cryogonal&#x27;</span>]),
+                       <span class="hljs-keyword">lambda</span> x:x.update(mode=<span class="hljs-string">&#x27;solaris&#x27;</span>)]:
+            bad=copy.deepcopy(r);mutate(bad)
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+                pilot_receipt(bad,mode=<span class="hljs-string">&#x27;warmup&#x27;</span>,foes=[<span class="hljs-string">&#x27;Ludicolo&#x27;</span>,<span class="hljs-string">&#x27;Beheeyem&#x27;</span>],now=<span class="hljs-number">101</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_new_status_field_room_weather_stop_but_existing_hail_chip_does_not</span>(<span class="hljs-params">self</span>):
+        step={<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Sp.Def&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">170</span>};r=child(step)
+        transitions=[<span class="hljs-string">&#x27;Cofagrigus fell asleep!&#x27;</span>,<span class="hljs-string">&#x27;Ludicolo was burned!&#x27;</span>,
+                     <span class="hljs-string">&#x27;Cofagrigus was poisoned!&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus was paralyzed!&#x27;</span>,
+                     <span class="hljs-string">&#x27;Cofagrigus was frozen solid!&#x27;</span>,<span class="hljs-string">&#x27;The field changed!&#x27;</span>,
+                     <span class="hljs-string">&#x27;The terrain became misty!&#x27;</span>,<span class="hljs-string">&#x27;Beheeyem used Trick Room!&#x27;</span>,
+                     <span class="hljs-string">&#x27;Beheeyem twisted the dimensions!&#x27;</span>,
+                     <span class="hljs-string">&#x27;The twisted dimensions returned to normal!&#x27;</span>,
+                     <span class="hljs-string">&#x27;It started to rain!&#x27;</span>,<span class="hljs-string">&#x27;The sunlight turned harsh!&#x27;</span>,
+                     <span class="hljs-string">&#x27;The rain stopped.&#x27;</span>,<span class="hljs-string">&#x27;The hail stopped.&#x27;</span>,<span class="hljs-string">&#x27;A sandstorm brewed!&#x27;</span>,
+                     <span class="hljs-string">&#x27;The terrain returned to normal.&#x27;</span>,<span class="hljs-string">&#x27;The snow melted away!&#x27;</span>]
+        <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> transitions:
+            bad=copy.deepcopy(r);bad[<span class="hljs-string">&#x27;public_screens&#x27;</span>]=[{<span class="hljs-string">&#x27;text&#x27;</span>:[text]}]
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.subTest(text=text),<span class="hljs-variable language_">self</span>.assertRaises(ValueError):<span class="hljs-variable language_">self</span>.classify(bad,step,<span class="hljs-number">0</span>)
+        <span class="hljs-keyword">for</span> tag <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;SLP&#x27;</span>,<span class="hljs-string">&#x27;FRZ&#x27;</span>,<span class="hljs-string">&#x27;PSN&#x27;</span>,<span class="hljs-string">&#x27;PAR&#x27;</span>,<span class="hljs-string">&#x27;BRN&#x27;</span>,<span class="hljs-string">&#x27;SLP Lv90&#x27;</span>]:
+            bad=copy.deepcopy(r);bad[<span class="hljs-string">&#x27;final_rows&#x27;</span>].append({<span class="hljs-string">&#x27;text&#x27;</span>:tag,<span class="hljs-string">&#x27;x&#x27;</span>:<span class="hljs-number">.65</span>,<span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.60</span>})
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.subTest(tag=tag),<span class="hljs-variable language_">self</span>.assertRaises(ValueError):<span class="hljs-variable language_">self</span>.classify(bad,step,<span class="hljs-number">0</span>)
+        good=copy.deepcopy(r)
+        good[<span class="hljs-string">&#x27;public_screens&#x27;</span>]=[{<span class="hljs-string">&#x27;text&#x27;</span>:[<span class="hljs-string">&#x27;The hail is crashing down!&#x27;</span>,
+            <span class="hljs-string">&#x27;The Pokemon were buffeted by the hail!&#x27;</span>,<span class="hljs-string">&#x27;The hail continues to fall.&#x27;</span>,
+            <span class="hljs-string">&#x27;The sandstorm rages.&#x27;</span>,<span class="hljs-string">&#x27;The rain continues to fall.&#x27;</span>]}]
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-variable language_">self</span>.classify(good,step,<span class="hljs-number">0</span>)[<span class="hljs-string">&#x27;outcome&#x27;</span>],<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>)
+        low=child(step,low=<span class="hljs-literal">True</span>);low[<span class="hljs-string">&#x27;public_screens&#x27;</span>]=[{<span class="hljs-string">&#x27;text&#x27;</span>:[<span class="hljs-string">&#x27;Cofagrigus fell asleep!&#x27;</span>]}]
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):<span class="hljs-variable language_">self</span>.classify(low,step)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_negative_own_stat_changes_stop_next_item_with_ocr_name_alias</span>(<span class="hljs-params">self</span>):
+        step={<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Sp.Def&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">170</span>};r=child(step)
+        drops=[<span class="hljs-string">&quot;Cofagrigue’s Defense fell!&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&#x27;s Defense fell!&quot;</span>,
+               <span class="hljs-string">&quot;Cofagrigus&#x27;s Sp. Def fell!&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&#x27;s Sp.Defense fell!&quot;</span>,
+               <span class="hljs-string">&quot;Cofagrigus&#x27;s Special Defense harshly fell!&quot;</span>,
+               <span class="hljs-string">&quot;Cofagrigus&#x27;s Defense dramatically fell!&quot;</span>,
+               <span class="hljs-string">&quot;Cofagrigus&#x27;s Accuracy fell sharply!&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&#x27;s Speed fell!&quot;</span>,
+               <span class="hljs-string">&quot;Cofagrigus&#x27;s Sp. Atk fell!&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&#x27;s Attack was lowered!&quot;</span>]
+        <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> drops:
+            bad=copy.deepcopy(r);bad[<span class="hljs-string">&#x27;public_screens&#x27;</span>]=[{<span class="hljs-string">&#x27;text&#x27;</span>:[text]}]
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.subTest(text=text),<span class="hljs-variable language_">self</span>.assertRaisesRegex(ValueError,<span class="hljs-string">&#x27;own stat drop&#x27;</span>):
+                <span class="hljs-variable language_">self</span>.classify(bad,step,<span class="hljs-number">0</span>)
+        <span class="hljs-comment"># A wrapped literal must be bound within this one screen.</span>
+        bad=copy.deepcopy(r);bad[<span class="hljs-string">&#x27;public_screens&#x27;</span>]=[{<span class="hljs-string">&#x27;text&#x27;</span>:[<span class="hljs-string">&quot;Cofagrigue’s&quot;</span>,<span class="hljs-string">&#x27;Defense&#x27;</span>,<span class="hljs-string">&#x27;fell!&#x27;</span>]}]
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaisesRegex(ValueError,<span class="hljs-string">&#x27;own stat drop&#x27;</span>):<span class="hljs-variable language_">self</span>.classify(bad,step,<span class="hljs-number">0</span>)
+        bad=copy.deepcopy(r);bad[<span class="hljs-string">&#x27;literal_message_candidates&#x27;</span>]=[{<span class="hljs-string">&#x27;lines&#x27;</span>:drops[:<span class="hljs-number">1</span>]}]
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaisesRegex(ValueError,<span class="hljs-string">&#x27;own stat drop&#x27;</span>):<span class="hljs-variable language_">self</span>.classify(bad,step,<span class="hljs-number">0</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_foe_drops_and_requested_own_boosts_do_not_stop</span>(<span class="hljs-params">self</span>):
+        step={<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Sp.Def&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">170</span>};r=child(step)
+        messages=[<span class="hljs-string">&quot;Tyranitar&#x27;s Defense fell!&quot;</span>, <span class="hljs-string">&quot;Ludicolo&#x27;s Sp. Def sharply fell!&quot;</span>,
+                  <span class="hljs-string">&quot;Cofagrigus&#x27;s Defense rose sharply!&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&#x27;s Sp. Atk rose sharply!&quot;</span>,
+                  <span class="hljs-string">&quot;Cofagrigus&#x27;s Speed rose sharply!&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&#x27;s Accuracy rose sharply!&quot;</span>]
+        good=copy.deepcopy(r);good[<span class="hljs-string">&#x27;public_screens&#x27;</span>]=[{<span class="hljs-string">&#x27;text&#x27;</span>:messages}]
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-variable language_">self</span>.classify(good,step,<span class="hljs-number">0</span>)[<span class="hljs-string">&#x27;outcome&#x27;</span>],<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>)
+        <span class="hljs-comment"># The own name in the HUD must not attribute a foe&#x27;s drop to ours.</span>
+        <span class="hljs-variable language_">self</span>.assertIsNone(negative_own_stat_message(<span class="hljs-string">&quot;Cofagrigus Lv90 Tyranitar&#x27;s Defense fell!&quot;</span>))
+        <span class="hljs-variable language_">self</span>.assertIsNone(negative_own_stat_message(<span class="hljs-string">&quot;The opposing Cofagrigus&#x27;s Defense fell!&quot;</span>))
+        good[<span class="hljs-string">&#x27;public_screens&#x27;</span>]=[{<span class="hljs-string">&#x27;text&#x27;</span>:[<span class="hljs-string">&quot;Cofagrigus&#x27;s Defense rose sharply!&quot;</span>, <span class="hljs-string">&quot;Tyranitar&#x27;s Defense fell!&quot;</span>]}]
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-variable language_">self</span>.classify(good,step,<span class="hljs-number">0</span>)[<span class="hljs-string">&#x27;outcome&#x27;</span>],<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_drop_grammar_matches_installed_amount_messages</span>(<span class="hljs-params">self</span>):
+        source=(GAME/<span class="hljs-string">&#x27;Scripts/Battle_Effects.rb&#x27;</span>).read_text()
+        <span class="hljs-variable language_">self</span>.assertIn(<span class="hljs-string">&#x27;harsh = &quot;harshly &quot; if increment == 2&#x27;</span>,source)
+        <span class="hljs-variable language_">self</span>.assertIn(<span class="hljs-string">&#x27;harsh = &quot;dramatically &quot; if increment &gt;= 3&#x27;</span>,source)
+        <span class="hljs-variable language_">self</span>.assertIn(<span class="hljs-string">&#x27;stat_text = _INTL(&quot;{1}\&#x27;s {2} {3}fell!&quot;, pbThis, pbGetStatName(stat), harsh)&#x27;</span>,source)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_swagger_move_stops_even_if_confusion_text_is_missing</span>(<span class="hljs-params">self</span>):
+        step={<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;X Sp.Def&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">170</span>};r=child(step)
+        <span class="hljs-keyword">for</span> lines <span class="hljs-keyword">in</span> [[<span class="hljs-string">&#x27;Liepard used Swagger!&#x27;</span>],[<span class="hljs-string">&#x27;Noivern used&#x27;</span>,<span class="hljs-string">&#x27;Swagger!&#x27;</span>]]:
+            bad=copy.deepcopy(r);bad[<span class="hljs-string">&#x27;public_screens&#x27;</span>]=[{<span class="hljs-string">&#x27;text&#x27;</span>:lines}]
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.subTest(lines=lines),<span class="hljs-variable language_">self</span>.assertRaisesRegex(ValueError,<span class="hljs-string">&#x27;Swagger use&#x27;</span>):
+                <span class="hljs-variable language_">self</span>.classify(bad,step,<span class="hljs-number">0</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_status_weather_field_patterns_bind_installed_static_source</span>(<span class="hljs-params">self</span>):
+        source=<span class="hljs-string">&#x27;\n&#x27;</span>.join((GAME/<span class="hljs-string">&#x27;Scripts&#x27;</span>/p).read_text() <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Battle.rb&#x27;</span>,<span class="hljs-string">&#x27;Battle_MoveEffects.rb&#x27;</span>])
+        <span class="hljs-keyword">for</span> phrase <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fell asleep!&#x27;</span>,<span class="hljs-string">&#x27;was frozen solid!&#x27;</span>,<span class="hljs-string">&#x27;was poisoned!&#x27;</span>,
+                       <span class="hljs-string">&#x27;was paralyzed! It may be unable to move!&#x27;</span>,
+                       <span class="hljs-string">&#x27;The sunlight turned harsh!&#x27;</span>,<span class="hljs-string">&#x27;It started to rain!&#x27;</span>,
+                       <span class="hljs-string">&#x27;A sandstorm brewed!&#x27;</span>,<span class="hljs-string">&#x27;It started to hail!&#x27;</span>,
+                       <span class="hljs-string">&#x27;The twisted dimensions returned to normal!&#x27;</span>,
+                       <span class="hljs-string">&#x27;The terrain returned to normal.&#x27;</span>]:
+            <span class="hljs-variable language_">self</span>.assertIn(phrase,source)
+        <span class="hljs-variable language_">self</span>.assertIn(<span class="hljs-string">&#x27;The snow melted away!&#x27;</span>,installed_field_change_messages())
+        <span class="hljs-variable language_">self</span>.assertIn(<span class="hljs-string">&#x27;The grassy terrain caught fire!&#x27;</span>,installed_field_change_messages())
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:unittest.main()
+</code></pre>
+  </body>
+</html>

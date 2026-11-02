@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>paired_ev244_travel.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of paired_ev244_travel.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Known city route to the Railnet training strip; stay inside connected-map edges.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+e=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],env=e,check=<span class="hljs-literal">True</span>)
+<span class="hljs-comment"># Expected start: Opal Fly landing after preparing both held items and Walrein lead.</span>
+<span class="hljs-comment"># Recorded244 arrivals established the connected-map boundary tiles:</span>
+<span class="hljs-comment"># 519[9,60] precedes530; short route overshoot can cross early. Two bounded exit taps cover the observed edge tolerance.</span>
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;519,10,60,left:.12,left:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;530,94,13,right:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;519,29,11,right:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;513,14,8,right:.12,right:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;519,58,11,right:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;633,10,8&#x27;</span>)
+run(<span class="hljs-string">&#x27;paired_ev244&#x27;</span>,<span class="hljs-string">&#x27;ready&#x27;</span>)
+</code></pre>
+  </body>
+</html>

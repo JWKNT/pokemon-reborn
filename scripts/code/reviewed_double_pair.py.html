@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>reviewed_double_pair.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of reviewed_double_pair.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute exactly two root-reviewed doubles selections from public command screens.
+No opponent inspection, native-state reads, or adaptive choices. Stop at any mismatch.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+plan=json.loads(pathlib.Path(sys.argv[<span class="hljs-number">1</span>]).read_text());<span class="hljs-keyword">assert</span> <span class="hljs-built_in">isinstance</span>(plan,<span class="hljs-built_in">list</span>) <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(plan)==<span class="hljs-number">2</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">norm</span>(<span class="hljs-params">s</span>):
+ <span class="hljs-comment"># Repeatedly observed public OCR spellings; retain exact actor checking.</span>
+ s=re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,s.lower())
+ <span class="hljs-keyword">for</span> old,new <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;valcanion&#x27;</span>,<span class="hljs-string">&#x27;volcanion&#x27;</span>),(<span class="hljs-string">&#x27;mamile&#x27;</span>,<span class="hljs-string">&#x27;mawile&#x27;</span>),(<span class="hljs-string">&#x27;mauile&#x27;</span>,<span class="hljs-string">&#x27;mawile&#x27;</span>),(<span class="hljs-string">&#x27;malrein&#x27;</span>,<span class="hljs-string">&#x27;walrein&#x27;</span>),(<span class="hljs-string">&#x27;sylweon&#x27;</span>,<span class="hljs-string">&#x27;sylveon&#x27;</span>),(<span class="hljs-string">&#x27;amoonguse&#x27;</span>,<span class="hljs-string">&#x27;amoonguss&#x27;</span>),(<span class="hljs-string">&#x27;sulveon&#x27;</span>,<span class="hljs-string">&#x27;sylveon&#x27;</span>),(<span class="hljs-string">&#x27;suampert&#x27;</span>,<span class="hljs-string">&#x27;swampert&#x27;</span>)]:s=s.replace(old,new)
+ <span class="hljs-keyword">return</span> s
+<span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> plan:
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">set</span>(step)&lt;= {<span class="hljs-string">&#x27;actor&#x27;</span>,<span class="hljs-string">&#x27;foes&#x27;</span>,<span class="hljs-string">&#x27;slot&#x27;</span>,<span class="hljs-string">&#x27;target&#x27;</span>,<span class="hljs-string">&#x27;mega&#x27;</span>}
+ rows=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows)
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> re.search(<span class="hljs-string">r&#x27;\b(?:bag|bae)\b&#x27;</span>,t.lower()),t
+ prompt=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span> <span class="hljs-keyword">and</span> v[<span class="hljs-string">&#x27;x&#x27;</span>]&lt;<span class="hljs-number">.50</span>)
+ <span class="hljs-keyword">assert</span> norm(step[<span class="hljs-string">&#x27;actor&#x27;</span>]) <span class="hljs-keyword">in</span> norm(prompt),(<span class="hljs-string">&#x27;Actor mismatch&#x27;</span>,prompt)
+ <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> step[<span class="hljs-string">&#x27;foes&#x27;</span>]:
+  enemy=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.37</span>)
+  <span class="hljs-keyword">assert</span> norm(name) <span class="hljs-keyword">in</span> norm(enemy) <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,name.lower(),w.lower()).ratio()&gt;=<span class="hljs-number">.8</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> enemy.split()),(<span class="hljs-string">&#x27;Foe mismatch&#x27;</span>,name,enemy)
+ <span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;=step[<span class="hljs-string">&#x27;slot&#x27;</span>]&lt;=<span class="hljs-number">3</span>
+ args=[<span class="hljs-built_in">str</span>(step[<span class="hljs-string">&#x27;slot&#x27;</span>])]
+ <span class="hljs-keyword">if</span> step.get(<span class="hljs-string">&#x27;target&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:args += [<span class="hljs-built_in">str</span>(step[<span class="hljs-string">&#x27;target&#x27;</span>])]
+ <span class="hljs-keyword">if</span> step.get(<span class="hljs-string">&#x27;mega&#x27;</span>):
+  <span class="hljs-keyword">assert</span> step[<span class="hljs-string">&#x27;mega&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>
+  args += [<span class="hljs-string">&#x27;--mega&#x27;</span>]
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;REVIEWED SELECTION&#x27;</span>,step,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_move.py&#x27;</span>),*args,<span class="hljs-string">&#x27;--watch&#x27;</span>],check=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TWO SELECTIONS RETURNED; REVIEW NEXT PUBLIC COMMAND&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

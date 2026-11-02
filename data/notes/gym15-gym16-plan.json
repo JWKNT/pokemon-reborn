@@ -1,0 +1,45 @@
+{
+  "updated": "2026-10-02 20:42 EDT",
+  "milestones": [
+    "Titania badge15",
+    "Amaria badge16",
+    "native save and actual quit",
+    "verify and publish journeys + major wins"
+  ],
+  "titania": {
+    "lead": "Arcanine -> Cofagrigus burn Sandslash -> Excadrill Magical Seed",
+    "setup": [
+      "two X Defend",
+      "one X Speed",
+      "Swords Dance (+3 on Fairy Tale)",
+      "heal above burned Sandslash critical bound ~214"
+    ],
+    "enemy_excadrill": "second X Speed on its seed-protected turn; ours +4 speed beats Sand Rush",
+    "klefki": "X Sp. Def and second Swords Dance to +6; Ground typing blocks Thunder Wave",
+    "finish": "EQ Scizor and Aegislash; seed protect turns used for supplies, noncontact EQ avoids King Shield attack drop"
+  },
+  "dragon": {
+    "strategy": "Kricketune level50 Focus Sash Perish Song; preserve at least one living bench through countdown",
+    "sash": "desert event34 all layouts, shared switch813"
+  },
+  "amaria_provisional": {
+    "counter": "Catch Shellos/Gastrodon legally; Storm Drain, Recover, Surf, Sludge Wave; train to90 after badge15",
+    "backup": "Cryogonal Freeze-Dry handles Ludicolo, Ampharos Electric coverage",
+    "lapras": "Prefer another legitimate Focus Sash + Kricketune Perish Song; alternative Ampharos setup needs exact visible field/HP checks",
+    "extra_sash_candidates": [
+      {
+        "map": 217,
+        "event": 17,
+        "location": "Hidden Tunnel",
+        "access": "Byxbysion Wasteland 209 events220/223; main Fly component currently not connected by generic route, inspect normal puzzle route if needed"
+      },
+      {
+        "map": 603,
+        "event": 7,
+        "location": "Azurine Cave",
+        "access": "Apophyll Beach map567 cave37,47; candidate combines counter catch and sash"
+      }
+    ]
+  },
+  "calculation_rule": "Use the standard level factor (2L/5+2)/50; at level85 it is 0.72. Do not substitute level50 calculations. Installed game source/actual saved stats authoritative."
+}

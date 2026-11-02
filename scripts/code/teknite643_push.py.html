@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>teknite643_push.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of teknite643_push.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One reviewed ridge push; verify actual boulder position from a normal save.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+plan=json.loads((ROOT/<span class="hljs-string">&#x27;work/223-teknite643-boulder-plan.json&#x27;</span>).read_text());i=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);<span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;=i&lt;<span class="hljs-number">3</span>
+step=plan[<span class="hljs-string">&#x27;pushes&#x27;</span>][i];eid=<span class="hljs-built_in">str</span>(step[<span class="hljs-string">&#x27;event&#x27;</span>])
+n=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;643&#x27;</span>][eid]==step[<span class="hljs-string">&#x27;box_from&#x27;</span>], <span class="hljs-string">&#x27;Boulder initial position differs&#x27;</span>
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/teknite_point.py&#x27;</span>),<span class="hljs-string">&#x27;643,&#x27;</span>+<span class="hljs-string">&#x27;,&#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,step[<span class="hljs-string">&#x27;from&#x27;</span>]))],check=<span class="hljs-literal">True</span>)
+act(step[<span class="hljs-string">&#x27;direction&#x27;</span>]+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+label=(sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--label-prefix&#x27;</span>)+<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--label-prefix&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;League223-RidgePush&#x27;</span>)+<span class="hljs-built_in">str</span>(i+<span class="hljs-number">1</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),label],check=<span class="hljs-literal">True</span>)
+n=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());actual=n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;643&#x27;</span>][eid]
+expected=step[<span class="hljs-string">&#x27;box_to&#x27;</span>] <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> step[<span class="hljs-string">&#x27;erased_drop&#x27;</span>] <span class="hljs-keyword">else</span> [<span class="hljs-number">21</span>,<span class="hljs-number">22</span>]
+<span class="hljs-keyword">assert</span> actual==expected,(<span class="hljs-string">&#x27;Observed ridge boulder differs&#x27;</span>,actual,expected)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RIDGE PUSH VERIFIED&#x27;</span>,eid,actual,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

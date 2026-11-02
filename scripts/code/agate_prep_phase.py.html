@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>agate_prep_phase.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of agate_prep_phase.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Proposed, bounded NORMAL Agate preparation phases; dry-run by default.
+
+Development/tests use explicit frozen JSON only. --execute imports the ordinary
+UI helpers after preflight and requires a fresh overworld of the expected map.
+No battle AI/RNG/log reads or game/save editing. Stops before any Agate battle.
+New Heart Scale target is715E64, never the collected710E64.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+ROOT = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+PHASES = {<span class="hljs-string">&quot;shops&quot;</span>: <span class="hljs-number">355</span>, <span class="hljs-string">&quot;build&quot;</span>: <span class="hljs-number">355</span>, <span class="hljs-string">&quot;training-pilot&quot;</span>: <span class="hljs-number">519</span>,
+          <span class="hljs-string">&quot;training-finish&quot;</span>: <span class="hljs-number">519</span>, <span class="hljs-string">&quot;finish-lens&quot;</span>: <span class="hljs-number">355</span>, <span class="hljs-string">&quot;scale&quot;</span>: <span class="hljs-number">715</span>}
+BASE_EV = [<span class="hljs-number">252</span>, <span class="hljs-number">4</span>, <span class="hljs-number">252</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>]
+PRE_EV = [<span class="hljs-number">172</span>, <span class="hljs-number">4</span>, <span class="hljs-number">252</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>]
+FINAL_EV = [<span class="hljs-number">172</span>, <span class="hljs-number">4</span>, <span class="hljs-number">252</span>, <span class="hljs-number">80</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>]
+FINAL_MOVES = [<span class="hljs-string">&quot;TRICKROOM&quot;</span>, <span class="hljs-string">&quot;HEX&quot;</span>, <span class="hljs-string">&quot;WILLOWISP&quot;</span>, <span class="hljs-string">&quot;DARKPULSE&quot;</span>]
+TARGETS = <span class="hljs-string">&quot;Rattata,Bidoof,Patrat,Zigzagoon,Meowth,Spinarak&quot;</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">need</span>(<span class="hljs-params">ok, text</span>):
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> ok:
+        <span class="hljs-keyword">raise</span> ValueError(text)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">command</span>(<span class="hljs-params">script, *args</span>):
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">dict</span>(script=script, args=<span class="hljs-built_in">list</span>(args))
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">effective_nature</span>(<span class="hljs-params">m</span>):
+    <span class="hljs-keyword">return</span> m.get(<span class="hljs-string">&quot;natureflag&quot;</span>) <span class="hljs-keyword">or</span> m[<span class="hljs-string">&quot;nature&quot;</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">mon</span>(<span class="hljs-params">status</span>):
+    matches = [m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> status[<span class="hljs-string">&quot;party&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;COFAGRIGUS&quot;</span>]
+    need(<span class="hljs-built_in">len</span>(matches) == <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> matches[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;name&quot;</span>] == <span class="hljs-string">&quot;Cofagrigus&quot;</span>
+         <span class="hljs-keyword">and</span> matches[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;level&quot;</span>] == <span class="hljs-number">90</span>, <span class="hljs-string">&quot;Unique Cofagrigus90 required&quot;</span>)
+    <span class="hljs-keyword">return</span> matches[<span class="hljs-number">0</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">plan</span>(<span class="hljs-params">phase, status</span>):
+    need(status[<span class="hljs-string">&quot;map&quot;</span>] == PHASES[phase], <span class="hljs-string">&quot;Frozen outside-battle map differs from phase&quot;</span>)
+    bag = status[<span class="hljs-string">&quot;bag&quot;</span>][<span class="hljs-string">&quot;contents&quot;</span>]
+    cmds = []
+    <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;shops&quot;</span>:
+        berries = <span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>, <span class="hljs-number">4</span> - bag.get(<span class="hljs-string">&quot;POMEGBERRY&quot;</span>, <span class="hljs-number">0</span>))
+        lens = <span class="hljs-built_in">int</span>(<span class="hljs-keyword">not</span> bag.get(<span class="hljs-string">&quot;POWERLENS&quot;</span>, <span class="hljs-number">0</span>)
+                   <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(m.get(<span class="hljs-string">&quot;item&quot;</span>) == <span class="hljs-string">&quot;POWERLENS&quot;</span> <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> status[<span class="hljs-string">&quot;party&quot;</span>]))
+        need(<span class="hljs-keyword">not</span> lens <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> status.get(<span class="hljs-string">&quot;switches&quot;</span>, {}).get(<span class="hljs-string">&quot;715&quot;</span>),
+             <span class="hljs-string">&quot;Need Lens, but Circus power vendor disappears after switch715&quot;</span>)
+        money = status[<span class="hljs-string">&quot;trainer&quot;</span>][<span class="hljs-string">&quot;money&quot;</span>]
+        need(money &gt;= berries * <span class="hljs-number">500</span> + lens * <span class="hljs-number">15000</span>, <span class="hljs-string">&quot;Insufficient verified shopping money&quot;</span>)
+        <span class="hljs-keyword">for</span> eid, item, count, price <span class="hljs-keyword">in</span> [(<span class="hljs-number">136</span>, <span class="hljs-string">&quot;Pomeg Berry&quot;</span>, berries, <span class="hljs-number">500</span>),
+                                        (<span class="hljs-number">83</span>, <span class="hljs-string">&quot;Power Lens&quot;</span>, lens, <span class="hljs-number">15000</span>)]:
+            <span class="hljs-keyword">if</span> count:
+                cmds.extend([command(<span class="hljs-string">&quot;eventq&quot;</span>, <span class="hljs-number">355</span>, eid, <span class="hljs-string">&quot;talk&quot;</span>), command(<span class="hljs-string">&quot;mart_open&quot;</span>),
+                             command(<span class="hljs-string">&quot;shop_buy&quot;</span>, item, count, price), command(<span class="hljs-string">&quot;mart_exit&quot;</span>)])
+        <span class="hljs-keyword">return</span> cmds
+    <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;scale&quot;</span>:
+        need(bag.get(<span class="hljs-string">&quot;HEARTSCALE&quot;</span>, <span class="hljs-number">0</span>) == <span class="hljs-number">0</span>, <span class="hljs-string">&quot;Already have a scale; skip pickup&quot;</span>)
+        <span class="hljs-keyword">return</span> [command(<span class="hljs-string">&quot;eventq&quot;</span>, <span class="hljs-number">715</span>, <span class="hljs-number">64</span>, <span class="hljs-string">&quot;item&quot;</span>), command(<span class="hljs-string">&quot;overworld&quot;</span>)]
+    cf = mon(status)
+    moves = [m[<span class="hljs-string">&quot;move&quot;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> cf[<span class="hljs-string">&quot;moves&quot;</span>]]
+    <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;build&quot;</span>:
+        need(cf[<span class="hljs-string">&quot;ev&quot;</span>] == BASE_EV <span class="hljs-keyword">and</span> effective_nature(cf) == <span class="hljs-string">&quot;CALM&quot;</span>, <span class="hljs-string">&quot;Build phase is not resumable mid-berries/mint; review partial state&quot;</span>)
+        need(moves == [<span class="hljs-string">&quot;TRICKROOM&quot;</span>, <span class="hljs-string">&quot;SHADOWBALL&quot;</span>, <span class="hljs-string">&quot;WILLOWISP&quot;</span>, <span class="hljs-string">&quot;DESTINYBOND&quot;</span>],
+             <span class="hljs-string">&quot;Reviewed Cofa replacement slots differ&quot;</span>)
+        need(cf.get(<span class="hljs-string">&quot;item&quot;</span>) <span class="hljs-keyword">in</span> (<span class="hljs-literal">None</span>, <span class="hljs-string">&quot;SPELLTAG&quot;</span>), <span class="hljs-string">&quot;Unexpected held item&quot;</span>)
+        <span class="hljs-keyword">for</span> item, qty <span class="hljs-keyword">in</span> [(<span class="hljs-string">&quot;TIMIDMINT&quot;</span>, <span class="hljs-number">1</span>), (<span class="hljs-string">&quot;POMEGBERRY&quot;</span>, <span class="hljs-number">4</span>), (<span class="hljs-string">&quot;TM97&quot;</span>, <span class="hljs-number">1</span>),
+                          (<span class="hljs-string">&quot;HEARTSCALE&quot;</span>, <span class="hljs-number">1</span>), (<span class="hljs-string">&quot;POWERLENS&quot;</span>, <span class="hljs-number">1</span>)]:
+            need(bag.get(item, <span class="hljs-number">0</span>) &gt;= qty, <span class="hljs-string">&quot;Missing owned &quot;</span> + item)
+        <span class="hljs-keyword">if</span> cf.get(<span class="hljs-string">&quot;item&quot;</span>):
+            cmds.append(command(<span class="hljs-string">&quot;party_take_named&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&quot;</span>))
+        cmds.extend([command(<span class="hljs-string">&quot;party_front&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&quot;</span>),
+                     <span class="hljs-built_in">dict</span>(internal=<span class="hljs-string">&quot;timid-mint&quot;</span>),
+                     command(<span class="hljs-string">&quot;berry_batch&quot;</span>, <span class="hljs-string">&quot;Pomeg Berry&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&quot;</span>, <span class="hljs-number">4</span>),
+                     command(<span class="hljs-string">&quot;teach_machine&quot;</span>, <span class="hljs-string">&quot;TM97&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&quot;</span>, <span class="hljs-string">&quot;Dark Pulse&quot;</span>, <span class="hljs-number">3</span>),
+                     <span class="hljs-built_in">dict</span>(internal=<span class="hljs-string">&quot;hex-reminder&quot;</span>, index=<span class="hljs-number">6</span>),
+                     command(<span class="hljs-string">&quot;give_held&quot;</span>, <span class="hljs-string">&quot;Power Lens&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&quot;</span>),
+                     command(<span class="hljs-string">&quot;eventq&quot;</span>, <span class="hljs-number">355</span>, <span class="hljs-number">118</span>, <span class="hljs-string">&quot;talk&quot;</span>), command(<span class="hljs-string">&quot;heal&quot;</span>),
+                     command(<span class="hljs-string">&quot;checkpoint&quot;</span>, <span class="hljs-string">&quot;Agate-Cofa-training-ready&quot;</span>)])
+    <span class="hljs-keyword">elif</span> phase <span class="hljs-keyword">in</span> {<span class="hljs-string">&quot;training-pilot&quot;</span>, <span class="hljs-string">&quot;training-finish&quot;</span>}:
+        expected = <span class="hljs-built_in">list</span>(PRE_EV)
+        expected[<span class="hljs-number">3</span>] = <span class="hljs-number">0</span> <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;training-pilot&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">32</span>
+        need(cf[<span class="hljs-string">&quot;ev&quot;</span>] == expected <span class="hljs-keyword">and</span> effective_nature(cf) == <span class="hljs-string">&quot;TIMID&quot;</span>
+             <span class="hljs-keyword">and</span> cf.get(<span class="hljs-string">&quot;item&quot;</span>) == <span class="hljs-string">&quot;POWERLENS&quot;</span> <span class="hljs-keyword">and</span> moves == FINAL_MOVES,
+             <span class="hljs-string">&quot;Training start must match exact EV/build/Lens checkpoint&quot;</span>)
+        need(cf[<span class="hljs-string">&quot;hp&quot;</span>] == cf[<span class="hljs-string">&quot;totalhp&quot;</span>] <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;training-pilot&quot;</span> <span class="hljs-keyword">else</span> cf[<span class="hljs-string">&quot;hp&quot;</span>] &gt; <span class="hljs-number">150</span>,
+             <span class="hljs-string">&quot;Heal before this training phase&quot;</span>)
+        need(cf[<span class="hljs-string">&quot;status&quot;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> cf[<span class="hljs-string">&quot;moves&quot;</span>][<span class="hljs-number">3</span>][<span class="hljs-string">&quot;pp&quot;</span>] &gt;= <span class="hljs-number">3</span>,
+             <span class="hljs-string">&quot;Status/PP training readiness failed&quot;</span>)
+        cmds.append(command(<span class="hljs-string">&quot;party_front&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&quot;</span>))
+        <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;training-pilot&quot;</span>:
+            cmds.append(command(<span class="hljs-string">&quot;q&quot;</span>, <span class="hljs-string">&quot;519,25,47&quot;</span>))
+        count = <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;training-pilot&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">2</span>
+        label = <span class="hljs-string">&quot;Agate-Cofa-Lens-pilot&quot;</span> <span class="hljs-keyword">if</span> count == <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;Agate-Cofa-EVs-complete&quot;</span>
+        cmds.extend([command(<span class="hljs-string">&quot;train_wild_bulk&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&quot;</span>, <span class="hljs-number">3</span>, count,
+                             <span class="hljs-string">&quot;--targets&quot;</span>, TARGETS, <span class="hljs-string">&quot;--flex-targets&quot;</span>, <span class="hljs-string">&quot;--ev-ledger&quot;</span>,
+                             <span class="hljs-string">&quot;--expire-repel&quot;</span>, <span class="hljs-string">&quot;--vertical&quot;</span>, <span class="hljs-string">&quot;--heal-item&quot;</span>, <span class="hljs-string">&quot;Ultra Potion&quot;</span>),
+                     command(<span class="hljs-string">&quot;checkpoint&quot;</span>, label)])
+    <span class="hljs-keyword">elif</span> phase == <span class="hljs-string">&quot;finish-lens&quot;</span>:
+        need(cf[<span class="hljs-string">&quot;ev&quot;</span>] == FINAL_EV <span class="hljs-keyword">and</span> effective_nature(cf) == <span class="hljs-string">&quot;TIMID&quot;</span> <span class="hljs-keyword">and</span> moves == FINAL_MOVES,
+             <span class="hljs-string">&quot;Finish only after exact80 SpA EV reconciliation&quot;</span>)
+        need(cf.get(<span class="hljs-string">&quot;item&quot;</span>) == <span class="hljs-string">&quot;POWERLENS&quot;</span>, <span class="hljs-string">&quot;Expected Lens for normal removal&quot;</span>)
+        cmds.extend([command(<span class="hljs-string">&quot;party_take_named&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&quot;</span>),
+                     command(<span class="hljs-string">&quot;eventq&quot;</span>, <span class="hljs-number">355</span>, <span class="hljs-number">118</span>, <span class="hljs-string">&quot;talk&quot;</span>), command(<span class="hljs-string">&quot;heal&quot;</span>),
+                     command(<span class="hljs-string">&quot;checkpoint&quot;</span>, <span class="hljs-string">&quot;Agate-Cofa-prepared&quot;</span>)])
+    <span class="hljs-keyword">return</span> cmds
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">execute</span>(<span class="hljs-params">phase, status, cmds</span>):
+    <span class="hljs-comment"># These imports expose ordinary controls only when explicitly executing.</span>
+    <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act, read
+    <span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+    text = read().lower()
+    need(<span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&quot;\bfight\b|\bwild\b|\bpp:|\bhp\b&quot;</span>, text)
+         <span class="hljs-keyword">and</span> <span class="hljs-string">&quot;yes&quot;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> text.splitlines() <span class="hljs-keyword">and</span> <span class="hljs-string">&quot;no&quot;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> text.splitlines(),
+         <span class="hljs-string">&quot;Fresh overworld required&quot;</span>)
+    need(locate()[<span class="hljs-number">0</span>] == PHASES[phase], <span class="hljs-string">&quot;Observed map differs; no phase input sent&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script, *args</span>):
+        subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&quot;scripts&quot;</span> / (script + <span class="hljs-string">&quot;.py&quot;</span>)),
+                        *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, args)], check=<span class="hljs-literal">True</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">reminder</span>(<span class="hljs-params">index</span>):
+        run(<span class="hljs-string">&quot;eventq&quot;</span>, <span class="hljs-number">355</span>, <span class="hljs-number">35</span>, <span class="hljs-string">&quot;talk&quot;</span>)
+        run(<span class="hljs-string">&quot;choose_dialog&quot;</span>, <span class="hljs-string">&quot;Teach one-by-one.|Remember all.|No&quot;</span>, <span class="hljs-string">&quot;Teach one-by-one.&quot;</span>,
+            <span class="hljs-string">&quot;--source&quot;</span>, <span class="hljs-number">355</span>, <span class="hljs-number">35</span>)
+        <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>):
+            t = read().lower()
+            <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;choose a pok&quot;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&quot;cancel&quot;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> t.count(<span class="hljs-string">&quot;hp&quot;</span>) &gt;= <span class="hljs-number">5</span>:
+                <span class="hljs-keyword">break</span>
+            need(<span class="hljs-string">&quot;which pok&quot;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&quot;klhich pok&quot;</span> <span class="hljs-keyword">in</span> t, <span class="hljs-string">&quot;Reminder party entry requires review&quot;</span>)
+            act(<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-string">&quot;wait:.5&quot;</span>)
+        <span class="hljs-keyword">else</span>:
+            <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Reminder party entry timeout&quot;</span>)
+        run(<span class="hljs-string">&quot;party_pick&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&quot;</span>, <span class="hljs-string">&quot;--single&quot;</span>)
+        <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>):
+            t = read().lower()
+            <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;teach which&quot;</span> <span class="hljs-keyword">in</span> t:
+                <span class="hljs-keyword">break</span>
+            need(<span class="hljs-string">&quot;what&#x27;ll it be&quot;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&quot;whatll it be&quot;</span> <span class="hljs-keyword">in</span> t, <span class="hljs-string">&quot;Reminder list requires review&quot;</span>)
+            act(<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-string">&quot;wait:.5&quot;</span>)
+        <span class="hljs-keyword">else</span>:
+            <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Reminder list timeout&quot;</span>)
+        <span class="hljs-comment"># Installed level-up list, deduplicated and excluding known moves: Hex index6. Check both screens.</span>
+        act(*([<span class="hljs-string">&quot;down&quot;</span>] * index), <span class="hljs-string">&quot;wait:.5&quot;</span>)
+        need(<span class="hljs-string">&quot;hex&quot;</span> <span class="hljs-keyword">in</span> read().lower(), <span class="hljs-string">&quot;Hex absent from the reviewed reminder list&quot;</span>)
+        act(<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-string">&quot;wait:.5&quot;</span>)
+        need(<span class="hljs-string">&quot;teachhex&quot;</span> <span class="hljs-keyword">in</span> re.sub(<span class="hljs-string">&quot;[^a-z]&quot;</span>, <span class="hljs-string">&quot;&quot;</span>, read().lower()), <span class="hljs-string">&quot;Selected move is not Hex&quot;</span>)
+        run(<span class="hljs-string">&quot;choose_dialog&quot;</span>, <span class="hljs-string">&quot;Yes|No&quot;</span>, <span class="hljs-string">&quot;Yes&quot;</span>)
+        <span class="hljs-keyword">from</span> learning <span class="hljs-keyword">import</span> PLANS, resolve
+        PLANS[<span class="hljs-string">&quot;hex&quot;</span>] = <span class="hljs-number">1</span>
+        need(resolve(read()), <span class="hljs-string">&quot;Hex learning prompt requires review&quot;</span>)
+        run(<span class="hljs-string">&quot;relearn_finish&quot;</span>)
+        run(<span class="hljs-string">&quot;overworld&quot;</span>)
+
+    <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cmds:
+        <span class="hljs-keyword">if</span> c.get(<span class="hljs-string">&quot;internal&quot;</span>) == <span class="hljs-string">&quot;timid-mint&quot;</span>:
+            run(<span class="hljs-string">&quot;field_medicine&quot;</span>, <span class="hljs-string">&quot;Timid Mint&quot;</span>, <span class="hljs-string">&quot;Cofagrigus&quot;</span>)
+            need(<span class="hljs-string">&quot;becomes timid&quot;</span> <span class="hljs-keyword">in</span> read().lower(), <span class="hljs-string">&quot;Timid Mint effect requires public review&quot;</span>)
+            act(<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-string">&quot;wait:.6&quot;</span>)
+            run(<span class="hljs-string">&quot;overworld&quot;</span>)
+        <span class="hljs-keyword">elif</span> c.get(<span class="hljs-string">&quot;internal&quot;</span>) == <span class="hljs-string">&quot;hex-reminder&quot;</span>:
+            reminder(c[<span class="hljs-string">&quot;index&quot;</span>])
+        <span class="hljs-keyword">else</span>:
+            run(c[<span class="hljs-string">&quot;script&quot;</span>], *c[<span class="hljs-string">&quot;args&quot;</span>])
+    <span class="hljs-keyword">if</span> phase <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> {<span class="hljs-string">&quot;shops&quot;</span>, <span class="hljs-string">&quot;scale&quot;</span>}:
+        label = {<span class="hljs-string">&quot;build&quot;</span>: <span class="hljs-string">&quot;Agate-Cofa-training-ready&quot;</span>, <span class="hljs-string">&quot;training-pilot&quot;</span>: <span class="hljs-string">&quot;Agate-Cofa-Lens-pilot&quot;</span>,
+                 <span class="hljs-string">&quot;training-finish&quot;</span>: <span class="hljs-string">&quot;Agate-Cofa-EVs-complete&quot;</span>, <span class="hljs-string">&quot;finish-lens&quot;</span>: <span class="hljs-string">&quot;Agate-Cofa-prepared&quot;</span>}[phase]
+        after = json.loads((ROOT / <span class="hljs-string">&quot;notes&quot;</span> / (label + <span class="hljs-string">&quot;-status.json&quot;</span>)).read_text())
+        cf = mon(after)
+        expected = <span class="hljs-built_in">list</span>(PRE_EV)
+        expected[<span class="hljs-number">3</span>] = {<span class="hljs-string">&quot;build&quot;</span>: <span class="hljs-number">0</span>, <span class="hljs-string">&quot;training-pilot&quot;</span>: <span class="hljs-number">32</span>, <span class="hljs-string">&quot;training-finish&quot;</span>: <span class="hljs-number">80</span>,
+                       <span class="hljs-string">&quot;finish-lens&quot;</span>: <span class="hljs-number">80</span>}[phase]
+        need(cf[<span class="hljs-string">&quot;ev&quot;</span>] == expected <span class="hljs-keyword">and</span> effective_nature(cf) == <span class="hljs-string">&quot;TIMID&quot;</span>
+             <span class="hljs-keyword">and</span> [m[<span class="hljs-string">&quot;move&quot;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> cf[<span class="hljs-string">&quot;moves&quot;</span>]] == FINAL_MOVES,
+             <span class="hljs-string">&quot;Native EV/nature/move reconciliation failed; do not credit proposed training&quot;</span>)
+        need(cf.get(<span class="hljs-string">&quot;item&quot;</span>) == (<span class="hljs-literal">None</span> <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;finish-lens&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;POWERLENS&quot;</span>),
+             <span class="hljs-string">&quot;Native held-item reconciliation failed&quot;</span>)
+        <span class="hljs-keyword">if</span> phase <span class="hljs-keyword">in</span> {<span class="hljs-string">&quot;training-finish&quot;</span>, <span class="hljs-string">&quot;finish-lens&quot;</span>}:
+            need([cf[k] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;totalhp&quot;</span>, <span class="hljs-string">&quot;attack&quot;</span>, <span class="hljs-string">&quot;defense&quot;</span>, <span class="hljs-string">&quot;spatk&quot;</span>, <span class="hljs-string">&quot;spdef&quot;</span>, <span class="hljs-string">&quot;speed&quot;</span>]]
+                 == [<span class="hljs-number">252</span>, <span class="hljs-number">93</span>, <span class="hljs-number">333</span>, <span class="hljs-number">210</span>, <span class="hljs-number">218</span>, <span class="hljs-number">68</span>], <span class="hljs-string">&quot;Native final stats differ from battle proof&quot;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument(<span class="hljs-string">&quot;phase&quot;</span>, choices=PHASES)
+    p.add_argument(<span class="hljs-string">&quot;--status&quot;</span>, required=<span class="hljs-literal">True</span>, <span class="hljs-built_in">type</span>=Path,
+                   <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;Explicit fresh outside-battle checkpoint JSON; never an active battle&quot;</span>)
+    p.add_argument(<span class="hljs-string">&quot;--execute&quot;</span>, action=<span class="hljs-string">&quot;store_true&quot;</span>)
+    a = p.parse_args()
+    status = json.loads(a.status.read_text())
+    cmds = plan(a.phase, status)
+    <span class="hljs-built_in">print</span>(json.dumps(<span class="hljs-built_in">dict</span>(proposal=<span class="hljs-literal">True</span>, phase=a.phase, expected_map=PHASES[a.phase],
+                          commands=cmds), indent=<span class="hljs-number">2</span>), flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">if</span> a.execute:
+        execute(a.phase, status, cmds)
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    main()
+</code></pre>
+  </body>
+</html>

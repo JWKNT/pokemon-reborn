@@ -1,0 +1,28 @@
+{
+  "source": "Public walkthrough clues and public plaque labels in installed maps793/795",
+  "puzzle3_solution": "work/198-gem-puzzle3-solution.json",
+  "puzzle4_solution": "work/198-gem-puzzle4-solution.json",
+  "unique_solutions_verified": true,
+  "entry_helper": "scripts/victory_late_crystals.py PUZZLE FRESH_LABEL UNIQUE_JOURNAL [--start-column N]",
+  "helper_status": "Puzzle3 and4 complete; puzzle4 accepted on2nd submission after hardness correction.",
+  "constraints": "Fresh normal checkpoint under120s; guard exact tuner origins; normal controls only; save and verify every column; then manually use normal Check Solution. Do not read hidden answer state.",
+  "plaque_ranks_source": "20tuners map793 IDs9..28,24tuners map795 IDs14..37; 6tile spacing; row0 y18 and23 respectively",
+  "puzzle3_first_origin": 20,
+  "puzzle4_first_origin": 17,
+  "puzzle4_solver_correction": {
+    "epoch": 1791275295.199327,
+    "first_submission": "Rejected. Incorrectly encoded second hardest as rank2; correct ascending hardness rank3.",
+    "changed_crystals": {
+      "Ruby hardness": [
+        2,
+        3
+      ],
+      "Amethyst hardness": [
+        3,
+        2
+      ]
+    },
+    "verified_corrected_positions_checkpoint": "Logic201-hardness-corrected",
+    "second_submission": "Accepted visibly: And there it is. Impressive as always. Radomus leaves to fetch Hardy."
+  }
+}

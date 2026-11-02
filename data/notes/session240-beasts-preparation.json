@@ -1,0 +1,11 @@
+{
+  "source": "Installed static trainer/event/field data in work/240-*; no live enemy state",
+  "next_quest": "Randall827E51 activates572=1; Sandy290E121 near Nature Center activates portals. Entei833E19, Suicune834E17-19, Raikou834E20-21. Each full trainer boss followed by wildlegend100. Major workflow required for trainer portions.",
+  "capture_plan": "Suicune useful durable Water/Calm Mind reserve. Consider Entei Sacred Fire; Raikou overlaps trained Zapdos, capture only if distinct need. One-time decisions before entry.",
+  "entei": "NewWorld: Moonblast2x, Dark1.5x, Earthquake.25x, grounded Speed.75. Aromatisse FocusSash TrickRoom lead. Cress/Maw/Cryogonal/Swampert useful; no ordinary ground-spam. Prepare adequate recovery and reliable damage, avoid item-heavy brute force.",
+  "suicune": "All aquatic team uses ElementalSeeds; actual terrain must be publicly observed. Zapdos Discharge/TWave/Roost valuable; Amoonguss GigaDrain/ClearSmog for CalmMind/AcidArmor. Ludicolo/Goodra resistElectric.",
+  "raikou": "RotomFrost/Froslass/PorygonZ/AlolanSandslash/Togekiss/Raikou; Mountain may be modified by on-map event. Check public field and capture trigger before strategy.",
+  "wild_capture_chain": "Installed event confirms no scripted heal between boss and wild100. Preserve/revive catcher before finishing trainer; no savewindow assumed. WildEntei last4:Extrasensory/FireBlast/CalmMind/Eruption; Suicune:Extrasensory/HydroPump/CalmMind/Blizzard; Raikou:Extrasensory/RainDance/CalmMind/Thunder. ZapTWave valuable: para+cautiousFalseSwipe(Maw) andCressMoonlightstall. AmoongussSpore can die toFire/Psychic; do not rely on it alone.",
+  "move_tutoring": "Maw permanent core PlayRough0/IronHead1/SuckerPunch2; slot3flex. OwnedTM54FalseSwipe can replaceSwordsDance3 beforetrainer\u2192wildchains; ownedTM75SwordsDance restoressetupforlaterbosses. NoHeartScalesneededforflex. PreferthisoverremovingIronHead.",
+  "entei_reserve_candidate": "OwnedCofagrigus100 Box0slot17:TrickRoom/Hex/WillOWisp/Curse, Mummy, WideLens. ImmuneUrsaringFacade/CloseCombat; onlyFlameOrbFlingcanhitonce. GhostCurse+ownedTM97DarkPulse(overHex) useful, noEVtrainingassumed. ConsiderinsteadAmoongussforEntei; ZapTWaveprovidescatchstatus. Readfrozenownedbuildatworldbeforechoose."
+}

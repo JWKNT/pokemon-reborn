@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>hardy_piano_source.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of hardy_piano_source.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Installed map/tileset assets only. No save, planner or runtime reads/writes.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+<span class="hljs-keyword">require</span> <span class="hljs-string">&#x27;digest&#x27;</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">iv</span>(<span class="hljs-params">o,k</span>);o.instance_variable_get(<span class="hljs-string">&#x27;@&#x27;</span>+k.to_s);<span class="hljs-keyword">end</span>
+base=<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data/&#x27;</span>
+path=base+<span class="hljs-string">&#x27;Map739.rxdata&#x27;</span>
+map=load_rgss(path)
+tilesets=load_rgss(base+<span class="hljs-string">&#x27;Tilesets.rxdata&#x27;</span>)
+tileset=tilesets[iv(map,<span class="hljs-symbol">:tileset_id</span>)]
+raw=iv(iv(map,<span class="hljs-symbol">:data</span>),<span class="hljs-symbol">:raw</span>).pack(<span class="hljs-string">&#x27;C*&#x27;</span>)
+data=raw[<span class="hljs-number">20</span>..].unpack(<span class="hljs-string">&#x27;S&lt;*&#x27;</span>)
+width,height=iv(map,<span class="hljs-symbol">:width</span>),iv(map,<span class="hljs-symbol">:height</span>)
+puts <span class="hljs-variable constant_">JSON</span>.generate({<span class="hljs-symbol">map:</span><span class="hljs-number">739</span>,<span class="hljs-symbol">width:</span>iv(map,<span class="hljs-symbol">:width</span>),<span class="hljs-symbol">height:</span>iv(map,<span class="hljs-symbol">:height</span>),
+                    <span class="hljs-symbol">tileset_id:</span>iv(map,<span class="hljs-symbol">:tileset_id</span>),<span class="hljs-symbol">tileset_name:</span>iv(tileset,<span class="hljs-symbol">:tileset_name</span>),
+                    <span class="hljs-symbol">door_base_tiles:</span>(<span class="hljs-number">0</span>..<span class="hljs-number">2</span>).map{|<span class="hljs-params">z</span>|data[<span class="hljs-number">11</span>+width*<span class="hljs-number">4</span>+width*height*z]},
+                    <span class="hljs-symbol">map_sha256:</span><span class="hljs-title class_">Digest</span>::<span class="hljs-variable constant_">SHA256</span>.file(path).hexdigest,
+                    <span class="hljs-symbol">tilesets_sha256:</span><span class="hljs-title class_">Digest</span>::<span class="hljs-variable constant_">SHA256</span>.file(base+<span class="hljs-string">&#x27;Tilesets.rxdata&#x27;</span>).hexdigest})
+</code></pre>
+  </body>
+</html>

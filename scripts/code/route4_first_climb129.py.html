@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>route4_first_climb129.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of route4_first_climb129.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One source-reviewed climb avoiding all412 trainer sightlines, then resume next climb.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os
+os.environ[<span class="hljs-string">&#x27;REBORN_COORD_CACHE&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">412</span>)==(<span class="hljs-number">412</span>,<span class="hljs-number">12</span>,<span class="hljs-number">18</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">412</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=10&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">710</span>)==(<span class="hljs-number">710</span>,<span class="hljs-number">23</span>,<span class="hljs-number">49</span>)
+run(<span class="hljs-string">&#x27;calcenon_agate_queue&#x27;</span>,<span class="hljs-string">&#x27;--execute&#x27;</span>,<span class="hljs-string">&#x27;--phase&#x27;</span>,<span class="hljs-string">&#x27;approach&#x27;</span>,<span class="hljs-string">&#x27;--climb-index&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--party-status&#x27;</span>,ROOT/<span class="hljs-string">&#x27;notes/Route4-carrier-129-status.json&#x27;</span>,<span class="hljs-string">&#x27;--journal&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/calcenon-route4-climbs-129b.json&#x27;</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "status": "Crystal items obtained, healed and hunting male Espurr/Meowstic",
+  "checkpoint": "Partnered278-CrystalItemsHealed",
+  "epoch": 1791677866.8473248,
+  "attempt1": "Heather won; Laura lost; entire chain reset normally. No won round eligible major archive.",
+  "laura_failure": "Cherrim Bloom Doom KO Sylveon before Misty. Venusaur Growth followed by Petal Blizzard KO full Volcanion even after X Defend.",
+  "next_plan": [
+    "Catch male Espurr/Meowstic in Peridot alleys; prepare Prankster and Misty Terrain before next partnered chain.",
+    "Acquire Amplifield Rock via puzzle621 route that consumes blocking rock39. Focus Sash in619 inaccessible after completed shortest route left rock26 blocking item; not owned.",
+    "Retrieve Ability Capsule620 via alternate619E102 exit, if accessible.",
+    "Consider EV Tuner Volcanion SpAtk252 to SpDef1: retains434HP and reduces Genesect Download threat; Mawile Atk252 to SpDef0 improves Noivern survival. Not yet applied.",
+    "Give owned Tech Glasses to Zapdos; buy X Sp Def and healing stock.",
+    "Final six candidate Cresselia/Mawile/Volcanion/Sylveon/Zapdos/Meowstic; Heather Cress/Mawile/Zapdos, Laura Meow/Volc/Mawile, Elias Mawile/Cress/Sylv, Bennett Meow/Volc/Mawile."
+  ],
+  "detour": "615 floor collapsed and616Key activated744; need614 floor collapse activates740741742 then62013-move puzzle and61918-move puzzle. Static solutions work/277-rock{620,619}-solution.json.",
+  "detour_correction": "Map614 has no Onix. It has15%Hippowdon14%Durant20%Graveler. Teach Volcanion ownedTM78Bulldoze overOverheat2, huntDurant/Hippowdon/Steelix and useBulldoze twice; weaker non-STAB avoids OHKO/recoil problem. Overheat requires lastHeartScale if restoring (TM50notowned). CanretainBulldoze forutility; Flamethrower remains.",
+  "owned_items": {
+    "Amplifield Rock": 1,
+    "Ability Capsule": 1,
+    "Focus Sash": 0
+  },
+  "ability_capsule_mechanic": "Installed ItemEffects.rb1332 presents all alternative abilities, including hidden; one capsule can choose Prankster directly.",
+  "terrain_mechanic": "Installed Battle_MoveEffects.rb8389: Misty Terrain lasts5, or8 held Amplifield Rock."
+}

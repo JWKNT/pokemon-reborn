@@ -1,0 +1,17 @@
+"""Normal-controls Mega Ring errands, ending before any unreviewed battle."""
+import subprocess,sys,os,json
+from pathlib import Path
+R=Path(__file__).resolve().parents[1]
+def run(n,*a):
+ e=dict(os.environ,REBORN_COORD_CACHE='1',REBORN_ROUTE_CHUNK='84')
+ if n!='fly_to':e['REBORN_FAST_KEYS']='1'
+ else:e.pop('REBORN_FAST_KEYS',None)
+ print('STAGE',n,*a,flush=True);subprocess.run([sys.executable,str(R/'scripts'/f'{n}.py'),*map(str,a)],env=e,check=True)
+run('eventq',532,3,'enter');run('fly_to',521);run('eventq',521,26,'enter')
+run('eventq',120,12,'talk');run('pc_open_reviewed');run('pc_exchange_named',5,2,'Excadrill','Tranquill')
+run('eventq',120,12,'talk');run('pc_open_reviewed');run('pc_withdraw_named',14,'Mienshao')
+run('eventq',120,12,'talk');run('pc_open_reviewed');run('pc_withdraw_named',24,'Sylveon')
+run('party_front','Excadrill','Mienshao','Swampert','Arcanine','Hexan','Sylveon')
+run('eventq',120,8,'talk');run('heal');run('checkpoint','League220-RooftopTeam')
+run('eventq',120,1,'enter');run('eventq',521,19,'enter');run('eventq',118,6,'talk');run('linear_dialog',118,6,'--active','--burst');run('checkpoint','League220-SkyeRoofAccess')
+run('eventq',118,5,'enter');run('league220_roof_floor')

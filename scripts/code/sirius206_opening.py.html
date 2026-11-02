@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>sirius206_opening.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of sirius206_opening.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded, visible-screen Sirius retry opening; stops after two turns.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">expect</span>(<span class="hljs-params">name</span>):
+ t=re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,read().lower())
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;whatwill&#x27;</span>+name.lower()+<span class="hljs-string">&#x27;do&#x27;</span> <span class="hljs-keyword">in</span> t, (<span class="hljs-string">&#x27;Unexpected actor; no action selected&#x27;</span>,t)
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;manectric&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;marowak&#x27;</span> <span class="hljs-keyword">in</span> t, (<span class="hljs-string">&#x27;Lead pair changed; review&#x27;</span>,t)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>.py&#x27;</span>),*args],check=<span class="hljs-literal">True</span>)
+expect(<span class="hljs-string">&#x27;Arcanine&#x27;</span>);run(<span class="hljs-string">&#x27;battle_move&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;3&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+expect(<span class="hljs-string">&#x27;Swampert&#x27;</span>);run(<span class="hljs-string">&#x27;battle_item&#x27;</span>,<span class="hljs-string">&#x27;X Attack&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>)
+expect(<span class="hljs-string">&#x27;Arcanine&#x27;</span>);run(<span class="hljs-string">&#x27;battle_move&#x27;</span>,<span class="hljs-string">&#x27;2&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+expect(<span class="hljs-string">&#x27;Swampert&#x27;</span>);run(<span class="hljs-string">&#x27;battle_item&#x27;</span>,<span class="hljs-string">&#x27;X Speed&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TWO TURN OPENING COMPLETE; inspect replacements and HP&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

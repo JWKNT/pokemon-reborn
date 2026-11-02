@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>chest_drudd_pair.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of chest_drudd_pair.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed normal-checkpoint retry through the two Druddigon waves.
+Public UI controls only; stops on a missed burn or any child guard failure.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+session=json.loads((ROOT/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;session&#x27;</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script,*args,fast_next=<span class="hljs-literal">None</span></span>):
+ env=os.environ.copy();env.pop(<span class="hljs-string">&#x27;REBORN_FAST_CHEST_TRANSITION&#x27;</span>,<span class="hljs-literal">None</span>);env.pop(<span class="hljs-string">&#x27;REBORN_POST_BATTLE_MOVES&#x27;</span>,<span class="hljs-literal">None</span>)
+ <span class="hljs-keyword">if</span> fast_next:env.update(REBORN_FAST_CHEST_TRANSITION=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_POST_BATTLE_MOVES=fast_next,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--checkpoint-after-pair&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">and</span> fast_next==<span class="hljs-string">&#x27;down,left,left,left,up&#x27;</span>:env[<span class="hljs-string">&#x27;REBORN_POST_BATTLE_CHECKPOINT&#x27;</span>]=<span class="hljs-string">&#x27;Saphira-Drudd-recovery&#x27;</span>+<span class="hljs-built_in">str</span>(session)
+ r=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/script),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=<span class="hljs-literal">True</span>)
+ <span class="hljs-built_in">print</span>(r.stdout,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">assert</span> r.returncode==<span class="hljs-number">0</span>,(script,r.returncode)
+ <span class="hljs-keyword">return</span> r.stdout
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">switch</span>(<span class="hljs-params">name</span>):run(<span class="hljs-string">&#x27;battle_switch.py&#x27;</span>,name)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">move</span>(<span class="hljs-params">actor,slot,turns=<span class="hljs-number">1</span>,fast_next=<span class="hljs-literal">None</span></span>):<span class="hljs-keyword">return</span> run(<span class="hljs-string">&#x27;battle_batch.py&#x27;</span>,actor,slot,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Druddigon&#x27;</span>,<span class="hljs-string">&#x27;--wild&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,turns,<span class="hljs-string">&#x27;--watch&#x27;</span>,*([<span class="hljs-string">&#x27;--world-pause&#x27;</span>]<span class="hljs-keyword">if</span> fast_next <span class="hljs-keyword">else</span> [<span class="hljs-string">&#x27;--status-move&#x27;</span>]),fast_next=fast_next)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">ready</span>():
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">15</span>):
+  text=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;what will&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> text:<span class="hljs-keyword">return</span>
+  <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;best you can do&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> text,<span class="hljs-string">&#x27;Chest loss&#x27;</span>
+  act(<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+ <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Battle command did not appear&#x27;</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--battle13-open&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;continue&#x27;</span> <span class="hljs-keyword">in</span> read().lower(),<span class="hljs-string">&#x27;Start at observed Continue for native Magneton checkpoint&#x27;</span>
+ act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.8&#x27;</span>,<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.12&#x27;</span>,<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.12&#x27;</span>,<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.12&#x27;</span>,<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+ run(<span class="hljs-string">&#x27;chest_await.py&#x27;</span>,<span class="hljs-string">&#x27;--world-open&#x27;</span>)
+ready()
+switch(<span class="hljs-string">&#x27;Arcanine&#x27;</span>);switch(<span class="hljs-string">&#x27;Excadrill&#x27;</span>);move(<span class="hljs-string">&#x27;Excadrill&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;down&#x27;</span>)
+ready()
+text=move(<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-number">2</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;was burned&#x27;</span> <span class="hljs-keyword">in</span> text.lower(),<span class="hljs-string">&#x27;Burn not publicly verified; stop before recovery plan&#x27;</span>
+switch(<span class="hljs-string">&#x27;Arcanine&#x27;</span>);run(<span class="hljs-string">&#x27;battle_item.py&#x27;</span>,<span class="hljs-string">&#x27;Lemonade&#x27;</span>,<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-string">&#x27;--single-step&#x27;</span>);switch(<span class="hljs-string">&#x27;Sylveon&#x27;</span>)
+move(<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-number">0</span>);move(<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-number">1</span>);move(<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-number">0</span>);switch(<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>)
+switch(<span class="hljs-string">&#x27;Sylveon&#x27;</span>);move(<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-number">0</span>);move(<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-number">1</span>);move(<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-number">0</span>);switch(<span class="hljs-string">&#x27;Swampert&#x27;</span>)
+move(<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;down,left,left,left,up&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PAIR DONE; &#x27;</span>+(<span class="hljs-string">&#x27;Saved message pause&#x27;</span> <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--checkpoint-after-pair&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;inspect incoming Tyrantrum&#x27;</span>),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

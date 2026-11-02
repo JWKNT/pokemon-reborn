@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>lyla_ezra_savequit131.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of lyla_ezra_savequit131.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finish observed victory, one native checkpoint, actualnormalquit, closecapture.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,time
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,read
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;defeated&#x27;</span><span class="hljs-keyword">in</span> read().lower()
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;victory_outro&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>,<span class="hljs-string">&#x27;--world-verified&#x27;</span>)
+label=<span class="hljs-string">&#x27;Agate-street-won131&#x27;</span>
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text());n=json.loads((ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-navigation.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">763</span> <span class="hljs-keyword">and</span> n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]==<span class="hljs-number">52</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(n[<span class="hljs-string">&#x27;self_switches&#x27;</span>].get(<span class="hljs-string">f&#x27;763,<span class="hljs-subst">{i}</span>,A&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-number">49</span>])
+subprocess.run([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/native_quit&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+stop_epoch=time.time();(ROOT/<span class="hljs-string">&#x27;recordings/session-131.stop&#x27;</span>).touch()
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">100</span>):
+ processes=subprocess.check_output([<span class="hljs-string">&#x27;ps&#x27;</span>,<span class="hljs-string">&#x27;-axo&#x27;</span>,<span class="hljs-string">&#x27;command=&#x27;</span>],text=<span class="hljs-literal">True</span>).splitlines()
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(x.strip().startswith(<span class="hljs-string">&#x27;/Applications/Reborn.app/&#x27;</span>)<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> processes):<span class="hljs-keyword">break</span>
+ time.sleep(<span class="hljs-number">.2</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Normalquit did notclosegame;save/capture retained&#x27;</span>)
+run(<span class="hljs-string">&#x27;quit_saved_game&#x27;</span>,label)
+log=ROOT/<span class="hljs-string">&#x27;recordings/session-131-game-capture.log&#x27;</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">100</span>):
+ t=log.read_text()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;DONE&#x27;</span><span class="hljs-keyword">in</span> t:<span class="hljs-keyword">break</span>
+ time.sleep(<span class="hljs-number">.2</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Capture closure did notfinish;raw retained&#x27;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;status=2&#x27;</span><span class="hljs-keyword">in</span> t
+p=ROOT/<span class="hljs-string">&#x27;recordings/session-131.json&#x27;</span>;d=json.loads(p.read_text());dur=<span class="hljs-built_in">float</span>(subprocess.check_output([<span class="hljs-string">&#x27;/opt/homebrew/bin/ffprobe&#x27;</span>,<span class="hljs-string">&#x27;-v&#x27;</span>,<span class="hljs-string">&#x27;error&#x27;</span>,<span class="hljs-string">&#x27;-show_entries&#x27;</span>,<span class="hljs-string">&#x27;format=duration&#x27;</span>,<span class="hljs-string">&#x27;-of&#x27;</span>,<span class="hljs-string">&#x27;csv=p=0&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/d[<span class="hljs-string">&#x27;raw&#x27;</span>])]));d.update(stop_epoch=stop_epoch,raw_duration=dur,wall_duration=stop_epoch-d[<span class="hljs-string">&#x27;start_epoch&#x27;</span>]);p.write_text(json.dumps(d,indent=<span class="hljs-number">2</span>))
+c=ROOT/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>;v=json.loads(c.read_text());v.update(game_saved_quit=<span class="hljs-literal">True</span>,native_checkpoint=label,recording_paused=<span class="hljs-literal">True</span>,recording_closed_session=<span class="hljs-number">131</span>,game_quit_epoch=stop_epoch);c.write_text(json.dumps(v,indent=<span class="hljs-number">2</span>))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SAVEDQUIT + CLOSED131&#x27;</span>,s[<span class="hljs-string">&#x27;position&#x27;</span>],dur,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

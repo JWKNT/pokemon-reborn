@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Hypno readiness: normal TM PP carryover">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="hypno-tm-pp-carryover-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/hypno-tm-pp-carryover-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/hypno-tm-pp-carryover-2026-10-03.md.html">
+    <title>hypno-tm-pp-carryover-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">hypno-tm-pp-carryover-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 2.7 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · committed Oct 3 17:56</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Hypno readiness: normal TM PP carryover</h2>
+<p>Read-only review of installed source and the explicit frozen <code>notes/Void-Hypno-ready-status.json</code> (saved758[28,106],14:03:11 Eastern). No controls, live battle data, runtime/native read or game/save changes.</p>
+<p>Arcanine&#39;s new Safeguard is <strong>8/25 PP, PP-Up0</strong>, not full PP. This is expected normal TM behavior. Installed <code>Scripts/Items.rb:535–540</code> preserves the forgotten move&#39;s current PP in <code>oldmovepp</code>, constructs a new <code>PBMove</code>, then applies <code>min(oldmovepp,newtotalPP)</code> when <code>bymachine</code> is true. <code>pbLearnMove</code> receives true for machine teaching atItems.rb587. <code>PBMove.rb:8–13</code> resets PP-Up0 and calculates Safeguard&#39;s compiled maximum25. The healed ExtremeSpeed slot had8PP (base5,3PPUps); teaching discarded its PPUps but retained its current8PP. Every other move in the frozen six is at its actual installed maximum. All six are fullHP/healthy.</p>
+<p>Eight available Safeguards are sufficient for the reviewed short Arcanine Hypno plan. With correctly timed successful casts they cover up to40 enemy action turns; failed/early casts spend turns and must not be queued blindly. The intended XSpeed→wake ifneeded→Safeguard→twoXAttack→twoCrunch line normally uses one or two casts, with additional healing/SpDef actions counted publicly. Low PP is not the material tactical risk here: sleep/cure timing and critical DarkPulse after Hypno&#39;s CalmMind remain the existing reviewed risks. There is no need to spend an Ether merely to satisfy an inaccurate “all moves full” claim.</p>
+<p><code>scripts/void_batch_route.py</code> now has a final-Hypno-only <code>hypno_prepared_pp()</code> exception. It accepts the <strong>exact</strong> Arc90 slot/order Safeguard8/PP-Up0, Flamethrower/Crunch/MorningSun, checks the installed TM carryover expression and base PP, and requires every other move/member to be truly full. It does not change <code>full_pp()</code> or the strict LightShard verification. The final receipt/output explicitly says <strong>Safeguard8/25, not fullPP</strong>. No PP is written to the game or frozen evidence; the function&#39;s copied25 is only an arithmetic validation of the remaining moves. Tests rejected7/9SafeguardPP, PP-Up1, Lv89 and deficits in each other Arc move; the frozen input remains8.</p>
+<p>Archive entry does not need an exception: <code>major_enter.py</code> calls <code>major_attempt.py</code>, whose ordinary preflight requires fresh native evidence, configured helditems/abilities/move slots/lead and optional fullHP. It does not demand maximumPP. <code>prepare_major_append.py</code> also has no maximumPP gate. The exact frozen status remains the truthful build/PP reference. Preserve8 in any battle ledger; do not label the six “fully restored PP” after TM teaching. Do not replay the completed Void route just to rerun its final verifier.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

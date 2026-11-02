@@ -1,0 +1,15 @@
+{
+  "status": "Proposal only. Altaria not caught or trained; no League attempt.",
+  "sources": [
+    "Scripts/Reborn/montext.rb:22572",
+    "Scripts/Battler.rb:907",
+    "Scripts/Battler.rb:983",
+    "work/217-league-trainers-static.json"
+  ],
+  "reason": "Altaria naturally learns PerishSong46 and retains it among last four at59+. Flying avoids NewWorld speed*.75. At100 neutralSpeed nature,252SpeedEV and even0SpeedIV yields228; XSpeed+2 yields456, exceeding PULSEArceus max419 including Flying form. Avoid Speed-lowering nature or verifyactualSpeed>=210.",
+  "delivery": "Preserve fullHPunusedFocusSash; XSpeed turn1, PerishSong turn2. First-turn DarkPulse flinch cannot prevent item; ZDarkPulse/Judgment singlehitSash. DoomDesire delayed damage comes after Song. Need actual ownspeed, field,HP/Sash and remainingreserves reviewed.",
+  "no_guarantee_before_validation": "Confirm installed Sash/PerishSong mechanics, immediate next-battle lead ordering, no residual hazards/weather. Preserve at least FOUR other living members when Song user may be knocked out on its Song turn: subsequent counts3\u21922\u21921\u21920 can cost three additional members, and one must remain alive until Arceus faints. If fewer survive, normal Revive during countdown is an additional action requiring live review; do not claim three reserves alone guarantees success.",
+  "acquisition": "Catch wildAltaria during CharousSash trip, naturally learnedSong avoidsHeartScale. TrainHP/Speed252 and100 throughnormalplay. Can remain useful with NaturalCure and optionalCottonGuard reminder.",
+  "other_notes": "Chatot cannot learn PerishSong ininstalledmontext; do not tryreminder oruseit asbreedingfather forSong. WildMurkrowexistsLapis52420%LandNight butwouldrequirebreeding/abilitywork.",
+  "acquisition_refinement": "Route4 710 Headbutt: Swablu30%Lv65\u201380, Altaria6%. BlueShard530E122 collected normally in220, now3Blue. Tutor324E83Headbutt costs3. Closest reachable tree710E66[28,39], approach28,40 fromentry23,49 is14tiles. Swablu naturally retains CottonGuard,DragonPulse,PerishSong,Moonblast; evolveonelevel and declineDragonBreath to preserveSong. No catch yet."
+}

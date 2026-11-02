@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>track_tauros.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of track_tauros.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Locate the visible Tauros from screenshot pixels; no game-memory access.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np,subprocess,pathlib
+ROOT=pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">capture</span>():
+ p=ROOT/<span class="hljs-string">&#x27;work/tauros-live.png&#x27;</span>;subprocess.run([<span class="hljs-string">&#x27;/usr/sbin/screencapture&#x27;</span>,<span class="hljs-string">&#x27;-x&#x27;</span>,<span class="hljs-string">&#x27;-l&#x27;</span>,<span class="hljs-string">&#x27;260608&#x27;</span>,<span class="hljs-built_in">str</span>(p)],check=<span class="hljs-literal">True</span>)
+ im=Image.<span class="hljs-built_in">open</span>(p).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=im.size
+ <span class="hljs-comment"># Native macOS window screenshot includes shadow; game canvas boundaries verified visually.</span>
+ crop=im.crop((<span class="hljs-number">112</span>,<span class="hljs-number">132</span>,<span class="hljs-number">2160</span>,<span class="hljs-number">1668</span>)).resize((<span class="hljs-number">512</span>,<span class="hljs-number">384</span>),Image.Resampling.NEAREST)
+ <span class="hljs-keyword">return</span> np.array(crop)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">detect</span>(<span class="hljs-params">a</span>):
+ sheet=Image.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Graphics/Characters/pkmn_tauros.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>);best=<span class="hljs-literal">None</span>
+ <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  <span class="hljs-keyword">for</span> col <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+   t=np.array(sheet.crop((col*<span class="hljs-number">58</span>,row*<span class="hljs-number">56</span>,col*<span class="hljs-number">58</span>+<span class="hljs-number">58</span>,row*<span class="hljs-number">56</span>+<span class="hljs-number">56</span>)))
+   mask=(t[:,:,<span class="hljs-number">3</span>]&gt;<span class="hljs-number">200</span>);yy,xx=np.where(mask &amp; (np.indices(mask.shape)[<span class="hljs-number">0</span>]&lt;<span class="hljs-number">38</span>));rgb=t[yy,xx,:<span class="hljs-number">3</span>].astype(<span class="hljs-built_in">int</span>)
+   <span class="hljs-comment"># Colored opaque samples avoid black outlines and pale highlights.</span>
+   valid=(rgb[:,<span class="hljs-number">0</span>]&gt;<span class="hljs-number">65</span>)&amp;(rgb[:,<span class="hljs-number">0</span>]&gt;rgb[:,<span class="hljs-number">1</span>]*<span class="hljs-number">1.08</span>)&amp;(rgb[:,<span class="hljs-number">1</span>]&gt;<span class="hljs-number">30</span>)&amp;(rgb[:,<span class="hljs-number">2</span>]&lt;<span class="hljs-number">100</span>)
+   indices=np.flatnonzero(valid)
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">len</span>(indices):<span class="hljs-keyword">continue</span>
+   anchor=indices[<span class="hljs-built_in">len</span>(indices)//<span class="hljs-number">2</span>];color=rgb[anchor];ay,ax=yy[anchor],xx[anchor]
+   cy,cx=np.where(np.<span class="hljs-built_in">max</span>(np.<span class="hljs-built_in">abs</span>(a.astype(<span class="hljs-built_in">int</span>)-color),axis=<span class="hljs-number">2</span>)&lt;<span class="hljs-number">26</span>);oy=cy-ay;ox=cx-ax
+   ok=(ox&gt;=<span class="hljs-number">0</span>)&amp;(oy&gt;=<span class="hljs-number">0</span>)&amp;(ox+<span class="hljs-number">58</span>&lt;=<span class="hljs-number">512</span>)&amp;(oy+<span class="hljs-number">56</span>&lt;=<span class="hljs-number">384</span>);ox=ox[ok];oy=oy[ok]
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">len</span>(ox):<span class="hljs-keyword">continue</span>
+   sample=np.arange(<span class="hljs-number">0</span>,<span class="hljs-built_in">len</span>(xx),<span class="hljs-built_in">max</span>(<span class="hljs-number">1</span>,<span class="hljs-built_in">len</span>(xx)//<span class="hljs-number">120</span>));sx=xx[sample];sy=yy[sample];colors=rgb[sample]
+   dif=np.mean(np.minimum(np.<span class="hljs-built_in">abs</span>(a[oy[:,<span class="hljs-literal">None</span>]+sy,ox[:,<span class="hljs-literal">None</span>]+sx].astype(<span class="hljs-built_in">int</span>)-colors),<span class="hljs-number">100</span>),axis=(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>));i=<span class="hljs-built_in">int</span>(np.argmin(dif))
+   result=(<span class="hljs-built_in">float</span>(dif[i]),<span class="hljs-built_in">int</span>(ox[i])+<span class="hljs-number">29</span>,<span class="hljs-built_in">int</span>(oy[i])+<span class="hljs-number">56</span>,row,col)
+   <span class="hljs-keyword">if</span> best <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> result[<span class="hljs-number">0</span>]&lt;best[<span class="hljs-number">0</span>]:best=result
+ <span class="hljs-keyword">return</span> best
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:<span class="hljs-built_in">print</span>(detect(capture()),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

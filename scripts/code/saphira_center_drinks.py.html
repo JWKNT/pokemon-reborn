@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>saphira_center_drinks.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of saphira_center_drinks.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Leave the psychologist by normal verified transfers.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+ env.pop(<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>,<span class="hljs-literal">None</span>)
+ <span class="hljs-keyword">if</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;eventq&#x27;</span>]:env[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>,cwd=R,env=env)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">772</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;vending_drinks&#x27;</span>,<span class="hljs-string">&#x27;Lemonade&#x27;</span>,<span class="hljs-number">20</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Saphira-six-supplied&#x27;</span>)
+</code></pre>
+  </body>
+</html>

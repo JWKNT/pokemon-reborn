@@ -1,0 +1,83 @@
+{
+  "basis": "Owned frozen Road201-stalactite-entry plus installed berry20EV and power-item32EV mechanics. Normal-controls preparation proposal.",
+  "mienshao_before": [
+    42,
+    79,
+    41,
+    40,
+    28,
+    108
+  ],
+  "cryogonal_before": [
+    252,
+    0,
+    75,
+    41,
+    0,
+    142
+  ],
+  "berries": {
+    "Mienshao": {
+      "Pomeg Berry": 3,
+      "Qualot Berry": 3,
+      "Hondew Berry": 2,
+      "Grepa Berry": 2
+    },
+    "Hexan": {
+      "Pomeg Berry": 13,
+      "Qualot Berry": 4
+    }
+  },
+  "purchase": {
+    "Pomeg Berry": 16,
+    "Qualot Berry": 7,
+    "Hondew Berry": 2,
+    "Grepa Berry": 2,
+    "Power Anklet": 1
+  },
+  "cost": 28500,
+  "training": [
+    {
+      "battles": 6,
+      "Mienshao": "Power Bracer",
+      "Hexan": "Power Lens"
+    },
+    {
+      "battles": 1,
+      "Mienshao": "Power Anklet",
+      "Hexan": "Power Lens"
+    },
+    {
+      "battles": 4,
+      "Mienshao": "Power Anklet",
+      "Hexan": "Power Anklet"
+    }
+  ],
+  "target": {
+    "Mienshao": [
+      0,
+      252,
+      0,
+      0,
+      0,
+      252
+    ],
+    "Hexan": [
+      0,
+      0,
+      0,
+      252,
+      0,
+      252
+    ]
+  },
+  "nature_targets": {
+    "Mienshao": "Jolly",
+    "Hexan": "Timid"
+  },
+  "nature_cost": 4,
+  "heartscales_owned": 1,
+  "future_reserve": "Gyarados nature improvement and level100; Chatot special/speed EVs and Timid if selected for a specific matchup. No Mega plans without ring.",
+  "nature_route_refinement": "Collect Byxbysion and Scrapyard scales via reviewed ordinary routes. Prioritize Timid Hexan with first two scales; Jolly Mienshao once fourth scale is obtained (Victory Road 788 or808), avoiding an unverified long maze detour.",
+  "progress": "All berries applied and both native EV resets verified. Traveling to paired training pilot."
+}

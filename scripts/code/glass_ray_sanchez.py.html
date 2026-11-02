@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_ray_sanchez.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_ray_sanchez.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed Ray/Espeon room and Sanchez supplies, through normal controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">mirror</span>(<span class="hljs-params">**a</span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;s=json.loads(p.read_text())
+ <span class="hljs-keyword">for</span> k,v <span class="hljs-keyword">in</span> a.items():
+  d,key=k.split(<span class="hljs-string">&#x27;:&#x27;</span>,<span class="hljs-number">1</span>);s.setdefault(d,{})[key]=v
+ p.write_text(json.dumps(s))
+run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">732</span>,<span class="hljs-number">55</span>,<span class="hljs-string">&#x27;smash&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">732</span>,<span class="hljs-number">55</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">737</span>,<span class="hljs-number">21</span>,<span class="hljs-string">&#x27;MeteorAceM&#x27;</span>,<span class="hljs-string">&#x27;Ray&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_plan&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/glass-ray-plan.json&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/glass-ray-live.log&#x27;</span>,<span class="hljs-string">&#x27;--stop-after-battle&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">737</span>,<span class="hljs-number">21</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--past-battle&#x27;</span>,<span class="hljs-string">&#x27;--after-last-battle&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>,<span class="hljs-string">&#x27;--world-verified&#x27;</span>);mirror(**{<span class="hljs-string">&#x27;self_switches:737,21,A&#x27;</span>:<span class="hljs-literal">True</span>})
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">737</span>,<span class="hljs-number">13</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">737</span>,<span class="hljs-number">13</span>,<span class="hljs-string">&#x27;--active&#x27;</span>);mirror(**{<span class="hljs-string">&#x27;switches:949&#x27;</span>:<span class="hljs-literal">True</span>})
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">737</span>,<span class="hljs-number">20</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">737</span>,<span class="hljs-number">20</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--world-settle&#x27;</span>,<span class="hljs-number">15</span>)
+mirror(**{<span class="hljs-string">&#x27;self_switches:737,20,A&#x27;</span>:<span class="hljs-literal">True</span>})
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">737</span>,<span class="hljs-number">11</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">732</span>,<span class="hljs-number">54</span>,<span class="hljs-string">&#x27;smash&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">732</span>,<span class="hljs-number">54</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">737</span>,<span class="hljs-number">66</span>,<span class="hljs-string">&#x27;MeteorAceM&#x27;</span>,<span class="hljs-string">&#x27;Sanchez&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_plan&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/glass-sanchez-plan.json&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/glass-sanchez-live.log&#x27;</span>,<span class="hljs-string">&#x27;--stop-after-battle&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">737</span>,<span class="hljs-number">66</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--past-battle&#x27;</span>,<span class="hljs-string">&#x27;--after-last-battle&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>,<span class="hljs-string">&#x27;--world-verified&#x27;</span>);mirror(**{<span class="hljs-string">&#x27;self_switches:737,66,A&#x27;</span>:<span class="hljs-literal">True</span>})
+<span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span>[<span class="hljs-number">22</span>,<span class="hljs-number">67</span>,<span class="hljs-number">68</span>]:run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">737</span>,e,<span class="hljs-string">&#x27;item&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Glass-Ray-Sanchez-supplies&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RAY/SANCHEZ COMPLETE; CAGE KEY NEXT&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

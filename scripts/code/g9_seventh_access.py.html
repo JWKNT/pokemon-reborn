@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g9_seventh_access.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g9_seventh_access.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> nav
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">*args</span>): subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/args[<span class="hljs-number">0</span>]),*args[<span class="hljs-number">1</span>:]],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">stage</span>(<span class="hljs-params">**vals</span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>].update(vals);p.write_text(json.dumps(v))
+stage(**{<span class="hljs-string">&#x27;95&#x27;</span>:<span class="hljs-number">13</span>})
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-string">&#x27;165&#x27;</span>,<span class="hljs-string">&#x27;14&#x27;</span>,<span class="hljs-string">&#x27;--active&#x27;</span>)
+stage(**{<span class="hljs-string">&#x27;159&#x27;</span>:<span class="hljs-number">5</span>})
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;423&#x27;</span>]=<span class="hljs-literal">False</span>;p.write_text(json.dumps(v))
+nav.save();<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;165,31,12,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;79,8,19,left,wait:2&#x27;</span>,<span class="hljs-string">&#x27;424,3,5,left,wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-string">&#x27;80&#x27;</span>,<span class="hljs-string">&#x27;30&#x27;</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;168,30,10,up,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-string">&#x27;168&#x27;</span>,<span class="hljs-string">&#x27;3&#x27;</span>,<span class="hljs-string">&#x27;--active&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-string">&#x27;168&#x27;</span>,<span class="hljs-string">&#x27;8&#x27;</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-string">&#x27;168&#x27;</span>,<span class="hljs-string">&#x27;13&#x27;</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;choose_dialog.py&#x27;</span>,<span class="hljs-string">&#x27;7th Street|Lapis Ward&#x27;</span>,<span class="hljs-string">&#x27;7th Street&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-string">&#x27;168&#x27;</span>,<span class="hljs-string">&#x27;13&#x27;</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>)
+stage(**{<span class="hljs-string">&#x27;79&#x27;</span>:<span class="hljs-number">1</span>})
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-string">&#x27;168&#x27;</span>,<span class="hljs-string">&#x27;11&#x27;</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-string">&#x27;168&#x27;</span>,<span class="hljs-string">&#x27;15&#x27;</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+</code></pre>
+  </body>
+</html>

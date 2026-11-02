@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>indra_round.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of indra_round.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One inspected Circus challenge, with capture/BGM, roster guards, and reward handling.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">126</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,<span class="hljs-string">&#x27;INDRA&#x27;</span>,<span class="hljs-string">&#x27;Indra&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Scizor,Empoleon,Ribombee,Hawlucha,Toucannon,Ursaring,Tsareena,Carbink,Castform,Musharna&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">0</span>)
+run(<span class="hljs-string">&#x27;indra_battle&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">126</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-battle&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;INDRA ROUND COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

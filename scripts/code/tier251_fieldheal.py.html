@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>tier251_fieldheal.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of tier251_fieldheal.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Recover field-hazard damage using owned medicine before the boss.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,sys,subprocess,json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FIELD HEAL&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-string">&#x27;Amoonguss&#x27;</span>]:
+ run(<span class="hljs-string">&#x27;field_medicine&#x27;</span>,<span class="hljs-string">&#x27;Full Restore&#x27;</span>,name);run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+<span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Zapdos&#x27;</span>,<span class="hljs-string">&#x27;Aegislash&#x27;</span>,<span class="hljs-string">&#x27;Mawile&#x27;</span>]:
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>):run(<span class="hljs-string">&#x27;field_medicine&#x27;</span>,<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,name);run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Aegislash&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Postgame251-SwordsHealed&#x27;</span>)
+s=json.loads((R/<span class="hljs-string">&#x27;notes/Postgame251-SwordsHealed-status.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(m[<span class="hljs-string">&#x27;hp&#x27;</span>]==m[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>])
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;835,57,65&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Postgame251-SwordsReady&#x27;</span>)
+</code></pre>
+  </body>
+</html>

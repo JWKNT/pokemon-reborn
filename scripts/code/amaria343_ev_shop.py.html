@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>amaria343_ev_shop.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of amaria343_ev_shop.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Prepare Amaria support with ordinary shopping, EV Tuner UI, and held-item menus.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,json,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;AMARIA PREP&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+files=<span class="hljs-built_in">list</span>((R/<span class="hljs-string">&#x27;notes&#x27;</span>).glob(<span class="hljs-string">&#x27;Postgame343-Jace*-status.json&#x27;</span>))
+latest=<span class="hljs-built_in">max</span>(files,key=<span class="hljs-keyword">lambda</span> p:<span class="hljs-built_in">int</span>(p.name.split(<span class="hljs-string">&#x27;Jace&#x27;</span>)[<span class="hljs-number">1</span>].split(<span class="hljs-string">&#x27;-&#x27;</span>)[<span class="hljs-number">0</span>]))
+s=json.loads(latest.read_text())
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">38</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]&gt;=<span class="hljs-number">45000</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(p[<span class="hljs-string">&#x27;hp&#x27;</span>]==p[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">and</span> p[<span class="hljs-string">&#x27;status&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>])
+run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;mart_open&#x27;</span>)
+run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,<span class="hljs-string">&#x27;Escape Rope&#x27;</span>,<span class="hljs-number">5</span>,<span class="hljs-number">550</span>);run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1200</span>);run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">530</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>,<span class="hljs-string">&#x27;--origin&#x27;</span>,<span class="hljs-number">519</span>)
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">530</span>,<span class="hljs-number">522</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">522</span>,<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">522</span>,<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--until-choice&#x27;</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">522</span>,<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Amaria343-Tuners&#x27;</span>)
+s=json.loads((R/<span class="hljs-string">&#x27;notes/Amaria343-Tuners-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;EVTUNER&#x27;</span>]==<span class="hljs-number">5</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;ESCAPEROPE&#x27;</span>]==<span class="hljs-number">5</span>
+run(<span class="hljs-string">&#x27;field_medicine&#x27;</span>,<span class="hljs-string">&#x27;EV Tuner&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>)
+run(<span class="hljs-string">&#x27;ev_tuner_swap&#x27;</span>,<span class="hljs-number">2</span>,<span class="hljs-number">5</span>)
+run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Amplifield Rock&#x27;</span>,<span class="hljs-string">&#x27;Meowstic&#x27;</span>)
+run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Volcanion&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Amaria343-EVReady&#x27;</span>)
+s=json.loads((R/<span class="hljs-string">&#x27;notes/Amaria343-EVReady-status.json&#x27;</span>).read_text())
+m=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Mienshao&#x27;</span>)
+<span class="hljs-keyword">assert</span> m[<span class="hljs-string">&#x27;speed&#x27;</span>]&gt;<span class="hljs-number">334</span> <span class="hljs-keyword">and</span> m[<span class="hljs-string">&#x27;item&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;EVTUNER&#x27;</span>]==<span class="hljs-number">4</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Meowstic&#x27;</span>)[<span class="hljs-string">&#x27;item&#x27;</span>]==<span class="hljs-string">&#x27;AMPLIFIELDROCK&#x27;</span>
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;AMARIA EV PREPARATION VERIFIED&#x27;</span>,m,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

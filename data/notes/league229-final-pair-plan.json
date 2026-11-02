@@ -1,0 +1,22 @@
+{
+  "epoch": 1791373337.016279,
+  "sources": [
+    "work/217-league-trainers-static.json",
+    "Scripts/Reborn/fieldtext.rb NEWWORLD",
+    "https://bigjra.github.io/reborn/#episode-19-the-end-of-one-world"
+  ],
+  "entry": "Altaria first full HP Focus Sash; immediate Mawile switch expected to resist Mismagius DazzlingGleam/PowerGem aimed atAlt. ShadowBall surprise can KO normalMaw: observe, do not blindlyqueueMega.",
+  "priorities": [
+    "MegaMaw SuckerPunch versus attacking Mismagius.",
+    "Hexan FreezeDry outspeeds and OHKOsFlygon.",
+    "HexanLightScreen before Hydreigon; bothNewWorld levitating defense nerf and FlashCannon boost matter. MegaMawPlayRough underScreen for Hydrei.",
+    "UnboostedMegaMawIronHead canKO Clef beforeCosmicPower; UnawareignoresSD. If itboosts, CofaCurse underLightScreen.",
+    "ArcanineFlamethrower forCelesteela, XSpDef useful againstFlashCannon; watchLeechSeed and heal.",
+    "Honchkrow boostedDarkZ is dangerous: Reflect or expendable ally thenMegaMawPlayRough.",
+    "PreserveAltaria fullHP intactSash forChild; heal reserves using bag beforeendingLin3. No menus/healinggap.",
+    "Reserve1of3XSpeed forChild: T1XSpeed,T2PerishSong,stall3 withRevives asneeded.",
+    "If Mawile is already Mega beforeHonchkrow, it lacks freshIntimidate: boostedDarkZ canOHKO. UseReflect or expendableally to absorbZ beforeMawPlayRough."
+  ],
+  "resources_after_field": "Ultra8,FullRestore9,Revive17,MaxEther1,MaxElixir0,XSpDef3,XSpeed3,XDefend0,XSpAtk0 approx; verify actual bag.",
+  "item_restore_static": "Battle.rb6697 restoresitemInitial on battleend;CofaWideLens recovered fromKnockOff."
+}

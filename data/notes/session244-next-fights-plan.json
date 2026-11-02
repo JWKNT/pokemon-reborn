@@ -1,0 +1,23 @@
+{
+  "status": "Preparation plan; no major fight entered",
+  "next_candidate": "Suicune after Walrein/Aegislash paired preparation",
+  "retained_party": [
+    "Cryogonal110",
+    "Cresselia110",
+    "Zapdos110",
+    "Mawile110",
+    "Aegislash110",
+    "Walrein110"
+  ],
+  "suicune_outline": "Lead bulky Walrein Blizzard to freeze WaterSurface. Field change removes grounded SwiftSwim/Hydration activation and Water/Surf1.5x1.5 boosts. Icy boostsIce1.5; subsequent ElementalSeeds giveSpeed+2 instead ofSpDef/AquaRing. CryogonalFreezeDry then stronger; Alom/VapRest sleep normally. AvoidEarthquake/Bulldoze: they breakIcebacktoWater. MawPlayRoughGoodra; AegisKingsShield/SwordsDance/SacredSwordLapras(ignoreCurseDef). CressCM/MoonlightcanoutlastVaporeonandcarrysetupintoSuicune;actualHP/field andPP monitored. These are provisional plans, not blind actions.",
+  "capture_tools": "Zapdos ThunderWave; Mawile FalseSwipe; 38UltraBall18TimerBall before preparation. Suicune possibly Rest: verify actual public moves and adapt.",
+  "raikou_later": "Rotom-Frost opener and Ice/Electric support. Aegislash can resistIce/immuneTriAttack; Rotom lacksGhostattack, possibleSwordsDance setup. RaikouShadowBall threatensAegis; SwampertGroundSTAB/Thunderimmunity forboss. Must inspect actualfield and weather before execution.",
+  "not_authorized_as_blind_execution": true,
+  "source_evidence": {
+    "SwiftSwim": "Battler.rb964 WaterSurface activation withoutRain",
+    "Hydration": "Battle.rb5299 WaterSurface activation withoutRain",
+    "Icy": "fieldtext.rb740: Ice1.5,ElementalSeedSpeed2,EarthquakebreaksbacktoWater",
+    "Weather": "834E22 checksplayerX>=62 forweather6;leftSuicunearea clearsweather"
+  },
+  "weather_warning": "Do not assumeRain; verifypublicactualweather. WaterSurface alone activatesSwiftSwim/Hydration."
+}

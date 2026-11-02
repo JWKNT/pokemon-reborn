@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_reconcile_glass_items.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_reconcile_glass_items.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Fixture checks for inventory/log reconciliation; no game or live-log access.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> tempfile
+<span class="hljs-keyword">import</span> unittest
+<span class="hljs-keyword">from</span> reconcile_glass_items <span class="hljs-keyword">import</span> reconcile, native_inventory
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">status</span>(<span class="hljs-params">contents, held=<span class="hljs-literal">None</span></span>):
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;bag&#x27;</span>: {<span class="hljs-string">&#x27;type&#x27;</span>: <span class="hljs-string">&#x27;PokemonBag&#x27;</span>, <span class="hljs-string">&#x27;contents&#x27;</span>: contents},
+            <span class="hljs-string">&#x27;party&#x27;</span>: [{<span class="hljs-string">&#x27;item&#x27;</span>: item} <span class="hljs-keyword">for</span> item <span class="hljs-keyword">in</span> (held <span class="hljs-keyword">or</span> [<span class="hljs-literal">None</span>] * <span class="hljs-number">6</span>)]}
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ReconciliationTests</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_balanced_three_rounds_with_story_and_held_transfer_exclusions</span>(<span class="hljs-params">self</span>):
+        before = status({<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: <span class="hljs-number">8</span>, <span class="hljs-string">&#x27;ULTRAPOTION&#x27;</span>: <span class="hljs-number">15</span>, <span class="hljs-string">&#x27;XSPECIAL&#x27;</span>: <span class="hljs-number">6</span>,
+                         <span class="hljs-string">&#x27;SAPPHIREBRACELETS&#x27;</span>: <span class="hljs-number">1</span>, <span class="hljs-string">&#x27;SPELLTAG&#x27;</span>: <span class="hljs-number">1</span>})
+        after = status({<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: <span class="hljs-number">7</span>, <span class="hljs-string">&#x27;ULTRAPOTION&#x27;</span>: <span class="hljs-number">13</span>, <span class="hljs-string">&#x27;XSPECIAL&#x27;</span>: <span class="hljs-number">5</span>,
+                        <span class="hljs-string">&#x27;SAPPHIREBRACELETS&#x27;</span>: <span class="hljs-number">0</span>, <span class="hljs-string">&#x27;SPELLTAG&#x27;</span>: <span class="hljs-number">0</span>},
+                       [<span class="hljs-string">&#x27;SPELLTAG&#x27;</span>, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>])
+        logs = [<span class="hljs-string">&#x27;Cofagrigus: use item Full Heal on Cofagrigus\n[Player used Full Heal]\n&#x27;</span>,
+                <span class="hljs-string">&#x27;[Player used X Sp. Atk]\n[Player used Ultra Potion]\n&#x27;</span>,
+                <span class="hljs-string">&#x27;[Player used Ultra Potion]\n&#x27;</span>]
+        original = copy.deepcopy((before, after, logs))
+        report = reconcile(before, after, logs)
+        <span class="hljs-variable language_">self</span>.assertEqual(report[<span class="hljs-string">&#x27;status&#x27;</span>], <span class="hljs-string">&#x27;verified_counts&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(report[<span class="hljs-string">&#x27;per_round&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;item_usage&#x27;</span>],
+                         [{<span class="hljs-string">&#x27;name&#x27;</span>: <span class="hljs-string">&#x27;Ultra Potion&#x27;</span>, <span class="hljs-string">&#x27;count&#x27;</span>: <span class="hljs-number">1</span>}, {<span class="hljs-string">&#x27;name&#x27;</span>: <span class="hljs-string">&#x27;X Sp. Atk&#x27;</span>, <span class="hljs-string">&#x27;count&#x27;</span>: <span class="hljs-number">1</span>}])
+        <span class="hljs-variable language_">self</span>.assertEqual({x[<span class="hljs-string">&#x27;item_id&#x27;</span>]: x[<span class="hljs-string">&#x27;excluded_as&#x27;</span>] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> report[<span class="hljs-string">&#x27;ignored_bag_changes&#x27;</span>]},
+                         {<span class="hljs-string">&#x27;SAPPHIREBRACELETS&#x27;</span>: <span class="hljs-string">&#x27;story_key_item&#x27;</span>, <span class="hljs-string">&#x27;SPELLTAG&#x27;</span>: <span class="hljs-string">&#x27;held_transfer_candidate&#x27;</span>})
+        <span class="hljs-variable language_">self</span>.assertEqual((before, after, logs), original)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_lemonade_matches_native_consumption_and_rejects_unlogged_use</span>(<span class="hljs-params">self</span>):
+        logs=[<span class="hljs-string">&#x27;[Player used Lemonade]\n&#x27;</span>]*<span class="hljs-number">5</span>
+        report=reconcile(status({<span class="hljs-string">&#x27;LEMONADE&#x27;</span>:<span class="hljs-number">6</span>}),status({<span class="hljs-string">&#x27;LEMONADE&#x27;</span>:<span class="hljs-number">1</span>}),[<span class="hljs-string">&#x27;&#x27;</span>.join(logs)],expected_rounds=<span class="hljs-number">1</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(report[<span class="hljs-string">&#x27;status&#x27;</span>],<span class="hljs-string">&#x27;verified_counts&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(report[<span class="hljs-string">&#x27;per_round&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;item_usage&#x27;</span>],[{<span class="hljs-string">&#x27;name&#x27;</span>:<span class="hljs-string">&#x27;Lemonade&#x27;</span>,<span class="hljs-string">&#x27;count&#x27;</span>:<span class="hljs-number">5</span>}])
+        report=reconcile(status({<span class="hljs-string">&#x27;LEMONADE&#x27;</span>:<span class="hljs-number">6</span>}),status({<span class="hljs-string">&#x27;LEMONADE&#x27;</span>:<span class="hljs-number">0</span>}),[<span class="hljs-string">&#x27;&#x27;</span>.join(logs)],expected_rounds=<span class="hljs-number">1</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(report[<span class="hljs-string">&#x27;status&#x27;</span>],<span class="hljs-string">&#x27;mismatch&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_refund_difference_fails_without_assigning_a_round</span>(<span class="hljs-params">self</span>):
+        report = reconcile(status({<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: <span class="hljs-number">8</span>}), status({<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: <span class="hljs-number">7</span>}),
+                           [<span class="hljs-string">&#x27;[Player used Full Heal]\n&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27;[Player used Full Heal]\n&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(report[<span class="hljs-string">&#x27;status&#x27;</span>], <span class="hljs-string">&#x27;mismatch&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertTrue(<span class="hljs-built_in">all</span>(<span class="hljs-string">&#x27;item_usage&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> row <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> report[<span class="hljs-string">&#x27;per_round&#x27;</span>]))
+        <span class="hljs-variable language_">self</span>.assertEqual(report[<span class="hljs-string">&#x27;aggregate&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;logged_executions&#x27;</span>], <span class="hljs-number">2</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(report[<span class="hljs-string">&#x27;aggregate&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;bag_decline&#x27;</span>], <span class="hljs-number">1</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_unlogged_decrease_or_inflow_fails</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">for</span> qty <span class="hljs-keyword">in</span> (<span class="hljs-number">7</span>, <span class="hljs-number">9</span>):
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.subTest(qty=qty):
+                report = reconcile(status({<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: <span class="hljs-number">8</span>}), status({<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: qty}), [<span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>])
+                <span class="hljs-variable language_">self</span>.assertEqual(report[<span class="hljs-string">&#x27;status&#x27;</span>], <span class="hljs-string">&#x27;mismatch&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_reusable_or_unknown_item_fails</span>(<span class="hljs-params">self</span>):
+        report = reconcile(status({}), status({}), [<span class="hljs-string">&#x27;[Player used Blue Flute]\n&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(report[<span class="hljs-string">&#x27;status&#x27;</span>], <span class="hljs-string">&#x27;mismatch&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(report[<span class="hljs-string">&#x27;errors&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;names&#x27;</span>], [<span class="hljs-string">&#x27;Blue Flute&#x27;</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_tracked_consumable_held_transfer_requires_review</span>(<span class="hljs-params">self</span>):
+        report = reconcile(status({<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: <span class="hljs-number">8</span>}),
+                           status({<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: <span class="hljs-number">7</span>}, [<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>]),
+                           [<span class="hljs-string">&#x27;[Player used Full Heal]\n&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(report[<span class="hljs-string">&#x27;status&#x27;</span>], <span class="hljs-string">&#x27;mismatch&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertFalse(report[<span class="hljs-string">&#x27;aggregate&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;matched&#x27;</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_native_shape_and_exact_three_rounds_required</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            native_inventory({<span class="hljs-string">&#x27;bag&#x27;</span>: {<span class="hljs-string">&#x27;contents&#x27;</span>: {}}, <span class="hljs-string">&#x27;party&#x27;</span>: []})
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            reconcile(status({}), status({}), [<span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>])
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            native_inventory(status({<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: <span class="hljs-literal">True</span>}))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_cli_exit_codes_and_stdout_report</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">with</span> tempfile.TemporaryDirectory() <span class="hljs-keyword">as</span> folder:
+            root = Path(folder)
+            before, after = root / <span class="hljs-string">&#x27;before.json&#x27;</span>, root / <span class="hljs-string">&#x27;after.json&#x27;</span>
+            before.write_text(json.dumps(status({<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: <span class="hljs-number">8</span>})))
+            after.write_text(json.dumps(status({<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: <span class="hljs-number">7</span>})))
+            logs = [root / <span class="hljs-string">f&#x27;completed-round-<span class="hljs-subst">{i}</span>.txt&#x27;</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, <span class="hljs-number">4</span>)]
+            <span class="hljs-keyword">for</span> i, log <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(logs):
+                log.write_text(<span class="hljs-string">&#x27;[Player used Full Heal]\n&#x27;</span> <span class="hljs-keyword">if</span> i == <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;&#x27;</span>)
+            cmd = [sys.executable, <span class="hljs-built_in">str</span>(Path(__file__).with_name(<span class="hljs-string">&#x27;reconcile_glass_items.py&#x27;</span>)),
+                   <span class="hljs-built_in">str</span>(before), <span class="hljs-built_in">str</span>(after), *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, logs)]
+            result = subprocess.run(cmd, capture_output=<span class="hljs-literal">True</span>, text=<span class="hljs-literal">True</span>)
+            <span class="hljs-variable language_">self</span>.assertEqual(result.returncode, <span class="hljs-number">0</span>, result.stderr)
+            <span class="hljs-variable language_">self</span>.assertEqual(json.loads(result.stdout)[<span class="hljs-string">&#x27;status&#x27;</span>], <span class="hljs-string">&#x27;verified_counts&#x27;</span>)
+            after.write_text(json.dumps(status({<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: <span class="hljs-number">8</span>})))
+            result = subprocess.run(cmd, capture_output=<span class="hljs-literal">True</span>, text=<span class="hljs-literal">True</span>)
+            <span class="hljs-variable language_">self</span>.assertEqual(result.returncode, <span class="hljs-number">1</span>, result.stderr)
+            <span class="hljs-variable language_">self</span>.assertEqual(json.loads(result.stdout)[<span class="hljs-string">&#x27;status&#x27;</span>], <span class="hljs-string">&#x27;mismatch&#x27;</span>)
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:
+    unittest.main()
+</code></pre>
+  </body>
+</html>

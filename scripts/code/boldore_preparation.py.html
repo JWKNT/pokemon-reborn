@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>boldore_preparation.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of boldore_preparation.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded normal-control preparation for the owned Sturdy Boldore.
+
+No runtime reads or save mutation. Each phase starts at its named checkpoint;
+normal controls, capture guards, and public menu/battle guards remain active.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json, os, subprocess, sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,name,*args,flush=<span class="hljs-literal">True</span>)
+    env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+    env.pop(<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>,<span class="hljs-literal">None</span>)
+    <span class="hljs-keyword">if</span> name <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;connected_walk&#x27;</span>):env[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+    subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>,cwd=R,env=env)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">checkpoint</span>(<span class="hljs-params">label</span>):
+    run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+    <span class="hljs-keyword">return</span> json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text())
+phase=sys.argv[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">if</span> phase==<span class="hljs-string">&#x27;candies&#x27;</span>:
+    first,last=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">2</span>:<span class="hljs-number">4</span>]);<span class="hljs-keyword">assert</span> <span class="hljs-number">3</span>&lt;=first&lt;=last&lt;=<span class="hljs-number">6</span>
+    <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(first,last+<span class="hljs-number">1</span>):
+        run(<span class="hljs-string">&#x27;saphira_indra_candy&#x27;</span>,<span class="hljs-string">&#x27;--turbo&#x27;</span>)
+        run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">118</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;heal&#x27;</span>)
+        st=checkpoint(<span class="hljs-string">f&#x27;Saphira176-Indra<span class="hljs-subst">{n}</span>&#x27;</span>)
+        <span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(m[<span class="hljs-string">&#x27;hp&#x27;</span>]==m[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>])
+        <span class="hljs-keyword">assert</span> st[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;EXPCANDYXL&#x27;</span>]&gt;=<span class="hljs-number">5</span>*n
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;linkstone&#x27;</span>:
+    run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">525</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>)
+    run(<span class="hljs-string">&#x27;connected_walk&#x27;</span>,<span class="hljs-number">525</span>,<span class="hljs-number">551</span>,<span class="hljs-number">15</span>,<span class="hljs-number">12</span>)
+    run(<span class="hljs-string">&#x27;field_repel&#x27;</span>,<span class="hljs-string">&#x27;Super Repel&#x27;</span>)
+    run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">551</span>,<span class="hljs-number">15</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">184</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+    run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">185</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;item&#x27;</span>)
+    st=checkpoint(<span class="hljs-string">&#x27;Saphira176-LinkStone&#x27;</span>)
+    <span class="hljs-keyword">assert</span> st[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;LINKSTONE&#x27;</span>]&gt;=<span class="hljs-number">1</span>
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;evolve&#x27;</span>:
+    run(<span class="hljs-string">&#x27;field_medicine&#x27;</span>,<span class="hljs-string">&#x27;Link Stone&#x27;</span>,<span class="hljs-string">&#x27;Boldore&#x27;</span>,<span class="hljs-string">&#x27;--pocket&#x27;</span>,<span class="hljs-string">&#x27;items&#x27;</span>)
+    run(<span class="hljs-string">&#x27;candy_progress&#x27;</span>);run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+    st=checkpoint(<span class="hljs-string">&#x27;Saphira176-Gigalith&#x27;</span>)
+    mon=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;GIGALITH&#x27;</span>)
+    <span class="hljs-keyword">assert</span> mon[<span class="hljs-string">&#x27;ability&#x27;</span>]==<span class="hljs-string">&#x27;STURDY&#x27;</span>
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;level&#x27;</span>:
+    run(<span class="hljs-string">&#x27;train_candy_one&#x27;</span>,<span class="hljs-string">&#x27;Gigalith&#x27;</span>,<span class="hljs-number">26</span>,<span class="hljs-string">&#x27;XL&#x27;</span>)
+    st=checkpoint(<span class="hljs-string">&#x27;Saphira176-Gigalith95&#x27;</span>)
+    mon=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;GIGALITH&#x27;</span>)
+    <span class="hljs-keyword">assert</span> mon[<span class="hljs-string">&#x27;level&#x27;</span>]==<span class="hljs-number">95</span>
+<span class="hljs-keyword">elif</span> phase <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;ev-travel&#x27;</span>,<span class="hljs-string">&#x27;ev-from-circus&#x27;</span>):
+    <span class="hljs-keyword">if</span> phase==<span class="hljs-string">&#x27;ev-travel&#x27;</span>:
+        run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">185</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">184</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+        run(<span class="hljs-string">&#x27;connected_walk&#x27;</span>,<span class="hljs-number">551</span>,<span class="hljs-number">525</span>,<span class="hljs-number">21</span>,<span class="hljs-number">23</span>)
+    run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>)
+    run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Weight&#x27;</span>,<span class="hljs-string">&#x27;Gigalith&#x27;</span>)
+    run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Gigalith&#x27;</span>)
+    run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;519,9,60,left,wait:2&#x27;</span>,<span class="hljs-string">&#x27;530,94,13,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;519,29,11,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;513,15,8,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;519,58,11,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;633,10,8&#x27;</span>)
+    st=checkpoint(<span class="hljs-string">&#x27;Saphira-Gigalith-EV-ready&#x27;</span>)
+    mon=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;GIGALITH&#x27;</span>)
+    <span class="hljs-keyword">assert</span> mon[<span class="hljs-string">&#x27;ev&#x27;</span>]==[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],mon[<span class="hljs-string">&#x27;ev&#x27;</span>]
+<span class="hljs-keyword">elif</span> phase <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;hp-pilot&#x27;</span>,<span class="hljs-string">&#x27;hp-rest&#x27;</span>,<span class="hljs-string">&#x27;attack&#x27;</span>):
+    <span class="hljs-keyword">if</span> phase==<span class="hljs-string">&#x27;attack&#x27;</span>:run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Bracer&#x27;</span>,<span class="hljs-string">&#x27;Gigalith&#x27;</span>)
+    count={<span class="hljs-string">&#x27;hp-pilot&#x27;</span>:<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;hp-rest&#x27;</span>:<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;attack&#x27;</span>:<span class="hljs-number">8</span>}[phase]
+    run(<span class="hljs-string">&#x27;train_wild_bulk&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-number">1</span>,count,<span class="hljs-string">&#x27;--targets&#x27;</span>,<span class="hljs-string">&#x27;Noibat,Woobat&#x27;</span>,
+        <span class="hljs-string">&#x27;--flex-targets&#x27;</span>,<span class="hljs-string">&#x27;--ev-ledger&#x27;</span>,<span class="hljs-string">&#x27;--hunter&#x27;</span>,<span class="hljs-string">&#x27;Gigalith&#x27;</span>,<span class="hljs-string">&#x27;--relead-hunter&#x27;</span>,
+        <span class="hljs-string">&#x27;--expire-repel&#x27;</span>,<span class="hljs-string">&#x27;--dense-horizontal&#x27;</span>,<span class="hljs-string">&#x27;--recover-slot&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--recover-below&#x27;</span>,<span class="hljs-number">.6</span>)
+    st=checkpoint(<span class="hljs-string">&#x27;Saphira-Gigalith-&#x27;</span>+phase)
+    mon=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;GIGALITH&#x27;</span>)
+    expected={<span class="hljs-string">&#x27;hp-pilot&#x27;</span>:[<span class="hljs-number">32</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],<span class="hljs-string">&#x27;hp-rest&#x27;</span>:[<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],
+              <span class="hljs-string">&#x27;attack&#x27;</span>:[<span class="hljs-number">252</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>]}[phase]
+    <span class="hljs-keyword">assert</span> mon[<span class="hljs-string">&#x27;ev&#x27;</span>]==expected,(mon[<span class="hljs-string">&#x27;ev&#x27;</span>],expected)
+<span class="hljs-keyword">else</span>:
+    <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unknown phase&#x27;</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>damage_review.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of damage_review.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Explicit, offline damage sanity check; reads no live game state or RNG.
+
+Supply every relevant field/type/item/ability multiplier yourself. This uses
+the ordinary damage formula as a planning estimate, not a battle simulator.
+It reports the complete multi-hit move to prevent per-hit undercounting.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse,json,math
+p=argparse.ArgumentParser()
+<span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;level&#x27;</span>,<span class="hljs-string">&#x27;power&#x27;</span>,<span class="hljs-string">&#x27;attack&#x27;</span>,<span class="hljs-string">&#x27;defense&#x27;</span>]:p.add_argument(<span class="hljs-string">&#x27;--&#x27;</span>+k,required=<span class="hljs-literal">True</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">float</span>)
+p.add_argument(<span class="hljs-string">&#x27;--stage&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,default=<span class="hljs-number">0</span>)
+p.add_argument(<span class="hljs-string">&#x27;--hits&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,default=<span class="hljs-number">1</span>)
+p.add_argument(<span class="hljs-string">&#x27;--stab&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">float</span>,default=<span class="hljs-number">1</span>)
+p.add_argument(<span class="hljs-string">&#x27;--effectiveness&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">float</span>,default=<span class="hljs-number">1</span>)
+p.add_argument(<span class="hljs-string">&#x27;--field&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">float</span>,default=<span class="hljs-number">1</span>)
+p.add_argument(<span class="hljs-string">&#x27;--other&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">float</span>,default=<span class="hljs-number">1</span>)
+p.add_argument(<span class="hljs-string">&#x27;--burn&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>)
+p.add_argument(<span class="hljs-string">&#x27;--critical&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>)
+a=p.parse_args();<span class="hljs-keyword">assert</span> -<span class="hljs-number">6</span>&lt;=a.stage&lt;=<span class="hljs-number">6</span> <span class="hljs-keyword">and</span> a.hits&gt;=<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> a.defense&gt;<span class="hljs-number">0</span>
+stage=(<span class="hljs-number">2</span>+a.stage)/<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> a.stage&gt;=<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-number">2</span>/(<span class="hljs-number">2</span>-a.stage)
+attack=math.floor(a.attack*stage)
+base=math.floor(math.floor((<span class="hljs-number">2</span>*a.level/<span class="hljs-number">5</span>+<span class="hljs-number">2</span>)*a.power*attack/a.defense)/<span class="hljs-number">50</span>)+<span class="hljs-number">2</span>
+mod=a.stab*a.effectiveness*a.field*a.other*(<span class="hljs-number">.5</span> <span class="hljs-keyword">if</span> a.burn <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)*(<span class="hljs-number">1.5</span> <span class="hljs-keyword">if</span> a.critical <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)
+rolls=[math.floor(base*mod*x/<span class="hljs-number">100</span>)<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">85</span>,<span class="hljs-number">101</span>)]
+<span class="hljs-built_in">print</span>(json.dumps({<span class="hljs-string">&#x27;per_hit&#x27;</span>:[<span class="hljs-built_in">min</span>(rolls),<span class="hljs-built_in">max</span>(rolls)],<span class="hljs-string">&#x27;whole_move&#x27;</span>:[a.hits*<span class="hljs-built_in">min</span>(rolls),a.hits*<span class="hljs-built_in">max</span>(rolls)],<span class="hljs-string">&#x27;hits&#x27;</span>:a.hits,<span class="hljs-string">&#x27;effective_attack&#x27;</span>:attack,<span class="hljs-string">&#x27;assumptions&#x27;</span>:<span class="hljs-built_in">vars</span>(a),<span class="hljs-string">&#x27;limitation&#x27;</span>:<span class="hljs-string">&#x27;Estimate only: special move formulas, spread reduction, screens, ability exceptions and Reborn field effects must be supplied explicitly.&#x27;</span>},indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

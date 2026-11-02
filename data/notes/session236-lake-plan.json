@@ -1,0 +1,44 @@
+{
+  "route_source": "https://bigjra.github.io/reborn/#fetching-the-lake-spirits",
+  "static_encounters": {
+    "Azelf": [
+      567,
+      41,
+      98,
+      40,
+      [
+        "NASTYPLOT",
+        "EXTRASENSORY",
+        "LASTRESORT",
+        "SWIFT"
+      ]
+    ],
+    "Uxie": [
+      553,
+      27,
+      76,
+      13,
+      [
+        "AMNESIA",
+        "EXTRASENSORY",
+        "FLAIL",
+        "SWIFT"
+      ]
+    ],
+    "Mesprit": [
+      605,
+      18,
+      19,
+      59,
+      [
+        "CHARM",
+        "EXTRASENSORY",
+        "COPYCAT",
+        "SWIFT"
+      ]
+    ]
+  },
+  "all_level": 100,
+  "capture_selection": "Consider Azelf for fast Nasty Plot attacker and utility/Memento; Uxie and Mesprit overlap Cresselia and may be defeated. No Explosion on installed encounters. Save before each.",
+  "Blizzard": "Wild Cubchoo/Spheal/Sealeo/Beartic/Snorunt in441 already know move at current levels. Catch first suitable, replace Hexan temporarily; Sealeo/Spheal also Surf/Dive carriers."
+}

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>relearn_finish.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of relearn_finish.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Clear only expected learning/payment messages, stopping at the overworld.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> re
+settled=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">24</span>):
+ t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>);low=re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t.lower())
+ <span class="hljs-keyword">if</span> low <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27;pokemonreborn&#x27;</span>]:
+  settled+=<span class="hljs-number">1</span>
+  <span class="hljs-keyword">if</span> settled&lt;<span class="hljs-number">3</span>:act(<span class="hljs-string">&#x27;wait:.6&#x27;</span>);<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">break</span>
+ settled=<span class="hljs-number">0</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(re.fullmatch(<span class="hljs-string">r&#x27;and\.*&#x27;</span>,line.strip().lower()) <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> t.splitlines()) <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;handedoveroneheart&#x27;</span>,<span class="hljs-string">&#x27;comeagain&#x27;</span>,<span class="hljs-string">&#x27;learned&#x27;</span>,<span class="hljs-string">&#x27;forgot&#x27;</span>,<span class="hljs-string">&#x27;andpoof&#x27;</span>,<span class="hljs-string">&#x27;machineand&#x27;</span>]):act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">break</span>
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Relearner completion message limit&#x27;</span>)
+</code></pre>
+  </body>
+</html>

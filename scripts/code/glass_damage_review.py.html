@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_damage_review.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_damage_review.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only prebattle Glass planning, from reviewed installed static tables.
+
+Never imports gameplay helpers, reads a live battle, or writes game/save data.
+The deliberately small calculator reproduces the installed final damage
+formula for explicitly supplied modifiers; it is not an AI/RNG simulator.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> math
+<span class="hljs-keyword">import</span> pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+NATURES = {
+    <span class="hljs-string">&quot;ADAMANT&quot;</span>: (<span class="hljs-number">1</span>, <span class="hljs-number">3</span>), <span class="hljs-string">&quot;MODEST&quot;</span>: (<span class="hljs-number">3</span>, <span class="hljs-number">1</span>), <span class="hljs-string">&quot;JOLLY&quot;</span>: (<span class="hljs-number">5</span>, <span class="hljs-number">3</span>),
+    <span class="hljs-string">&quot;TIMID&quot;</span>: (<span class="hljs-number">5</span>, <span class="hljs-number">1</span>), <span class="hljs-string">&quot;CALM&quot;</span>: (<span class="hljs-number">4</span>, <span class="hljs-number">1</span>), <span class="hljs-string">&quot;BRAVE&quot;</span>: (<span class="hljs-number">1</span>, <span class="hljs-number">5</span>),
+    <span class="hljs-string">&quot;LONELY&quot;</span>: (<span class="hljs-number">1</span>, <span class="hljs-number">2</span>),
+}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">stats</span>(<span class="hljs-params">mon, species</span>):
+    forms = [f <span class="hljs-keyword">for</span> f <span class="hljs-keyword">in</span> species[mon[<span class="hljs-string">&quot;species&quot;</span>]].values() <span class="hljs-keyword">if</span> f]
+    base = <span class="hljs-built_in">dict</span>(forms[<span class="hljs-number">0</span>])
+    <span class="hljs-keyword">if</span> mon.get(<span class="hljs-string">&quot;form&quot;</span>, <span class="hljs-number">0</span>):
+        base.update(forms[mon[<span class="hljs-string">&quot;form&quot;</span>]])
+    bases = base[<span class="hljs-string">&quot;BaseStats&quot;</span>]
+    ev = mon.get(<span class="hljs-string">&quot;ev&quot;</span>, [<span class="hljs-number">0</span>] * <span class="hljs-number">6</span>)
+    iv = mon.get(<span class="hljs-string">&quot;iv&quot;</span>, <span class="hljs-number">0</span>)
+    result = []
+    <span class="hljs-keyword">for</span> i, b <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(bases):
+        v = math.floor((<span class="hljs-number">2</span> * b + iv + ev[i] // <span class="hljs-number">4</span>) * mon[<span class="hljs-string">&quot;level&quot;</span>] / <span class="hljs-number">100</span>)
+        <span class="hljs-keyword">if</span> i == <span class="hljs-number">0</span>:
+            result.append(v + mon[<span class="hljs-string">&quot;level&quot;</span>] + <span class="hljs-number">10</span>)
+        <span class="hljs-keyword">else</span>:
+            v += <span class="hljs-number">5</span>
+            up, down = NATURES.get(mon.get(<span class="hljs-string">&quot;nature&quot;</span>), (-<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>))
+            result.append(math.floor(v * (<span class="hljs-number">1.1</span> <span class="hljs-keyword">if</span> i == up <span class="hljs-keyword">else</span> <span class="hljs-number">.9</span> <span class="hljs-keyword">if</span> i == down <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)))
+    <span class="hljs-keyword">return</span> result
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">damage</span>(<span class="hljs-params">level, power, atk, defense, *, base_modifier=<span class="hljs-number">1</span>, modifier=<span class="hljs-number">1</span></span>):
+    <span class="hljs-string">&quot;&quot;&quot;Installed Battle_Move.rb final formula; positive Ruby rounding.&quot;&quot;&quot;</span>
+    core = math.floor(math.floor((math.floor(<span class="hljs-number">2</span> * level / <span class="hljs-number">5</span> + <span class="hljs-number">2</span>) * power *
+                                  base_modifier * atk / defense)) / <span class="hljs-number">50</span>) + <span class="hljs-number">2</span>
+    <span class="hljs-keyword">return</span> [math.floor(core * modifier * roll / <span class="hljs-number">100</span> + <span class="hljs-number">.5</span>) <span class="hljs-keyword">for</span> roll <span class="hljs-keyword">in</span> (<span class="hljs-number">85</span>, <span class="hljs-number">100</span>)]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    species = json.loads((ROOT / <span class="hljs-string">&quot;work/glass-species-stats.json&quot;</span>).read_text())
+    teams = {}
+    <span class="hljs-keyword">for</span> name, wanted <span class="hljs-keyword">in</span> ((<span class="hljs-string">&quot;cain&quot;</span>, <span class="hljs-number">6</span>), (<span class="hljs-string">&quot;shelly&quot;</span>, <span class="hljs-number">3</span>), (<span class="hljs-string">&quot;qmark&quot;</span>, <span class="hljs-literal">None</span>)):
+        rows = json.loads((ROOT / <span class="hljs-string">f&quot;work/glass-<span class="hljs-subst">{name}</span>-teams.json&quot;</span>).read_text())
+        teams[name] = {row[<span class="hljs-number">0</span>]: {m[<span class="hljs-string">&quot;species&quot;</span>]: stats(m, species) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> row[<span class="hljs-number">1</span>]}
+                       <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> wanted <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> row[<span class="hljs-number">0</span>] == wanted}
+    current = json.loads((ROOT / <span class="hljs-string">&quot;notes/Glass-10AM-paused-status.json&quot;</span>).read_text())
+    us = {m[<span class="hljs-string">&quot;species&quot;</span>]: m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> current[<span class="hljs-string">&quot;party&quot;</span>]}
+    c, s, luna, serra, rad = (teams[<span class="hljs-string">&quot;cain&quot;</span>][<span class="hljs-number">6</span>], teams[<span class="hljs-string">&quot;shelly&quot;</span>][<span class="hljs-number">3</span>],
+                             teams[<span class="hljs-string">&quot;qmark&quot;</span>][<span class="hljs-number">0</span>], teams[<span class="hljs-string">&quot;qmark&quot;</span>][<span class="hljs-number">2</span>], teams[<span class="hljs-string">&quot;qmark&quot;</span>][<span class="hljs-number">1</span>])
+    arc, kg, exc, mien = [us[x] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;ARCANINE&quot;</span>, <span class="hljs-string">&quot;KLINKLANG&quot;</span>, <span class="hljs-string">&quot;EXCADRILL&quot;</span>, <span class="hljs-string">&quot;MIENSHAO&quot;</span>)]
+    reports = []
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">show</span>(<span class="hljs-params">label, value, target_hp=<span class="hljs-literal">None</span>, notes=<span class="hljs-string">&quot;&quot;</span></span>):
+        reports.append(<span class="hljs-built_in">dict</span>(label=label, <span class="hljs-built_in">range</span>=value, target_hp=target_hp, notes=notes))
+
+    show(<span class="hljs-string">&quot;Marowak Fire Punch into +2Def Intimidated Klinklang&quot;</span>,
+         damage(<span class="hljs-number">82</span>, <span class="hljs-number">75</span>, math.floor(c[<span class="hljs-string">&quot;MAROWAK&quot;</span>][<span class="hljs-number">1</span>] * <span class="hljs-number">2</span> / <span class="hljs-number">3</span>) * <span class="hljs-number">2</span>, kg[<span class="hljs-string">&quot;defense&quot;</span>] * <span class="hljs-number">2</span>,
+                modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">2</span>), kg[<span class="hljs-string">&quot;totalhp&quot;</span>])
+    show(<span class="hljs-string">&quot;Marowak Fire Punch crit into Klinklang, boosts bypassed&quot;</span>,
+         damage(<span class="hljs-number">82</span>, <span class="hljs-number">75</span>, c[<span class="hljs-string">&quot;MAROWAK&quot;</span>][<span class="hljs-number">1</span>] * <span class="hljs-number">2</span>, kg[<span class="hljs-string">&quot;defense&quot;</span>], modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">2</span> * <span class="hljs-number">1.5</span>),
+         kg[<span class="hljs-string">&quot;totalhp&quot;</span>])
+    show(<span class="hljs-string">&quot;Marowak Shadow Bone into Intimidate Arcanine&quot;</span>,
+         damage(<span class="hljs-number">82</span>, <span class="hljs-number">85</span>, math.floor(c[<span class="hljs-string">&quot;MAROWAK&quot;</span>][<span class="hljs-number">1</span>] * <span class="hljs-number">2</span> / <span class="hljs-number">3</span>) * <span class="hljs-number">2</span>, arc[<span class="hljs-string">&quot;defense&quot;</span>],
+                modifier=<span class="hljs-number">1.5</span>), arc[<span class="hljs-string">&quot;totalhp&quot;</span>])
+    show(<span class="hljs-string">&quot;Ribombee Pollen Puff into Klinklang&quot;</span>,
+         damage(<span class="hljs-number">81</span>, <span class="hljs-number">90</span>, s[<span class="hljs-string">&quot;RIBOMBEE&quot;</span>][<span class="hljs-number">3</span>], kg[<span class="hljs-string">&quot;spdef&quot;</span>], modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">.5</span>), kg[<span class="hljs-string">&quot;totalhp&quot;</span>])
+    show(<span class="hljs-string">&quot;Ribombee Pollen Puff into Arcanine&quot;</span>,
+         damage(<span class="hljs-number">81</span>, <span class="hljs-number">90</span>, s[<span class="hljs-string">&quot;RIBOMBEE&quot;</span>][<span class="hljs-number">3</span>], arc[<span class="hljs-string">&quot;spdef&quot;</span>], modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">.5</span>), arc[<span class="hljs-string">&quot;totalhp&quot;</span>])
+    show(<span class="hljs-string">&quot;Arcanine Flamethrower Vivillon behind Light Screen&quot;</span>,
+         damage(<span class="hljs-number">90</span>, <span class="hljs-number">90</span>, arc[<span class="hljs-string">&quot;spatk&quot;</span>], s[<span class="hljs-string">&quot;VIVILLON&quot;</span>][<span class="hljs-number">4</span>], base_modifier=<span class="hljs-number">1.2</span>,
+                modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">2</span> * <span class="hljs-number">.66</span>), s[<span class="hljs-string">&quot;VIVILLON&quot;</span>][<span class="hljs-number">0</span>],
+         <span class="hljs-string">&quot;Arc self-XSpeed352 outruns Vivillon222; no rain while Marowak remains.&quot;</span>)
+    show(<span class="hljs-string">&quot;Factory-seeded Vivillon critical Hurricane Arcanine&quot;</span>,
+         damage(<span class="hljs-number">80</span>, <span class="hljs-number">110</span>, math.floor(s[<span class="hljs-string">&quot;VIVILLON&quot;</span>][<span class="hljs-number">3</span>] * <span class="hljs-number">1.5</span>), arc[<span class="hljs-string">&quot;spdef&quot;</span>],
+                modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">1.5</span>), arc[<span class="hljs-string">&quot;totalhp&quot;</span>],
+         <span class="hljs-string">&quot;GuaranteedKO if it lands: do not let slow Arc attempt an unprotected attack.&quot;</span>)
+    show(<span class="hljs-string">&quot;+2Atk Klinklang Gear Grind into Marowak, TWO hits&quot;</span>,
+         [<span class="hljs-number">2</span> * v <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> damage(<span class="hljs-number">90</span>, <span class="hljs-number">50</span>, kg[<span class="hljs-string">&quot;attack&quot;</span>] * <span class="hljs-number">2</span>, c[<span class="hljs-string">&quot;MAROWAK&quot;</span>][<span class="hljs-number">2</span>],
+                               base_modifier=<span class="hljs-number">2</span>, modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">.5</span>)], c[<span class="hljs-string">&quot;MAROWAK&quot;</span>][<span class="hljs-number">0</span>],
+         <span class="hljs-string">&quot;No Reflect. Two normal landed hits; separate hit rolls.&quot;</span>)
+    show(<span class="hljs-string">&quot;Arcanine Flamethrower Ribombee behind Light Screen&quot;</span>,
+         damage(<span class="hljs-number">90</span>, <span class="hljs-number">90</span>, arc[<span class="hljs-string">&quot;spatk&quot;</span>], s[<span class="hljs-string">&quot;RIBOMBEE&quot;</span>][<span class="hljs-number">4</span>], base_modifier=<span class="hljs-number">1.2</span>, modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">2</span> * <span class="hljs-number">.66</span>),
+         s[<span class="hljs-string">&quot;RIBOMBEE&quot;</span>][<span class="hljs-number">0</span>])
+    show(<span class="hljs-string">&quot;Arcanine Flamethrower Ribombee behind Light Screen IN RAIN&quot;</span>,
+         damage(<span class="hljs-number">90</span>, <span class="hljs-number">90</span>, arc[<span class="hljs-string">&quot;spatk&quot;</span>], s[<span class="hljs-string">&quot;RIBOMBEE&quot;</span>][<span class="hljs-number">4</span>], base_modifier=<span class="hljs-number">1.2</span>, modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">2</span> * <span class="hljs-number">.66</span> * <span class="hljs-number">.5</span>),
+         s[<span class="hljs-string">&quot;RIBOMBEE&quot;</span>][<span class="hljs-number">0</span>])
+    show(<span class="hljs-string">&quot;Weavile Night Slash crit into +Def Arcanine, boost bypassed&quot;</span>,
+         damage(<span class="hljs-number">83</span>, <span class="hljs-number">70</span>, luna[<span class="hljs-string">&quot;WEAVILE&quot;</span>][<span class="hljs-number">1</span>], arc[<span class="hljs-string">&quot;defense&quot;</span>], modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">1.5</span>), arc[<span class="hljs-string">&quot;totalhp&quot;</span>])
+    show(<span class="hljs-string">&quot;Weavile Night Slash into +4Def Arcanine&quot;</span>,
+         damage(<span class="hljs-number">83</span>, <span class="hljs-number">70</span>, luna[<span class="hljs-string">&quot;WEAVILE&quot;</span>][<span class="hljs-number">1</span>], arc[<span class="hljs-string">&quot;defense&quot;</span>] * <span class="hljs-number">3</span>, modifier=<span class="hljs-number">1.5</span>), arc[<span class="hljs-string">&quot;totalhp&quot;</span>])
+    <span class="hljs-keyword">for</span> foe, st <span class="hljs-keyword">in</span> luna.items():
+        show(<span class="hljs-string">f&quot;+6SpAtk Arcanine Flamethrower <span class="hljs-subst">{foe}</span>&quot;</span>,
+             damage(<span class="hljs-number">90</span>, <span class="hljs-number">90</span>, arc[<span class="hljs-string">&quot;spatk&quot;</span>] * <span class="hljs-number">4</span>, st[<span class="hljs-number">4</span>], base_modifier=<span class="hljs-number">1.2</span>,
+                    modifier=<span class="hljs-number">1.5</span> * (<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> foe == <span class="hljs-string">&quot;WEAVILE&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)), st[<span class="hljs-number">0</span>],
+             <span class="hljs-string">&quot;Unboosted foe SpDef. Weavile Sash requires a second hit.&quot;</span>)
+    show(<span class="hljs-string">&quot;Round3 unboosted Arcanine Flamethrower Ninetales&quot;</span>,
+         damage(<span class="hljs-number">90</span>, <span class="hljs-number">90</span>, arc[<span class="hljs-string">&quot;spatk&quot;</span>], serra[<span class="hljs-string">&quot;NINETALES&quot;</span>][<span class="hljs-number">4</span>], base_modifier=<span class="hljs-number">1.2</span>, modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">2</span>),
+         serra[<span class="hljs-string">&quot;NINETALES&quot;</span>][<span class="hljs-number">0</span>], <span class="hljs-string">&quot;No Aurora Veil; Arcanine is slower without XSpeed.&quot;</span>)
+    show(<span class="hljs-string">&quot;Round3 unboosted Arcanine Flamethrower Ninetales WITH Veil&quot;</span>,
+         damage(<span class="hljs-number">90</span>, <span class="hljs-number">90</span>, arc[<span class="hljs-string">&quot;spatk&quot;</span>], serra[<span class="hljs-string">&quot;NINETALES&quot;</span>][<span class="hljs-number">4</span>], base_modifier=<span class="hljs-number">1.2</span>, modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">2</span> * <span class="hljs-number">.66</span>),
+         serra[<span class="hljs-string">&quot;NINETALES&quot;</span>][<span class="hljs-number">0</span>])
+    show(<span class="hljs-string">&quot;Round3 Clefable Fire Blast Klinklang&quot;</span>,
+         damage(<span class="hljs-number">81</span>, <span class="hljs-number">110</span>, rad[<span class="hljs-string">&quot;CLEFABLE&quot;</span>][<span class="hljs-number">3</span>], kg[<span class="hljs-string">&quot;spdef&quot;</span>], modifier=<span class="hljs-number">2</span>), kg[<span class="hljs-string">&quot;totalhp&quot;</span>])
+    show(<span class="hljs-string">&quot;Round3 Clefable Fire Blast Klinklang after SELF XSpDef&quot;</span>,
+         damage(<span class="hljs-number">81</span>, <span class="hljs-number">110</span>, rad[<span class="hljs-string">&quot;CLEFABLE&quot;</span>][<span class="hljs-number">3</span>], kg[<span class="hljs-string">&quot;spdef&quot;</span>] * <span class="hljs-number">2</span>, modifier=<span class="hljs-number">2</span>), kg[<span class="hljs-string">&quot;totalhp&quot;</span>])
+    show(<span class="hljs-string">&quot;Round3 Ninetales Blizzard Klinklang after SELF XSpDef&quot;</span>,
+         damage(<span class="hljs-number">81</span>, <span class="hljs-number">110</span>, serra[<span class="hljs-string">&quot;NINETALES&quot;</span>][<span class="hljs-number">3</span>], kg[<span class="hljs-string">&quot;spdef&quot;</span>] * <span class="hljs-number">2</span>,
+                modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">.75</span> * <span class="hljs-number">.5</span>), kg[<span class="hljs-string">&quot;totalhp&quot;</span>])
+    show(<span class="hljs-string">&quot;Round3 +2Atk Factory Gear Grind Clefable TWO hits WITH Veil&quot;</span>,
+         [<span class="hljs-number">2</span> * v <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> damage(<span class="hljs-number">90</span>, <span class="hljs-number">50</span>, kg[<span class="hljs-string">&quot;attack&quot;</span>] * <span class="hljs-number">2</span>, rad[<span class="hljs-string">&quot;CLEFABLE&quot;</span>][<span class="hljs-number">2</span>],
+                               base_modifier=<span class="hljs-number">2</span>, modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">2</span> * <span class="hljs-number">.66</span>)], rad[<span class="hljs-string">&quot;CLEFABLE&quot;</span>][<span class="hljs-number">0</span>])
+    show(<span class="hljs-string">&quot;Round3 +2Atk Factory Gear Grind Ninetales TWO hits WITH Veil&quot;</span>,
+         [<span class="hljs-number">2</span> * v <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> damage(<span class="hljs-number">90</span>, <span class="hljs-number">50</span>, kg[<span class="hljs-string">&quot;attack&quot;</span>] * <span class="hljs-number">2</span>, serra[<span class="hljs-string">&quot;NINETALES&quot;</span>][<span class="hljs-number">2</span>],
+                               base_modifier=<span class="hljs-number">2</span>, modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">4</span> * <span class="hljs-number">.66</span>)], serra[<span class="hljs-string">&quot;NINETALES&quot;</span>][<span class="hljs-number">0</span>])
+    mega = {}
+    <span class="hljs-keyword">for</span> label, name, wanted <span class="hljs-keyword">in</span> ((<span class="hljs-string">&quot;Mega Absol&quot;</span>, <span class="hljs-string">&quot;qmark&quot;</span>, <span class="hljs-number">0</span>), (<span class="hljs-string">&quot;Mega Gardevoir&quot;</span>, <span class="hljs-string">&quot;qmark&quot;</span>, <span class="hljs-number">1</span>)):
+        key = <span class="hljs-string">&quot;ABSOL&quot;</span> <span class="hljs-keyword">if</span> wanted == <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;GARDEVOIR&quot;</span>
+        mon = <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> json.loads((ROOT / <span class="hljs-string">f&quot;work/glass-<span class="hljs-subst">{name}</span>-teams.json&quot;</span>).read_text())
+                   <span class="hljs-keyword">if</span> row[<span class="hljs-number">0</span>] == wanted <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> row[<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == key)
+        mon = <span class="hljs-built_in">dict</span>(mon, form=<span class="hljs-number">1</span>)
+        mega[label] = stats(mon, species)
+    <span class="hljs-built_in">print</span>(json.dumps({<span class="hljs-string">&quot;assumptions&quot;</span>: <span class="hljs-string">&quot;Exact static stats and installed core formula; manually supplied relevant modifiers; no move choice or RNG reads.&quot;</span>,
+                      <span class="hljs-string">&quot;opponent_stats_hp_atk_def_spa_spd_spe&quot;</span>: teams,
+                      <span class="hljs-string">&quot;mega_stats_hp_atk_def_spa_spd_spe&quot;</span>: mega,
+                      <span class="hljs-string">&quot;reports&quot;</span>: reports}, indent=<span class="hljs-number">2</span>))
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    main()
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "reviewed_epoch": 1791362688.20716,
+  "sources": [
+    "/Applications/Reborn.app/Contents/Game/Scripts/Reborn/fieldtext.rb:1674",
+    "/Applications/Reborn.app/Contents/Game/Scripts/Battle_Move.rb:457",
+    "/Applications/Reborn.app/Contents/Game/Scripts/Battle.rb:5607"
+  ],
+  "rules": [
+    "Holy Field Return receives1.5 move boost; normal special moves separately receive1.5 type boost.",
+    "Normal attacks are super effective against Ghost and Dark on Holy Field. Cofagrigus is not a safe Return switch.",
+    "Curse is cleared at the first turn end on Holy Field, though that first turn still applies25% HP damage.",
+    "Kangaskhan can FullRestore burn and damage; do not assume it stays burned."
+  ],
+  "observed": [
+    "Cofagrigus fainted on switch into Return from235HP; chain not lost.",
+    "Arcanine Intimidate plus XDefend2 reduced Return to65-75damage; MorningSun safely restored HP."
+  ],
+  "retry_recommendation": "Use Arcanine Intimidate, XDefend2 and MorningSun as needed, then XSpAtk2 and Flamethrower. Monitor actual damage: Cofagrigus contact may have removed ParentalBond in this attempt. Do not assume the same damage or hardcode the recorded turn sequence on a fresh run. Avoid Cofagrigus Curse stall on Holy."
+}

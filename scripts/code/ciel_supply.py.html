@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ciel_supply.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ciel_supply.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Restock the planned Ciel item budget through ordinary, price-verified mart UI.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">355</span>)[<span class="hljs-number">0</span>] == <span class="hljs-number">355</span>
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Ciel-circus-arrival-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">355</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;badges&#x27;</span>].count(<span class="hljs-literal">True</span>)==<span class="hljs-number">12</span>
+stock=s[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>]
+plan=[(<span class="hljs-string">&#x27;HYPERPOTION&#x27;</span>,<span class="hljs-string">&#x27;Hyper Potion&#x27;</span>,<span class="hljs-number">16</span>,<span class="hljs-number">1000</span>),(<span class="hljs-string">&#x27;FULLHEAL&#x27;</span>,<span class="hljs-string">&#x27;Full Heal&#x27;</span>,<span class="hljs-number">8</span>,<span class="hljs-number">600</span>),(<span class="hljs-string">&#x27;COTTONCANDY&#x27;</span>,<span class="hljs-string">&#x27;Cotton Candy&#x27;</span>,<span class="hljs-number">6</span>,<span class="hljs-number">5000</span>)]
+need=[(label,<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,n-stock.get(code,<span class="hljs-number">0</span>)),price)<span class="hljs-keyword">for</span> code,label,n,price <span class="hljs-keyword">in</span> plan]
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]&gt;=<span class="hljs-built_in">sum</span>(n*price <span class="hljs-keyword">for</span> label,n,price <span class="hljs-keyword">in</span> need)+<span class="hljs-number">2000</span>,<span class="hljs-string">&#x27;Supply budget needs review&#x27;</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(name+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">90</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;mart_open&#x27;</span>)
+<span class="hljs-keyword">for</span> label,n,price <span class="hljs-keyword">in</span> need[:<span class="hljs-number">2</span>]:
+ <span class="hljs-keyword">if</span> n:run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,label,n,price)
+run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">29</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;mart_open&#x27;</span>)
+label,n,price=need[<span class="hljs-number">2</span>]
+<span class="hljs-keyword">if</span> n:run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,label,n,price)
+run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>);run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Ampharos&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CIEL RESTOCK VERIFIED&#x27;</span>,need,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

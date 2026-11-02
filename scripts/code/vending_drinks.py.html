@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>vending_drinks.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of vending_drinks.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Buy a bounded number of drinks from an already open, source-reviewed vending menu.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+
+name = sys.argv[<span class="hljs-number">1</span>]
+count = <span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>])
+<span class="hljs-keyword">assert</span> name <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;Fresh Water&#x27;</span>, <span class="hljs-string">&#x27;Soda Pop&#x27;</span>, <span class="hljs-string">&#x27;Lemonade&#x27;</span>) <span class="hljs-keyword">and</span> <span class="hljs-number">1</span> &lt;= count &lt;= <span class="hljs-number">20</span>
+labels = [<span class="hljs-string">&#x27;Fresh Water - $200&#x27;</span>, <span class="hljs-string">&#x27;Soda Pop - $300&#x27;</span>, <span class="hljs-string">&#x27;Lemonade - $350&#x27;</span>, <span class="hljs-string">&#x27;Cancel&#x27;</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">is_menu</span>(<span class="hljs-params">t</span>):
+    compact = <span class="hljs-string">&#x27;&#x27;</span>.join(t.split())
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">all</span>(word <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">for</span> word <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;freshwater&#x27;</span>, <span class="hljs-string">&#x27;sodapop&#x27;</span>, <span class="hljs-string">&#x27;lemonade&#x27;</span>, <span class="hljs-string">&#x27;cancel&#x27;</span>])
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">dropped</span>(<span class="hljs-params">t</span>):
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;dropped down&#x27;</span> <span class="hljs-keyword">in</span> t.replace(<span class="hljs-string">&#x27;doun&#x27;</span>, <span class="hljs-string">&#x27;down&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">cursor</span>():
+    rows = snap()
+    words = <span class="hljs-built_in">sorted</span>([r <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> r[<span class="hljs-string">&#x27;x&#x27;</span>] &gt; <span class="hljs-number">.45</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(<span class="hljs-string">&#x27;&#x27;</span>.join(s.lower().split()) <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27;&#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>].lower().split()) <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Fresh Water&#x27;</span>, <span class="hljs-string">&#x27;Soda Pop&#x27;</span>, <span class="hljs-string">&#x27;Lemonade&#x27;</span>, <span class="hljs-string">&#x27;Cancel&#x27;</span>])], key=<span class="hljs-keyword">lambda</span> r:r[<span class="hljs-string">&#x27;y&#x27;</span>])
+    <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(words) == <span class="hljs-number">4</span>, <span class="hljs-string">&#x27;Four drink labels required&#x27;</span>
+    im = Image.<span class="hljs-built_in">open</span>(STATE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=im.size
+    scores=[]
+    <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> words:
+        x0=<span class="hljs-built_in">int</span>(w*(r[<span class="hljs-string">&#x27;x&#x27;</span>]-<span class="hljs-number">.029</span>));x1=<span class="hljs-built_in">int</span>(w*(r[<span class="hljs-string">&#x27;x&#x27;</span>]-<span class="hljs-number">.008</span>))
+        y0=<span class="hljs-built_in">int</span>(h*(r[<span class="hljs-string">&#x27;y&#x27;</span>]+<span class="hljs-number">.002</span>));y1=<span class="hljs-built_in">int</span>(h*(r[<span class="hljs-string">&#x27;y&#x27;</span>]+r[<span class="hljs-string">&#x27;h&#x27;</span>]-<span class="hljs-number">.002</span>))
+        pixels=<span class="hljs-built_in">list</span>(im.crop((x0,y0,x1,y1)).getdata())
+        scores.append(<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">max</span>(p)&lt;<span class="hljs-number">150</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> pixels)/<span class="hljs-built_in">len</span>(pixels))
+    cur=<span class="hljs-built_in">max</span>(<span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>),key=<span class="hljs-keyword">lambda</span> i:scores[i])
+    <span class="hljs-keyword">assert</span> scores[cur]&gt;<span class="hljs-number">.15</span> <span class="hljs-keyword">and</span> scores[cur]-<span class="hljs-built_in">sorted</span>(scores)[-<span class="hljs-number">2</span>]&gt;<span class="hljs-number">.10</span>, (<span class="hljs-string">&#x27;Vending arrow review&#x27;</span>,scores)
+    <span class="hljs-keyword">return</span> cur
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">select</span>(<span class="hljs-params">index</span>):
+    cur=cursor()
+    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+        <span class="hljs-keyword">if</span> cur==index:<span class="hljs-keyword">break</span>
+        act(<span class="hljs-string">&#x27;down:.12&#x27;</span> <span class="hljs-keyword">if</span> index&gt;cur <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;up:.12&#x27;</span>, <span class="hljs-string">&#x27;wait:.15&#x27;</span>)
+        cur=cursor()
+    <span class="hljs-keyword">assert</span> cur==index, <span class="hljs-string">&#x27;Selected drink cursor must match before payment&#x27;</span>
+    act(<span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-string">&#x27;wait:.9&#x27;</span>)
+<span class="hljs-keyword">for</span> bought <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(count):
+    t = read().lower()
+    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">8</span>):
+        <span class="hljs-keyword">if</span> is_menu(t):
+            <span class="hljs-keyword">break</span>
+        <span class="hljs-keyword">if</span> dropped(t):
+            act(<span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+        <span class="hljs-keyword">else</span>:
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Vending menu review: &#x27;</span> + t)
+        t = read().lower()
+    <span class="hljs-keyword">else</span>:
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Vending return timeout&#x27;</span>)
+    select([<span class="hljs-string">&#x27;Fresh Water&#x27;</span>, <span class="hljs-string">&#x27;Soda Pop&#x27;</span>, <span class="hljs-string">&#x27;Lemonade&#x27;</span>].index(name))
+    t = read().lower()
+    <span class="hljs-keyword">if</span> name.lower() <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> dropped(t):
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Purchase result review: &#x27;</span> + t)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PURCHASE VERIFIED&#x27;</span>, bought + <span class="hljs-number">1</span>, name, flush=<span class="hljs-literal">True</span>)
+    act(<span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-string">&#x27;wait:.8&#x27;</span>)
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">8</span>):
+    t = read().lower()
+    <span class="hljs-keyword">if</span> is_menu(t):
+        select(<span class="hljs-number">3</span>)
+        <span class="hljs-keyword">break</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> dropped(t):
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Final vending menu review: &#x27;</span> + t)
+    act(<span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+<span class="hljs-keyword">else</span>:
+    <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Final vending timeout&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VENDING PURCHASES COMPLETE&#x27;</span>, count, name, flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

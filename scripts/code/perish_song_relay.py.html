@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>perish_song_relay.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of perish_song_relay.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;A reviewed Perish Song lead, followed by a faster Recover user to stall.
+
+Caller must review both speed matchups and incoming damage. Stops on unknown foes,
+party-selection ambiguity, loss, or a new opponent; no party/save data edits.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> argparse
+p=argparse.ArgumentParser();p.add_argument(<span class="hljs-string">&#x27;--foes&#x27;</span>,required=<span class="hljs-literal">True</span>);p.add_argument(<span class="hljs-string">&#x27;--singer&#x27;</span>,default=<span class="hljs-string">&#x27;Kricketune&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;--wall&#x27;</span>,default=<span class="hljs-string">&#x27;Hexan&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;--recover-slot&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,default=<span class="hljs-number">2</span>);p.add_argument(<span class="hljs-string">&#x27;--resume-song&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>);a=p.parse_args()
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(script+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> a.resume_song:run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+<span class="hljs-keyword">else</span>:run(<span class="hljs-string">&#x27;battle_switch&#x27;</span>,a.singer)
+run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,a.singer,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,a.foes,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--status-move&#x27;</span>)
+t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;choose a pok&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> (<span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> t.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>):run(<span class="hljs-string">&#x27;party_pick&#x27;</span>,a.wall)
+<span class="hljs-keyword">elif</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t:run(<span class="hljs-string">&#x27;battle_switch&#x27;</span>,a.wall)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Perish relay phase review&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,a.wall,a.recover_slot,<span class="hljs-string">&#x27;--foes&#x27;</span>,a.foes,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--status-move&#x27;</span>,<span class="hljs-string">&#x27;--stop-after-battle&#x27;</span>)
+</code></pre>
+  </body>
+</html>

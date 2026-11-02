@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Post-Solaris → Hardy, then later PULSE Mime">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="post-solaris-hardy-mime-route-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/post-solaris-hardy-mime-route-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/post-solaris-hardy-mime-route-2026-10-03.md.html">
+    <title>post-solaris-hardy-mime-route-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">post-solaris-hardy-mime-route-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 12.9 KB · <a href="/pokemon-reborn/reasoning/18/">Task 18</a> · first used Oct 3 20:31</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Post-Solaris → Hardy, then later PULSE Mime</h2>
+<p>Source-only proposal, installed <strong>19.5.43</strong>, using the closed <code>Void-Hypno-won-128-navigation.json</code> baseline and explicitly hypothetical future flags. No gameplay, live saves, battle logs, or recording130 were read. The <a href="https://bigjra.github.io/reborn/#the-raid-on-agate-city">BigJRA Agate raid</a> agrees with the story order; its guide version is19.5.18, so installed events govern.</p>
+<p><strong>There is no PULSE Mime between Solaris and Hardy.</strong> The next mandatory sequence is Solaris → underwater RelicStone/Lin scene → city scene → Shelly invitation → Hardy17. PULSE Mime+Sigmund belongs to Episode19/Labradorra after badge17 and Zero/PULSEClawitzer.</p>
+<h3>Freeze first, then travel preparation</h3>
+<p>After the complete Howaya+Christina/HardyNPC → Solaris chain, first freeze the normal post-Solaris bag/party checkpoint and completed logs for the shared-chain item reconciliation. Do this before medicines, held-item changes, PCs, or teaching moves. <code>763E44p1i676</code> sets391=54 on the successful story branch; do not mirror54 until the full dialogue/animations have ended. Actual player position must be observed; the proposed static paths cover [46,52] and[46,53], not an invented live landing.</p>
+<p>Swampert&#39;s planned four moves lack Dive. The frozen earlier bag has HM06/TMX6 and HM09/TMX9 but no GoldenScuba. Source <code>HiddenMoves.rb:914</code> still requires a legal Dive user; the convenience switch is insufficient. Normally teach <strong>HM06 Dive over slot3 RockClimb</strong>, preserving Waterfall/Earthquake/Surf. The existing command is <code>python3 scripts/teach_machine.py HM06 Swampert Dive 3</code>; inspect its ordinary prompt and abort if replacement is refused. Installed HM compatibility permits both Dive and RockClimb. The source symbol-keyed item table makes the old numeric <code>pbIsHiddenMove?</code> test false; this explains why normal replacement is legal here, not permission to bypass a refusal. Restore <strong>HM09 RockClimb over Dive slot3</strong> after the water route, before the gym puzzle. Machine replacement retains at most the old move&#39;s remainingPP, so verify/heal normally before Hardy.</p>
+<h3>Source route to Lin, with explicit forced-transition stops</h3>
+<p>Full coordinate/action proposals are in <code>work/post-solaris-water-route-proposed.json</code>, generated by <code>scripts/post_solaris_static_plan.py</code>. They use static source tiles and active pages at39154,988/989True,999False, Ricardo beaten. Remaining trainer sight lines are blocked rather than merely assigned a high route cost. This permits a route around Ama; it is not a blind input queue or a claim that every actor currently has its initial source position.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Stage/normal action</th>
+<th>Verified source destination and guard</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Reach763[57,47] dry; faceRight and pressRight once</td>
+<td><code>763E131[58,47]</code> impassable-bank touch route moves player <strong>six tilesRight →[63,47]</strong> when not surfing. It usesThroughOn, walkingAnimationOff, sixRight, restore. Generic nav does not model this bridge. Stop and locate before more inputs. E130 is the corresponding y46 crossing; E128/129 are the reverse crossings.</td>
+</tr>
+<tr>
+<td>From[63,47] route east/south to[70,60]</td>
+<td>Source route: Right2, Down11, Right1, Down1, Right4, Down1. This stays outside Ama&#39;s Right-facing sight line at[69–73,44]. Replan from actual observed coordinates.</td>
+</tr>
+<tr>
+<td>Left staircase; then Down1; next Left staircase</td>
+<td><code>763E57</code> gives[70,60] Left→[68,61]; <code>E58</code> gives[68,62] Left→[66,63]. Inspect each landing.</td>
+</tr>
+<tr>
+<td>Reach[59,61] dry</td>
+<td>From[66,63]: Left2, Down1, Left5, Up3. At39154 the later story trigger[59,62] is not active. Stop if an unexpected dialogue/touch occurs.</td>
+</tr>
+<tr>
+<td>Normal SurfUp</td>
+<td>[59,61]→[59,60], legal Surf user and actual water tag7. Existing <code>surface_walk.py76359 43</code> can then take the straight water section to[59,43].</td>
+</tr>
+<tr>
+<td>WaterfallUp, then Up5, WaterfallUp</td>
+<td><strong>[59,43]→[59,33]</strong>, then[59,28]→<strong>[59,18]</strong>. First facing tile is tag8; normal C/Waterfall/Yes only if the source/public prompt appears. Existing <code>waterfall_step.py</code> Up can guard these exact landings.</td>
+</tr>
+<tr>
+<td>Up1, landLeft</td>
+<td>[59,17]→dry[58,17]. Then ordinary upper-bank walking reaches[19,13]; the exact irregular bank turns are in the JSON.</td>
+</tr>
+<tr>
+<td>SurfLeft, then reach[15,15]</td>
+<td>[19,13]→[18,13], then Left1, Down1, Left2, Down1.</td>
+</tr>
+<tr>
+<td>WaterfallDown</td>
+<td><strong>[15,15]→[15,37]</strong>. See the descending-helper issue below.</td>
+</tr>
+<tr>
+<td>Reach deep water[12,46]; normal Dive</td>
+<td>From[15,37]: Left1, Down1, Left2, Down8. <code>dive_transition.py76312 46 741</code> asks the actual normal Yes/No prompt and verifies <strong>741[12,46]</strong>.</td>
+</tr>
+<tr>
+<td>Underwater normal walk to[46,43]</td>
+<td>Source-only path has122 steps, ending[46,43] immediately below the cave entrance. Keep transfers/other touch events blocked. Existing normal <code>q.py741,46,43</code> can calculate/inspect the actual state; the JSON contains the source path.</td>
+</tr>
+<tr>
+<td>OneUp into741E4[46,42]</td>
+<td>DirectionUp transfers <strong>741[46,18]</strong>, retainsdivingTrue and changes39154→55. This immediately commits to <strong>741E2p1 autorun Lin dialogue</strong>, with no battle or Yes/No choice. Settle the whole scene.</td>
+</tr>
+</tbody></table></div>
+<p><strong>Descending helper is currently unsuitable:</strong> <code>waterfall_step.py Down</code> expects tag9 and only sendsDown+wait. Installed763 has tag8 waterfalls and no tag9crest. <code>Field.rb:1791</code> automatically descends only when standing on9. Normal <strong>facingDown+C</strong> calls <code>HiddenMoves.rb:871 onAction→pbWaterfall→pbAscendWaterfall</code>; despite the function name, it rejects only Left/Right and moves forward in the facing direction through8/9. Therefore a guarded Down+C/actualWaterfallPrompt action can descend the listed fall. Do not run the existing Down helper unchanged. No helper was edited by this research.</p>
+<h3>Lin exit and city scene</h3>
+<p><code>741E2p1</code> has no battle/choice. It starts playerUp1 from[46,18], later Right3, and finishes at the expected <strong>[49,17]</strong> facingLeft; observe rather than assume the landing. <strong>i135 turns989False, i136 sets39156</strong>. This removes the raid&#39;s remaining989-gated defenders. After the public scene ends and these milestones are proven, reach[46,18] and stepDown into <strong>741E3[46,19]</strong>, transferring <strong>741[46,43]</strong>, stilldivingTrue.</p>
+<p><code>work/post-solaris-water-return-proposed.json</code> gives205 source edges to dry <strong>763[59,61]</strong>, using hypothetical39156/989False. It walks underwater to<strong>741[12,40]</strong>, surfaces at the sameXY, reaches[15,37], climbs to[15,15], landsRight at[19,13], crosses the upperbank to[58,17], SurfsRight at[59,17], then descends <strong>[59,18]→[59,28]</strong> and <strong>[59,33]→[59,43]</strong>. ContinueDown17 to[59,60] and landDown at[59,61]. Guard every Surf/Dive/Waterfall transition as above.</p>
+<p>From[59,61], <strong>oneDown enters763E161[59,62]</strong>, sets39157 and commits to <strong>763E170p1 autorun</strong>. Equivalent city scene gates areE89[60,68], E90[61,68], E162[66,59]; do not let an unplanned route cross them and then continue blindly. E170 contains no battle or Yes/No; settle its dialogue/animation chain through <strong>i372=39158</strong>. The player route turns only, so it should retain[59,62], but locate normally.</p>
+<p>Then talk to <strong>763E163 Shelly[61,64]</strong>, whose active58 page gives the Hardy invitation, <strong>i113=999True, i114=39159</strong>. NoYes/No is required. This unlocks <strong>763E99[42,22]→739[11,57]</strong>. Keep the scene routes distinct from battle attempts/archive entries: these are dialogue, not additional major fights.</p>
+<h3>Safe normal preparation and Hardy commitment</h3>
+<p>Normal Agate Center: <strong>763E79[46,69]→752[10,10]</strong>, nurse <strong>752E4[10,4]/common1</strong>, PC <strong>752E7[14,3]/pbPokeCenterPC</strong>, exit <strong>752E8[10,11]→763[46,70]</strong>. The default nurse is a normal Yes/No heal; switch5 selects its recovery autorun page only after an actual loss. PC/heal are not withheld by the Solaris chain once it has ended and the item checkpoint is frozen.</p>
+<p>Use <code>notes/hardy-battle-plan-2026-10-03.md</code> for numeric source review. Its recommended normal Hardy six are <strong>Cofa/Swamp/Mien/KG/Exc/Ludi</strong>, lead <strong>Cofa+Swamp</strong>; bench Arc and Cryo for this Rock fight. Solarisis fixedsix does not force the same roster for Hardy. Owned Ludi90 and KG90 can be normally withdrawn here; teach ownedTM55 Scald to Ludi overUproar and use verifiedWiseGlasses. RestoreSwampRockClimb first. Do not assume Mega Ring/AmplifieldRock access or a new acquisition; the existing plan works without either.</p>
+<p>Core guarded opening: <strong>Cofa selfXDefend +Swamp selfXDefend</strong>, then <strong>CofaTrickRoom +SwampUltraPotion targetingCofa</strong>. Xitems target their own actor; normal medicine can heal the active ally. PositiveDefense onRocky preventsRockSlideflinch/quarterHPcollision; Cofa333Def/252HP still is not guaranteed against a criticalGigalithThroatChop. Stage/HP guards and reserve actions from the numeric note remain necessary. Room is5turns including its casting turn, not8. After safeSwampXAttack, accurate single-targetWaterfall guarantees the listed ordinaryKOs; avoid ally-damagingSurf/EQ as default doubles commands. Preserve actual spent supplies fromSolaris; proposed reserve is≥3XDefend,2XAttack,1XAccuracy,8Ultra plusRevives, more if previouschain used reserves.</p>
+<p>Gym source and normal puzzle helper are already reviewed in <code>notes/hardy-puzzle-saphira-route-2026-10-03.md</code> and <code>work/hardy-piano-proposed-template.json</code>. Clear the three ordinary sighttrainers; tuner23–30 targetx <strong>17,19,21,16,16,14,15,15</strong>. <strong>739E1</strong> from[5,46] facingUp RockClimb→[5,8] sets1022 on the correct values. ArenaE31/32→740[9,21]. Stage <strong>740[9,19]</strong>, freeze actual preparedteam/bag and recording, then Up into <strong>740E3[9,18]</strong>; its normalYes startsHardy1 doublesRocky. Victory awardsbadge17/switch658True/39160→61/cap95. Freeze native postbattle items before normal recovery/roster work. Hardy is curated; ordinaryraid/gymtrainers are only fulljourney footage.</p>
+<h3>Later Mime: genuine roster gap, not an immediate surprise</h3>
+<p>Afterbadge17 the source route is Calcenon413HardyE102→BennettE118 →Labradorra414story/cultists →<strong>Zero/PULSEClawitzer414E119 autorun when475≥23</strong> →southwest774building/LCCC775. See the existing route note for route branches and source scene commitments. <strong>775E11[87,5] player-touch</strong> calls <strong>MIME/Mime0 + FRIEND/Sigmund Connal0</strong>, both opponents with noNPCpartner; winsets47530. It is a curated supermajor double with two enemy roster columns. Stage one tile before the touch and freeze actualLv95party/field/weather/items then; no actual futureID was allocated here.</p>
+<p>Map775 uses indoor <strong>Shortcircuit</strong>. Indoor entry ordinarily clears regionalweather, but verify frozen/publicweather at that future checkpoint. Source fixedMime is <strong>Lv100 femalePULSE form1 Dark/Ghost, WonderGuard, Leftovers, Careful, IV31, EV236HP/16Def/252SpDef</strong>, <strong>704HP/420Def/526SpDef/540Speed</strong>, moves <strong>Instruct/NightShade/Moonlight/Entrainment</strong>. CurrentCF/Arc/Swamp/Mien/Exc/Cryo six have <strong>no Fairy attack</strong>. ExcMoldBreaker can bypassWonderGuard, but Entrainment legally copiesWonderGuard onto it (<code>Battle_MoveEffects.rb:3113</code> subtractsWonderGuard from the blacklist), removing that bypass. Burn44/tick is exactly cancelled byLeftovers44/tick; CofaWisp is not a guaranteed stallKO. Moonlight/Instruct prevent pretending that neutral chip alone is a safe script.</p>
+<p><strong>Plan a legal Fairy user before entering775.</strong> Conditional normal gift <strong>774E122 code3862→1064True; 774E128[36,18]→Sylveon75</strong> (Yes,1066False) is in the preceding building and already hasMoonblast/MistyTerrain/Wish/HealBell; verify actualaccess/IV/nature and normally train it to95 afterbadge17. <code>notes/sylveon-saphira-opening-review-2026-10-03.md</code> gives the normal gift/Calm/EV methods. The laterSaphira opening numbers do not certify this doublesfight: reviewMime+Sigmund combined attacks before commitment. ArcPlayRough is compatible but not in Arc&#39;s ordinary reminder moves; no quicklegalPlayRough source was established. Do not assume LudiDazzlingGleam compatibility—it lacks it.</p>
+<p>Sigmund0 companions, all31IV/sourceEV trained: <strong>Aromatisse93</strong> AmplifieldRock/AromaVeil (DazzlingGleam/Psychic/FlashCannon/Thunder); <strong>Drampa94</strong> LifeOrb/Berserk (HyperVoice/Surf/HeatWave/Roost); <strong>AlolaRaichu94</strong> SyntheticSeed/SurgeSurfer (VoltSwitch/Psychic/FocusBlast/Discharge); <strong>FrostRotom94</strong> IciumZ/Levitate (Discharge/ShadowBall/Blizzard/FoulPlay); <strong>Alakazam95</strong> Alakazite (DazzlingGleam/Psychic/SignalBeam/ShadowBall); <strong>Electivire95</strong> LifeOrb/MotorDrive (ThunderPunch/CrossChop/Earthquake/IcePunch). Exact tuples are in <code>work/pulse-mime-installed-team-static.json</code>.</p>
+<p>Shortcircuit boostsDazzlingGleam/Surf/FlashCannon1.5, listedDark/Ghost attacks includingDarkPulse/ShadowBall1.3; Surf gainsElectrictyping. SyntheticSeed grantsMagnetRise5turns/+1SpDef. Discharge and certainotherElectric moves can convert it toFactory. Bring actualWideGuard/Mienshao as conditional spread support, not a promise against targetedPsychic; planFairy offense plus a protected partner and follow observedfieldchange. A complete numeric futureMime plan remains intentionally pending the legalFairy/actualLv95roster checkpoint.</p>
+<p>Validation: the pure static planner was syntaxchecked and run against installed maps741/763. Both proposed starts reach the cave with all ordinarytrainer sighttiles treated as absolutebarriers; returnusespostLin989False. Exactbridge/Waterfall/disembark/Dive specialedges remain individually guarded at execution. No UI/game execution, saves, nativecheckpoints, majorattemptconfigs or media were created by this research.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

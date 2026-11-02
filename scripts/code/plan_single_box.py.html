@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>plan_single_box.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of plan_single_box.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Offline shortest normal pushes from a public map; no UI imports.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> ast,json,heapq,re,sys,copy
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+p,eid,gx,gy=sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">5</span>];eid=<span class="hljs-built_in">str</span>(<span class="hljs-built_in">int</span>(eid));goal=(<span class="hljs-built_in">int</span>(gx),<span class="hljs-built_in">int</span>(gy));v=json.loads(Path(p).read_text())
+fun=<span class="hljs-built_in">next</span>(n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> ast.parse((ROOT/<span class="hljs-string">&#x27;scripts/nav.py&#x27;</span>).read_text()).body <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(n,ast.FunctionDef)<span class="hljs-keyword">and</span> n.name==<span class="hljs-string">&#x27;route&#x27;</span>);ns=<span class="hljs-built_in">dict</span>(ROOT=ROOT,json=json,heapq=heapq,re=re);<span class="hljs-built_in">exec</span>(ast.unparse(fun).replace(<span class="hljs-string">&#x27;graph = {}&#x27;</span>,<span class="hljs-string">&#x27;jumps = {}; graph = {}&#x27;</span>).replace(<span class="hljs-string">&#x27;native_jump = terrain(n) == 1&#x27;</span>,<span class="hljs-string">&#x27;native_jump = False&#x27;</span>),ns);route=ns[<span class="hljs-string">&#x27;route&#x27;</span>]
+e=v[<span class="hljs-string">&#x27;events&#x27;</span>].pop(eid);box=(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]);g=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);lo,hi=<span class="hljs-number">5</span>,<span class="hljs-number">5</span>
+xmin,xmax,ymin,ymax=<span class="hljs-built_in">min</span>(box[<span class="hljs-number">0</span>],goal[<span class="hljs-number">0</span>])-lo,<span class="hljs-built_in">max</span>(box[<span class="hljs-number">0</span>],goal[<span class="hljs-number">0</span>])+hi,<span class="hljs-built_in">min</span>(box[<span class="hljs-number">1</span>],goal[<span class="hljs-number">1</span>])-lo,<span class="hljs-built_in">max</span>(box[<span class="hljs-number">1</span>],goal[<span class="hljs-number">1</span>])+hi
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">reach</span>(<span class="hljs-params">p,b</span>):
+ q=[p];r={p}
+ <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> q:
+  <span class="hljs-keyword">for</span> _,d <span class="hljs-keyword">in</span> g.get(a,[]):
+   <span class="hljs-keyword">if</span> d!=b <span class="hljs-keyword">and</span> xmin&lt;=d[<span class="hljs-number">0</span>]&lt;=xmax <span class="hljs-keyword">and</span> ymin&lt;=d[<span class="hljs-number">1</span>]&lt;=ymax <span class="hljs-keyword">and</span> d <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> r:r.add(d);q.append(d)
+ <span class="hljs-keyword">return</span> r
+seeds=[(box[<span class="hljs-number">0</span>]+dx,box[<span class="hljs-number">1</span>]+dy)<span class="hljs-keyword">for</span> dx,dy <span class="hljs-keyword">in</span> [(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)]<span class="hljs-keyword">if</span> (box[<span class="hljs-number">0</span>]+dx,box[<span class="hljs-number">1</span>]+dy)<span class="hljs-keyword">in</span> g]
+q=deque((p,box,[])<span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> seeds);seen=<span class="hljs-built_in">set</span>()
+<span class="hljs-keyword">while</span> q:
+ p,b,plan=q.popleft();r=reach(p,b);key=(<span class="hljs-built_in">min</span>(r),b)
+ <span class="hljs-keyword">if</span> key <span class="hljs-keyword">in</span> seen:<span class="hljs-keyword">continue</span>
+ seen.add(key)
+ <span class="hljs-keyword">if</span> b==goal:<span class="hljs-built_in">print</span>(json.dumps({<span class="hljs-string">&#x27;event&#x27;</span>:eid,<span class="hljs-string">&#x27;goal&#x27;</span>:goal,<span class="hljs-string">&#x27;pushes&#x27;</span>:plan,<span class="hljs-string">&#x27;states&#x27;</span>:<span class="hljs-built_in">len</span>(seen)},indent=<span class="hljs-number">2</span>));<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">for</span> k,dx,dy <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(<span class="hljs-string">&#x27;left&#x27;</span>,-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),(<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)]:
+  a=(b[<span class="hljs-number">0</span>]-dx,b[<span class="hljs-number">1</span>]-dy);d=(b[<span class="hljs-number">0</span>]+dx,b[<span class="hljs-number">1</span>]+dy)
+  <span class="hljs-keyword">if</span> a <span class="hljs-keyword">in</span> r <span class="hljs-keyword">and</span> (k,d)<span class="hljs-keyword">in</span> g.get(b,[]) <span class="hljs-keyword">and</span> xmin&lt;=d[<span class="hljs-number">0</span>]&lt;=xmax <span class="hljs-keyword">and</span> ymin&lt;=d[<span class="hljs-number">1</span>]&lt;=ymax:q.append((b,d,plan+[{<span class="hljs-string">&#x27;key&#x27;</span>:k,<span class="hljs-string">&#x27;box_from&#x27;</span>:b,<span class="hljs-string">&#x27;box_to&#x27;</span>:d,<span class="hljs-string">&#x27;stand&#x27;</span>:a}]))
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No ordinary push solution&#x27;</span>)
+</code></pre>
+  </body>
+</html>

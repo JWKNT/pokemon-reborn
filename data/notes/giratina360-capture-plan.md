@@ -1,0 +1,6 @@
+# Giratina capture plan (static data; validate battle HUD)
+Anna route map892event3page1 has player-touch trigger at23,22. Save before stepping onto it. Intro dialogue range0..152 stops before pbWildBattle at156. Taka handles the anomaly trainer. Giratina130 capture is required, normal wild. Remains journey only.
+
+Installed Giratina last four learned moves Aura Sphere, Shadow Claw, Shadow Force, Hex. Catch rate3. Check actual field; trainer/wild may be Inverse but do not assume from previousfight. If Inverse: Dragon makes Electric and Water super-effective; Ghost attacks against Latias are resisted, Fighting attacks are super-effective. Zapdos can paralyze withWideLensThunderWave and weaken viaDischarge/Fly, while Roost sustains. Reserve balls until HPappropriatelylow. Our16TimerBalls plus21Poke19Premier.
+
+Beforewild: FullHealLatias, twoUltraPotionLatias (current116/491PAR), optionallyReviveMeowstic backup. LatiasMega hasRecover2, Surf0,Psychic1,CM3; good alternate capturetank afterZapdosparalysis, provided actual AuraSphere damage is sustainable. Do not accidentally KOone-timeencounter; normalsavebeforeentry allowsretry. AddLatias2to capture_bounded recovery guard onlyafterfreshsavedbuildverified. Neither sleep norfalseswipe is oncurrentteam.

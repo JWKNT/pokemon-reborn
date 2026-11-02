@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>relearn_select.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of relearn_select.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Choose an inspected relearner index, verifying the move before accepting.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> re,difflib
+name=sys.argv[<span class="hljs-number">1</span>];index=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]);<span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;=index&lt;=<span class="hljs-number">40</span>
+norm=<span class="hljs-keyword">lambda</span> s:re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,s.lower())
+t=read();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;teachwhich&#x27;</span> <span class="hljs-keyword">in</span> norm(t),<span class="hljs-string">&#x27;Relearner list expected&#x27;</span>
+act(*[k <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(index) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.18&#x27;</span>)],<span class="hljs-string">&#x27;wait:.5&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-comment"># Session370 direct visual review: V-create&#x27;s V can disappear in full-screen OCR.</span>
+visible = norm(name) <span class="hljs-keyword">in</span> norm(t) <span class="hljs-keyword">or</span> (norm(name)==<span class="hljs-string">&#x27;vcreate&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(line.strip().lower()==<span class="hljs-string">&#x27;-create&#x27;</span> <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> t.splitlines()) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;180&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;95&#x27;</span> <span class="hljs-keyword">in</span> t)
+<span class="hljs-keyword">assert</span> visible,<span class="hljs-string">&#x27;Expected move absent from visible list&#x27;</span>
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;teach&#x27;</span>+norm(name),norm(line)).ratio()&gt;=<span class="hljs-number">.82</span> <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> t.splitlines()),<span class="hljs-string">&#x27;Selected move confirmation mismatch&#x27;</span>
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>],check=<span class="hljs-literal">True</span>)
+learning_args=[]
+<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">3</span>:
+ slot=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">3</span>]);<span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;=slot&lt;=<span class="hljs-number">3</span>
+ learning_args=[<span class="hljs-string">&#x27;--expected-move&#x27;</span>,name,<span class="hljs-string">&#x27;--replace-slot&#x27;</span>,<span class="hljs-built_in">str</span>(slot)]
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/learning.py&#x27;</span>),*learning_args],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/relearn_finish.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

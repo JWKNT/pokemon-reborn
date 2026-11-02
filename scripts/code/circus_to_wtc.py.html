@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>circus_to_wtc.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of circus_to_wtc.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed Route 2 descent and Waterfall entry, ordinary inputs only.
+
+Stages are restartable after an interruption; every walker observes its endpoint.
+The map-466 waterfall animation automatically transfers to map 467.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+
+stage=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(name+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">0</span>:
+ run(<span class="hljs-string">&#x27;use_field_item&#x27;</span>,<span class="hljs-string">&#x27;Super Repel&#x27;</span>)
+ run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;355,13,34,left:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,8,33,up:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,8,48,up:.03,c,wait:1&#x27;</span>)
+ run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Agate Circus|Route 2&#x27;</span>,<span class="hljs-string">&#x27;Route 2&#x27;</span>);act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;74&#x27;</span>]=<span class="hljs-number">1</span>;p.write_text(json.dumps(v))
+ run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;365,9,51,down:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,4,63,left:.12,wait:2&#x27;</span>)
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">1</span>:
+ ground=<span class="hljs-built_in">int</span>(json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text()).get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;410&#x27;</span>,<span class="hljs-literal">False</span>))
+ run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>,<span class="hljs-number">358</span>,<span class="hljs-number">40</span>,<span class="hljs-number">65</span>,ground);act(<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+ <span class="hljs-keyword">assert</span> locate(<span class="hljs-number">360</span>)[<span class="hljs-number">0</span>]==<span class="hljs-number">360</span>,<span class="hljs-string">&#x27;Route 2 transfer needs review&#x27;</span>
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">2</span>:
+ run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>,<span class="hljs-number">360</span>,<span class="hljs-number">11</span>,<span class="hljs-number">94</span>,<span class="hljs-number">0</span>);act(<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+ <span class="hljs-keyword">assert</span> locate(<span class="hljs-number">359</span>)[<span class="hljs-number">0</span>]==<span class="hljs-number">359</span>,<span class="hljs-string">&#x27;Cascade transfer needs review&#x27;</span>
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">3</span>:
+ run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">359</span>,<span class="hljs-number">26</span>,<span class="hljs-number">64</span>)
+ act(<span class="hljs-string">&#x27;down:.03&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;waterfall&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27;&#x27;</span>.join(t.lower().split()):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Waterfall prompt needs review&#x27;</span>)
+ run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>)
+ t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;used&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t.lower():<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Waterfall use needs review&#x27;</span>)
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:12&#x27;</span>)
+ <span class="hljs-comment"># Entry automatically lands the player and opens Titania&#x27;s first linear line.</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;titania&#x27;</span> <span class="hljs-keyword">in</span> read().lower():run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">467</span>,<span class="hljs-number">14</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+ <span class="hljs-keyword">assert</span> locate(<span class="hljs-number">467</span>)[<span class="hljs-number">0</span>]==<span class="hljs-number">467</span>,<span class="hljs-string">&#x27;Waterfall arrival needs review&#x27;</span>
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;WATER TREATMENT CENTER ARRIVAL VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

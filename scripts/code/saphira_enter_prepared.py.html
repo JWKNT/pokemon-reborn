@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>saphira_enter_prepared.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of saphira_enter_prepared.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal approach, fresh save, archive entry snapshot, and guarded Saphira intro.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ env=<span class="hljs-built_in">dict</span>(os.environ)
+ <span class="hljs-keyword">if</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-string">&#x27;q&#x27;</span>]:env.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>,env=env)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--at-entry&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">778</span>,<span class="hljs-number">15</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;780,30,12&#x27;</span>)
+control=json.loads((R/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>).read_text())
+session=<span class="hljs-built_in">int</span>(sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--session&#x27;</span>)+<span class="hljs-number">1</span>]) <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--session&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> <span class="hljs-built_in">int</span>(control[<span class="hljs-string">&#x27;recording_session&#x27;</span>])
+<span class="hljs-keyword">assert</span> session==<span class="hljs-built_in">int</span>(control[<span class="hljs-string">&#x27;recording_session&#x27;</span>]), <span class="hljs-string">&#x27;Current active capture required&#x27;</span>
+label=sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--label&#x27;</span>)+<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--label&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> <span class="hljs-string">f&#x27;Saphira<span class="hljs-subst">{session}</span>-entry&#x27;</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> (R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).exists(), <span class="hljs-string">&#x27;Use a fresh attempt label&#x27;</span>
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+run(<span class="hljs-string">&#x27;major_attempt&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,R/<span class="hljs-string">&#x27;work/major-131-draft.json&#x27;</span>,session,<span class="hljs-string">&#x27;--status&#x27;</span>,R/<span class="hljs-string">f&#x27;notes/<span class="hljs-subst">{label}</span>-status.json&#x27;</span>)
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read,act
+cp=R/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>;c=json.loads(cp.read_text())
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;pp:&#x27;</span>,<span class="hljs-string">&#x27;choose a pok&#x27;</span>])
+<span class="hljs-keyword">if</span> c.get(<span class="hljs-string">&#x27;battle_turbo_enabled&#x27;</span>):
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> c.get(<span class="hljs-string">&#x27;overworld_turbo_enabled&#x27;</span>)
+ act(<span class="hljs-string">&#x27;m:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.35&#x27;</span>,<span class="hljs-string">&#x27;m:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.35&#x27;</span>)
+ c.update(battle_turbo_enabled=<span class="hljs-literal">False</span>,battle_turbo=<span class="hljs-literal">False</span>);cp.write_text(json.dumps(c,indent=<span class="hljs-number">2</span>))
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">780</span>,<span class="hljs-number">93</span>,<span class="hljs-string">&#x27;SAPHIRA&#x27;</span>,<span class="hljs-string">&#x27;Saphira&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;bag&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;bae&#x27;</span> <span class="hljs-keyword">in</span> t) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;run&#x27;</span> <span class="hljs-keyword">in</span> t
+act(<span class="hljs-string">&#x27;m:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+c=json.loads(cp.read_text());c.update(battle_turbo_enabled=<span class="hljs-literal">True</span>,battle_turbo=<span class="hljs-literal">True</span>,active_major=<span class="hljs-number">131</span>);cp.write_text(json.dumps(c,indent=<span class="hljs-number">2</span>))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SAPHIRA COMMAND READY&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

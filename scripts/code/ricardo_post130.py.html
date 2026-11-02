@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ricardo_post130.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ricardo_post130.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal victory closure + one native checkpoint, then fixed-six PC assembly.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read
+text=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;defeated&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;for winning&#x27;</span> <span class="hljs-keyword">in</span> text, <span class="hljs-string">&#x27;Actual Ricardo victory required&#x27;</span>
+commands=[(<span class="hljs-string">&#x27;victory_outro&#x27;</span>,[]),(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,[<span class="hljs-string">&#x27;finish&#x27;</span>,<span class="hljs-string">&#x27;--world-verified&#x27;</span>]),(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,[<span class="hljs-string">&#x27;Agate-Ricardo-won130&#x27;</span>]),(<span class="hljs-string">&#x27;agate_party_assemble&#x27;</span>,[<span class="hljs-string">&#x27;--phase&#x27;</span>,<span class="hljs-string">&#x27;agate-assemble&#x27;</span>,<span class="hljs-string">&#x27;--execute&#x27;</span>,<span class="hljs-string">&#x27;--status&#x27;</span>,<span class="hljs-string">&#x27;notes/Agate-Ricardo-won130-status.json&#x27;</span>,<span class="hljs-string">&#x27;--navigation&#x27;</span>,<span class="hljs-string">&#x27;notes/Agate-Ricardo-won130-navigation.json&#x27;</span>,<span class="hljs-string">&#x27;--journal&#x27;</span>,<span class="hljs-string">&#x27;work/agate-party-assemble-130.json&#x27;</span>])]
+<span class="hljs-keyword">for</span> script,args <span class="hljs-keyword">in</span> commands:
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RICARDO POST QUEUE&#x27;</span>,script,flush=<span class="hljs-literal">True</span>)
+ p=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{script}</span>.py&#x27;</span>),*args],capture_output=<span class="hljs-literal">True</span>,text=<span class="hljs-literal">True</span>)
+ out=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">f&#x27;ricardo-post130-<span class="hljs-subst">{script}</span>.txt&#x27;</span>;out.write_text(p.stdout+<span class="hljs-string">&#x27;\n&#x27;</span>+p.stderr)
+ <span class="hljs-built_in">print</span>(p.stdout[-<span class="hljs-number">1500</span>:],flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> p.returncode:<span class="hljs-built_in">print</span>(p.stderr[-<span class="hljs-number">2000</span>:],flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">raise</span> SystemExit(p.returncode)
+</code></pre>
+  </body>
+</html>

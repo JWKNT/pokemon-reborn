@@ -1,0 +1,13 @@
+{
+  "scope": "Static mechanics and owned build planning; no League attempt yet",
+  "sources": [
+    "Scripts/Battler.rb:907",
+    "Scripts/Battler.rb:944",
+    "Scripts/ItemEffects.rb:3423",
+    "work/217-league-trainers-static.json"
+  ],
+  "arceus": "CHILDLIN0:100Modest31IV252allEV,PULSEform19,Speed419; NewWorldgrounded314, Flying419",
+  "kricketune": "After252SpeedEV expected211; XSpeed+2 doubles422; NewWorldgrounded316, narrowly exceeds groundedArceus314. Actual saved stats must verify.",
+  "proposal": "Preserve fullHPunusedSash and Kricketune for ChildLin. On a fresh free entry, XSpeed before PerishSong can avoid DarkPulse flinch on the item turn and outspeed groundedArceus next turn. Observe actualHP, type, delayedDoomDesire and ownSpeed before selecting Song; FlyingArceus is faster and invalidates simple speed guard. No guaranteed win claimed.",
+  "remaining": "Develop stronger six with Mega access; secure Sash; preserve living reserves to outlast Perish count; no save between any League fights."
+}

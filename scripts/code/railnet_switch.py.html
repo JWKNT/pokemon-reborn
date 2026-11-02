@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>railnet_switch.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of railnet_switch.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Operate a reviewed Railnet lever through UI; update navigation model only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+eid,target=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]);<span class="hljs-keyword">assert</span> eid <span class="hljs-keyword">in</span> [<span class="hljs-number">17</span>,<span class="hljs-number">26</span>,<span class="hljs-number">46</span>,<span class="hljs-number">57</span>,<span class="hljs-number">66</span>,<span class="hljs-number">86</span>,<span class="hljs-number">117</span>,<span class="hljs-number">135</span>,<span class="hljs-number">144</span>] <span class="hljs-keyword">and</span> target <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>]
+<span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>):
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;228&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;3&#x27;</span>],stderr=subprocess.DEVNULL))
+ assignments=[c[<span class="hljs-string">&#x27;parameters&#x27;</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)][<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">122</span>]
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(assignments)==<span class="hljs-number">1</span>
+ a=assignments[<span class="hljs-number">0</span>];<span class="hljs-keyword">assert</span> a[<span class="hljs-number">0</span>]==a[<span class="hljs-number">1</span>] <span class="hljs-keyword">and</span> a[<span class="hljs-number">2</span>:<span class="hljs-number">4</span>]==[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>]
+ <span class="hljs-keyword">if</span> n==<span class="hljs-number">0</span>:subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-string">&#x27;228&#x27;</span>,<span class="hljs-built_in">str</span>(eid),<span class="hljs-string">&#x27;talk&#x27;</span>],check=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">else</span>:act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.0&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+ statepath=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;state=json.loads(statepath.read_text());state.setdefault(<span class="hljs-string">&#x27;variables&#x27;</span>,{})[<span class="hljs-built_in">str</span>(a[<span class="hljs-number">0</span>])]=a[<span class="hljs-number">4</span>];statepath.write_text(json.dumps(state))
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;LEVER&#x27;</span>,eid,<span class="hljs-string">&#x27;planned state&#x27;</span>,a[<span class="hljs-number">4</span>],<span class="hljs-string">&#x27;target&#x27;</span>,target,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> a[<span class="hljs-number">4</span>]==target:<span class="hljs-keyword">break</span>
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Lever cycle review&#x27;</span>)
+</code></pre>
+  </body>
+</html>

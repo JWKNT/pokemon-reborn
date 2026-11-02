@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>weather_route_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of weather_route_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only cross-map route proposal from exported installed map geometry.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,heapq,itertools
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> route_readonly <span class="hljs-keyword">import</span> route
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+maps={m:json.loads((R/<span class="hljs-string">f&#x27;work/252-map<span class="hljs-subst">{m}</span>.json&#x27;</span>).read_text()) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> (<span class="hljs-number">836</span>,<span class="hljs-number">837</span>)}
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">solve</span>(<span class="hljs-params">start,goal</span>):
+ serial=itertools.count();q=[(<span class="hljs-number">0</span>,<span class="hljs-built_in">next</span>(serial),start,[])];seen=<span class="hljs-built_in">set</span>()
+ <span class="hljs-keyword">while</span> q:
+  cost,_,node,steps=heapq.heappop(q)
+  <span class="hljs-keyword">if</span> node <span class="hljs-keyword">in</span> seen:<span class="hljs-keyword">continue</span>
+  seen.add(node);mid,x,y=node;v=<span class="hljs-built_in">dict</span>(maps[mid],position=[x,y])
+  <span class="hljs-keyword">if</span> mid==goal[<span class="hljs-number">0</span>]:
+   options=[]
+   <span class="hljs-keyword">for</span> dx,dy <span class="hljs-keyword">in</span> [(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)]:
+    near=(goal[<span class="hljs-number">1</span>]+dx,goal[<span class="hljs-number">2</span>]+dy)
+    <span class="hljs-keyword">try</span>: options.append((<span class="hljs-built_in">len</span>(route(v,near)),near))
+    <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">pass</span>
+   <span class="hljs-keyword">if</span> options:
+    length,near=<span class="hljs-built_in">min</span>(options);<span class="hljs-keyword">return</span> cost+length,steps+[{<span class="hljs-string">&#x27;map&#x27;</span>:mid,<span class="hljs-string">&#x27;from&#x27;</span>:[x,y],<span class="hljs-string">&#x27;goal&#x27;</span>:near,<span class="hljs-string">&#x27;orb&#x27;</span>:goal[<span class="hljs-number">1</span>:],<span class="hljs-string">&#x27;tiles&#x27;</span>:length}]
+  reach=route(v,<span class="hljs-literal">None</span>)
+  <span class="hljs-keyword">for</span> eid,e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items():
+   transfers=[c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>:<span class="hljs-number">4</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]==<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>] <span class="hljs-keyword">in</span> maps]
+   <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(transfers)!=<span class="hljs-number">1</span>:<span class="hljs-keyword">continue</span>
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>((e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy) <span class="hljs-keyword">in</span> reach <span class="hljs-keyword">for</span> dx,dy <span class="hljs-keyword">in</span> [(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)]):<span class="hljs-keyword">continue</span>
+   near=[(reach[(e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy)],(e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy)) <span class="hljs-keyword">for</span> dx,dy <span class="hljs-keyword">in</span> [(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)] <span class="hljs-keyword">if</span> (e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy) <span class="hljs-keyword">in</span> reach]
+   _,ap=<span class="hljs-built_in">min</span>(near);r=route(v,ap)
+   dest=<span class="hljs-built_in">tuple</span>(transfers[<span class="hljs-number">0</span>]);step={<span class="hljs-string">&#x27;map&#x27;</span>:mid,<span class="hljs-string">&#x27;from&#x27;</span>:[x,y],<span class="hljs-string">&#x27;event&#x27;</span>:<span class="hljs-built_in">int</span>(eid),<span class="hljs-string">&#x27;goal&#x27;</span>:[e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]],<span class="hljs-string">&#x27;tiles&#x27;</span>:<span class="hljs-built_in">len</span>(r),<span class="hljs-string">&#x27;destination&#x27;</span>:<span class="hljs-built_in">list</span>(dest)}
+   <span class="hljs-keyword">if</span> dest <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> seen:heapq.heappush(q,(cost+<span class="hljs-built_in">len</span>(r)+<span class="hljs-number">5</span>,<span class="hljs-built_in">next</span>(serial),dest,steps+[step]))
+ <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ result=[]
+ <span class="hljs-keyword">for</span> start <span class="hljs-keyword">in</span> [(<span class="hljs-number">836</span>,<span class="hljs-number">59</span>,<span class="hljs-number">95</span>),(<span class="hljs-number">836</span>,<span class="hljs-number">10</span>,<span class="hljs-number">41</span>),(<span class="hljs-number">836</span>,<span class="hljs-number">176</span>,<span class="hljs-number">51</span>)]:
+  <span class="hljs-keyword">for</span> goal <span class="hljs-keyword">in</span> [(<span class="hljs-number">837</span>,<span class="hljs-number">25</span>,<span class="hljs-number">58</span>),(<span class="hljs-number">837</span>,<span class="hljs-number">39</span>,<span class="hljs-number">61</span>),(<span class="hljs-number">837</span>,<span class="hljs-number">57</span>,<span class="hljs-number">58</span>)]:
+   answer=solve(start,goal)
+   <span class="hljs-keyword">if</span> answer:result.append({<span class="hljs-string">&#x27;start&#x27;</span>:start,<span class="hljs-string">&#x27;goal&#x27;</span>:goal,<span class="hljs-string">&#x27;solution&#x27;</span>:answer});<span class="hljs-built_in">print</span>(result[-<span class="hljs-number">1</span>],flush=<span class="hljs-literal">True</span>)
+ (R/<span class="hljs-string">&#x27;work/252-weather-route-proposals.json&#x27;</span>).write_text(json.dumps(result,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+</code></pre>
+  </body>
+</html>

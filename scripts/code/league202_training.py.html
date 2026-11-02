@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>league202_training.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of league202_training.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded normal-controls paired EV training, reconciled against native saves.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ[<span class="hljs-string">&#x27;REBORN_COORD_CACHE&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ env=<span class="hljs-built_in">dict</span>(os.environ)
+ <span class="hljs-keyword">if</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;eventq&#x27;</span>]:env.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;112&#x27;</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>,env=env)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">check</span>(<span class="hljs-params">label,me,ce</span>):
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+ st=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text())
+ <span class="hljs-keyword">for</span> species,ev <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;MIENSHAO&#x27;</span>,me),(<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span>,ce)]:
+  m=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==species)
+  <span class="hljs-keyword">assert</span> m[<span class="hljs-string">&#x27;ev&#x27;</span>]==ev,(species,m[<span class="hljs-string">&#x27;ev&#x27;</span>],ev)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SAVED PAIRED EV VERIFIED&#x27;</span>,me,ce,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-comment"># Pilot native save confirms battle switching preserves Mienshao in party slot0.</span>
+<span class="hljs-comment"># The battle helper verifies the named hunter at every encounter, avoiding redundant party menus.</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">bulk</span>(<span class="hljs-params">n,slot=<span class="hljs-number">1</span></span>):run(<span class="hljs-string">&#x27;train_wild_bulk&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>,slot,n,<span class="hljs-string">&#x27;--hunter&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;--targets&#x27;</span>,<span class="hljs-string">&#x27;Noibat,Woobat&#x27;</span>,<span class="hljs-string">&#x27;--flex-targets&#x27;</span>,<span class="hljs-string">&#x27;--ev-ledger&#x27;</span>,<span class="hljs-string">&#x27;--recover-slot&#x27;</span>,<span class="hljs-number">2</span>)
+phase=sys.argv[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">if</span> phase==<span class="hljs-string">&#x27;travel&#x27;</span>:
+ run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Bracer&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>);run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Lens&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>)
+ run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>)
+ run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>)
+ run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;519,9,60,left,wait:2&#x27;</span>,<span class="hljs-string">&#x27;530,94,13,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;519,29,11,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;513,15,8,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;519,58,11,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;633,10,8&#x27;</span>)
+ check(<span class="hljs-string">&#x27;Prep202-EV-ready&#x27;</span>,[<span class="hljs-number">0</span>,<span class="hljs-number">79</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">108</span>],[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">41</span>,<span class="hljs-number">0</span>,<span class="hljs-number">142</span>])
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;pilot&#x27;</span>:
+ bulk(<span class="hljs-number">1</span>);check(<span class="hljs-string">&#x27;Prep202-EV-pilot&#x27;</span>,[<span class="hljs-number">0</span>,<span class="hljs-number">111</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">108</span>],[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">73</span>,<span class="hljs-number">0</span>,<span class="hljs-number">142</span>])
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;attack-special&#x27;</span>:
+ bulk(<span class="hljs-number">5</span>);check(<span class="hljs-string">&#x27;Prep202-Attack-done&#x27;</span>,[<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">108</span>],[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">233</span>,<span class="hljs-number">0</span>,<span class="hljs-number">142</span>])
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;mixed&#x27;</span>:
+ run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Anklet&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>);bulk(<span class="hljs-number">1</span>)
+ check(<span class="hljs-string">&#x27;Prep202-Special-done&#x27;</span>,[<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">140</span>],[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">142</span>])
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;speed&#x27;</span>:
+ run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Anklet&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>);bulk(<span class="hljs-number">4</span>,<span class="hljs-number">3</span>)
+ check(<span class="hljs-string">&#x27;Prep202-EV-complete&#x27;</span>,[<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>],[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>])
+ run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Protective Pads&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>);run(<span class="hljs-string">&#x27;take_held&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>,<span class="hljs-string">&#x27;Power Anklet&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unknown phase&#x27;</span>)
+</code></pre>
+  </body>
+</html>

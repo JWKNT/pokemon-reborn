@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="One normal HeartScale for Cofa Hex">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="heartscale-normal-route-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/heartscale-normal-route-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/heartscale-normal-route-2026-10-03.md.html">
+    <title>heartscale-normal-route-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">heartscale-normal-route-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 5.6 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · first used Oct 3 13:53</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>One normal HeartScale for Cofa Hex</h2>
+<p>Source-only proposal for installed19.5.43. No live UI, active native save/log, AI or RNG was read; no input was sent. Full proposed dry edges and precise phase guards: <code>work/heartscale715-normal-route-PROPOSAL.json</code>. Map illustration <code>work/agate-map715-SOURCE-ONLY.png</code> uses installed tiles and explicit historical/hypothetical event pages only.</p>
+<p><strong>Prefer Route4 Map715E64[57,20], on the central island.</strong> <a href="https://bigjra.github.io/reborn/#upper-route-4">BigJRA&#39;s Upper Route4 section</a> corroborates the island/Surf requirement. Installed events and passability supply the exact recipe below. The model uses the named historical post-Glass navigation plus hypothetical completed briefing39151; root must inspect fresh actual progress and layer before execution.</p>
+<p>The first post-Hypno735 arrival briefly transfers to715[39,20]/39145, but Radomus715E85 is trigger3 <strong>autorun</strong>, immediately continuing recovery to734. There is no controllable overworld window for a Scale detour there. Leave that recovery chain intact. The post-Hypno source helper owns735E4→715E85→734E16→735E7 and Anna&#39;s final choice.</p>
+<h3>Normal later approach</h3>
+<p>After recovery/Calcenon briefing, use the already reviewed ordinary transfers/climbs:413E21→418[17,7];418E2→412[12,18];412E1 RockClimb→710[23,49];710E2→711;711E3→713;713E5→714;714E3→715[65,17]. Keep a healed level90 lead and use an owned Repel normally; an unexpected encounter/dialogue/capture failure stops the route for review. Do not replay an interrupted queue blindly.</p>
+<p>710E3[44,43] does transfer directly to715[14,12], but it occupies an isolated upper710 ledge. Source-only walking/layer/Surf planning found no path from the normal710[23,49] entrance to any of its faces. <strong>It is not a shortcut from Calcenon.</strong> If a future actual position already reaches that ledge, its715 entry shortens the dock approach to58 edges; the normal715[65,17] approach is87 dry ordinary/hop edges.</p>
+<h3>Bounded control recipe on715</h3>
+<ol>
+<li>Inspect actual715 coordinates and current410 layer. Run the existing <strong><code>layer_walk.py 715 50 23 &lt;observed410 0/1&gt; 0</code></strong>. It uses bounded28-edge chunks, verifies actual endpoints, preserves calibrated jump taps and stops on unapproved screens/wilds. The source path stays dry, ends at50,23/410False, and avoids the story transfers at21,16 and39,15. Root must not replace observed layer with the proposal&#39;s initial value.</li>
+<li>At <strong>50,23</strong>, face DOWN with the usual short turning tap, press C and resolve only the verified normal Surf prompt, or its source-backed convenience transition. <code>HiddenMoves.rb:469–510</code> requires the ordinary Surf move/permission and jumps to the facing water tile. Verify the visible Surf avatar and actual <strong>715[50,24]</strong> before continuing. A hop-rock landing is not proof of Surf.</li>
+<li>Send one normal <strong>DOWN:.12</strong>, then verify <strong>715[50,25]</strong> and overworld completion. <strong>E97</strong> at50,25 has tile417 and unconditional <code>code121[410,410,0]</code>; this is the reliable source-backed <strong>410True</strong> anchor. Root may reflect that completed observed source effect into planner notes. Do not assume E31 set410 on the50,24 boarding landing: its here-trigger can be rejected because that water tile is not an <code>over_trigger?</code> tile (<code>Game_Event.rb:60</code>, <code>Game_Player.rb:411</code>).</li>
+<li>From that verified <strong>50,25 / Surf /410True</strong> anchor, run existing <strong><code>surface_walk.py 715 57 21</code></strong>. Installed-only planning gives15 edges: RIGHT8, UP1, RIGHT1, UP3, land LEFT from59,21 to58,21, LEFT to57,21. It has no artificial jump edge or further layer change. The surface helper verifies coordinates before/after its chunks and stops on a715 encounter rather than auto-fleeing it. Native <code>pbEndSurf</code>/<code>pbJumpToward</code> handles the adjacent island landing normally.</li>
+<li>At <strong>57,21</strong>, run <strong><code>eventq.py 715 64 item</code></strong> (or the <code>agate_prep_phase.py scale</code> final-pickup phase). It selects the southern face, turns UP and presses C. E64 calls <code>pbItemBall(:HEARTSCALE)</code> and sets self-A only on success. Inspect the acquisition message; a normal checkpoint/native bag proof may verify exactly1 HeartScale and715,64,A before crediting the unlock. Do not use collected710E64.</li>
+</ol>
+<p>All controls remain ordinary <code>play.act</code> helper inputs; neither this note nor its JSON changes game state. The layer source effect is only mirrored after its exact actual coordinate/completion is witnessed. Stop if the native event page, arrival, partner, Surf permission, stock, source geometry or visible screen differs.</p>
+<h3>Why the generic island route failed</h3>
+<p>715&#39;s hop rocks use Neutral13 overlays over Water6/7. Existing <code>surface_plan.py</code> infers mode from the destination terrain tag, so it changes a native ordinary jump into <code>surf:jump:down</code>. That jump does <strong>not</strong> invoke <code>pbStartSurfing</code>, and <code>surface_walk.py</code> would parse the nested key as direction <code>jump</code>. Do not use that generated edge. The dry approach above keeps explicit SurfFalse throughout; boarding begins only at the normal50,23 action boundary. Once visibly boarded, the existing surface model is valid for the short island crossing.</p>
+<p>704E87[34,53] is an uncollected backup in the historical saved self-switches. Tourmaline has no direct Fly point and uses four changing layouts, so a704 trip needs a separate train/layout/coordinate route; none is represented as a ready shortcut here. Route715 supplies one source-proven practical approach with the already owned Surf/RockClimb roster.</p>
+<p>Verification: pure installed-only dry/layer/explicit-Surf exploration found the complete approach from both715 entry candidates. The final15-edge water/land segment was also checked against the existing <code>surface_plan</code> function with a true Surf start and410True. No live route was executed.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

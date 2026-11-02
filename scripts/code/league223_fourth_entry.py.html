@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>league223_fourth_entry.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of league223_fourth_entry.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Use the upper red crystal and enter Teknite4F normally.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FOURTH ENTRY&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>,env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>))
+run(<span class="hljs-string">&#x27;teknite_walk&#x27;</span>,<span class="hljs-number">648</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">648</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;League223-Red3F&#x27;</span>)
+run(<span class="hljs-string">&#x27;teknite_walk&#x27;</span>,<span class="hljs-number">648</span>,<span class="hljs-number">17</span>,<span class="hljs-string">&#x27;smash&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;League223-Wall3F&#x27;</span>)
+run(<span class="hljs-string">&#x27;teknite_walk&#x27;</span>,<span class="hljs-number">648</span>,<span class="hljs-number">17</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;settle_arrival&#x27;</span>,<span class="hljs-number">641</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;League223-Teknite4F&#x27;</span>)
+</code></pre>
+  </body>
+</html>

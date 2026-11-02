@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>dive_route_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of dive_route_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only paired surface/Dive planner; emits ordinary controls, never edits game data.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> surface_readonly <span class="hljs-keyword">import</span> ROOT,route,tag,WATER
+<span class="hljs-keyword">import</span> json,sys,subprocess,heapq
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-comment"># Optional planning-only state; never changes native game data or navigation notes.</span>
+planning=json.loads(<span class="hljs-built_in">open</span>(sys.argv[<span class="hljs-number">6</span>]).read()) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">6</span> <span class="hljs-keyword">else</span> {}
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">planning_arg</span>(<span class="hljs-params">switches=<span class="hljs-literal">None</span></span>):
+ out=copy.deepcopy(planning);out.setdefault(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).update(switches <span class="hljs-keyword">or</span> {});<span class="hljs-keyword">return</span> json.dumps(out)
+mid,sx,sy,tx,ty=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">6</span>]);meta=json.loads((ROOT/<span class="hljs-string">&#x27;work/fly-map-data.json&#x27;</span>).read_text());under=meta[<span class="hljs-string">&#x27;maps&#x27;</span>][<span class="hljs-built_in">str</span>(mid)][<span class="hljs-string">&#x27;DiveMap&#x27;</span>]
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(sx),<span class="hljs-built_in">str</span>(sy),planning_arg({<span class="hljs-string">&#x27;578&#x27;</span>:<span class="hljs-literal">False</span>})],stderr=subprocess.DEVNULL))
+u=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(under),<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,planning_arg()],stderr=subprocess.DEVNULL))
+g0=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+sv=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(sx),<span class="hljs-built_in">str</span>(sy),planning_arg({<span class="hljs-string">&#x27;578&#x27;</span>:<span class="hljs-literal">True</span>})],stderr=subprocess.DEVNULL))
+<span class="hljs-keyword">for</span> i,t <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(sv[<span class="hljs-string">&#x27;terrain&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>]):
+ <span class="hljs-keyword">if</span> t <span class="hljs-keyword">in</span> WATER:sv[<span class="hljs-string">&#x27;passages&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][i]=<span class="hljs-number">0</span>;sv[<span class="hljs-string">&#x27;priorities&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][i]=<span class="hljs-number">0</span>
+g1=route(sv,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+<span class="hljs-comment"># Aegir&#x27;s underwater passages connect separate chambers on the same map.</span>
+<span class="hljs-comment"># Model their installed touch transfers instead of treating every door as a wall.</span>
+transfers={}
+uv=copy.deepcopy(u)
+<span class="hljs-keyword">for</span> eid,event <span class="hljs-keyword">in</span> u[<span class="hljs-string">&#x27;events&#x27;</span>].items():
+ commands=event.get(<span class="hljs-string">&#x27;list&#x27;</span>) <span class="hljs-keyword">or</span> []
+ destinations=[c[<span class="hljs-string">&#x27;parameters&#x27;</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> commands <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span>]
+ <span class="hljs-keyword">if</span> event[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(destinations)==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> destinations[<span class="hljs-number">0</span>][:<span class="hljs-number">2</span>]==[<span class="hljs-number">0</span>,under]:
+  transfers[(event[<span class="hljs-string">&#x27;x&#x27;</span>],event[<span class="hljs-string">&#x27;y&#x27;</span>])]=<span class="hljs-built_in">tuple</span>(destinations[<span class="hljs-number">0</span>][<span class="hljs-number">2</span>:<span class="hljs-number">4</span>])
+  uv[<span class="hljs-string">&#x27;events&#x27;</span>].pop(eid)
+<span class="hljs-comment"># Underwater travel traverses water tiles using the normal diving vehicle.</span>
+<span class="hljs-keyword">for</span> i,t <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(uv[<span class="hljs-string">&#x27;terrain&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>]):
+ <span class="hljs-keyword">if</span> t <span class="hljs-keyword">in</span> WATER:uv[<span class="hljs-string">&#x27;passages&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][i]=<span class="hljs-number">0</span>;uv[<span class="hljs-string">&#x27;priorities&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][i]=<span class="hljs-number">0</span>
+ug=route(uv,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+start=(mid,sx,sy,tag(v,(sx,sy))<span class="hljs-keyword">in</span> WATER);todo=[(<span class="hljs-number">0</span>,start)];dist={start:<span class="hljs-number">0</span>};prev={start:<span class="hljs-literal">None</span>};end=<span class="hljs-literal">None</span>
+<span class="hljs-keyword">while</span> todo:
+ cost,p=heapq.heappop(todo)
+ <span class="hljs-keyword">if</span> cost!=dist[p]:<span class="hljs-keyword">continue</span>
+ layer,x,y,surf=p;pos=(x,y)
+ <span class="hljs-keyword">if</span> layer==mid <span class="hljs-keyword">and</span> pos==(tx,ty):end=p;<span class="hljs-keyword">break</span>
+ choices=[]
+ <span class="hljs-keyword">if</span> layer==under:
+  choices=[((under,*transfers.get(n,n),<span class="hljs-literal">False</span>),(<span class="hljs-string">&#x27;door:&#x27;</span>+k <span class="hljs-keyword">if</span> n <span class="hljs-keyword">in</span> transfers <span class="hljs-keyword">else</span> k),<span class="hljs-number">1</span>)<span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> ug.get(pos,[])<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> k.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>)]
+  <span class="hljs-keyword">for</span> key,dx,dy <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),(<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),(<span class="hljs-string">&#x27;left&#x27;</span>,-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)]:
+   front=(x+dx,y+dy)
+   <span class="hljs-keyword">if</span> front <span class="hljs-keyword">in</span> transfers:choices.append(((under,*transfers[front],<span class="hljs-literal">False</span>),<span class="hljs-string">&#x27;door:&#x27;</span>+key,<span class="hljs-number">1</span>))
+  <span class="hljs-keyword">if</span> tag(v,pos)==<span class="hljs-number">5</span>:choices.append(((mid,x,y,<span class="hljs-literal">True</span>),<span class="hljs-string">&#x27;surface&#x27;</span>,<span class="hljs-number">8</span>))
+ <span class="hljs-keyword">else</span>:
+  edges=<span class="hljs-built_in">list</span>((g1 <span class="hljs-keyword">if</span> surf <span class="hljs-keyword">else</span> g0).get(pos,[]))
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> surf:edges.extend((k,n)<span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> g1.get(pos,[])<span class="hljs-keyword">if</span> tag(v,n)<span class="hljs-keyword">in</span> WATER <span class="hljs-keyword">and</span> tag(v,pos)<span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> WATER)
+  <span class="hljs-keyword">for</span> key,n <span class="hljs-keyword">in</span> edges:
+   <span class="hljs-keyword">if</span> surf <span class="hljs-keyword">and</span> key.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):<span class="hljs-keyword">continue</span>
+   mode=tag(v,n)<span class="hljs-keyword">in</span> WATER;extra=<span class="hljs-number">1</span>
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> surf <span class="hljs-keyword">and</span> mode:key=<span class="hljs-string">&#x27;surf:&#x27;</span>+key;extra=<span class="hljs-number">8</span>
+   <span class="hljs-keyword">elif</span> surf <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> mode:
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(n[<span class="hljs-number">0</span>]-x)+<span class="hljs-built_in">abs</span>(n[<span class="hljs-number">1</span>]-y)!=<span class="hljs-number">1</span>:<span class="hljs-keyword">continue</span>
+    key=<span class="hljs-string">&#x27;land:&#x27;</span>+key
+   choices.append(((mid,*n,mode),key,extra))
+  <span class="hljs-keyword">if</span> surf <span class="hljs-keyword">and</span> tag(v,pos)==<span class="hljs-number">5</span>:choices.append(((under,x,y,<span class="hljs-literal">False</span>),<span class="hljs-string">&#x27;dive&#x27;</span>,<span class="hljs-number">8</span>))
+ <span class="hljs-keyword">for</span> np,k,e <span class="hljs-keyword">in</span> choices:
+  nc=cost+e
+  <span class="hljs-keyword">if</span> nc&lt;dist.get(np,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):dist[np]=nc;prev[np]=(p,k);heapq.heappush(todo,(nc,np))
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> end:
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;REACHABLE&#x27;</span>, {layer:<span class="hljs-built_in">sum</span>(p[<span class="hljs-number">0</span>]==layer <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> dist) <span class="hljs-keyword">for</span> layer <span class="hljs-keyword">in</span> [mid,under]}, <span class="hljs-string">&#x27;start&#x27;</span>,start,<span class="hljs-string">&#x27;goal surface neighbors&#x27;</span>,g1.get((tx,ty)), <span class="hljs-string">&#x27;under doors&#x27;</span>,transfers)
+ <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No paired Dive route&#x27;</span>)
+steps=[]
+<span class="hljs-keyword">while</span> prev[end]:old,k=prev[end];steps.append({<span class="hljs-string">&#x27;from&#x27;</span>:old,<span class="hljs-string">&#x27;to&#x27;</span>:end,<span class="hljs-string">&#x27;key&#x27;</span>:k});end=old
+steps.reverse();path=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">f&#x27;dive-route-<span class="hljs-subst">{mid}</span>.json&#x27;</span>;path.write_text(json.dumps(steps,indent=<span class="hljs-number">2</span>));<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PLAN&#x27;</span>,<span class="hljs-built_in">len</span>(steps),<span class="hljs-string">&#x27;steps&#x27;</span>,path)
+<span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> steps:
+ <span class="hljs-keyword">if</span> s[<span class="hljs-string">&#x27;key&#x27;</span>]<span class="hljs-keyword">in</span>[<span class="hljs-string">&#x27;dive&#x27;</span>,<span class="hljs-string">&#x27;surface&#x27;</span>]:<span class="hljs-built_in">print</span>(s)
+</code></pre>
+  </body>
+</html>

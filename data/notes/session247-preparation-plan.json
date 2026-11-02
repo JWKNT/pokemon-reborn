@@ -1,0 +1,34 @@
+{
+  "trained": {
+    "Sylveon": 110,
+    "Amoonguss": 110
+  },
+  "candies_remaining": 5,
+  "sylveon_current": [
+    "Wish",
+    "Misty Terrain",
+    "Calm Mind",
+    "Moonblast"
+  ],
+  "relearn": [
+    {
+      "name": "Sylveon",
+      "move": "Draining Kiss",
+      "list_index": 11,
+      "replace_slot": 0
+    },
+    {
+      "name": "Amoonguss",
+      "move": "Synthesis",
+      "list_index": 9,
+      "replace_slot": 1
+    }
+  ],
+  "heartscale_plan": "Good Rod registered; Arcanine100 Thief0 no held item; Tanzan Cove232 shore16,20 facing down; low-level pool Basculin60%, Mantyke20%, Luvdisc20%; normal UI casts and Thief KOs. Stop after two scales or24 battles, refill if necessary.",
+  "boxed_Aegislash": "Box1 slot23 exchanged with Arcanine; restore before Raikou",
+  "abandoned_routes": [
+    "MirageTower707 requires18RockSmash glass walls; no mirror broken or HP lost.",
+    "OldRod602 inaccessible postgame: Opal519 active door goes633."
+  ],
+  "GoodRod": "Collected242E16 after stepping27112,41 sets232 and unlocks271E50 door"
+}

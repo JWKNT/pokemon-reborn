@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_late_crystals.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_late_crystals.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Enter Victory Road puzzle 3 or 4&#x27;s clue-derived solution using ordinary controls.
+Only a fresh legitimate puzzle checkpoint is accepted. Each bounded push group
+is checked via public coordinates; every column is saved normally and the owned
+frozen event positions are checked. No hidden answer or game writes are used.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse,json,subprocess,sys,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+ p=argparse.ArgumentParser();p.add_argument(<span class="hljs-string">&#x27;puzzle&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,choices=[<span class="hljs-number">3</span>,<span class="hljs-number">4</span>]);p.add_argument(<span class="hljs-string">&#x27;label&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;journal&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;--start-column&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,default=<span class="hljs-number">0</span>,choices=<span class="hljs-built_in">range</span>(<span class="hljs-number">6</span>));a=p.parse_args()
+ mid,base,columns,origin0,row0={<span class="hljs-number">3</span>:(<span class="hljs-number">793</span>,<span class="hljs-number">9</span>,<span class="hljs-number">5</span>,<span class="hljs-number">20</span>,<span class="hljs-number">18</span>),<span class="hljs-number">4</span>:(<span class="hljs-number">795</span>,<span class="hljs-number">14</span>,<span class="hljs-number">6</span>,<span class="hljs-number">17</span>,<span class="hljs-number">23</span>)}[a.puzzle]
+ <span class="hljs-keyword">assert</span> a.start_column&lt;columns
+ n=R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{a.label}</span>-navigation.json&#x27;</span>; s=R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{a.label}</span>-status.json&#x27;</span>;j=R/a.journal
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> j.exists() <span class="hljs-keyword">and</span> time.time()-n.stat().st_mtime&lt;<span class="hljs-number">120</span>
+ <span class="hljs-keyword">assert</span> json.loads(s.read_text())[<span class="hljs-string">&#x27;map&#x27;</span>]==mid
+ sol=json.loads((R/<span class="hljs-string">f&#x27;work/198-gem-puzzle<span class="hljs-subst">{a.puzzle}</span>-solution.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;solutions&#x27;</span>];<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(sol)==<span class="hljs-number">1</span>
+ cols=[sol[<span class="hljs-number">0</span>][k]<span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;size&#x27;</span>,<span class="hljs-string">&#x27;hardness&#x27;</span>,<span class="hljs-string">&#x27;purity&#x27;</span>,<span class="hljs-string">&#x27;foliation&#x27;</span>,<span class="hljs-string">&#x27;luster&#x27;</span>,<span class="hljs-string">&#x27;habit&#x27;</span>][:columns]]
+ <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act,read
+ <span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+ history=[]
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">log</span>(<span class="hljs-params">**kw</span>):history.append(<span class="hljs-built_in">dict</span>(epoch=time.time(),**kw));j.write_text(json.dumps(history,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">for</span> col <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(a.start_column,columns):
+  nav=json.loads(n.read_text());origin=origin0+<span class="hljs-number">6</span>*col
+  <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+   xx,yy=nav[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-built_in">str</span>(mid)][<span class="hljs-built_in">str</span>(base+row*columns+col)]
+   <span class="hljs-keyword">assert</span> yy==row0+row <span class="hljs-keyword">and</span> origin&lt;=xx&lt;=origin+cols[col][row]
+  source=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],stderr=subprocess.DEVNULL))
+  <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+   e=source[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(base+row*columns+col)]
+   <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;blindstepGemPuzzle(get_character(0))&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(e[<span class="hljs-string">&#x27;list&#x27;</span>]) <span class="hljs-keyword">and</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">0</span>
+  <span class="hljs-keyword">for</span> row,target <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(cols[col]):
+   eid=<span class="hljs-built_in">str</span>(base+row*columns+col);current=nav[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-built_in">str</span>(mid)][eid][<span class="hljs-number">0</span>];count=origin+target-current
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> count:<span class="hljs-keyword">continue</span>
+   run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">f&#x27;<span class="hljs-subst">{mid}</span>,<span class="hljs-subst">{current-<span class="hljs-number">1</span>}</span>,<span class="hljs-subst">{row0+row}</span>&#x27;</span>)
+   start=(mid,current-<span class="hljs-number">1</span>,row0+row);<span class="hljs-keyword">assert</span> locate(mid)==start
+   <span class="hljs-comment"># Face with a reliable bump into the adjacent impassable tuner. A .03s</span>
+   <span class="hljs-comment"># tap can miss polling and leave the player facing the previous route.</span>
+   act(<span class="hljs-string">&#x27;right:.18&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+   log(column=col,row=row,pending_pushes=count)
+   act(*[k <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(count)<span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;c:.18&#x27;</span>,<span class="hljs-string">&#x27;wait:.45&#x27;</span>,<span class="hljs-string">&#x27;right:.18&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>]])
+   observed=locate(mid);<span class="hljs-keyword">assert</span> observed==(mid,origin-<span class="hljs-number">1</span>+target,row0+row),<span class="hljs-string">f&#x27;Push endpoint review: <span class="hljs-subst">{observed}</span>&#x27;</span>
+   log(column=col,row=row,verified_player=<span class="hljs-built_in">list</span>(observed),inferred_tuner=[origin+target,row0+row],basis=<span class="hljs-string">&#x27;Exactly N action-button pushes, N vacated-square moves, and observed player endpoint&#x27;</span>)
+   planner=R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(planner.read_text());v[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-built_in">str</span>(mid)][eid]=[origin+target,row0+row];planner.write_text(json.dumps(v)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+  label=<span class="hljs-string">f&#x27;<span class="hljs-subst">{a.label}</span>-column<span class="hljs-subst">{col+<span class="hljs-number">1</span>}</span>&#x27;</span>;run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label);n=R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-navigation.json&#x27;</span>
+  nav=json.loads(n.read_text())
+  <span class="hljs-keyword">for</span> row,count <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(cols[col]):<span class="hljs-keyword">assert</span> nav[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-built_in">str</span>(mid)][<span class="hljs-built_in">str</span>(base+row*columns+col)]==[origin+count,row0+row]
+  log(column=col,frozen_checkpoint=label,all_four_tuner_positions_verified=<span class="hljs-literal">True</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ALL CRYSTALS VERIFIED; use the normal Check Solution choice&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:main()
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>lyla_ezra_enter131.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of lyla_ezra_enter131.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Ordinary paired encounter from source-reviewed staging; one trigger only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,act
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,<span class="hljs-string">&#x27;NWCultistF&#x27;</span>,<span class="hljs-string">&#x27;Lyla &amp; Ezra&#x27;</span>,<span class="hljs-string">&#x27;--battle-track&#x27;</span>,<span class="hljs-string">&#x27;Atmosphere- Majesty&#x27;</span>)
+p=ROOT/<span class="hljs-string">&#x27;work/active-trainer-music.json&#x27;</span>;d=json.loads(p.read_text());d[<span class="hljs-string">&#x27;victory&#x27;</span>]=<span class="hljs-string">&#x27;Atmosphere- Majesty&#x27;</span>;d[<span class="hljs-string">&#x27;event_music_evidence&#x27;</span>]=<span class="hljs-string">&#x27;Map763 E45/46 command132 Majesty and133 empty AudioFile; installed Audio no-op empty name&#x27;</span>;p.write_text(json.dumps(d,indent=<span class="hljs-number">2</span>))
+act(<span class="hljs-string">&#x27;right:0.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">763</span>,<span class="hljs-number">45</span>,<span class="hljs-string">&#x27;NWCultistF&#x27;</span>,<span class="hljs-string">&#x27;Lyla &amp; Ezra&#x27;</span>,<span class="hljs-string">&#x27;--paired-event&#x27;</span>,<span class="hljs-number">46</span>,<span class="hljs-string">&#x27;--active-dialogue&#x27;</span>,<span class="hljs-string">&#x27;--resume-intro&#x27;</span>)
+</code></pre>
+  </body>
+</html>

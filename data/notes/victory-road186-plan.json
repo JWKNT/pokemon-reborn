@@ -1,0 +1,9 @@
+{
+  "checkpoint": "VictoryRoad186-first-plate",
+  "story": "First plate44,37 opened; Saphira scene done; stage475=110",
+  "field_moves": {"Mienshao":"Strength replaces Brick Break; owned TM31 can restore", "Swampert":"Rock Climb replaces Surf; owned HM03 can restore"},
+  "hazard": "784 Blake icicles continue during idle overworld, knock player backwards and damage party. Pause for planning only in sheltered maps; cross transfer tile in movement burst.",
+  "puzzle1": "Unique clue-derived solution saved work/186-gem-puzzle1-solution.json; script normal pushes and frozen positions after each column",
+  "Diana": {"source":"work/186-diana-static.json", "lead":"Hexan Light Screen then Freeze-Dry twice against Rotom; recover if needed", "counters":{"Weavile":"Sylveon Moonblast", "Dragonite":"Sylveon immune Dragon Claw, watch boosted Extreme Speed", "Scizor":"Cofagrigus Will-O-Wisp, then Swampert", "Serperior":"Cryogonal Ice Beam under Light Screen; avoid unchecked Contrary boosts", "Alakazam":"Sylveon Moonblast and Wish with special bulk"}, "field":"Holy boosts Fairy1.5/Psychic1.2, halves Ghost; MagicalSeed +1SpA and MagicCoat"},
+  "archives185":"Verified both archives, consumed sources cleaned, pushed e44e72f; capture186 remains active"
+}

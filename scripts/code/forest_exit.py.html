@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>forest_exit.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of forest_exit.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> route
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> heapq
+mid,x,y=locate(<span class="hljs-number">234</span>)
+<span class="hljs-keyword">if</span> mid!=<span class="hljs-number">234</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Wrong map&#x27;</span>)
+base=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());stage=base[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;145&#x27;</span>];cache={}
+<span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">9</span>):
+ cache[s]=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;234&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,json.dumps({<span class="hljs-string">&#x27;variables&#x27;</span>:{<span class="hljs-string">&#x27;145&#x27;</span>:s}})],stderr=subprocess.DEVNULL))
+q=[(<span class="hljs-number">0</span>,stage,x,y,[])];seen=<span class="hljs-built_in">set</span>();plan=<span class="hljs-literal">None</span>
+<span class="hljs-keyword">while</span> q:
+ cost,s,x,y,steps=heapq.heappop(q)
+ <span class="hljs-keyword">if</span> (s,x,y) <span class="hljs-keyword">in</span> seen:<span class="hljs-keyword">continue</span>
+ seen.add((s,x,y));v=cache[s];v[<span class="hljs-string">&#x27;position&#x27;</span>]=[x,y];reach=route(v,<span class="hljs-literal">None</span>)
+ <span class="hljs-keyword">if</span> (<span class="hljs-number">9</span>,<span class="hljs-number">27</span>) <span class="hljs-keyword">in</span> reach:plan=steps+[(s,<span class="hljs-number">9</span>,<span class="hljs-number">27</span>,<span class="hljs-literal">None</span>)];<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values():
+  <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>]:
+   a=c[<span class="hljs-string">&#x27;parameters&#x27;</span>]
+   <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">122</span> <span class="hljs-keyword">and</span> a[:<span class="hljs-number">4</span>]==[<span class="hljs-number">145</span>,<span class="hljs-number">145</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>] <span class="hljs-keyword">and</span> a[<span class="hljs-number">4</span>]!=s <span class="hljs-keyword">and</span> (e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]) <span class="hljs-keyword">in</span> reach:
+    heapq.heappush(q,(cost+reach[(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])],a[<span class="hljs-number">4</span>],e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>],steps+[(s,e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>],a[<span class="hljs-number">4</span>])]))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FOREST EXIT PLAN&#x27;</span>,plan,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> plan:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No exit plan&#x27;</span>)
+<span class="hljs-keyword">for</span> stage,x,y,nextstage <span class="hljs-keyword">in</span> plan:
+ rc=subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">f&#x27;234,<span class="hljs-subst">{x}</span>,<span class="hljs-subst">{y}</span>&#x27;</span>])
+ <span class="hljs-keyword">if</span> rc:<span class="hljs-keyword">raise</span> SystemExit(rc)
+ <span class="hljs-keyword">if</span> nextstage <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+  p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;145&#x27;</span>]=nextstage;p.write_text(json.dumps(v))
+act(<span class="hljs-string">&#x27;left&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>);<span class="hljs-built_in">print</span>(read())
+</code></pre>
+  </body>
+</html>

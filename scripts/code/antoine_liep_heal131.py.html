@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>antoine_liep_heal131.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of antoine_liep_heal131.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Decline the reviewed free switch and heal once; stop at command.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,read,act
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;yes&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;no&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;change&#x27;</span> <span class="hljs-keyword">in</span> t
+act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/agate_public_action.py&#x27;</span>),<span class="hljs-string">&#x27;--execute&#x27;</span>,<span class="hljs-string">&#x27;--mode&#x27;</span>,<span class="hljs-string">&#x27;antoine&#x27;</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Liepard&#x27;</span>,<span class="hljs-string">&#x27;--item&#x27;</span>,<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;--output&#x27;</span>,<span class="hljs-string">&#x27;work/antoine-liep-heal131.json&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

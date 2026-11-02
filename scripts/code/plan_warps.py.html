@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>plan_warps.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of plan_warps.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only shortest route through unconditional, same-map touch teleporters.
+Print safe_steps waypoints; never sends input or changes game/save data.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> route
+<span class="hljs-keyword">import</span> json,sys,subprocess,heapq
+mid,sx,sy,gx,gy=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">6</span>]);goal=(gx,gy)
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>,<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(sx),<span class="hljs-built_in">str</span>(sy)],stderr=subprocess.DEVNULL))
+warps=[]
+<span class="hljs-keyword">for</span> eid,e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items():
+ c=e[<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">or</span> [];ts=[x[<span class="hljs-string">&#x27;parameters&#x27;</span>] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> c <span class="hljs-keyword">if</span> x[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span>]
+ <span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>] <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>] <span class="hljs-keyword">or</span> <span class="hljs-built_in">len</span>(ts)!=<span class="hljs-number">1</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(x[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">111</span> <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> c):<span class="hljs-keyword">continue</span>
+ a=ts[<span class="hljs-number">0</span>]
+ <span class="hljs-keyword">if</span> a[<span class="hljs-number">0</span>]!=<span class="hljs-number">0</span> <span class="hljs-keyword">or</span> a[<span class="hljs-number">1</span>]!=mid:<span class="hljs-keyword">continue</span>
+ warps.append(((e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]),<span class="hljs-built_in">tuple</span>(a[<span class="hljs-number">2</span>:<span class="hljs-number">4</span>]),eid))
+start=(sx,sy);q=[(<span class="hljs-number">0</span>,start,[])];best={start:<span class="hljs-number">0</span>}
+<span class="hljs-keyword">while</span> q:
+ cost,pos,steps=heapq.heappop(q)
+ <span class="hljs-keyword">if</span> cost!=best[pos]:<span class="hljs-keyword">continue</span>
+ vv=<span class="hljs-built_in">dict</span>(v,position=<span class="hljs-built_in">list</span>(pos))
+ <span class="hljs-keyword">try</span>:
+  p=route(vv,goal)
+  <span class="hljs-comment"># A reachable final walk may not be globally shortest, but is a valid reviewed route.</span>
+  <span class="hljs-built_in">print</span>(json.dumps(steps+[[<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">f&#x27;<span class="hljs-subst">{mid}</span>,<span class="hljs-subst">{gx}</span>,<span class="hljs-subst">{gy}</span>&#x27;</span>]],indent=<span class="hljs-number">2</span>));<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">pass</span>
+ <span class="hljs-keyword">for</span> tile,dest,eid <span class="hljs-keyword">in</span> warps:
+  <span class="hljs-keyword">if</span> tile==pos:<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">try</span>:p=route(vv,tile)
+  <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> p <span class="hljs-keyword">or</span> p[-<span class="hljs-number">1</span>].startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):<span class="hljs-keyword">continue</span>
+  k=p[-<span class="hljs-number">1</span>];dx,dy={<span class="hljs-string">&#x27;left&#x27;</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;right&#x27;</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;up&#x27;</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;down&#x27;</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>)}[k]
+  before=(tile[<span class="hljs-number">0</span>]-dx,tile[<span class="hljs-number">1</span>]-dy);nc=cost+<span class="hljs-built_in">len</span>(p)+<span class="hljs-number">2</span>
+  <span class="hljs-keyword">if</span> nc&lt;best.get(dest,<span class="hljs-number">10</span>**<span class="hljs-number">9</span>):
+   best[dest]=nc;heapq.heappush(q,(nc,dest,steps+[[<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">f&#x27;<span class="hljs-subst">{mid}</span>,<span class="hljs-subst">{before[<span class="hljs-number">0</span>]}</span>,<span class="hljs-subst">{before[<span class="hljs-number">1</span>]}</span>,<span class="hljs-subst">{k}</span>,wait:2&#x27;</span>]]))
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No safe warp route found&#x27;</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Calcenon → Route 4 stationary trainer exclusion review">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="calcenon-source-avoided-trainer-review-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/calcenon-source-avoided-trainer-review-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/calcenon-source-avoided-trainer-review-2026-10-03.md.html">
+    <title>calcenon-source-avoided-trainer-review-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">calcenon-source-avoided-trainer-review-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 2.2 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · committed Oct 3 17:56</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Calcenon → Route 4 stationary trainer exclusion review</h2>
+<p>Source-only independent review of <code>calcenon_agate_queue.py</code>&#39;s
+<code>--allow-source-avoided-trainers</code>, 2026-10-03. No game input, fresh capture,
+active native/save, or recording access was used. The running queue was not
+modified.</p>
+<p>The exception is suitable for the installed climb prefix 412 → 710 → 711 →
+713 → 714 → 715. It is restricted to the five climb maps and accepts only
+stationary player-touch events with an exact <code>Trainer(n)</code> name and a valid
+source facing. Moving, autorun, unnamed, and other automatic battles in the
+scanned trigger set still stop the queue. It inserts the NPC tile and all <code>n</code>
+source sightline tiles into the planner&#39;s hard <code>avoid</code> set before <code>eventq</code>
+plans any walking.</p>
+<p><code>nav.route</code> merges these tiles into <code>blocked</code>. Ordinary movement rejects
+them; native ledges reject both their intermediate tile and their landing;
+scripted/forced jumps reject their landing. <code>layer_route.plan</code> uses the same
+route graphs for both layer states, and its cache key includes the planner
+state, including the exclusions. <code>layer_walk</code> therefore retains the hard
+exclusions.</p>
+<p>Installed stationary trainers on the remainder of this prefix:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Map</th>
+<th>Event / position</th>
+<th>Facing / reach</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>710</td>
+<td>57 / (37,39)</td>
+<td>Left / 5</td>
+</tr>
+<tr>
+<td>711</td>
+<td>82 / (21,30)</td>
+<td>Down / 4</td>
+</tr>
+<tr>
+<td>711</td>
+<td>93 / (23,23)</td>
+<td>Right / 2</td>
+</tr>
+<tr>
+<td>713</td>
+<td>86 / (54,30)</td>
+<td>Down / 3</td>
+</tr>
+<tr>
+<td>714</td>
+<td>46 / (33,15)</td>
+<td>Down / 4</td>
+</tr>
+<tr>
+<td>714</td>
+<td>54 / (20,22)</td>
+<td>Down / 2</td>
+</tr>
+</tbody></table></div>
+<p>Installed source arrivals and climb staging positions are outside these
+sightlines. Map 713&#39;s forced jumps occupy x24–43, away from its trainer at
+x54. A static scan of the prefix&#39;s event pages found no controller moving or
+turning these trainers and no parallel-process battle. Map 412&#39;s conditional
+unnamed wild encounter remains rejected by this exception when its page is
+active.</p>
+<p>Two generic boundaries should remain explicit: the guard scans trigger
+1/2/3, not parallel trigger 4, and a scripted jump&#39;s intermediate transit
+tiles are not checked individually. Neither creates a concrete overlap in
+the installed prefix reviewed here. Reusing this exception for different
+maps or changed event pages needs a new source review. No helper fix was
+needed for the current route.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

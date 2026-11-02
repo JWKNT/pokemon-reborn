@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g9_after_stealth.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g9_after_stealth.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> nav
+m,x,y=locate(<span class="hljs-number">329</span>)
+<span class="hljs-keyword">if</span> m!=<span class="hljs-number">329</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Main Sanctum not reached&#x27;</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;528&#x27;</span>]=<span class="hljs-literal">True</span>;p.write_text(json.dumps(v))
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/a[<span class="hljs-number">0</span>]),*a[<span class="hljs-number">1</span>:]],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;field_medicine.py&#x27;</span>,<span class="hljs-string">&#x27;Lemonade&#x27;</span>,<span class="hljs-string">&#x27;Ampharos&#x27;</span>);act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.5&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;overworld.py&#x27;</span>);nav.save();<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

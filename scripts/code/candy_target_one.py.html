@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>candy_target_one.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of candy_target_one.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Spend normal candies for one Pokemon using an explicit fresh owned checkpoint.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,sys,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+label,name,target=sys.argv[<span class="hljs-number">1</span>],sys.argv[<span class="hljs-number">2</span>],<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">3</span>])
+s=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text());nav=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-navigation.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=target&lt;=<span class="hljs-built_in">min</span>(<span class="hljs-number">150</span>,<span class="hljs-number">100</span>+nav[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;595&#x27;</span>])
+ruby=<span class="hljs-string">&quot;&quot;&quot;require_relative &#x27;scripts/read_rgss&#x27;;MAXIMUMLEVEL=200
+load &#x27;/Applications/Reborn.app/Contents/Game/Scripts/PBExperience.rb&#x27;
+load &#x27;/Applications/Reborn.app/Contents/Game/Scripts/Reborn/montext.rb&#x27;
+p=plain(load_rgss(ARGV[0])[:Trainer])[&#x27;party&#x27;].find{|m|m[&#x27;name&#x27;]==ARGV[1]};raise &#x27;Missing Pokemon&#x27; unless p
+puts JSON.generate({level:p[&#x27;level&#x27;],exp:p[&#x27;exp&#x27;],target:PBExp.pbGetExpInternal(ARGV[2].to_i,MONHASH[p[&#x27;species&#x27;].to_sym].values.first[:GrowthRate])})&quot;&quot;&quot;</span>
+a=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;-e&#x27;</span>,ruby,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;backups&#x27;</span>/<span class="hljs-string">f&#x27;Aster-<span class="hljs-subst">{label}</span>.rxdata&#x27;</span>),name,<span class="hljs-built_in">str</span>(target)],cwd=R,stderr=subprocess.DEVNULL));count=<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,(a[<span class="hljs-string">&#x27;target&#x27;</span>]-a[<span class="hljs-string">&#x27;exp&#x27;</span>]+<span class="hljs-number">29999</span>)//<span class="hljs-number">30000</span>)
+<span class="hljs-keyword">assert</span> count&lt;=s[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>].get(<span class="hljs-string">&#x27;EXPCANDYXL&#x27;</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;Insufficient owned XL candy&#x27;</span>
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CANDY TARGET&#x27;</span>,name,target,count,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">while</span> count:
+ n=<span class="hljs-built_in">min</span>(<span class="hljs-number">35</span>,count);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/train_candy_one.py&#x27;</span>),name,<span class="hljs-built_in">str</span>(n),<span class="hljs-string">&#x27;XL&#x27;</span>],check=<span class="hljs-literal">True</span>);count-=n
+</code></pre>
+  </body>
+</html>

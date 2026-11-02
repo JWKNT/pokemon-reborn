@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>luna_bp_opening.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of luna_bp_opening.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed Luna Fairy Tale opening using normal UI and public command guards.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;glass_turn&#x27;</span>,<span class="hljs-string">&#x27;work/241-luna-screens.json&#x27;</span>)
+t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;choose a pok&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> (<span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> t.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>):run(<span class="hljs-string">&#x27;party_pick&#x27;</span>,<span class="hljs-string">&#x27;Mawile&#x27;</span>)
+<span class="hljs-keyword">elif</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;hexan&#x27;</span> <span class="hljs-keyword">in</span> t:run(<span class="hljs-string">&#x27;battle_switch&#x27;</span>,<span class="hljs-string">&#x27;Mawile&#x27;</span>);run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Opening replacement screen needs review: &#x27;</span>+t)
+run(<span class="hljs-string">&#x27;glass_turn&#x27;</span>,<span class="hljs-string">&#x27;work/241-luna-dance.json&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,<span class="hljs-string">&#x27;Mawile&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;HumptyDumpty,KnaveOfHearts,Snark,Jabberwocky&#x27;</span>,<span class="hljs-string">&#x27;--foe-slots&#x27;</span>,json.dumps({<span class="hljs-string">&#x27;humptydumpty&#x27;</span>:<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;knaveofhearts&#x27;</span>:<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;snark&#x27;</span>:<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;jabberwocky&#x27;</span>:<span class="hljs-number">1</span>}),<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;--stay&#x27;</span>,<span class="hljs-string">&#x27;--stay-team-reviewed&#x27;</span>,<span class="hljs-string">&#x27;--stop-foes&#x27;</span>,<span class="hljs-string">&#x27;Carpenter,Rabbit&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-number">.25</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+</code></pre>
+  </body>
+</html>

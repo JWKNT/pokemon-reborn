@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>validate_world_loops.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of validate_world_loops.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Second, conservative edge check for stationary world scenes with cyclic lighting.
+
+The original pixel validator intentionally rejects brightness animation. This
+checks the full scene&#x27;s edges (including the player and all NPCs), stops at any
+change, and saves before/middle/after images for visual review.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> subprocess,json,numpy <span class="hljs-keyword">as</span> np
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image,ImageDraw
+<span class="hljs-keyword">from</span> validate_video_idle <span class="hljs-keyword">import</span> edge,dil
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>];WORK=ROOT/<span class="hljs-string">&#x27;work/idle-audit-2026-09-30&#x27;</span>
+<span class="hljs-keyword">for</span> folder <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(WORK.iterdir()):
+    p=folder/<span class="hljs-string">&#x27;validated.json&#x27;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> p.exists():<span class="hljs-keyword">continue</span>
+    j=json.loads(p.read_text());added=[]
+    <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> j[<span class="hljs-string">&#x27;rejected&#x27;</span>]:
+        <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;mode&#x27;</span>]!=<span class="hljs-string">&#x27;whole_loop&#x27;</span> <span class="hljs-keyword">or</span> c[<span class="hljs-string">&#x27;class&#x27;</span>]!=<span class="hljs-string">&#x27;field&#x27;</span> <span class="hljs-keyword">or</span> c[<span class="hljs-string">&#x27;duration&#x27;</span>]&lt;<span class="hljs-number">4</span>:<span class="hljs-keyword">continue</span>
+        <span class="hljs-comment"># Keep the beginning and stop before any changed world edge.</span>
+        a=<span class="hljs-built_in">int</span>(np.ceil((c[<span class="hljs-string">&#x27;start&#x27;</span>]+<span class="hljs-number">.6</span>)*<span class="hljs-number">30</span>));b=<span class="hljs-built_in">int</span>(np.floor((c[<span class="hljs-string">&#x27;end&#x27;</span>]-<span class="hljs-number">.4</span>)*<span class="hljs-number">30</span>));base=a-<span class="hljs-number">16</span>
+        vf=<span class="hljs-string">&#x27;scale=320:240&#x27;</span>
+        raw=subprocess.check_output([<span class="hljs-string">&#x27;/opt/homebrew/bin/ffmpeg&#x27;</span>,<span class="hljs-string">&#x27;-nostdin&#x27;</span>,<span class="hljs-string">&#x27;-v&#x27;</span>,<span class="hljs-string">&#x27;error&#x27;</span>,<span class="hljs-string">&#x27;-threads&#x27;</span>,<span class="hljs-string">&#x27;2&#x27;</span>,<span class="hljs-string">&#x27;-reinit_filter&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;-ss&#x27;</span>,<span class="hljs-built_in">str</span>(base/<span class="hljs-number">30</span>),<span class="hljs-string">&#x27;-i&#x27;</span>,j[<span class="hljs-string">&#x27;source&#x27;</span>][<span class="hljs-string">&#x27;path&#x27;</span>],<span class="hljs-string">&#x27;-t&#x27;</span>,<span class="hljs-built_in">str</span>((b-base)/<span class="hljs-number">30</span>),<span class="hljs-string">&#x27;-vf&#x27;</span>,vf,<span class="hljs-string">&#x27;-pix_fmt&#x27;</span>,<span class="hljs-string">&#x27;gray&#x27;</span>,<span class="hljs-string">&#x27;-f&#x27;</span>,<span class="hljs-string">&#x27;rawvideo&#x27;</span>,<span class="hljs-string">&#x27;-&#x27;</span>])
+        n=<span class="hljs-built_in">len</span>(raw)//<span class="hljs-number">76800</span>;ims=np.frombuffer(raw[:n*<span class="hljs-number">76800</span>],np.uint8).reshape(n,<span class="hljs-number">240</span>,<span class="hljs-number">320</span>)
+        <span class="hljs-keyword">if</span> n&lt;<span class="hljs-number">32</span>:<span class="hljs-keyword">continue</span>
+        ee=np.array([edge(im) <span class="hljs-keyword">for</span> im <span class="hljs-keyword">in</span> ims[:<span class="hljs-number">16</span>]]);required=ee.<span class="hljs-built_in">all</span>(<span class="hljs-number">0</span>);allow=dil(ee.<span class="hljs-built_in">any</span>(<span class="hljs-number">0</span>));end=<span class="hljs-number">16</span>
+        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">16</span>,n):
+            e=edge(ims[i]);diff=(e&amp;~allow)|(required&amp;~dil(e));tiles=diff.reshape(<span class="hljs-number">30</span>,<span class="hljs-number">8</span>,<span class="hljs-number">40</span>,<span class="hljs-number">8</span>).<span class="hljs-built_in">sum</span>((<span class="hljs-number">1</span>,<span class="hljs-number">3</span>))
+            <span class="hljs-keyword">if</span> diff.mean()&gt;<span class="hljs-number">.0015</span> <span class="hljs-keyword">or</span> tiles.<span class="hljs-built_in">max</span>()&gt;<span class="hljs-number">10</span>:<span class="hljs-keyword">break</span>
+            end=i+<span class="hljs-number">1</span>
+        b=<span class="hljs-built_in">min</span>(b,base+end-<span class="hljs-number">9</span>)
+        <span class="hljs-keyword">if</span> b-a&lt;<span class="hljs-number">15</span>:<span class="hljs-keyword">continue</span>
+        proof=Image.new(<span class="hljs-string">&#x27;RGB&#x27;</span>,(<span class="hljs-number">960</span>,<span class="hljs-number">270</span>),(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>,<span class="hljs-number">20</span>));dr=ImageDraw.Draw(proof)
+        <span class="hljs-keyword">for</span> k,i <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>([<span class="hljs-number">15</span>,(<span class="hljs-number">16</span>+end)//<span class="hljs-number">2</span>,<span class="hljs-built_in">max</span>(<span class="hljs-number">16</span>,end-<span class="hljs-number">10</span>)]):
+            proof.paste(Image.fromarray(ims[i]).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>),(k*<span class="hljs-number">320</span>,<span class="hljs-number">0</span>));dr.text((k*<span class="hljs-number">320</span>+<span class="hljs-number">4</span>,<span class="hljs-number">245</span>),<span class="hljs-string">f&#x27;<span class="hljs-subst">{(base+i)/<span class="hljs-number">30</span>:<span class="hljs-number">.3</span>f}</span>s&#x27;</span>,fill=<span class="hljs-string">&#x27;white&#x27;</span>)
+        path=folder/<span class="hljs-string">f&#x27;world-proof-<span class="hljs-subst">{c[<span class="hljs-string">&quot;id&quot;</span>]}</span>.jpg&#x27;</span>;proof.save(path,quality=<span class="hljs-number">90</span>)
+        added.append({**c,<span class="hljs-string">&#x27;a&#x27;</span>:a,<span class="hljs-string">&#x27;b&#x27;</span>:b,<span class="hljs-string">&#x27;validation&#x27;</span>:<span class="hljs-string">&#x27;full-scene edges: stationary player, NPCs and camera; animated brightness ignored&#x27;</span>,<span class="hljs-string">&#x27;proof&#x27;</span>:<span class="hljs-built_in">str</span>(path)})
+    <span class="hljs-keyword">if</span> added:
+        <span class="hljs-comment"># Visual review showed transitions in the baseline can hide input changes.</span>
+        <span class="hljs-comment"># Keep these as proposals; never automatically merge them into the edit.</span>
+        j[<span class="hljs-string">&#x27;world_loop_proposals&#x27;</span>]=added
+        p.write_text(json.dumps(j,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+        <span class="hljs-built_in">print</span>(folder.name,<span class="hljs-string">&#x27;stationary-world proposals requiring visual review&#x27;</span>,<span class="hljs-built_in">len</span>(added),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

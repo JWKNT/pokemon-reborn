@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>battle_to_scene.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of battle_to_scene.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Close an observed victory only as far as the first installed story line.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">import</span> difflib
+mid,eid=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>])
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/event_dump.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(eid)],stderr=subprocess.DEVNULL))
+cs=[c <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;pages&#x27;</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> p[<span class="hljs-string">&#x27;list&#x27;</span>]]
+blocks=[]
+<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs:
+ <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">101</span>:blocks.append(<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]))
+ <span class="hljs-keyword">elif</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">401</span> <span class="hljs-keyword">and</span> blocks:blocks[-<span class="hljs-number">1</span>]+=<span class="hljs-string">&#x27; &#x27;</span>+<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>])
+norm=<span class="hljs-keyword">lambda</span> t:re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t.lower().replace(<span class="hljs-string">&#x27;pokemon reborn&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>))
+rows=[json.loads(l)<span class="hljs-keyword">for</span> l <span class="hljs-keyword">in</span>(ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).read_text().splitlines()]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(time.time()-r[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;<span class="hljs-number">180</span> <span class="hljs-keyword">and</span> re.search(<span class="hljs-string">r&#x27;de.?feated|for winning&#x27;</span>,<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]),re.I)<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows),<span class="hljs-string">&#x27;Recent observed victory required&#x27;</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">35</span>):
+ t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>);low=t.lower();n=norm(t)
+ <span class="hljs-comment"># A defeated trainer can say &quot;You&#x27;re not too bad in a fight!&quot;. Only the</span>
+ <span class="hljs-comment"># actual command label means that another battle input screen is present.</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;pp:&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(z.strip().lower()<span class="hljs-keyword">in</span>[<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;no&#x27;</span>]<span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> t.splitlines()):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected input screen&#x27;</span>)
+ hud=re.search(<span class="hljs-string">r&#x27;(?&lt;![a-z])f?hp(?![a-z])&#x27;</span>,low)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> hud <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(n)&gt;<span class="hljs-number">10</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,n,norm(b)).ratio()&gt;<span class="hljs-number">.65</span> <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> blocks):
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FIRST INSTALLED STORY LINE READY&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ im=Image.<span class="hljs-built_in">open</span>(STATE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=im.size;b=im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.08</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.75</span>),<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.90</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.87</span>)))
+ textbox=<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">min</span>(p)&gt;<span class="hljs-number">235</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">max</span>(p)-<span class="hljs-built_in">min</span>(p)&lt;<span class="hljs-number">5</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> b.getdata())/(b.width*b.height)&gt;<span class="hljs-number">.5</span>
+ <span class="hljs-keyword">if</span> textbox <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(n)&gt;<span class="hljs-number">3</span>:act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.4&#x27;</span>)
+ <span class="hljs-keyword">else</span>:act(<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Victory tail requires review&#x27;</span>)
+</code></pre>
+  </body>
+</html>

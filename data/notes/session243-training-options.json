@@ -1,0 +1,39 @@
+{
+  "grand_hall": {
+    "source": "InstalledMap038/Common079/trainers.dat",
+    "reward": "12ExpCandyXL after version4 win; opponents85",
+    "availability": "Entermap38normally then checkpoint for native weekday switches; stale navigation hasallweekdayfalse",
+    "Wednesday_candidate": "EXPERT_Male JB4: Greninja,Delphox,Chesnaught,Goodra",
+    "Thursday_candidate": "TechNerd Will4: Swampert,Sceptile,Charizard,Gardevoir",
+    "plan": "Honedge into party; normal training withEXPAll andXLrewards, ownedPowerWeight/BracerEVtraining. CatchupEV/levels before newmajor.",
+    "weekday_warning": "Will is Friday per priorverifiednotes; JBlikelyThursday. Alwaysuseactualsavedvisibleeventpage, not guessedweekday."
+  },
+  "kaboom_rejected": "Julia15 giveszeroBP and themeEXP restored; no training utility",
+  "theme_backup": "CressCalmMind versusFlorinia13; assessscreen-assistedChesnaughtsetupandSerperiorDragonTailOHKO; notyettested",
+  "luna13": "Do not resumeoldfarm; prior241lastwin6bagitems.",
+  "honedge": {
+    "box": 1,
+    "slot": 0,
+    "level": 30,
+    "nature": "Sassy",
+    "ivs": [
+      10,
+      7,
+      5,
+      31,
+      6,
+      20
+    ],
+    "target_ev": [
+      252,
+      252,
+      0,
+      0,
+      0,
+      0
+    ],
+    "learning_plan": "KeepShadowSneak3; declineIronDefense32/NightSlash36/PowerTrick41; IronHead45replaceRetaliate0;SacredSword51replaceSlash1. DuskStoneafter51; oneownedHeartScaleforKingsShieldoverDestinyBond2;TM75SwordDanceoverIronHead0. FirstmovesretainsDestinyBondforlaterrelearning.",
+    "status": "Giftowned, nottrainedorevolved",
+    "ev_warning": "Battle.rb2558 grantsEVonlyparticipantsorExpShareholders; EXPAllalonegivesnoEV. PoweritemholdingnonparticipantdoesNOTtrain. Use16directweakwildKOsafterlevelup."
+  }
+}

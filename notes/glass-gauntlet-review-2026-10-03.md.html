@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Glass gauntlet strategy and archive review — 2026-10-03">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="glass-gauntlet-review-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/glass-gauntlet-review-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/glass-gauntlet-review-2026-10-03.md.html">
+    <title>glass-gauntlet-review-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">glass-gauntlet-review-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 16.9 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · first used Oct 3 10:34</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Glass gauntlet strategy and archive review — 2026-10-03</h2>
+<p>This is a static, read-only prebattle review. No game input, save alteration,
+live battle log, AI choice or RNG inspection was used. The baseline is
+<code>Glass-10AM-paused-status.json</code>; later normal preparation/checkpoints take
+precedence. Installed Reborn19.5.43 takes precedence over the walkthrough.</p>
+<p><strong>Critical correction after source/UI review:</strong> Xitems affect only the Pokémon
+whose action opens the bag. Arcanine cannot use an Xitem on Klinklang.
+<code>Battle_Scene.pbItemMenu</code>3359 sets <code>retindex=index</code> for battleitems;
+<code>Battle.pbRegisterItem</code>1998 registers that actor&#39;s item action. Ordinary Xitems
+do not skip the allied partner&#39;s action: the skip is only for items having the
+separate <code>UseInBattle</code> handler, such as balls. Potions/Full Heal/Revive have the
+party target menu, so the partner can heal an ally. All plans below use legal
+self-Xitems. The earlier proposed allied-Xitem openers are superseded.</p>
+<h3>Entry and fixed six</h3>
+<p>Installed734E12 page0 calls Shelly version3 plus Cain version6, <strong>six Pokémon
+each</strong>, in a12v6 doubles battle. Those numbers are trainer versions, not party
+sizes. Page1 then calls QMARK0 (Luna, singles), <code>pbPartialHeal</code>, and QMARK1 plus
+QMARK2 (Radomus/Serra,12v6 doubles). Win all three consecutively without saving,
+reloading or changing the roster between rounds.</p>
+<p>The six owned Lv90 Pokémon remain suitable: Arcanine, Klinklang, Excadrill,
+Swampert, Cofagrigus and Mienshao. Lead <strong>Arcanine/Klinklang</strong>, obtained through
+normal party menus before the entry checkpoint. The paused save has Excadrill
+fainted, Arcanine200/294 with only6 Flamethrower PP, and Mienshao176/228 with
+2 High Jump Kick PP. <strong>Use the normal healing machine before entry.</strong> Full HP
+alone is insufficient: verify PP recovery as well.</p>
+<p>Keep Charcoal on Arcanine, Wide Lens on Klinklang, Protective Pads on Mienshao,
+and Spell Tag on Cofagrigus. Giving owned Wave Incense to Swampert instead of
+Exp.Share is an optional legal improvement; record the actual entry build if
+changed. Mienshao&#39;s fourth move is <strong>Brick Break</strong>, not U-turn. Excadrill has
+Earthquake/Rock Smash/Rock Slide/Swords Dance.</p>
+<p>After round1, event code314 invokes <code>pbHealAll</code>: full HP, status, PP and revival
+with Nuzlocke off. After round2, <code>pbPartialHeal</code> restores <strong>living Pokémon&#39;s HP
+and status only</strong>; fainted members remain down and PP is not restored. Prefer
+no allied faints in round2. The single owned Revive can recover an emergency
+faint through normal controls, but the current conservative archive proof
+will then require additional real carryover evidence rather than accepting a
+blanket no-faints assumption.</p>
+<h3>Exact Factory mechanics</h3>
+<p>Installed <code>fieldtext.rb</code>971–1023 gives Gear Grind2× damage and Electric1.5×.
+Fire has no general Factory bonus. <code>Battle_MoveEffects.rb</code>1643 gives Shift Gear
+<strong>+2Attack/+2Speed</strong> on Factory. X Defend/X Sp.Def/X Sp.Atk/X Speed each give
+two stages in this build (<code>ItemEffects.rb</code>3279 onward).</p>
+<p>Avoid unnecessary Earthquake/Discharge: they change Factory into Short Circuit.
+Short Circuit gives Gear Grind1.5× and changes it to Electric, so Ground types
+can become immune; its Synthetic Seed also differs. A Factory Synthetic Seed
+gives+1Sp.Atk and Laser Focus. Vivillon, Mismagius and Jynx can therefore land
+dangerous critical hits if allowed a damaging turn.</p>
+<p>Wide Lens does <strong>not</strong> make Gear Grind certain: the installed accuracy formula
+floors85×1.1 to <strong>93%</strong>. Gear Grind makes one accuracy check for the two-hit
+move, not one for each hit. Twelve uses at93% have only~42% probability of no
+misses. Reserve the two owned X Accuracy for Klinklang in rounds1 and3.
+X Accuracy&#39;s+2 accuracy stages exceeds100% even after Snow Cloak&#39;s0.8 hail
+modifier, unless additional unreviewed evasion effects intervene.</p>
+<p>Cofagrigus&#39;s Trick Room lasts <strong>five turns on Factory</strong> with Spell Tag. Eight
+turns require the installed Psychic Terrain/Chess/New World condition or an
+Amplifield Rock. Do not combine Trick Room casually with a fast boosted
+Klinklang; reserve it for a slower backup plan if the sweep collapses.</p>
+<h3>Round1: Arcanine supports Klinklang</h3>
+<p>Suggested opening, adapting if an actual critical hit/target change alters HP:</p>
+<ol>
+<li><strong>Arcanine self-XSpeed; Klinklang self-XDefend.</strong> Both items occur before
+attacks, and each partner still has its own action. Arcanine&#39;s entry
+Intimidate reduces Marowak&#39;s ordinary physical damage.</li>
+<li>Arcanine now352Speed uses Flamethrower on Ribombee before its310Speed action;
+Klinklang uses Shift Gear. Flame still KOs through Light Screen226–265 vs214HP.
+If Arcanine is at121HP or less after turn1, use Klinklang&#39;s action to Ultra
+Potion <strong>Arcanine</strong>, delaying Shift Gear: Marowak Shadow Bone can do120.</li>
+<li>Arcanine&#39;s fast Flamethrower eliminates Vivillon through Light Screen
+(295–347 vs243HP), preventing Sleep Powder/seed critical Hurricane. Klinklang
+heals itself if at102HP or less; otherwise it can self-XAccuracy, or take
+the delayed Shift Gear when actually safe. Do not force a nonheal action
+while another ordinary Marowak Fire Punch can KO it.</li>
+<li>Heal as needed from Arcanine&#39;s action; boosted Klinklang removes Marowak.
+Finish Klinklang&#39;s self-XAccuracy at a safe opportunity if not already used.</li>
+</ol>
+<p>This order intentionally keeps Marowak alive while the two first Shelly Pokémon
+are removed; therefore Meowstic cannot yet enter with Rain Dance. It also lets
+fast Arcanine eliminate Vivillon itself, freeing Klinklang&#39;s action for healing
+or setup. Exact HP and any unexpected switch still take precedence.</p>
+<p>Klinklang&#39;s+2Speed is374. Ribombee is310, Meowstic264, Vivillon222 and Nidoking224.
+Arcanine starts176; its own X Speed produces352, but Sticky Web can alter that
+round1 stage calculation. Clear Body protects Klinklang from Web/Icy Wind stat
+loss. Scolipede262 becomes393 after one Speed Boost; target it promptly or give
+Klinklang another X Speed/Shift Gear before it gains too much momentum.</p>
+<p>The primary risk is Marowak&#39;s <strong>critical Fire Punch</strong>: it ignores Intimidate
+and positive Defense and does~383–450 to Klinklang275HP. A round1 Klinklang faint
+does not invalidate the full chain because the scripted full heal revives it.
+Healthy Swampert&#39;s Waterfall and Excadrill&#39;s Rock Slide are the recovery tools;
+Mienshao&#39;s Wide Guard protects spread attacks. Use Earthquake only if its
+immediate benefit outweighs abandoning Factory.</p>
+<p>For ordinary hits, Ribombee&#39;s Pollen Puff can do62 to Klinklang, exceeding its
+spread Dazzling Gleam42. With Marowak Fire Punch102, Klinklang can be as low
+as111 after turn1 and9 after turn2; the turn3 self-heal is essential in that
+case. Arcanine can be109 after turn1 from Shadow Bone120 plus Pollen Puff65;
+the conditional turn2 allied potion above prevents a second Bone knockout.
+These bounds do not protect against critical hits or an unexpected move effect.</p>
+<p>Meowstic can use Rain Dance/Reflect. Do not assume Arcanine still one-shots
+Ribombee through <strong>rain plus Light Screen</strong>, and avoid re-entering Intimidate
+against Competitive Meowstic without accounting for the special-attack boost.
+Prioritize dangerous Fire/Ground users and Sleep Powder with Klinklang; use
+Arcanine&#39;s spare turns for healing/buffs. Primarina&#39;s Water Hyper Voice, Nidoking&#39;s
+Earth Power and Volcarona&#39;s Heat Wave demand actual HP/target review.</p>
+<h3>Round2: safe special Arcanine setup</h3>
+<p>Weavile has Icicle Crash/Poison Jab/Brick Break/Night Slash, no Low Kick or
+Superpower. Use it as the setup opportunity, preserving the other five.</p>
+<p>Recommended order: X Defend, <strong>X Speed early</strong>, second X Defend, two X Sp.Def,
+then three X Sp.Atk, inserting healing/status cures when needed. Do not boost
+Attack: Gothitelle and Umbreon have Foul Play. One X Speed makes Arcanine352,
+above Weavile319, Mismagius286 and Mega Absol308. Before that speed boost,
+Weavile moves before Morning Sun; use a priority bag heal if HP is threatened.</p>
+<p>Keep Arcanine roughly180HP or higher before a nonhealing setup action. Night
+Slash&#39;s critical hit can do126–149 even after Defense boosts; Poison Jab can
+add poison chip. Ultra Potion restores <strong>200HP</strong>, not a full heal. After the
+speed boost, Morning Sun normally restores147HP before Weavile attacks. A
+status cure alone can still leave Arcanine in range of the next attack; handle
+HP before poison if necessary.</p>
+<p>At+6Sp.Atk, Charcoal Flamethrower KOs every unboosted target. Weavile&#39;s Focus
+Sash needs a second hit; Extreme Speed can finish1HP without allowing another
+ordinary attack. Mismagius must be outsped and KOed before its seed-focused
+critical hit. Umbreon&#39;s damage margin is narrow: <strong>344–405 vs340HP</strong>, so verify
+Charcoal has not been lost and do not casually lower the special setup.
+Protect consumes PP but24 starting Flamethrower PP affords room for the entire
+round and a useful round3 reserve. All enemy trainer bags in the reviewed
+three rounds are null.</p>
+<h3>Round3: rebuild Klinklang, retain living party and PP</h3>
+<p>Stat stages reset between battles. Luna&#39;s Arcanine boosts do not carry into
+round3. The opponents lead Clefable and Alolan Ninetales; Ninetales starts hail.</p>
+<p>Suggested first turn: <strong>Arcanine self-XSpeed; Klinklang self-XSp.Def.</strong> Clefable&#39;s
+Fire Blast is special: X Defend is the wrong opener protection. Without a
+boost it does163–192 to Klinklang; X Sp.Def reduces that to83–98.</p>
+<p>Turn2: fast Arcanine Flamethrower Ninetales; Klinklang Shift Gear. If Nine used
+Veil on turn1, Flame does180–212 and leaves10–42HP, but Nine caused no turn1
+damage. If Nine attacked on turn1, no Veil and fast Flame KOs before its next
+attack. Under those ordinary-hit branches, Klinklang survives two turns with
+at least20HP. On turn3, Arcanine uses Ultra Potion on Klinklang while Klinklang
+Gear Grind removes a surviving Ninetales, or Clefable if Ninetales is already
+gone. If actual paralysis interrupts the setup, cure it with the partner&#39;s
+Full Heal before continuing. Do not let theoretical turn numbers override the
+screen.</p>
+<p>Once Sandslash is present, Arcanine&#39;s352Speed narrowly exceeds Slush Rush350;
+Flamethrower is4× effective and can eliminate it while Klinklang attacks the
+other lead. After the leads are cleared, Klinklang can <strong>self-XDefend</strong> for the
+physical replacements, then <strong>self-XAccuracy</strong>. Arcanine spends those setup
+turns healing it or removing an urgent threat. Keep a potion reserve; both
+buffs consume Klinklang&#39;s own action and cannot accompany its Gear Grind.</p>
+<p>Then eliminate Clefable before repeated Fire Blast/Thunder Wave. Cofagrigus
+cannot stop Thunder Wave aimed at Klinklang; Full Heal is an ordinary emergency
+option. Brick Break removes Aurora Veil when Mienshao can enter safely. Wide
+Guard blocks Blizzard/Dazzling Gleam/Rock Slide/Hyper Voice, but not Psychic,
+Fire Blast, Freeze-Dry, Thunderbolt or a Z-move&#39;s full residual damage.</p>
+<p>Boosted Gear Grind handles most foes even through Veil. Bronzong, Bisharp and
+Metagross resist Steel; use Arcanine&#39;s Flamethrower and/or a second Shift Gear.
+Arcanine is slower than Slush Rush Sandslash350 without its own speed help;
+Klinklang374 outruns it after one Shift Gear. A second Shift Gear produces
+Klinklang561Speed and+4Attack on Factory. Do not re-enter Arcanine casually
+against <strong>Defiant Bisharp</strong>: Intimidate triggers its boost. Save a healthy
+Cofagrigus/Swampert/Excadrill recovery option if the main pair loses momentum.</p>
+<p>Alakazam can replace Factory with Psychic Terrain; stop assuming Factory
+damage after that occurs. Jynx&#39;s Synthetic Seed is dangerous if Factory is
+still active. Froslass has Destiny Bond; boosted faster Klinklang can normally
+KO it before the initial Bond, but observe whether a previous Bond is active
+before attacking. After a Bond, let it expire through a safe nondamaging turn
+or accept the final-round trade only with enough surviving teammates.</p>
+<h3>Numerical evidence</h3>
+<p><code>scripts/glass_damage_review.py</code> is a standalone read-only planner. It uses
+the exact installed trainer EV/IV/nature/form tables in <code>work/glass-*-teams.json</code>,
+the selected static species metadata in <code>work/glass-species-stats.json</code>, and
+the native baseline numeric stats. It reproduces the installed final damage
+formula for <strong>explicitly supplied modifiers</strong>; it does not simulate AI choices,
+RNG, all field interactions or every move. Output: <code>work/glass-damage-review.json</code>.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Reviewed move and state</th>
+<th align="right">Damage range</th>
+<th align="right">Target HP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Intimidated Marowak Fire Punch into Klinklang+2Def</td>
+<td align="right">87–102</td>
+<td align="right">275</td>
+</tr>
+<tr>
+<td>Marowak critical Fire Punch into Klinklang</td>
+<td align="right">383–450</td>
+<td align="right">275</td>
+</tr>
+<tr>
+<td>Klinklang+2Atk Factory Gear Grind, two hits, Marowak</td>
+<td align="right">262–310</td>
+<td align="right">254</td>
+</tr>
+<tr>
+<td>Charcoal Flamethrower, Ribombee with Light Screen</td>
+<td align="right">226–265</td>
+<td align="right">214</td>
+</tr>
+<tr>
+<td>Same attack with Rain too</td>
+<td align="right">113–133</td>
+<td align="right">214</td>
+</tr>
+<tr>
+<td>Charcoal Flamethrower, Vivillon with Light Screen</td>
+<td align="right">295–347</td>
+<td align="right">243</td>
+</tr>
+<tr>
+<td>Factory-seeded Vivillon critical Hurricane into Arcanine</td>
+<td align="right">312–367</td>
+<td align="right">294</td>
+</tr>
+<tr>
+<td>Weavile critical Night Slash into Arcanine</td>
+<td align="right">126–149</td>
+<td align="right">294</td>
+</tr>
+<tr>
+<td>Arcanine+6Sp.Atk Flamethrower, Umbreon</td>
+<td align="right">344–405</td>
+<td align="right">340</td>
+</tr>
+<tr>
+<td>Clefable Fire Blast into unboosted Klinklang</td>
+<td align="right">163–192</td>
+<td align="right">275</td>
+</tr>
+<tr>
+<td>Arcanine unboosted Flamethrower, Ninetales with Veil</td>
+<td align="right">180–212</td>
+<td align="right">222</td>
+</tr>
+</tbody></table></div>
+<h3>Archive readiness and implemented corrections</h3>
+<p>Reserved major IDs122/123/124 retain the title <strong>Glass Gauntlet</strong>, round1/3,
+2/3,3/3 labels and one shared whole-gauntlet attempt total. Full journeys retain
+every attempt; only the final consecutive winning chain enters the major video.
+Every round&#39;s item totals remain exact <code>[Player used ...]</code> counts from that
+round&#39;s <strong>completed</strong> native log, excluding menu selections, held effects and
+enemy usage (<code>count_battle_items.py</code>). No active battle log was inspected.</p>
+<p>Fixed actual pre-entry archive blockers:</p>
+<ul>
+<li><code>glass_continuity.py</code> and <code>complete_glass_archive_chain.py</code> formerly indexed
+<code>row[&#39;id&#39;]</code> across historical rows. Sessions061/062 have valid old rows without
+that field; both scripts would raise KeyError. They now use <code>.get(&#39;id&#39;)</code>.</li>
+<li><code>major-122.json</code> uses <code>intro_name: Cain</code>, avoiding the brittle combined
+<code>Cain &amp; Shelly</code> string when the actual introduction puts Shelly first.</li>
+<li>All three configs now reference the existing <strong>Gym17 progress journey</strong>;
+a finalGym17 file does not exist until Hardy. If the journey is promoted
+before these rounds are staged, update the source path deliberately.</li>
+<li><code>glass_continuity.py</code> admits nonconsumable Wave Incense. It nulls round3&#39;s
+derived PP fields rather than falsely claiming Luna&#39;s used PP was restored.
+Numeric stats remain explicitly labelled pre-chain; panels use unchanged
+species/form/level/ability/item/four moves. These are archive-only records,
+never game/save writes.</li>
+<li>The completed-chain gate now verifies all three battle-entry party panels
+are identical fixed Lv90 sixes, all round1 attempts have actual observed
+intros, no duplicate opener timestamps, and no F12 within the winning chain.</li>
+<li>Installed <code>Pokemon.setGender</code> forces female Meowstic to form1. The trainer
+export and pending opponent roster122 now show <strong>Female</strong>, with the correct
+sprite row, rather than the omitted-form default Male. Historical published
+panels were not silently changed.</li>
+</ul>
+<p>The existing renderer supports these12v6 rounds with <strong>three trainer columns</strong>
+(one player trainer controls both allied battlers). Its source-order reversal
+should give <strong>Our team | Cain | Shelly</strong> and <strong>Our team | Serra | Radomus</strong>.
+Verify ownership against the recorded visible left/right sprites; save any
+explicit <code>roster_screen_order</code> if the actual footage differs. Preserve sprites,
+types and full builds. There is no NPC partner in this gauntlet.</p>
+<p><code>major_enter</code>/<code>major_attempt</code> continuity criteria match the reviewed normal
+chain when the pre-chain native checkpoint is unchanged and fresh. Round2
+permits prior faints after proven full revival; round3 currently requires no
+Luna faints. A normal Revive after a Luna faint makes the actual game playable
+but will be refused by this conservative zero-faint proof until reviewed.
+Do not bypass the check or invent an HP/build snapshot. Creation ages remain
+&lt;120s at each inter-round entry; use the <strong>fresh healed entry baseline</strong>, not
+the10AM snapshot. Intro/outro work must finish before falsely anchoring the
+next round&#39;s audio/attempt to the previous victory screen.</p>
+<p>Validation: Python compile for changed archive scripts and calculator; Ruby
+syntax check for the exporter; valid JSON/current source existence checks.
+A temporary metadata-only fixture exercised five cases: valid three-win
+chain with one earlier opener loss plus an idless legacy row (shared2attempts),
+and rejection of an intervening reset, changed round3 build, failed round3,
+or missing opener-intro evidence. All five passed. Fixture files were removed.
+No live Glass chain has yet validated these helpers; preserve pending source
+footage with <code>--keep-sources</code> until <strong>all three</strong> clips plus the full journey
+have been published, decoded and visually checked.</p>
+<p>Primary mechanical sources are the installed <code>734E12</code> event and
+<code>Scripts/{Trainers.rb,Pokemon.rb,Utilities.rb,ItemEffects.rb,Battle_Move.rb, Battle_MoveEffects.rb,Battler.rb,Reborn/fieldtext.rb}</code>.
+The <a href="https://bigjra.github.io/reborn/#glass-workstation">BigJRA Glass walkthrough</a>
+supports planning all three rounds and maintaining doubles momentum; exact
+local mechanics and team data above control this run.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

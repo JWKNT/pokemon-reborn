@@ -1,0 +1,53 @@
+{
+  "tier": 7,
+  "cap": 135,
+  "unlock_requirements": {
+    "569": 44,
+    "636": 20,
+    "628": 12
+  },
+  "quests": [
+    {
+      "event": 51,
+      "name": "Citrine meteor",
+      "variable": 650,
+      "gate_switch": 1546
+    },
+    {
+      "event": 81,
+      "name": "Rhodochrine picnic",
+      "variable": 660,
+      "gate_switch": 1544
+    },
+    {
+      "event": 82,
+      "name": "Mirage Tower Belroses",
+      "variable": 645,
+      "gate_switch": 1542
+    },
+    {
+      "event": 84,
+      "name": "Teknite Ridge",
+      "gate_switch": 1545
+    },
+    {
+      "event": 85,
+      "name": "Sugiline/Aegir Cave Blue Orb",
+      "variable": 649,
+      "gate_switch": 1541
+    },
+    {
+      "event": 97,
+      "name": "Apophyll beach cave",
+      "variable": 664,
+      "gate_switch": 1543
+    }
+  ],
+  "source": "Installed CommonEvent76 Tier Handler and map827 event pages, frozen under work/329-tier-commons.json and work/311-map827-events-full.json",
+  "next_preparation": "Train core to135; bring a catch specialist for one-time legendary battles. Rayquaza required for Aegir quest; plan capture.",
+  "capture_preparation": {
+    "Mawile": "Teach owned TM54 False Swipe over Iron Head for travel; Play Rough, Sucker Punch and Swords Dance remain. Restore Iron Head for matchups if needed.",
+    "Amoonguss": "Bring Spore/clear-stat utility instead of Cresselia on capture-heavy routes, after normal PC inspection and training.",
+    "supplies": "Replenish Timer Balls before next legendary; current Darkrai capture started with27."
+  }
+}

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_hazard_smash.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_hazard_smash.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Approach the source-reviewed entry rock through normal controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> hazard_position <span class="hljs-keyword">import</span> party_position
+m,x,y=party_position();<span class="hljs-keyword">assert</span> m==<span class="hljs-number">784</span>
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;784&#x27;</span>,<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],stderr=subprocess.DEVNULL))
+e=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-string">&#x27;123&#x27;</span>];<span class="hljs-keyword">assert</span> (e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])==(<span class="hljs-number">53</span>,<span class="hljs-number">29</span>) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;pbRockSmash&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(e[<span class="hljs-string">&#x27;list&#x27;</span>])
+p=route(v,(<span class="hljs-number">53</span>,<span class="hljs-number">30</span>));<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(p)&lt;<span class="hljs-number">50</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(k.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> p)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ROCK SMASH APPROACH&#x27;</span>,p,flush=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,*[k+<span class="hljs-string">&#x27;:.12&#x27;</span> <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> p],<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

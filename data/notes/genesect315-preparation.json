@@ -1,0 +1,37 @@
+{
+  "session": 315,
+  "previous_segment": 314,
+  "progress": {
+    "Aya": "won first attempt",
+    "Arclight": "won first attempt",
+    "Cain": "lost first attempt; native save reset normally, all loss footage retained"
+  },
+  "checkpoint": "Genesect315-CainPrepared",
+  "training": {
+    "Jonah_v4_wins": 4,
+    "Zeraora_EV": [
+      0,
+      252,
+      0,
+      1,
+      0,
+      252
+    ],
+    "Zeraora_level": 130,
+    "Zeraora_attack": 418,
+    "Zeraora_speed": 541,
+    "Meowstic_level": 130,
+    "Meowstic_HP": 435,
+    "XL_spent": 18,
+    "XL_remaining": 32
+  },
+  "pending": [
+    "Return to Cain approach and checkpoint before attempt2"
+  ],
+  "completed": [
+    "Three purple shards collected through normal inputs",
+    "Fire Punch learned replacing Discharge",
+    "Everstone equipped on Zeraora",
+    "Meowstic moved to lead"
+  ]
+}

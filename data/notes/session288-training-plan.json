@@ -1,0 +1,57 @@
+{
+  "epoch": 1791705246.7525382,
+  "cap": 125,
+  "Magearna": {
+    "moves": [
+      "Flash Cannon",
+      "Calm Mind",
+      "Aura Sphere",
+      "Trick Room"
+    ],
+    "EV_target": [
+      252,
+      0,
+      0,
+      252,
+      0,
+      0
+    ],
+    "power_item_per_KO": 32,
+    "planned_KOs_per_stat": 8,
+    "training_attack": "Aura Sphere",
+    "capture": "session288/video25"
+  },
+  "Sunday_candies": {
+    "event": [
+      38,
+      51
+    ],
+    "class": "COOLTRAINER_Male",
+    "name": "Fawkes",
+    "version": 4,
+    "source": "work/288-fawkes.json",
+    "rewards_XL": 12,
+    "maximum_rounds": 6,
+    "party_XL_estimate": 72,
+    "owned_XL": 7,
+    "matchups": {
+      "Dragalge": [
+        "Swampert",
+        "Earthquake"
+      ],
+      "Aegislash": [
+        "Volcanion",
+        "Flamethrower"
+      ],
+      "Typhlosion": [
+        "Swampert",
+        "Earthquake"
+      ],
+      "Greninja": [
+        "Zapdos",
+        "Discharge"
+      ]
+    }
+  },
+  "safety": "Normal UI; unknown opponents or transitions stop; EV and rewards reconciled from ordinary saved checkpoints."
+}

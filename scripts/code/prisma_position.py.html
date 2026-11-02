@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>prisma_position.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of prisma_position.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Plan and execute one explicit mirror destination, verified by public frames.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+eid,x,y=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:]);<span class="hljs-keyword">assert</span> eid <span class="hljs-keyword">in</span> [<span class="hljs-number">72</span>,<span class="hljs-number">73</span>,<span class="hljs-number">74</span>,<span class="hljs-number">75</span>,<span class="hljs-number">95</span>] <span class="hljs-keyword">and</span> <span class="hljs-number">17</span>&lt;=x&lt;=<span class="hljs-number">28</span> <span class="hljs-keyword">and</span> <span class="hljs-number">59</span>&lt;=y&lt;=<span class="hljs-number">68</span>
+p=R/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">f&#x27;prisma-plan-<span class="hljs-subst">{eid}</span>-<span class="hljs-subst">{x}</span>-<span class="hljs-subst">{y}</span>-<span class="hljs-subst">{<span class="hljs-built_in">int</span>(time.time())}</span>.json&#x27;</span>
+<span class="hljs-keyword">with</span> p.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;w&#x27;</span>) <span class="hljs-keyword">as</span> f:subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/prisma_push_plan.py&#x27;</span>),<span class="hljs-built_in">str</span>(eid),<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],stdout=f,check=<span class="hljs-literal">True</span>)
+v=json.loads(p.read_text());<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(v[<span class="hljs-string">&#x27;pushes&#x27;</span>])&lt;=<span class="hljs-number">24</span>
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BOUNDED MIRROR PLAN&#x27;</span>,eid,v[<span class="hljs-string">&#x27;from&#x27;</span>],<span class="hljs-string">&#x27;-&gt;&#x27;</span>,v[<span class="hljs-string">&#x27;to&#x27;</span>],<span class="hljs-built_in">len</span>(v[<span class="hljs-string">&#x27;pushes&#x27;</span>]),<span class="hljs-string">&#x27;pushes&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/prisma_execute_push_plan.py&#x27;</span>),<span class="hljs-built_in">str</span>(p)],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>checkpoint_weather.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of checkpoint_weather.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Pure weather projection from explicitly supplied frozen objects.</span>
+<span class="hljs-comment"># Does not load a save, instantiate Game_Screen, update weather or inspect forecasts.</span>
+<span class="hljs-keyword">module</span> <span class="hljs-title class_">CheckpointWeather</span>
+  <span class="hljs-variable constant_">TYPE_IDS</span> = {<span class="hljs-number">0</span> =&gt; <span class="hljs-number">0</span>, <span class="hljs-symbol">:Rain</span> =&gt; <span class="hljs-number">1</span>, <span class="hljs-symbol">:Storm</span> =&gt; <span class="hljs-number">2</span>, <span class="hljs-symbol">:Snow</span> =&gt; <span class="hljs-number">3</span>,
+              <span class="hljs-symbol">:Sandstorm</span> =&gt; <span class="hljs-number">4</span>, <span class="hljs-symbol">:Sunny</span> =&gt; <span class="hljs-number">5</span>, <span class="hljs-symbol">:Winds</span> =&gt; <span class="hljs-number">6</span>,
+              <span class="hljs-symbol">:HeavyRain</span> =&gt; <span class="hljs-number">7</span>, <span class="hljs-symbol">:Blizzard</span> =&gt; <span class="hljs-number">8</span>}.freeze
+
+  <span class="hljs-keyword">def</span> <span class="hljs-title function_">self</span>.region(position, restored)
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span> <span class="hljs-keyword">unless</span> position.is_a?(<span class="hljs-title class_">Array</span>) &amp;&amp; position.length &gt;= <span class="hljs-number">3</span> &amp;&amp;
+                      position[<span class="hljs-number">1</span>].is_a?(<span class="hljs-title class_">Numeric</span>) &amp;&amp; position[<span class="hljs-number">2</span>].is_a?(<span class="hljs-title class_">Numeric</span>)
+    x, y = position[<span class="hljs-number">1</span>], position[<span class="hljs-number">2</span>]
+    <span class="hljs-keyword">if</span> y == <span class="hljs-number">7</span> &amp;&amp; x == <span class="hljs-number">8</span>
+      <span class="hljs-number">2</span>
+    <span class="hljs-keyword">elsif</span> y &lt; <span class="hljs-number">7</span>
+      x &lt; <span class="hljs-number">8</span> ? <span class="hljs-number">3</span> : <span class="hljs-number">4</span>
+    <span class="hljs-keyword">elsif</span> (y &gt; <span class="hljs-number">14</span> &amp;&amp; x != <span class="hljs-number">9</span>) |<span class="hljs-params"></span>| (y == <span class="hljs-number">14</span> &amp;&amp; x == <span class="hljs-number">0</span>)
+      x &lt; <span class="hljs-number">6</span> ? <span class="hljs-number">0</span> : <span class="hljs-number">5</span>
+    <span class="hljs-keyword">elsif</span> x &lt; <span class="hljs-number">10</span>
+      restored ? <span class="hljs-number">2</span> : <span class="hljs-number">1</span>
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-number">5</span>
+    <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-keyword">def</span> <span class="hljs-title function_">self</span>.numeric(value)
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span> <span class="hljs-keyword">unless</span> value.is_a?(<span class="hljs-title class_">Numeric</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span> <span class="hljs-keyword">if</span> value.respond_to?(<span class="hljs-symbol">:finite?</span>) &amp;&amp; !value.finite?
+    value
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-keyword">def</span> <span class="hljs-title function_">self</span>.export(screen, metadata, restored)
+    type = screen&amp;.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@weather_type</span>)
+    position = metadata&amp;.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@MapPosition</span>)
+    <span class="hljs-comment"># A present metadata record with no position follows the game&#x27;s fallback.</span>
+    position = [<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>] <span class="hljs-keyword">if</span> metadata &amp;&amp; position.<span class="hljs-literal">nil</span>?
+    {
+      <span class="hljs-symbol">weather_type:</span> type,
+      <span class="hljs-symbol">weather_type_id:</span> <span class="hljs-variable constant_">TYPE_IDS</span>[type],
+      <span class="hljs-symbol">weather_max:</span> numeric(screen&amp;.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@weather_max</span>)),
+      <span class="hljs-symbol">weather_type_target:</span> screen&amp;.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@weather_type_target</span>),
+      <span class="hljs-symbol">weather_max_target:</span> numeric(screen&amp;.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@weather_max_target</span>)),
+      <span class="hljs-symbol">region:</span> region(position, restored)
+    }
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Badge18 → Victory Road → first League challenge">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="elite-four-preplan-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/elite-four-preplan-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/elite-four-preplan-2026-10-03.md.html">
+    <title>elite-four-preplan-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">elite-four-preplan-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 19.4 KB · <a href="/pokemon-reborn/reasoning/20/">Task 20</a> · first used Oct 4 01:18</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Badge18 → Victory Road → first League challenge</h2>
+<p>Source-only future plan, installed <strong>19.5.43</strong>. No game controls, native writes, active battle reads, or future attempt allocations. The only current-route evidence used is the already closed checkpoint <code>Void-Hypno-won-128-navigation.json</code>: <strong>735/Anna_Smiles=True,1039=False,826=True</strong>. These are a baseline, not a claim that later events have happened. Recheck a normal frozen checkpoint before League entry.</p>
+<p>The practical priorities are: finish the actual badge award; prepare level100 and enough PP supplies; acquire Mega access normally before depending on it; add one good Fairy option; and preserve a separate answer to PULSE Arceus through both final battles. Ludi is a matchup reserve rather than the default League sixth.</p>
+<h3>Route and preparation boundaries</h3>
+<ol>
+<li>Saphira&#39;s victory at780E93 sets475=104. <strong>It does not award badge18.</strong> Interact facingUP with chest780E91/E92 at[26/27,43] to set475=105, badge17=True and659=True. Exit780E1/E2[40,81/82] returns778[2,14/15]. The tournament exit/story leg must still be completed normally; do not silently jump from the Saphira victory to Victory Road.</li>
+<li>Victory Road entrance is781; its normal Center is782 (PC782E7[14,3], nurse normal commonEvent1). The installed source contains additional preparation PCs, including Florinia796E28[25,18]. Complete captures, reminder/tutor work, EV/nature changes and shopping before the League lock. Routes/puzzle layouts require their own guarded static extraction when approached.</li>
+<li>Major mandatory Victory Road opponents are <strong>Sirius807E15/party2, Blake808E19/party2, Fern798E16/Hotshot7</strong>. They are separate encounters with route/menu preparation opportunities, not one uninterrupted battle script. Sirius is doubles with the player&#39;s normal party; there is no registered NPC partner in its event. Source metadata: Sirius Dragon&#39;sDen, Blake Icy, Fern CrystalCavern. Do not include ordinary Spirit trainers in the major archive.</li>
+<li>The final gem puzzle requires player-specific feedback rather than copying a universal answer. A future normal-control solver can maintain possible chosen-star sets and arrangements using only visible gold/silver feedback. Never label a source proposal as an observed puzzle solution. <a href="https://bigjra.github.io/reborn/#victory-road">BigJRA&#39;s Victory Road guide</a> is useful for the overall crystal/logic-room progression and notes that this final answer varies per save.</li>
+<li>Emerging at814, Center816 is the <strong>last ordinary nurse/PC</strong>: nurseE2[10,4], PCE7[14,3], exitE8[10,11]→814[42,31]. Hall entrance814E31[53,32]→815[9,398]. Hall&#39;s lower exits return outside; its top touches <strong>815E147/E148[9/10,4]</strong> reset E4_Tracker552=0 and transfer817[15/16,143]. Finish the reviewed team, PP stock, held items and prechain checkpoint before these tiles. First-challenge arena events autorun once their tracker stage is activated.</li>
+</ol>
+<p><strong>Train to100 normally.</strong> Badge18 makes HARDCAP&#39;s table entry150, but PBExperience.rb caps ordinary EXP at100+Extended_Max_Level, which is100 before the postgame extension. These first-challenge calls are <code>pbTrainerBattle</code>, not rematch <code>pbTrainerBattle100</code>: they do not temporarily normalize our95 team to100.</p>
+<h3>The actual seven-fight commitment</h3>
+<p>Current route735=True expects <strong>Heather → Bennett &amp; Laura → Elias → Anna → Lin1 → Lin3 → Child Lin/PULSE Arceus</strong>. Anna820E66 clears735 if1039 isTrue; future normal checkpoint proof therefore matters. If735=False, the final six-mon opponent is Lin2 with Arceus as its sixth, and the immediate Child Lin fight is absent.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Round</th>
+<th>Installed trigger / team key</th>
+<th>Preparation after winning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Heather</td>
+<td>817E27p1,552≥1; HEATHER/0; sets552=2</td>
+<td>Walking/menu gap before next controller. No heal.</td>
+</tr>
+<tr>
+<td>Bennett &amp; Laura</td>
+<td>818E33p1,552≥3; BENNETTLAURA/0, doubles; sets552=4</td>
+<td>Same. Six opposing Pokémon total, despite two human presenters. One first-win ApolysisYes/No choice; Yes gives a relationship point.</td>
+</tr>
+<tr>
+<td>Elias</td>
+<td>819E92p1,552≥5; ELIAS/0; sets552=6</td>
+<td>Same; exit819E90/E91 leads820.</td>
+</tr>
+<tr>
+<td>Anna</td>
+<td>820E66p1,552≥7; ANNA/0; forces Starlight; sets552=8</td>
+<td>Same;820E65[24,10]→821. Do not use map820&#39;s ordinary Psychic backdrop as the battle field.</td>
+</tr>
+<tr>
+<td>Lin1</td>
+<td>821E10p0,552≥9; LIN/0 if506True, else LIN/1</td>
+<td>Win starts a long automatic narrative/transfer to180 and then304. Menus are available again only after the scene settles. No heal.</td>
+</tr>
+<tr>
+<td>Lin3</td>
+<td>824E3p0i100 when735True</td>
+<td><strong>No menu or healing gap before Child Lin.</strong> Same interpreter continues through dialogue to its next battle.</td>
+</tr>
+<tr>
+<td>Child Lin</td>
+<td>824E3p0i893; CHILDLIN/0, one PULSE Arceus</td>
+<td>Victory leads Hall-of-Fame/common66 and postgame transfer530. This is the end of the first League chain.</td>
+</tr>
+</tbody></table></div>
+<p>The League has <strong>no normal nurse or PC in817–824 or the Citae/Arc interlude</strong>. REMOTEPC ItemEffects.rb:226/2482, MoveRelearner.rb:198 and MoveTutor.rb:197 explicitly refuse while552&gt;0. TMs, ordinary field Bag/Pokémon menus, medicine, PP restoration, reordering and giving a replacement held item remain available at actual walking gaps. Keep one fixed six for the whole challenge. No new passwords.</p>
+<p>There is <strong>no pbHealAll or party recovery in824E3 between Lin3 and Child Lin</strong>. Ordinary Trainers.rb:393 heals after battle only for a registered partner (none here); <code>canlose=True</code> heals on a loss, not a victory. Temporary battle boosts, Trick Room, hazards, Mega state and other battle effects reset for the next battle; HP/status/PP and consumed held-item expenditure persist. A Sash used during Lin3 is not available for Arceus, and a seed used in one fight is not replenished for the next.</p>
+<p>Normal first-round losses call pbStartOver, heal and return to the last nurse, and a new Hall entry resets the League tracker. Citae306E73 creates a source-managed save hash at552=25; an Anna-route <strong>Child Lin loss</strong> has its own explicit return/restore/route-switch sequence. This is story recovery, not permission to fabricate a win, heal, or replay silently. Record the actual visible outcome and new route; do not promise that every late loss replays all seven fights. All successful League rounds belong in the curated archive; use shared challenge attempts and accurate per-round medicine counts. Failed attempts remain in the full journey. Reserve no IDs until actually needed.</p>
+<h3>Roster upgrades to prepare normally</h3>
+<p>The known90/95 core is Arc/KG/Swamp/Mien/CF/Cryo, with Ludi and <strong>MoldBreaker Excadrill</strong> owned. Actual future stats/builds must be frozen and calculated near entry, not inferred from this note.</p>
+<ul>
+<li><strong>Mega access is not owned at the frozen Hypno baseline.</strong> MEGARING=0 and2166=False. Battle.rb:905/2264 requires an activating ring in addition to the held stone. Root assigned the legal ring quest to the other source planner. Do not execute a MegaSwamp strategy until normal acquisition is visibly verified. Swampertite&#39;s legal reward is774E126[35,18], unlocked by the console&#39;s2368; the machine code is a normal quest interaction. MegaSwamp retains an enormous bulk/Attack improvement even without rain. It is a good Heather/Lin1 anchor, but EQ becomes a poor final-field attack.</li>
+<li><strong>Best new offensive candidate: Mawile.</strong> Installed encounters788/792 have10% Mawile88–96. AbilityCapsule can give Intimidate normally; reminder gives IronHead, PlayRough and SuckerPunch, and an ordinary SwordsDance TM/tutor must be acquired if wanted. Mawilite is an unconditional normal item at<strong>Teknite Ridge646E46[15,32]</strong>, subject to whether it was already collected. MegaMawile&#39;s HugePower and Fairy/Steel coverage help Elias&#39;s dragons, Anna, and Lin&#39;s dragons/Fairies. Before entry train100,252HP/252Atk with an appropriate normal mint. It is a candidate to replace Cryo for a full League build after the Heather role is covered, or replace Mien if Laura&#39;s doubles plan already has sufficient protection. Do not assume new IVs or an unchecked solo sweep. Swamp and Mawile can each hold a stone, but only one Mega can activate per battle.</li>
+<li><strong>Fairy without a Mega quest:</strong> the guaranteed Sylveon75 reward774E128, unlocked with3862, already knows Wish/MistyTerrain/HealBell/Moonblast. Train100 and bulk before entry; it is a more direct Dragon answer than Ludi and does not require random breeding. MistyTerrain can help earlier rounds but fails on NewWorld. Wish&#39;s delay is not a substitute for a required priority potion.</li>
+<li><strong>Specialized field option:</strong> Clefable88–95 has10% encounters810. It legally supports Gravity (OTS123E25, one-time500 fee), SoftBoiled tutor and DazzlingGleam via TM99. <strong>Wild Clefable&#39;s installed level list does not contain Moonblast or CosmicPower, and the normal reminder only uses its species list/firstmoves</strong>; do not assert those moves without a genuinely taught/inherited route. A Clefairy trained before evolution is a separate legal project. This makes the convenient wild Clefable a field/recovery support option, not an instant CosmicPower/Moonblast build.</li>
+<li><strong>Keep CF useful for the finale:</strong> source-normal reminder can teach <strong>Curse</strong>, alongside TrickRoom and an attack/status or DestinyBond. Curse cannot be relearned via an app inside the League, so choose the four moves before815. CF+AmplifieldRock extends Room to8 on earlier fields; normal pickups179E45[22,11],383E13[28,16],621E70[24,18], and the Dept9F source shop are available only if their ordinary access/collection conditions hold. Current baseline has no owned Rock. Excadrill&#39;s MoldBreaker is a particularly valuable reserve answer to Lin&#39;s Unaware Clefable; prepare a legal IronHead tutor beforehand if selecting it. Do not build the final answer around quarter-strength EQ.</li>
+</ul>
+<p>A sensible decision point is after the last Victory Road boss: compare <strong>Arc/Swamp/CF/KG + two of Mawile, Sylveon, Mien, Cryo, Exc</strong> against the complete League roster. Choose the sixth for the entire chain, including Arceus; no late PC rescue exists. Ludi&#39;s rain/special Water role is least attractive here because weather fails in the last field and Grass/Flying/Poison coverage is common.</p>
+<h3>Boss tactics and source hazards</h3>
+<p>Exact first-challenge trainer moves/items/EVs are in <code>work/elite-boss-teams-installed19543.json</code>; VR bosses in <code>work/elite-preparation-static-installed19543.json</code>. <strong>Lin and Child Lin have252EVs in every stat</strong>, so calculations using legal-player510-total EVs underestimate them. Their skill/level100 loader also supplies3PPUps; count actual visible attacks if stalling rather than assuming unboosted PP. The ordinary enemy FullRestore does not restore PP.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Opponent</th>
+<th>Useful direction and nonnegotiable guard</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Sirius</td>
+<td>Dragon&#39;sDen double, Manectric/AlolaMarowak→Minior/Tyrantrum/Seviper/Chandelure. Swamp Ground/Rock with MienWideGuard support is promising. Preserve a Grass-coverage answer for Seviper/Chandelure. Fire×1.5, Ice/Water×0.5. Two Surf uses create Cave and later two quakes can collapse it: do not change fields accidentally.</td>
+</tr>
+<tr>
+<td>Blake</td>
+<td>Icy: Starmie/Walrein/Mamoswine/Gyarados/Weavile/AlolaSandslash. Cryo FreezeDry is valuable into the Water members, Mien&#39;s BrickBreak removes Reflect and avoids HJK crash uncertainty, Arc handles Steel. Gyarados/Mamoswine Ground coverage makes an unreviewed KG/Arc setup unsafe.</td>
+</tr>
+<tr>
+<td>Fern</td>
+<td>CrystalCavern: Rhyperior/Haxorus/MegaScizor/Serperior/ScarfKrookodile/Decidueye. Arc&#39;s Fire, Swamp&#39;s Water and a prepared Ice/Fairy answer cover most roles. Respect HaxorusSash and ContraryLeafStorm. Freeze the actual crystal/field messages before computing a move&#39;s multiplier.</td>
+</tr>
+<tr>
+<td>Heather</td>
+<td>Mountain: SashCrobat, Nidoking, Gyarados, Archeops, Gengar, MegaSalamence. Rock/Flying×1.5 and Thunder never misses; Tailwind also starts StrongWinds, reducing Flying weaknesses. Cryo <strong>Blizzard</strong> can turn Mountain into SnowyMountain, but first obtain the actual TM and verify its turn accuracy. Arc <strong>Flamethrower does not undo this field</strong>, whereas listed heat/burning moves do. Swamp&#39;s Electric immunity and bulk help; Nidoking&#39;s other coverage still matters. No setup depends on Crobat choosing Tailwind instead of attacking.</td>
+</tr>
+<tr>
+<td>Bennett&amp;Laura</td>
+<td>FlowerGarden1 initially, double six-mon team. Lead CF+Arc is worth calculating: Room/survival plus priority medicine or Fire pressure, later KG/Mien support. Seeds give <strong>+1SpDef/Ingrain</strong>, not all stats. Growth/NaturePower progressively grow the garden; stage4 activates Chlorophyll even without sun. Avoid a free VolcaronaQuiverDance/LeavannyFellStinger snowball. ArcHeatWave can burn stage3+ gardens after normal teaching; <strong>Flamethrower cannot</strong>. WideGuard covers actual spread attacks, not every Thunder/GigaDrain/SleepPowder. ArcSafeguard is one normal sleep answer.</td>
+</tr>
+<tr>
+<td>Elias</td>
+<td>Holy: seededNoivern, Kommo-o, BandDragonite, Drampa, ScarfImposterDitto, MegaKangaskhan. Fairy special attacks×1.5, Normal special×1.5, Dragon/Psychic×1.2. Ghost×0.5 and GhostCurse is removed here: CF is utility, not the sweeper. Mummy contact can remove ParentalBond; do not assume it before contact occurs. <strong>Ditto copies stages</strong>: stop a boosted sweep to control what it copies or have a prepared resistant switch/PP plan.</td>
+</tr>
+<tr>
+<td>Anna</td>
+<td>Starlight: AlolaNinetales/seedStarmie/seedGardevoir/Sylveon/MegaMetagross/Jirachi. GearGrind or MawileIronHead handles Fairies; Arc handles Metagross/Jirachi with Earthquake coverage still guarded. MienBrickBreak removes Veil. Starmie&#39;s Illuminate adds+2SpAtk on entry <strong>in addition to its seed</strong>. Dark has a Fairy matchup addon here; do not reuse ordinary Crunch×2 calculations. Metagross and Jirachi can be taken with Curse if needed.</td>
+</tr>
+<tr>
+<td>Lin1</td>
+<td>No field. AlolaNinetales/EjectButton, MegaGardevoir, ScarfGarchomp, Conkeldurr or Togekiss (506), SpecsDelphox, PULSEAbra. Break Veil; preserve a Ground/Ice/Fairy answer and heal before revenge entries. PULSEAbra coverage is special but includes Psyshock againstDefense; a pureSpDef setup is incomplete. The entire source team is statistically inflated.</td>
+</tr>
+<tr>
+<td>Lin3/Lin2</td>
+<td>NewWorld: Mismagius has <strong>FoulPlay</strong>, so setting+6Attack beforeDef makes a physical opener dangerous. Honchkrow has SuckerPunch; ClefableUnaware ignores ordinary attack boosts and recovers; Celesteela carries GigaDrain/LeechSeed; Hydreigon and Flygon have DracoMeteor. Use Arc for Celesteela, MoldBreakerExc or an unboosted Steel/poison plan for Clefable, Fairy for the dragons. Do not assume enemy switch/attack choices. On735True, win Lin3 while preserving the Arceus counter&#39;s HP, PP and unused Sash; there is no subsequent inventory window.</td>
+</tr>
+</tbody></table></div>
+<h3>PULSE Arceus and field control</h3>
+<p>Installed first Arceus is100, PULSEform19/Multitype, bases[255,125,155,125,155,160], allEV252: approximately <strong>714HP/349Atk/409Def/383SpAtk/409SpDef/419Speed</strong> at Modest. LIN2 holds LifeOrb; CHILDLIN0 holds DarkiniumZ and has3FullRestores. Both use <strong>Moonlight/Judgment/DoomDesire/DarkPulse</strong>. Source NewWorld rolls its type normally; read only the publicly announced type, never hidden rolls. Its Moonlight heals75%HP and can have8PP. DarkPulse flinches and its Z move bypasses ordinary Protect reduction; intact Sash is not immunity to a second pending hit.</p>
+<p>NewWorld boosts Dark×1.5, Judgment and assorted beam/EarthPower attacks×1.5, Moonblast/DracoMeteor×2, <strong>DoomDesire×4 and adds Fire</strong>, while EQ/Magnitude/Bulldoze×0.25. Normal weather and the four ordinary terrain moves fail. <strong>Room is8turns natively here</strong>; Starlight is only5 unless AmplifieldRock. Room&#39;s−7 priority requires surviving its setup attack; it is not a free fast move.</p>
+<p><strong>Gravity is a real installed exception:</strong> Battle_MoveEffects.rb:7996 sets5turns (8 with Rock), Battle_Field.rb:473–522 applies the NewWorld <code>fieldChange:STARLIGHT</code> rule, and Battle.rb:5916 restores NewWorld when Gravity ends. This removes the quarter-EQ penalty and NewWorld&#39;s Judgment/EarthPower boosts temporarily and stops the NewWorld type-roll behavior while the field remains Starlight, but <strong>Starlight still boosts DoomDesire×4 and adds Fire</strong>. Dark attacks also acquire Starlight&#39;s Fairy matchup addon. This is a field-management option, not immunity to the strongest hit. Do not refresh Gravity while already active (it fails), forget its timer, or claim ordinary MistyTerrain works first. Geomancy is the other source-listed field changer; no selected owned Pokémon is assumed to have it. This differs from the guide&#39;s blanket assertion that field change is unavailable. <a href="https://bigjra.github.io/reborn/#reborn-elite-four--champion">BigJRA&#39;s League section</a> remains a useful overview; installed handlers take precedence.</p>
+<p><strong>Status insurance is legal, not automatically a guaranteed one-turn kill.</strong> The ordinary trainer PULSEform is not an <code>isbossmon</code> shield opponent. DestinyBond has no trainer/form exemption in Battler.rb:5140, but consecutive Bond attempts fail and its effect ends when CF next acts. A faster-after-Room Bond can trade if the opponent actually knocks CF out; Moonlight/charging DoomDesire may delay it. GhostCurse applies despite the user&#39;s half-HP sacrifice and deals quarter maxHP each end turn; no Arceus form exemption exists. Moonlight/FullRestore mean more than four calendar turns may be required. Safely deliver Curse/Bond with a genuine free entry, reviewed HP/speed, intact Sash and no pending second hit. An entry flinch can prevent the move. Keep another living member throughout. Do not enqueue a promised win based on enemy move selection. A dedicated PerishSong reserve is another possible legal final answer, but its speed, Sash, soundproof checks and preservation through Lin3 must be reviewed before it displaces one of the six.</p>
+<h3>Supply and archive checklist before the top Hall door</h3>
+<ul>
+<li>FullHP/status/PP on all six; actual level100, nature/EV/item/move list frozen. Verify ring ownership and actual Mega UI if using a Mega plan. Apply PPUp to low-PP essential moves normally before final healing.</li>
+<li>Starter stock target: <strong>50 full-HP heals,30Revives,10status cures</strong>, enough PP items for <strong>at least three complete six-member PP resets</strong>, plus a separate reserve for Curse/Room/Protect/final counters. These are conservative purchase/preparation targets, not a certified worst-case bound. Unlimited Ether/Elixir shopping is not assumed; inspect actual sources and count stocks before locking. The frozen Hypno baseline has no PP medicine or Sash <strong>in the bag</strong>; any boxed held Sash must be withdrawn normally and verified before the chain.</li>
+<li>Stock self-XDefense/XSpDef/XSpeed/XAttack/XSpAtk/XAccuracy as selected builds require; XAccuracy gives+2stages. In doubles the item affects its <strong>acting battler</strong>, not its ally. Ally potions are legal. Keep priority full-HP cures when survival thresholds require them;200HP UltraPotion is not equivalent.</li>
+<li>Each earlier walking gap: cure/revive, restore PP, restore fullHP, reassign lead/held items, then freeze round entry. <strong>Before entering824, prepare for both final battles</strong>, including unused consumables on a reserve that will not be exposed unnecessarily in Lin3. Last-minute TM overwrites cannot recover a level/reminder-only move later.</li>
+<li>Archive the entire successful League run with the true shared challenge attempt count; per-round item ledgers plus out-of-battle medicine, PP and held expenditure must reconcile frozen prechain/postchain inventories. The immediate final pair needs a single continuity proof without any invented heal/PC/roster exchange. Major sides use the full source rosters and sprites; Bennett&amp;Laura is one six-member opposing party despite two characters. All failures stay in the full journeys.</li>
+</ul>
+<p>Static proof artifacts: <code>work/elite-route-events-installed19543.json</code>, <code>work/elite-arc-route-events-installed19543.json</code>, <code>work/elite-preparation-static-installed19543.json</code>, <code>work/elite-map-metadata-installed19543.json</code>, <code>work/elite-saphira-exit-static.json</code>. Reproduce the preparation extraction with <code>ruby scripts/elite_four_source_probe.rb</code>; it reads only installed maps/declarations. No proposed navigation or battle action in this note has been executed.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "created_epoch": 1791163555.697962,
+  "reason": "User requested stronger reusable team preparation; observed Terra778E64 opened normal external exit at story101.",
+  "completed": [
+    "Healed party",
+    "Klinklang95 trained HP/Attack restored to active party",
+    "Swampert TM80 RockSlide over RockClimb",
+    "Sylveon PP Max on Moonblast",
+    "Normal exit to Labradorra unlocked"
+  ],
+  "planned": [
+    "Circus Curse reminder for Cofagrigus over DarkPulse (1 HeartScale)",
+    "Circus IcePunch tutor for Swampert over Surf (6 RedShards)",
+    "Reset Swampert Defense/SpAtk/SpDef/Speed with 3Qualot/8Hondew/2Grepa/4Tamato",
+    "Train Swampert 7 PowerWeight KOs then 4 PowerBracer KOs; verify EVs252HP252Attack",
+    "Normally acquire CalmMint289E109 with Tauros Route1 excursion and apply Sylveon",
+    "Restore fullparty and restock before chestdefense"
+  ],
+  "recording_session": 163,
+  "gauntlet_started": false,
+  "training_extension": {
+    "Arcanine": "HP252/SpAtk252; reset Attack114 Defense121 SpDef44 Speed90 using6Kelpsy7Qualot3Grepa5Tamato.",
+    "pair_plan": "Swampert PowerWeight + Arcanine PowerLens for7 KOs; Swampert PowerBracer + Arcanine PowerWeight for4 KOs; Arcanine PowerWeight for3 solo KOs.",
+    "verification": "Use first shared KO as pilot and freeze actual EVs before continuing. Installed Battle.rb2554 and2718 apply EVs to both participants and power item replaces species yield with32.",
+    "encounter_caution": "Restored Opal night encounters are25\u201350, not pre-restoration low levels. Exclude high-evolution threats and Rattata Endeavor while switch-training. Inspect HP/status after pilot; use normal healer between bounded blocks as needed."
+  }
+}

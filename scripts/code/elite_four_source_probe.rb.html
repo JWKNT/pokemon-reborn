@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>elite_four_source_probe.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of elite_four_source_probe.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Installed declarations/maps only. No save, battle log, game runtime, or input access.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+game = <span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game&#x27;</span>
+tokens = <span class="hljs-string">%w[MAWILITE SWAMPERTITE MEGARING AMPLIFIELDROCK CLEFABLE GRAVITY]</span>
+result = {<span class="hljs-symbol">source:</span> <span class="hljs-string">&#x27;Installed Reborn 19.5.43; static source only&#x27;</span>, <span class="hljs-symbol">events:</span> [], <span class="hljs-symbol">arc_maps:</span> {}, <span class="hljs-symbol">encounters:</span> [], <span class="hljs-symbol">species:</span> {}, <span class="hljs-symbol">teams:</span> []}
+<span class="hljs-title class_">Dir</span>.glob(<span class="hljs-title class_">File</span>.join(game, <span class="hljs-string">&#x27;Data/Map[0-9][0-9][0-9].rxdata&#x27;</span>)).sort.each <span class="hljs-keyword">do</span> |<span class="hljs-params">path</span>|
+  mid = <span class="hljs-title class_">File</span>.basename(path)[<span class="hljs-number">3</span>, <span class="hljs-number">3</span>].to_i
+  <span class="hljs-comment"># Raw token scan avoids unmarshalling unrelated item maps; requested Arc maps are complete.</span>
+  raw = <span class="hljs-title class_">File</span>.binread(path)
+  <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> [<span class="hljs-number">304</span>, <span class="hljs-number">305</span>, <span class="hljs-number">310</span>, <span class="hljs-number">311</span>].<span class="hljs-keyword">include</span>?(mid) |<span class="hljs-params"></span>| tokens.any? {|<span class="hljs-params">t</span>| raw.<span class="hljs-keyword">include</span>?(t)}
+  map = load_rgss(path)
+  events = map.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>)
+  <span class="hljs-keyword">if</span> [<span class="hljs-number">304</span>, <span class="hljs-number">305</span>, <span class="hljs-number">310</span>, <span class="hljs-number">311</span>].<span class="hljs-keyword">include</span>?(mid)
+    result[<span class="hljs-symbol">:arc_maps</span>][mid] = {<span class="hljs-symbol">width:</span> map.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@width</span>), <span class="hljs-symbol">height:</span> map.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@height</span>), <span class="hljs-symbol">events:</span> events.transform_values {|<span class="hljs-params">event</span>| plain(event)}}
+  <span class="hljs-keyword">end</span>
+  events.each <span class="hljs-keyword">do</span> |<span class="hljs-params">eid, event</span>|
+    text = event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@pages</span>).map {|<span class="hljs-params">page</span>| page.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@list</span>).map {|<span class="hljs-params">cmd</span>| cmd.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@parameters</span>).to_s}.join(<span class="hljs-string">&quot;\n&quot;</span>)}.join(<span class="hljs-string">&quot;\n&quot;</span>)
+    selected = tokens.select {|<span class="hljs-params">t</span>| text.<span class="hljs-keyword">include</span>?(t)}
+    result[<span class="hljs-symbol">:events</span>] &lt;&lt; {<span class="hljs-symbol">map:</span> mid, <span class="hljs-symbol">id:</span> eid, <span class="hljs-symbol">tokens:</span> selected, <span class="hljs-symbol">event:</span> plain(event)} <span class="hljs-keyword">if</span> selected.any?
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+load <span class="hljs-title class_">File</span>.join(game, <span class="hljs-string">&#x27;Scripts/Reborn/enctext.rb&#x27;</span>)
+<span class="hljs-variable constant_">ENCHASH</span>.each <span class="hljs-keyword">do</span> |<span class="hljs-params">mid, entries</span>|
+  selected = entries.select {|<span class="hljs-params">key, value</span>| <span class="hljs-variable constant_">JSON</span>.generate(value).match?(<span class="hljs-regexp">/MAWILE|CLEFAIRY|CLEFABLE|AGGRON/</span>)}
+  result[<span class="hljs-symbol">:encounters</span>] &lt;&lt; {<span class="hljs-symbol">map:</span> mid, <span class="hljs-symbol">entries:</span> selected} <span class="hljs-keyword">if</span> selected.any?
+<span class="hljs-keyword">end</span>
+load <span class="hljs-title class_">File</span>.join(game, <span class="hljs-string">&#x27;Scripts/Reborn/montext.rb&#x27;</span>)
+result[<span class="hljs-symbol">:species</span>] = <span class="hljs-variable constant_">MONHASH</span>.select {|<span class="hljs-params">name, _</span>| [<span class="hljs-symbol">:CLEFABLE</span>, <span class="hljs-symbol">:MAWILE</span>, <span class="hljs-symbol">:AGGRON</span>, <span class="hljs-symbol">:SWAMPERT</span>, <span class="hljs-symbol">:CRYOGONAL</span>, <span class="hljs-symbol">:COFAGRIGUS</span>, <span class="hljs-symbol">:KLINKLANG</span>, <span class="hljs-symbol">:MIENSHAO</span>, <span class="hljs-symbol">:ARCEUS</span>, <span class="hljs-symbol">:EXCADRILL</span>].<span class="hljs-keyword">include</span>?(name)}
+load <span class="hljs-title class_">File</span>.join(game, <span class="hljs-string">&#x27;Scripts/Reborn/trainertext.rb&#x27;</span>)
+result[<span class="hljs-symbol">:teams</span>] = <span class="hljs-variable constant_">TEAMARRAY</span>.select {|<span class="hljs-params">team</span>| [[<span class="hljs-string">&#x27;Fern&#x27;</span>, <span class="hljs-symbol">:Hotshot</span>, <span class="hljs-number">7</span>], [<span class="hljs-string">&#x27;Sirius&#x27;</span>, <span class="hljs-symbol">:Sirius</span>, <span class="hljs-number">2</span>], [<span class="hljs-string">&#x27;Blake&#x27;</span>, <span class="hljs-symbol">:BLAKE</span>, <span class="hljs-number">2</span>]].<span class="hljs-keyword">include</span>?(team[<span class="hljs-symbol">:teamid</span>])}
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(result)
+</code></pre>
+  </body>
+</html>

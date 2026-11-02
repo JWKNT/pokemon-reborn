@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>public_bounded_moves.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of public_bounded_moves.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute a finite move plan while the public matchup and HP stay within reviewed bounds.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> public_owned_hp <span class="hljs-keyword">import</span> read <span class="hljs-keyword">as</span> hp_read
+<span class="hljs-keyword">import</span> argparse,difflib
+p=argparse.ArgumentParser();p.add_argument(<span class="hljs-string">&#x27;actor&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;foe&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;maxhp&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;minhp&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;moves&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;journal&#x27;</span>,<span class="hljs-built_in">type</span>=pathlib.Path);a=p.parse_args()
+slots=[<span class="hljs-built_in">int</span>(x)<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> a.moves.split(<span class="hljs-string">&#x27;,&#x27;</span>)];<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=<span class="hljs-built_in">len</span>(slots)&lt;=<span class="hljs-number">5</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(<span class="hljs-number">0</span>&lt;=x&lt;=<span class="hljs-number">3</span> <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> slots);<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> a.journal.exists()
+d={<span class="hljs-string">&#x27;plan&#x27;</span>:slots,<span class="hljs-string">&#x27;events&#x27;</span>:[],<span class="hljs-string">&#x27;status&#x27;</span>:<span class="hljs-string">&#x27;running&#x27;</span>}
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">save</span>():a.journal.write_text(json.dumps(d,indent=<span class="hljs-number">2</span>))
+<span class="hljs-keyword">try</span>:
+ <span class="hljs-keyword">for</span> slot <span class="hljs-keyword">in</span> slots:
+  rows=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> rows).lower()
+  enemy=<span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>].lower() <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> x[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.37</span>)
+  foe_seen=<span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,a.foe.lower(),w.strip(<span class="hljs-string">&#x27;.,&#x27;</span>)).ratio()&gt;=<span class="hljs-number">.78</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> enemy.split())
+  <span class="hljs-comment"># Recorded Mew HUDs can OCR the final w as Cyrillic sh; keep whole-word matching.</span>
+  actor_text=t.translate(<span class="hljs-built_in">str</span>.maketrans({<span class="hljs-string">&#x27;ш&#x27;</span>:<span class="hljs-string">&#x27;w&#x27;</span>,<span class="hljs-string">&#x27;е&#x27;</span>:<span class="hljs-string">&#x27;e&#x27;</span>}))
+  actor_names=[a.actor.lower()]+([<span class="hljs-string">&#x27;meurtwo&#x27;</span>,<span class="hljs-string">&#x27;mewrtwo&#x27;</span>,<span class="hljs-string">&#x27;mewtuo&#x27;</span>,<span class="hljs-string">&#x27;meurtuo&#x27;</span>] <span class="hljs-keyword">if</span> a.actor.lower()==<span class="hljs-string">&#x27;mewtwo&#x27;</span> <span class="hljs-keyword">else</span> [])
+  actor_seen=<span class="hljs-built_in">any</span>(re.search(<span class="hljs-string">r&#x27;\b&#x27;</span>+re.escape(name)+<span class="hljs-string">r&#x27;\b&#x27;</span>,actor_text) <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> actor_names)
+  <span class="hljs-keyword">assert</span> actor_seen <span class="hljs-keyword">and</span> foe_seen <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;run&#x27;</span> <span class="hljs-keyword">in</span> t,t
+  <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\b(?:frz|slp|par|frozen|asleep|paralyzed)\b&#x27;</span>,t),<span class="hljs-string">&#x27;Status requires public review: &#x27;</span>+t
+  hp=hp_read(rows,a.maxhp);<span class="hljs-keyword">assert</span> hp&gt;=a.minhp,(hp,a.minhp)
+  e=<span class="hljs-built_in">dict</span>(slot=slot,hp=hp,epoch=time.time(),pending=<span class="hljs-literal">True</span>);d[<span class="hljs-string">&#x27;events&#x27;</span>].append(e);save();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;GUARDED MOVE&#x27;</span>,e,flush=<span class="hljs-literal">True</span>)
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_move.py&#x27;</span>),<span class="hljs-built_in">str</span>(slot),<span class="hljs-string">&#x27;--watch&#x27;</span>],check=<span class="hljs-literal">True</span>)
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+  e[<span class="hljs-string">&#x27;pending&#x27;</span>]=<span class="hljs-literal">False</span>;save()
+ d[<span class="hljs-string">&#x27;status&#x27;</span>]=<span class="hljs-string">&#x27;completed&#x27;</span>;save()
+<span class="hljs-keyword">except</span> Exception:
+ d[<span class="hljs-string">&#x27;status&#x27;</span>]=<span class="hljs-string">&#x27;inspect_public_state_before_any_resume&#x27;</span>;save();<span class="hljs-keyword">raise</span>
+</code></pre>
+  </body>
+</html>

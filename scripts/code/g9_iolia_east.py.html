@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g9_iolia_east.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g9_iolia_east.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> g9_iolia_middle <span class="hljs-keyword">import</span> *
+<span class="hljs-comment"># Continue after middle green crystal 136.</span>
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;335,35,0,up:0.22,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;334,31,0,up:0.22,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">333</span>,<span class="hljs-number">73</span>,<span class="hljs-string">&#x27;smash&#x27;</span>)
+red(<span class="hljs-number">333</span>,<span class="hljs-number">16</span>,<span class="hljs-number">17</span>,<span class="hljs-number">165</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;341,12,27,down:0.22,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;334,41,22,down:0.22,wait:1&#x27;</span>)
+crystal(<span class="hljs-number">335</span>,<span class="hljs-number">141</span>,<span class="hljs-number">448</span>)
+<span class="hljs-comment"># Return via the same eastern cave. The crystal opens rocks on the far bank.</span>
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;335,41,0,up:0.22,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;334,39,2,up:0.22,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;341,9,8,left:0.22,wait:1&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;EAST CRYSTAL OPEN: inspect respawned green rocks before return.&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

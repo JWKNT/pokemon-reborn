@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>steps.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of steps.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Run a reviewed sequence of existing UI helpers, aborting on any interruption.
+JSON entries: [script basename, argument, ...]. No game-state mutations outside UI.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,sys,pathlib,time
+r=pathlib.Path(__file__).resolve().parent
+source=pathlib.Path(sys.argv[<span class="hljs-number">1</span>]).resolve()
+steps=json.loads(source.read_text())
+journal=r.parent/<span class="hljs-string">&#x27;work/active-steps-progress.json&#x27;</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">record</span>(<span class="hljs-params">index,args,state,**extra</span>):
+ journal.write_text(json.dumps(<span class="hljs-built_in">dict</span>(plan=<span class="hljs-built_in">str</span>(source),index=index,args=args,
+                                   state=state,total=<span class="hljs-built_in">len</span>(steps),epoch=time.time(),
+                                   **extra),indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+<span class="hljs-keyword">for</span> i,args <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(steps):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STEP&#x27;</span>,i,args,flush=<span class="hljs-literal">True</span>)
+ record(i,args,<span class="hljs-string">&#x27;running&#x27;</span>)
+ <span class="hljs-keyword">try</span>:
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(r/(args[<span class="hljs-number">0</span>]+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args[<span class="hljs-number">1</span>:])],check=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">except</span> subprocess.CalledProcessError <span class="hljs-keyword">as</span> error:
+  record(i,args,<span class="hljs-string">&#x27;interrupted&#x27;</span>,returncode=error.returncode)
+  <span class="hljs-keyword">raise</span>
+ record(i,args,<span class="hljs-string">&#x27;completed&#x27;</span>,next_index=i+<span class="hljs-number">1</span>)
+</code></pre>
+  </body>
+</html>

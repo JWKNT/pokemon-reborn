@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>wtc_model.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of wtc_model.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure read-only model of installed deterministic WTC water-control commands.
+
+Returns a hypothetical navigation snapshot; never sends input or edits the game.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json, subprocess, pathlib, copy
+ROOT=pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">predict</span>(<span class="hljs-params">source,old,eid,map_loader=<span class="hljs-literal">None</span></span>):
+ state=copy.deepcopy(source);direction=<span class="hljs-number">8</span>
+ <span class="hljs-built_in">vars</span>=state.setdefault(<span class="hljs-string">&#x27;variables&#x27;</span>,{});switches=state.setdefault(<span class="hljs-string">&#x27;switches&#x27;</span>,{})
+ positions=state.setdefault(<span class="hljs-string">&#x27;positions&#x27;</span>,{});current=old;budget=<span class="hljs-number">0</span>
+ commons=json.loads((ROOT/<span class="hljs-string">&#x27;work/wtc-common-model.json&#x27;</span>).read_text())
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">value</span>(<span class="hljs-params">i</span>):<span class="hljs-keyword">return</span> <span class="hljs-built_in">vars</span>.get(<span class="hljs-built_in">str</span>(i),<span class="hljs-number">0</span>) <span class="hljs-keyword">or</span> <span class="hljs-number">0</span>
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">mapdata</span>(<span class="hljs-params">mid</span>):
+  <span class="hljs-keyword">if</span> map_loader:<span class="hljs-keyword">return</span> copy.deepcopy(map_loader(mid,<span class="hljs-built_in">vars</span>,switches,mid!=old))
+  extra=json.dumps({<span class="hljs-string">&#x27;variables&#x27;</span>:<span class="hljs-built_in">vars</span>,<span class="hljs-string">&#x27;switches&#x27;</span>:switches,<span class="hljs-string">&#x27;reset_positions&#x27;</span>:mid!=old})
+  <span class="hljs-keyword">return</span> json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,extra],stderr=subprocess.DEVNULL))
+ maps={old:mapdata(old)}
+ positions.setdefault(<span class="hljs-built_in">str</span>(old),{})
+ <span class="hljs-keyword">for</span> k,e <span class="hljs-keyword">in</span> maps[old][<span class="hljs-string">&#x27;events&#x27;</span>].items():positions[<span class="hljs-built_in">str</span>(old)].setdefault(k,[e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]])
+ commands=maps[old][<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)][<span class="hljs-string">&#x27;list&#x27;</span>]
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">condition</span>(<span class="hljs-params">a</span>):
+  <span class="hljs-keyword">if</span> a[<span class="hljs-number">0</span>]==<span class="hljs-number">0</span>:<span class="hljs-keyword">return</span> <span class="hljs-built_in">bool</span>(switches.get(<span class="hljs-built_in">str</span>(a[<span class="hljs-number">1</span>]),<span class="hljs-literal">False</span>))==(a[<span class="hljs-number">2</span>]==<span class="hljs-number">0</span>)
+  <span class="hljs-keyword">if</span> a[<span class="hljs-number">0</span>]==<span class="hljs-number">1</span>:
+   lhs=value(a[<span class="hljs-number">1</span>]);rhs=a[<span class="hljs-number">3</span>] <span class="hljs-keyword">if</span> a[<span class="hljs-number">2</span>]==<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> value(a[<span class="hljs-number">3</span>])
+   <span class="hljs-keyword">return</span> [lhs==rhs,lhs&gt;=rhs,lhs&lt;=rhs,lhs&gt;rhs,lhs&lt;rhs,lhs!=rhs][a[<span class="hljs-number">4</span>]]
+  <span class="hljs-keyword">if</span> a[:<span class="hljs-number">2</span>]==[<span class="hljs-number">6</span>,-<span class="hljs-number">1</span>]:<span class="hljs-keyword">return</span> direction==a[<span class="hljs-number">2</span>]
+  <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Unsupported control condition &#x27;</span>+<span class="hljs-built_in">str</span>(a))
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">execute</span>(<span class="hljs-params">cs</span>):
+  <span class="hljs-keyword">nonlocal</span> current,budget
+  active={-<span class="hljs-number">1</span>:<span class="hljs-literal">True</span>};tested={};loops=[];i=<span class="hljs-number">0</span>
+  <span class="hljs-keyword">while</span> i&lt;<span class="hljs-built_in">len</span>(cs):
+   budget+=<span class="hljs-number">1</span>
+   <span class="hljs-keyword">if</span> budget&gt;<span class="hljs-number">20000</span>:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Control model instruction limit&#x27;</span>)
+   c=cs[i];code,a,indent=c[<span class="hljs-string">&#x27;code&#x27;</span>],c[<span class="hljs-string">&#x27;parameters&#x27;</span>],c[<span class="hljs-string">&#x27;indent&#x27;</span>]
+   <span class="hljs-keyword">if</span> code==<span class="hljs-number">111</span>:
+    ok=condition(a);tested[indent]=ok;active[indent]=active.get(indent-<span class="hljs-number">1</span>,<span class="hljs-literal">True</span>) <span class="hljs-keyword">and</span> ok
+   <span class="hljs-keyword">elif</span> code==<span class="hljs-number">411</span>:active[indent]=active.get(indent-<span class="hljs-number">1</span>,<span class="hljs-literal">True</span>) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> tested[indent]
+   <span class="hljs-keyword">elif</span> code==<span class="hljs-number">412</span>:active.pop(indent,<span class="hljs-literal">None</span>)
+   <span class="hljs-keyword">elif</span> active.get(indent-<span class="hljs-number">1</span>,<span class="hljs-literal">True</span>):
+    <span class="hljs-keyword">if</span> code==<span class="hljs-number">112</span>:loops.append((i,indent))
+    <span class="hljs-keyword">elif</span> code==<span class="hljs-number">413</span>:
+     <span class="hljs-keyword">assert</span> loops <span class="hljs-keyword">and</span> loops[-<span class="hljs-number">1</span>][<span class="hljs-number">1</span>]==indent
+     i=loops[-<span class="hljs-number">1</span>][<span class="hljs-number">0</span>]+<span class="hljs-number">1</span>;<span class="hljs-keyword">continue</span>
+    <span class="hljs-keyword">elif</span> code==<span class="hljs-number">113</span>:
+     start,level=loops.pop();end=<span class="hljs-built_in">next</span>(j <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(i+<span class="hljs-number">1</span>,<span class="hljs-built_in">len</span>(cs)) <span class="hljs-keyword">if</span> cs[j][<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">413</span> <span class="hljs-keyword">and</span> cs[j][<span class="hljs-string">&#x27;indent&#x27;</span>]==level)
+     <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">list</span>(active):
+      <span class="hljs-keyword">if</span> k&gt;=level:active.pop(k)
+     i=end+<span class="hljs-number">1</span>;<span class="hljs-keyword">continue</span>
+    <span class="hljs-keyword">elif</span> code==<span class="hljs-number">117</span>:
+     <span class="hljs-keyword">assert</span> <span class="hljs-built_in">str</span>(a[<span class="hljs-number">0</span>]) <span class="hljs-keyword">in</span> commons
+     execute(commons[<span class="hljs-built_in">str</span>(a[<span class="hljs-number">0</span>])][<span class="hljs-string">&#x27;list&#x27;</span>])
+    <span class="hljs-keyword">elif</span> code==<span class="hljs-number">122</span>:
+     <span class="hljs-keyword">if</span> a[<span class="hljs-number">3</span>]==<span class="hljs-number">0</span>:rhs=a[<span class="hljs-number">4</span>]
+     <span class="hljs-keyword">elif</span> a[<span class="hljs-number">3</span>]==<span class="hljs-number">1</span>:rhs=value(a[<span class="hljs-number">4</span>])
+     <span class="hljs-keyword">elif</span> a[<span class="hljs-number">3</span>]==<span class="hljs-number">6</span>:
+      <span class="hljs-keyword">assert</span> a[<span class="hljs-number">5</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">1</span>]
+      rhs=positions[<span class="hljs-built_in">str</span>(current)][<span class="hljs-built_in">str</span>(a[<span class="hljs-number">4</span>])][a[<span class="hljs-number">5</span>]]
+     <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Unsupported control operand &#x27;</span>+<span class="hljs-built_in">str</span>(a))
+     <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(a[<span class="hljs-number">0</span>],a[<span class="hljs-number">1</span>]+<span class="hljs-number">1</span>):
+      lhs=value(k)
+      <span class="hljs-keyword">if</span> a[<span class="hljs-number">2</span>]==<span class="hljs-number">0</span>:result=rhs
+      <span class="hljs-keyword">elif</span> a[<span class="hljs-number">2</span>]==<span class="hljs-number">1</span>:result=lhs+rhs
+      <span class="hljs-keyword">elif</span> a[<span class="hljs-number">2</span>]==<span class="hljs-number">2</span>:result=lhs-rhs
+      <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Unsupported control operation &#x27;</span>+<span class="hljs-built_in">str</span>(a))
+      <span class="hljs-built_in">vars</span>[<span class="hljs-built_in">str</span>(k)]=result
+    <span class="hljs-keyword">elif</span> code==<span class="hljs-number">121</span>:
+     <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(a[<span class="hljs-number">0</span>],a[<span class="hljs-number">1</span>]+<span class="hljs-number">1</span>):switches[<span class="hljs-built_in">str</span>(k)]=a[<span class="hljs-number">2</span>]==<span class="hljs-number">0</span>
+    <span class="hljs-keyword">elif</span> code==<span class="hljs-number">201</span>:
+     <span class="hljs-keyword">assert</span> a[<span class="hljs-number">0</span>]==<span class="hljs-number">0</span>
+     current=a[<span class="hljs-number">1</span>];maps[current]=mapdata(current)
+     positions[<span class="hljs-built_in">str</span>(current)]={k:[e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]] <span class="hljs-keyword">for</span> k,e <span class="hljs-keyword">in</span> maps[current][<span class="hljs-string">&#x27;events&#x27;</span>].items()}
+    <span class="hljs-keyword">elif</span> code==<span class="hljs-number">202</span>:
+     <span class="hljs-keyword">assert</span> a[<span class="hljs-number">1</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">1</span>]
+     positions[<span class="hljs-built_in">str</span>(current)][<span class="hljs-built_in">str</span>(a[<span class="hljs-number">0</span>])]=a[<span class="hljs-number">2</span>:<span class="hljs-number">4</span>] <span class="hljs-keyword">if</span> a[<span class="hljs-number">1</span>]==<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> [value(a[<span class="hljs-number">2</span>]),value(a[<span class="hljs-number">3</span>])]
+    <span class="hljs-keyword">elif</span> code==<span class="hljs-number">115</span>:<span class="hljs-keyword">return</span>
+    <span class="hljs-keyword">elif</span> code <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">108</span>,<span class="hljs-number">408</span>,<span class="hljs-number">106</span>,<span class="hljs-number">223</span>,<span class="hljs-number">250</span>]:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Unsupported control command &#x27;</span>+<span class="hljs-built_in">str</span>(c))
+   i+=<span class="hljs-number">1</span>
+ execute(commands)
+ <span class="hljs-keyword">return</span> state,current,budget
+</code></pre>
+  </body>
+</html>

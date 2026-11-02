@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>text_speed_max.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of text_speed_max.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Set only Text Speed to Max through normal UI; source-only dry-run by default.
+
+Development/import reads no screens, current saves, native settings or controls.
+--execute requires a fresh Pause Menu (or explicitly --start-options), a new
+journal, rendered cursor proof and actual red Max proof. Stops on uncertainty.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> __future__ <span class="hljs-keyword">import</span> annotations
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> hashlib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> time
+<span class="hljs-keyword">import</span> unicodedata
+
+ROOT = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+GAME = Path(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game&#x27;</span>)
+CANVASES = {(<span class="hljs-number">2272</span>,<span class="hljs-number">1816</span>):(<span class="hljs-number">112</span>,<span class="hljs-number">132</span>,<span class="hljs-number">2048</span>,<span class="hljs-number">1536</span>), (<span class="hljs-number">1024</span>,<span class="hljs-number">796</span>):(<span class="hljs-number">0</span>,<span class="hljs-number">28</span>,<span class="hljs-number">1024</span>,<span class="hljs-number">768</span>)}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">need</span>(<span class="hljs-params">ok, message</span>):
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> ok:
+        <span class="hljs-keyword">raise</span> ValueError(message)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">norm</span>(<span class="hljs-params">text</span>):
+    text = unicodedata.normalize(<span class="hljs-string">&#x27;NFKD&#x27;</span>, text.lower()).translate(<span class="hljs-built_in">str</span>.maketrans({<span class="hljs-string">&#x27;а&#x27;</span>:<span class="hljs-string">&#x27;a&#x27;</span>,<span class="hljs-string">&#x27;о&#x27;</span>:<span class="hljs-string">&#x27;o&#x27;</span>,<span class="hljs-string">&#x27;е&#x27;</span>:<span class="hljs-string">&#x27;e&#x27;</span>,<span class="hljs-string">&#x27;х&#x27;</span>:<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;к&#x27;</span>:<span class="hljs-string">&#x27;k&#x27;</span>}))
+    value = re.sub(<span class="hljs-string">&#x27;[^a-z0-9]&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, text)
+    <span class="hljs-comment"># Actual session132 Agate crop rendered final Controls &quot;s&quot; as &quot;a&quot;.</span>
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;duitgame&#x27;</span>:<span class="hljs-string">&#x27;quitgame&#x27;</span>,<span class="hljs-string">&#x27;durtgame&#x27;</span>:<span class="hljs-string">&#x27;quitgame&#x27;</span>,<span class="hljs-string">&#x27;controla&#x27;</span>:<span class="hljs-string">&#x27;controls&#x27;</span>}.get(value,value)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">center</span>(<span class="hljs-params">row</span>):
+    <span class="hljs-keyword">return</span> (row[<span class="hljs-string">&#x27;y&#x27;</span>] + row[<span class="hljs-string">&#x27;h&#x27;</span>]/<span class="hljs-number">2</span>)*<span class="hljs-number">384</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">unique_label</span>(<span class="hljs-params">rows, name, *, side=<span class="hljs-string">&#x27;left&#x27;</span>, prefix=<span class="hljs-literal">False</span></span>):
+    <span class="hljs-comment"># Narrow observed Options glyph alias; all other label matches stay exact.</span>
+    aliases = {<span class="hljs-string">&#x27;options&#x27;</span>,<span class="hljs-string">&#x27;uptions&#x27;</span>} <span class="hljs-keyword">if</span> norm(name)==<span class="hljs-string">&#x27;options&#x27;</span> <span class="hljs-keyword">else</span> {norm(name)}
+    hits = [r <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> ((norm(r[<span class="hljs-string">&#x27;text&#x27;</span>]).startswith(norm(name))) <span class="hljs-keyword">if</span> prefix <span class="hljs-keyword">else</span> norm(r[<span class="hljs-string">&#x27;text&#x27;</span>]) <span class="hljs-keyword">in</span> aliases)
+            <span class="hljs-keyword">and</span> ((r[<span class="hljs-string">&#x27;x&#x27;</span>] &lt; <span class="hljs-number">.46</span>) <span class="hljs-keyword">if</span> side==<span class="hljs-string">&#x27;left&#x27;</span> <span class="hljs-keyword">else</span> (r[<span class="hljs-string">&#x27;x&#x27;</span>] &gt; <span class="hljs-number">.55</span>))]
+    need(<span class="hljs-built_in">len</span>(hits)==<span class="hljs-number">1</span>, <span class="hljs-string">&#x27;Expected one visible &#x27;</span>+name+<span class="hljs-string">&#x27; label&#x27;</span>)
+    <span class="hljs-keyword">return</span> hits[<span class="hljs-number">0</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">pause_guard</span>(<span class="hljs-params">rows</span>):
+    <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Bag&#x27;</span>,<span class="hljs-string">&#x27;Options&#x27;</span>,<span class="hljs-string">&#x27;Controls&#x27;</span>,<span class="hljs-string">&#x27;Quit Game&#x27;</span>]:
+        unique_label(rows,name,side=<span class="hljs-string">&#x27;right&#x27;</span>)
+    need(<span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(norm(r[<span class="hljs-string">&#x27;text&#x27;</span>]) <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;general&#x27;</span>,<span class="hljs-string">&#x27;accessibility&#x27;</span>,<span class="hljs-string">&#x27;debug&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows),
+         <span class="hljs-string">&#x27;Unexpected battle/accessibility/debug screen&#x27;</span>)
+    <span class="hljs-keyword">return</span> unique_label(rows,<span class="hljs-string">&#x27;Options&#x27;</span>,side=<span class="hljs-string">&#x27;right&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">options_guard</span>(<span class="hljs-params">rows</span>):
+    title = unique_label(rows,<span class="hljs-string">&#x27;Options&#x27;</span>)
+    need(title[<span class="hljs-string">&#x27;y&#x27;</span>] &lt; <span class="hljs-number">.16</span>, <span class="hljs-string">&#x27;Options title is not at the top&#x27;</span>)
+    result = {name:unique_label(rows,name,prefix=<span class="hljs-literal">True</span>) <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span>
+              [<span class="hljs-string">&#x27;Autorunning&#x27;</span>,<span class="hljs-string">&#x27;Text Speed&#x27;</span>,<span class="hljs-string">&#x27;Text Skip Wait&#x27;</span>,<span class="hljs-string">&#x27;BGM Volume&#x27;</span>,<span class="hljs-string">&#x27;SE Volume&#x27;</span>]}
+    positions = [center(r) <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> result.values()]
+    need(<span class="hljs-built_in">all</span>(<span class="hljs-built_in">abs</span>(positions[i+<span class="hljs-number">1</span>]-positions[i]-<span class="hljs-number">32</span>)&lt;<span class="hljs-number">8</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>)),
+         <span class="hljs-string">&#x27;Installed first five option rows do not match visible layout&#x27;</span>)
+    <span class="hljs-keyword">return</span> result
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">source_proof</span>():
+    path = GAME/<span class="hljs-string">&#x27;Scripts/Options.rb&#x27;</span>
+    src = path.read_text()
+    <span class="hljs-keyword">for</span> token <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;_INTL(&quot;Text Speed&quot;), [_INTL(&quot;Normal&quot;), _INTL(&quot;Fast&quot;), _INTL(&quot;Max&quot;)]&#x27;</span>,
+                  <span class="hljs-string">&#x27;index = @values.length - 1 if index &gt; @values.length - 1&#x27;</span>,
+                  <span class="hljs-string">&#x27;return -2 if speed == 2&#x27;</span>, <span class="hljs-string">&#x27;if Input.trigger?(Input::B)&#x27;</span>,
+                  <span class="hljs-string">&#x27;@selBaseColor = Color.new(31 * 8, 6 * 8, 3 * 8)&#x27;</span>, <span class="hljs-string">&#x27;saveSettings&#x27;</span>]:
+        need(token <span class="hljs-keyword">in</span> src, <span class="hljs-string">&#x27;Installed option contract changed: &#x27;</span>+token)
+    need(<span class="hljs-string">&#x27;AnimatedBitmap.new(&quot;Graphics/Pictures/selarrow&quot;)&#x27;</span> <span class="hljs-keyword">in</span>
+         (GAME/<span class="hljs-string">&#x27;Scripts/SW Subclasses.rb&#x27;</span>).read_text(), <span class="hljs-string">&#x27;Installed cursor asset changed&#x27;</span>)
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;options_source_sha256&#x27;</span>:hashlib.sha256(path.read_bytes()).hexdigest(),
+            <span class="hljs-string">&#x27;values&#x27;</span>:[<span class="hljs-string">&#x27;Normal&#x27;</span>,<span class="hljs-string">&#x27;Fast&#x27;</span>,<span class="hljs-string">&#x27;Max&#x27;</span>], <span class="hljs-string">&#x27;right_clamps&#x27;</span>:<span class="hljs-literal">True</span>,
+            <span class="hljs-string">&#x27;queue&#x27;</span>:<span class="hljs-string">&#x27;visible Options selection; visible Text Speed row; RIGHT twice; verify red Max; X to save/exit&#x27;</span>}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">find_arrow</span>(<span class="hljs-params">image, template, region</span>):
+    opaque = [(x,y,<span class="hljs-built_in">tuple</span>(p[:<span class="hljs-number">3</span>])) <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(template.height) <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(template.width)
+              <span class="hljs-keyword">if</span> (p:=template.getpixel((x,y)))[<span class="hljs-number">3</span>]==<span class="hljs-number">255</span>]
+    need(<span class="hljs-built_in">len</span>(opaque)&gt;<span class="hljs-number">100</span>, <span class="hljs-string">&#x27;Installed cursor has too few opaque pixels&#x27;</span>)
+    x0,y0,x1,y1 = region
+    sample = opaque[<span class="hljs-built_in">len</span>(opaque)//<span class="hljs-number">2</span>]
+    candidates=[]
+    pix=image.load()
+    <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(y0,y1-template.height+<span class="hljs-number">1</span>):
+        <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(x0,x1-template.width+<span class="hljs-number">1</span>):
+            <span class="hljs-keyword">if</span> <span class="hljs-built_in">max</span>(<span class="hljs-built_in">abs</span>(pix[x+sample[<span class="hljs-number">0</span>],y+sample[<span class="hljs-number">1</span>]][i]-sample[<span class="hljs-number">2</span>][i]) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>))&gt;<span class="hljs-number">12</span>:
+                <span class="hljs-keyword">continue</span>
+            score=<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">max</span>(<span class="hljs-built_in">abs</span>(pix[x+dx,y+dy][i]-color[i]) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>))&lt;=<span class="hljs-number">12</span>
+                      <span class="hljs-keyword">for</span> dx,dy,color <span class="hljs-keyword">in</span> opaque)/<span class="hljs-built_in">len</span>(opaque)
+            <span class="hljs-keyword">if</span> score&gt;=<span class="hljs-number">.96</span>:
+                candidates.append((score,x,y))
+    need(candidates, <span class="hljs-string">&#x27;Rendered installed selection arrow not found&#x27;</span>)
+    candidates.sort(reverse=<span class="hljs-literal">True</span>)
+    _,x,y=candidates[<span class="hljs-number">0</span>]
+    need(<span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(<span class="hljs-built_in">abs</span>(xx-x)&gt;<span class="hljs-number">3</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">abs</span>(yy-y)&gt;<span class="hljs-number">3</span> <span class="hljs-keyword">for</span> _,xx,yy <span class="hljs-keyword">in</span> candidates[<span class="hljs-number">1</span>:]),
+         <span class="hljs-string">&#x27;Multiple rendered selection arrows&#x27;</span>)
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;x&#x27;</span>:x,<span class="hljs-string">&#x27;y&#x27;</span>:y,<span class="hljs-string">&#x27;center_y&#x27;</span>:y+template.height/<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;score&#x27;</span>:candidates[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>]}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">alignment</span>(<span class="hljs-params">target, arrow</span>):
+    delta=center(target)-arrow[<span class="hljs-string">&#x27;center_y&#x27;</span>]
+    steps=<span class="hljs-built_in">round</span>(delta/<span class="hljs-number">32</span>)
+    need(<span class="hljs-built_in">abs</span>(delta-steps*<span class="hljs-number">32</span>)&lt;<span class="hljs-number">10</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">abs</span>(steps)&lt;=<span class="hljs-number">9</span>, <span class="hljs-string">&#x27;Cursor/target row alignment is uncertain&#x27;</span>)
+    <span class="hljs-keyword">return</span> steps
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">max_proof</span>(<span class="hljs-params">rows, image, target</span>):
+    words=[word <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">for</span> word <span class="hljs-keyword">in</span> r.get(<span class="hljs-string">&#x27;words&#x27;</span>,[]) <span class="hljs-keyword">if</span> norm(word[<span class="hljs-string">&#x27;text&#x27;</span>]) <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;normal&#x27;</span>,<span class="hljs-string">&#x27;fast&#x27;</span>,<span class="hljs-string">&#x27;max&#x27;</span>]
+           <span class="hljs-keyword">and</span> word[<span class="hljs-string">&#x27;x&#x27;</span>]&gt;<span class="hljs-number">.40</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">abs</span>(center(word)-center(target))&lt;<span class="hljs-number">12</span>]
+    need(<span class="hljs-built_in">sorted</span>(norm(w[<span class="hljs-string">&#x27;text&#x27;</span>]) <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> words)==[<span class="hljs-string">&#x27;fast&#x27;</span>,<span class="hljs-string">&#x27;max&#x27;</span>,<span class="hljs-string">&#x27;normal&#x27;</span>],
+         <span class="hljs-string">&#x27;Normal/Fast/Max value words need independent visible boxes&#x27;</span>)
+    scores={}
+    <span class="hljs-keyword">for</span> word <span class="hljs-keyword">in</span> words:
+        x,y,w,h=[word[k] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;y&#x27;</span>,<span class="hljs-string">&#x27;w&#x27;</span>,<span class="hljs-string">&#x27;h&#x27;</span>]]
+        crop=image.crop((<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,<span class="hljs-built_in">int</span>(x*<span class="hljs-number">512</span>)-<span class="hljs-number">2</span>),<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,<span class="hljs-built_in">int</span>(y*<span class="hljs-number">384</span>)-<span class="hljs-number">2</span>),
+                         <span class="hljs-built_in">min</span>(<span class="hljs-number">512</span>,<span class="hljs-built_in">int</span>((x+w)*<span class="hljs-number">512</span>)+<span class="hljs-number">3</span>),<span class="hljs-built_in">min</span>(<span class="hljs-number">384</span>,<span class="hljs-built_in">int</span>((y+h)*<span class="hljs-number">384</span>)+<span class="hljs-number">3</span>)))
+        scores[norm(word[<span class="hljs-string">&#x27;text&#x27;</span>])]=<span class="hljs-built_in">sum</span>(r&gt;=<span class="hljs-number">220</span> <span class="hljs-keyword">and</span> g&lt;=<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> b&lt;=<span class="hljs-number">100</span> <span class="hljs-keyword">for</span> r,g,b <span class="hljs-keyword">in</span> crop.getdata())
+    need(scores[<span class="hljs-string">&#x27;max&#x27;</span>]&gt;=<span class="hljs-number">8</span> <span class="hljs-keyword">and</span> scores[<span class="hljs-string">&#x27;max&#x27;</span>]&gt;<span class="hljs-number">4</span>*<span class="hljs-built_in">max</span>(scores[<span class="hljs-string">&#x27;normal&#x27;</span>],scores[<span class="hljs-string">&#x27;fast&#x27;</span>]),
+         <span class="hljs-string">&#x27;Max is not independently proved as the red selected value: &#x27;</span>+<span class="hljs-built_in">str</span>(scores))
+    <span class="hljs-keyword">return</span> scores
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Runner</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self,args</span>):
+        <span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+        <span class="hljs-keyword">import</span> play
+        <span class="hljs-variable language_">self</span>.Image,<span class="hljs-variable language_">self</span>.play,<span class="hljs-variable language_">self</span>.args=Image,play,args
+        <span class="hljs-variable language_">self</span>.path=args.journal.resolve()
+        need(<span class="hljs-variable language_">self</span>.path.is_relative_to(ROOT) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.path.exists(), <span class="hljs-string">&#x27;A NEW workspace journal is required; no blind replay&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.work=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-variable language_">self</span>.path.stem
+        need(<span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.work.exists(), <span class="hljs-string">&#x27;Existing image evidence directory; use a new journal name&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.work.mkdir()
+        <span class="hljs-variable language_">self</span>.journal={<span class="hljs-string">&#x27;source&#x27;</span>:source_proof(),<span class="hljs-string">&#x27;actions&#x27;</span>:[],<span class="hljs-string">&#x27;pending&#x27;</span>:<span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;screens&#x27;</span>:[]}
+        <span class="hljs-variable language_">self</span>.template=Image.<span class="hljs-built_in">open</span>(GAME/<span class="hljs-string">&#x27;Graphics/Pictures/selarrow.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.write()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">write</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.path.write_text(json.dumps(<span class="hljs-variable language_">self</span>.journal,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">capture</span>(<span class="hljs-params">self</span>):
+        need(<span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;screens&#x27;</span>])&lt;<span class="hljs-number">7</span>, <span class="hljs-string">&#x27;Bounded capture limit&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.play.snap()
+        native=<span class="hljs-variable language_">self</span>.Image.<span class="hljs-built_in">open</span>(<span class="hljs-variable language_">self</span>.play.NATIVE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+        canvas=<span class="hljs-variable language_">self</span>.args.canvas <span class="hljs-keyword">or</span> CANVASES.get(native.size)
+        need(canvas <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>, <span class="hljs-string">&#x27;Uncalibrated native capture; supply --canvas L,T,W,H&#x27;</span>)
+        l,t,w,h=canvas
+        need(<span class="hljs-number">0</span>&lt;=l <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;=t <span class="hljs-keyword">and</span> l+w&lt;=native.width <span class="hljs-keyword">and</span> t+h&lt;=native.height <span class="hljs-keyword">and</span> <span class="hljs-built_in">abs</span>(w/h-<span class="hljs-number">4</span>/<span class="hljs-number">3</span>)&lt;<span class="hljs-number">.01</span>,
+             <span class="hljs-string">&#x27;Game canvas is outside image or not4:3&#x27;</span>)
+        game=native.crop((l,t,l+w,t+h)).resize((<span class="hljs-number">512</span>,<span class="hljs-number">384</span>),<span class="hljs-variable language_">self</span>.Image.Resampling.NEAREST)
+        path=<span class="hljs-variable language_">self</span>.work/<span class="hljs-string">f&#x27;public-<span class="hljs-subst">{<span class="hljs-built_in">len</span>(self.journal[<span class="hljs-string">&quot;screens&quot;</span>])}</span>.png&#x27;</span>
+        game.resize((<span class="hljs-number">1536</span>,<span class="hljs-number">1152</span>),<span class="hljs-variable language_">self</span>.Image.Resampling.NEAREST).save(path)
+        rows=json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/observe_words&#x27;</span>),<span class="hljs-built_in">str</span>(path)],timeout=<span class="hljs-number">20</span>))
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;screens&#x27;</span>].append({<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;image&#x27;</span>:<span class="hljs-built_in">str</span>(path),<span class="hljs-string">&#x27;rows&#x27;</span>:rows,<span class="hljs-string">&#x27;canvas&#x27;</span>:<span class="hljs-built_in">list</span>(canvas)})
+        <span class="hljs-variable language_">self</span>.write()
+        <span class="hljs-keyword">return</span> rows,game
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">act</span>(<span class="hljs-params">self,*keys</span>):
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>]={<span class="hljs-string">&#x27;keys&#x27;</span>:<span class="hljs-built_in">list</span>(keys),<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time()};<span class="hljs-variable language_">self</span>.write()
+        <span class="hljs-variable language_">self</span>.play.act(*keys)
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;actions&#x27;</span>].append(<span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>]);<span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>]=<span class="hljs-literal">None</span>;<span class="hljs-variable language_">self</span>.write()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">align</span>(<span class="hljs-params">self,target,image,region</span>):
+        arrow=find_arrow(image,<span class="hljs-variable language_">self</span>.template,region)
+        steps=alignment(target,arrow)
+        <span class="hljs-keyword">if</span> steps:
+            <span class="hljs-variable language_">self</span>.act(*([<span class="hljs-string">&#x27;down:.05&#x27;</span> <span class="hljs-keyword">if</span> steps&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;up:.05&#x27;</span>]*<span class="hljs-built_in">abs</span>(steps)),<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+        <span class="hljs-keyword">return</span> steps
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">self</span>):
+        rows,image=<span class="hljs-variable language_">self</span>.capture()
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.args.start_options:
+            <span class="hljs-variable language_">self</span>.align(pause_guard(rows),image,(<span class="hljs-number">256</span>,<span class="hljs-number">0</span>,<span class="hljs-number">512</span>,<span class="hljs-number">384</span>))
+            rows,image=<span class="hljs-variable language_">self</span>.capture()
+            need(alignment(pause_guard(rows),find_arrow(image,<span class="hljs-variable language_">self</span>.template,(<span class="hljs-number">256</span>,<span class="hljs-number">0</span>,<span class="hljs-number">512</span>,<span class="hljs-number">384</span>)))==<span class="hljs-number">0</span>,
+                 <span class="hljs-string">&#x27;Options must be the actually selected Pause command; no C sent&#x27;</span>)
+            <span class="hljs-variable language_">self</span>.act(<span class="hljs-string">&#x27;c:.08&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>)
+            rows,image=<span class="hljs-variable language_">self</span>.capture()
+        options=options_guard(rows)
+        <span class="hljs-variable language_">self</span>.align(options[<span class="hljs-string">&#x27;Text Speed&#x27;</span>],image,(<span class="hljs-number">0</span>,<span class="hljs-number">64</span>,<span class="hljs-number">100</span>,<span class="hljs-number">320</span>))
+        rows,image=<span class="hljs-variable language_">self</span>.capture()
+        options=options_guard(rows)
+        need(alignment(options[<span class="hljs-string">&#x27;Text Speed&#x27;</span>],find_arrow(image,<span class="hljs-variable language_">self</span>.template,(<span class="hljs-number">0</span>,<span class="hljs-number">64</span>,<span class="hljs-number">100</span>,<span class="hljs-number">320</span>)))==<span class="hljs-number">0</span>,
+             <span class="hljs-string">&#x27;Text Speed must be the actually selected option; no RIGHT sent&#x27;</span>)
+        before=image.copy()
+        <span class="hljs-variable language_">self</span>.act(<span class="hljs-string">&#x27;right:.05&#x27;</span>,<span class="hljs-string">&#x27;right:.05&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+        rows,image=<span class="hljs-variable language_">self</span>.capture()
+        options=options_guard(rows)
+        need(alignment(options[<span class="hljs-string">&#x27;Text Speed&#x27;</span>],find_arrow(image,<span class="hljs-variable language_">self</span>.template,(<span class="hljs-number">0</span>,<span class="hljs-number">64</span>,<span class="hljs-number">100</span>,<span class="hljs-number">320</span>)))==<span class="hljs-number">0</span>,
+             <span class="hljs-string">&#x27;Text Speed cursor changed unexpectedly&#x27;</span>)
+        selected=max_proof(rows,image,options[<span class="hljs-string">&#x27;Text Speed&#x27;</span>])
+        other_changes={}
+        <span class="hljs-keyword">for</span> name,row <span class="hljs-keyword">in</span> options.items():
+            <span class="hljs-keyword">if</span> name==<span class="hljs-string">&#x27;Text Speed&#x27;</span>:<span class="hljs-keyword">continue</span>
+            cy=<span class="hljs-built_in">round</span>(center(row));rect=(<span class="hljs-number">230</span>,cy-<span class="hljs-number">13</span>,<span class="hljs-number">506</span>,cy+<span class="hljs-number">14</span>)
+            a,b=before.crop(rect),image.crop(rect)
+            changed=<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">max</span>(<span class="hljs-built_in">abs</span>(p[i]-q[i]) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>))&gt;<span class="hljs-number">12</span> <span class="hljs-keyword">for</span> p,q <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(a.getdata(),b.getdata()))
+            need(changed/(a.width*a.height)&lt;<span class="hljs-number">.02</span>, <span class="hljs-string">&#x27;Another visible option value changed: &#x27;</span>+name)
+            other_changes[name]=changed
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;max_proof&#x27;</span>]=selected;<span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;other_visible_options_changed_pixels&#x27;</span>]=other_changes;<span class="hljs-variable language_">self</span>.write()
+        <span class="hljs-variable language_">self</span>.act(<span class="hljs-string">&#x27;x:.08&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>)
+        rows,_=<span class="hljs-variable language_">self</span>.capture()
+        pause_guard(rows)
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;complete&#x27;</span>]=<span class="hljs-literal">True</span>;<span class="hljs-variable language_">self</span>.write()
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TEXT SPEED MAX verified and normally saved; stopped at Pause Menu&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(<span class="hljs-string">&#x27;--execute&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--journal&#x27;</span>,<span class="hljs-built_in">type</span>=Path)
+    parser.add_argument(<span class="hljs-string">&#x27;--start-options&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--canvas&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-keyword">lambda</span> s:<span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,s.split(<span class="hljs-string">&#x27;,&#x27;</span>))))
+    args=parser.parse_args()
+    proof=source_proof()
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> args.execute:
+        <span class="hljs-built_in">print</span>(json.dumps(proof,indent=<span class="hljs-number">2</span>));<span class="hljs-keyword">return</span>
+    need(args.journal <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;--execute needs --journal with a new path&#x27;</span>)
+    need((ROOT/<span class="hljs-string">&#x27;scripts/observe_words&#x27;</span>).exists(),<span class="hljs-string">&#x27;Compile observe_words.swift before --execute&#x27;</span>)
+    runner=Runner(args)
+    <span class="hljs-keyword">try</span>:runner.run()
+    <span class="hljs-keyword">except</span> Exception <span class="hljs-keyword">as</span> exc:
+        runner.journal[<span class="hljs-string">&#x27;stopped&#x27;</span>]=<span class="hljs-built_in">str</span>(exc);runner.write();<span class="hljs-keyword">raise</span>
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+    main()
+</code></pre>
+  </body>
+</html>

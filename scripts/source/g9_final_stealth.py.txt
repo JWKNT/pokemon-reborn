@@ -1,0 +1,10 @@
+from play import *
+def run(*a):subprocess.run([sys.executable,str(ROOT/'scripts'/a[0]),*a[1:]],check=True)
+act('f12','wait:3','c','wait:2','c','wait:2','c','wait:3');print(read(),flush=True)
+subprocess.run([str(ROOT/'scripts/guard_stream'),'208','260','4','left:0.12','up:0.65'],check=True)
+run('q.py','330,9,16')
+run('watch_guard.py','9','16','9','10','8','up:0.42','left:0.42')
+run('q.py','330,5,8','330,8,8')
+run('watch_guard.py','8','8','9','10','2','right:0.12','up:0.42')
+run('q.py','330,9,4','330,23,4','330,23,1','330,25,1,up,wait:2')
+run('g9_after_stealth.py')

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>queue_route_v1.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of queue_route_v1.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Route explicit known map/coordinates; no saving. Stop on dialogue/battle.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-comment"># Each JSON step: [map,startx,starty,destx,desty, optional key actions]</span>
+steps=json.loads(pathlib.Path(sys.argv[<span class="hljs-number">1</span>]).read_text())
+<span class="hljs-keyword">for</span> mid,sx,sy,tx,ty,*tail <span class="hljs-keyword">in</span> steps:
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(sx),<span class="hljs-built_in">str</span>(sy)],stderr=subprocess.DEVNULL))
+ path=route(v,(tx,ty));<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ROUTE&#x27;</span>,mid,[sx,sy],<span class="hljs-string">&#x27;→&#x27;</span>,[tx,ty],<span class="hljs-built_in">len</span>(path),<span class="hljs-string">&#x27;tiles&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-comment"># Batch up to 3 direction-runs then inspect, avoiding per-tile round trips.</span>
+ groups=[(key,<span class="hljs-built_in">len</span>(<span class="hljs-built_in">list</span>(g))) <span class="hljs-keyword">for</span> key,g <span class="hljs-keyword">in</span> groupby(path)]
+ <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">0</span>,<span class="hljs-built_in">len</span>(groups),<span class="hljs-number">3</span>):
+  seq=[]
+  <span class="hljs-keyword">for</span> key,n <span class="hljs-keyword">in</span> groups[j:j+<span class="hljs-number">3</span>]:
+   <span class="hljs-keyword">if</span> key.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):seq.extend([key[<span class="hljs-number">5</span>:],<span class="hljs-string">&#x27;wait:0.9&#x27;</span>]*n)
+   <span class="hljs-keyword">else</span>:seq.append(<span class="hljs-string">f&#x27;<span class="hljs-subst">{key}</span>:<span class="hljs-subst">{n*<span class="hljs-number">.1</span>+<span class="hljs-number">.02</span>:<span class="hljs-number">.3</span>f}</span>&#x27;</span>)
+  act(*seq);rr=snap();txt=<span class="hljs-string">&#x27; &#x27;</span>.join(t[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> rr)
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> txt.lower() <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27; hp&#x27;</span>,<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;wild &#x27;</span>]) <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(t[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.73</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(t[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">22</span> <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> rr):
+   <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;INTERRUPTED&#x27;</span>,txt,flush=<span class="hljs-literal">True</span>);sys.exit(<span class="hljs-number">2</span>)
+ <span class="hljs-keyword">if</span> tail:act(*tail[<span class="hljs-number">0</span>]);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;QUEUE DONE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

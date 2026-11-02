@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>hazard_position.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of hazard_position.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read public coordinates, then freeze in Party before OCR/planning.
+Only captured pixels and ordinary controls; no live process or game data reads.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">party_position</span>():
+ t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> t.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>,t
+ act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;d:1.0&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+ epoch=time.time()
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">30</span>):
+  h=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+  <span class="hljs-keyword">if</span> h.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">and</span> h.get(<span class="hljs-string">&#x27;preview_epoch&#x27;</span>,<span class="hljs-number">0</span>)&gt;=epoch <span class="hljs-keyword">and</span> time.time()-h[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;<span class="hljs-number">2</span>:<span class="hljs-keyword">break</span>
+  time.sleep(<span class="hljs-number">.1</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No fresh coordinate frame&#x27;</span>)
+ dest=ROOT/<span class="hljs-string">&#x27;work/hazard-coordinates.png&#x27;</span>;shutil.copyfile(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>,dest)
+ act(<span class="hljs-string">&#x27;c:.2&#x27;</span>,<span class="hljs-string">&#x27;wait:.55&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.65&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.0&#x27;</span>)
+ rows=json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>),<span class="hljs-built_in">str</span>(dest)]));text=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUBLIC COORDINATES&#x27;</span>,text,flush=<span class="hljs-literal">True</span>)
+ m=re.search(<span class="hljs-string">r&#x27;X\s*(\d+)\s*[,.;]?\s*Y[\s\x27\u2019]*(\d+)\s*[,.;]?\s*map\s*(\d+)&#x27;</span>,text,re.I)
+ t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> t.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>,t
+ <span class="hljs-keyword">assert</span> m,<span class="hljs-string">&#x27;Coordinate review required&#x27;</span>
+ x,y,mid=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,m.groups());<span class="hljs-keyword">return</span> mid,x,y
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:<span class="hljs-built_in">print</span>(party_position())
+</code></pre>
+  </body>
+</html>

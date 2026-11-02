@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mega_button.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mega_button.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Classify the public Mega button from a freshly recorded game-only frame.
+
+Installed UI asset/placement are static references; no battle runtime reads.
+Refuses unrecognized pixels instead of blindly toggling an unavailable button.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">classify</span>(<span class="hljs-params">frame</span>):
+    asset=Image.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Graphics/Pictures/Battle/battleMegaEvo.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>)
+    <span class="hljs-keyword">assert</span> asset.size==(<span class="hljs-number">96</span>,<span class="hljs-number">92</span>)
+    variants=[asset.crop((<span class="hljs-number">0</span>,y,<span class="hljs-number">96</span>,y+<span class="hljs-number">46</span>)) <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> (<span class="hljs-number">0</span>,<span class="hljs-number">46</span>)]
+    <span class="hljs-comment"># Focus on opaque pixels which distinguish grey and colored toggle states.</span>
+    a,b=[<span class="hljs-built_in">list</span>(v.getdata()) <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> variants]
+    mask=[i <span class="hljs-keyword">for</span> i,(p,q) <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(<span class="hljs-built_in">zip</span>(a,b)) <span class="hljs-keyword">if</span> p[<span class="hljs-number">3</span>]&gt;<span class="hljs-number">240</span> <span class="hljs-keyword">and</span> q[<span class="hljs-number">3</span>]&gt;<span class="hljs-number">240</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">abs</span>(p[j]-q[j]) <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>))&gt;<span class="hljs-number">100</span>]
+    <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(mask)&gt;<span class="hljs-number">30</span>
+    frame=Image.<span class="hljs-built_in">open</span>(frame).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=frame.size
+    <span class="hljs-keyword">assert</span> (w,h)==(<span class="hljs-number">852</span>,<span class="hljs-number">640</span>)
+    crop=frame.crop((<span class="hljs-built_in">round</span>(<span class="hljs-number">146</span>*w/<span class="hljs-number">512</span>),<span class="hljs-built_in">round</span>(<span class="hljs-number">242</span>*h/<span class="hljs-number">384</span>),<span class="hljs-built_in">round</span>(<span class="hljs-number">242</span>*w/<span class="hljs-number">512</span>),<span class="hljs-built_in">round</span>(<span class="hljs-number">288</span>*h/<span class="hljs-number">384</span>))).resize((<span class="hljs-number">96</span>,<span class="hljs-number">46</span>),Image.Resampling.NEAREST)
+    observed=<span class="hljs-built_in">list</span>(crop.getdata())
+    errors=[<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">abs</span>(observed[i][j]-ref[i][j]) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> mask <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>))/(<span class="hljs-built_in">len</span>(mask)*<span class="hljs-number">3</span>) <span class="hljs-keyword">for</span> ref <span class="hljs-keyword">in</span> (a,b)]
+    best=<span class="hljs-built_in">min</span>(<span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>),key=<span class="hljs-keyword">lambda</span> i:errors[i])
+    <span class="hljs-keyword">assert</span> errors[best]&lt;<span class="hljs-number">45</span> <span class="hljs-keyword">and</span> errors[<span class="hljs-number">1</span>-best]-errors[best]&gt;<span class="hljs-number">12</span>,(<span class="hljs-string">&#x27;Mega button needs visual review&#x27;</span>,errors)
+    <span class="hljs-keyword">return</span> best+<span class="hljs-number">1</span>,errors
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">enable</span>():
+    <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,act,snap
+    <span class="hljs-keyword">import</span> json,time
+    snap();before,errors=classify(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>)
+    <span class="hljs-keyword">if</span> before==<span class="hljs-number">1</span>:
+        act(<span class="hljs-string">&#x27;a:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>);snap()
+    after,after_errors=classify(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>)
+    <span class="hljs-keyword">assert</span> after==<span class="hljs-number">2</span>,(<span class="hljs-string">&#x27;Mega toggle not active&#x27;</span>,after_errors)
+    <span class="hljs-keyword">with</span> (ROOT/<span class="hljs-string">&#x27;recordings/mega-ui.jsonl&#x27;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>) <span class="hljs-keyword">as</span> f:
+        f.write(json.dumps({<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;before&#x27;</span>:before,<span class="hljs-string">&#x27;after&#x27;</span>:after,<span class="hljs-string">&#x27;errors_before&#x27;</span>:errors,<span class="hljs-string">&#x27;errors_after&#x27;</span>:after_errors,<span class="hljs-string">&#x27;source&#x27;</span>:<span class="hljs-string">&#x27;public capture and installed UI template&#x27;</span>})+<span class="hljs-string">&#x27;\n&#x27;</span>)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MEGA TOGGLE VISUALLY VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

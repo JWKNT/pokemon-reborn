@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>trainer_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of trainer_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Run an explicit, reviewed trainer matchup plan through ordinary battle UI.
+Stops on unknown foes, low health, learning, losses, or unexpected menus.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib,re
+plan=json.loads(pathlib.Path(sys.argv[<span class="hljs-number">1</span>]).read_text());actor=plan[<span class="hljs-string">&#x27;lead&#x27;</span>];matchups=plan[<span class="hljs-string">&#x27;foes&#x27;</span>];log=pathlib.Path(sys.argv[<span class="hljs-number">2</span>]);began=time.time()
+<span class="hljs-keyword">for</span> phase <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">10</span>):
+ choices={n:p <span class="hljs-keyword">for</span> n,p <span class="hljs-keyword">in</span> matchups.items() <span class="hljs-keyword">if</span> p[<span class="hljs-string">&#x27;actor&#x27;</span>]==actor}
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> choices:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No plan for active actor&#x27;</span>)
+ slots={n.lower():p[<span class="hljs-string">&#x27;slot&#x27;</span>] <span class="hljs-keyword">for</span> n,p <span class="hljs-keyword">in</span> choices.items()}
+ recover=plan.get(<span class="hljs-string">&#x27;recover&#x27;</span>,{}).get(actor)
+ heal=plan.get(<span class="hljs-string">&#x27;heal&#x27;</span>,{}).get(actor)
+ extra=([<span class="hljs-string">&#x27;--stop-after-battle&#x27;</span>] <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--stop-after-battle&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> [])+([<span class="hljs-string">&#x27;--recover-below&#x27;</span>,<span class="hljs-built_in">str</span>(recover[<span class="hljs-string">&#x27;below&#x27;</span>]),<span class="hljs-string">&#x27;--recover-slot&#x27;</span>,<span class="hljs-built_in">str</span>(recover[<span class="hljs-string">&#x27;slot&#x27;</span>])] <span class="hljs-keyword">if</span> recover <span class="hljs-keyword">else</span> [])
+ <span class="hljs-keyword">if</span> plan.get(<span class="hljs-string">&#x27;opening_moves&#x27;</span>):
+  <span class="hljs-comment"># A hard switch starts another batch, but does not make an opening move</span>
+  <span class="hljs-comment"># new again. Preserve observed uses across phases and resumed drivers.</span>
+  history=log.read_text() <span class="hljs-keyword">if</span> log.exists() <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;&#x27;</span>
+  pending={name:slot <span class="hljs-keyword">for</span> name,slot <span class="hljs-keyword">in</span> plan[<span class="hljs-string">&#x27;opening_moves&#x27;</span>].items()
+           <span class="hljs-keyword">if</span> <span class="hljs-string">f&#x27;REVIEWED OPENING MOVE <span class="hljs-subst">{name}</span> &#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> history}
+  <span class="hljs-keyword">if</span> pending:extra+=[<span class="hljs-string">&#x27;--openers&#x27;</span>,json.dumps(pending)]
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--world-pause&#x27;</span> <span class="hljs-keyword">in</span> sys.argv:extra+=[<span class="hljs-string">&#x27;--world-pause&#x27;</span>,<span class="hljs-string">&#x27;--stop-phrase&#x27;</span>,<span class="hljs-string">&#x27;saphira&#x27;</span>]
+ <span class="hljs-keyword">if</span> heal:extra+=[<span class="hljs-string">&#x27;--heal-below&#x27;</span>,<span class="hljs-built_in">str</span>(heal[<span class="hljs-string">&#x27;below&#x27;</span>]),<span class="hljs-string">&#x27;--heal-item&#x27;</span>,heal[<span class="hljs-string">&#x27;item&#x27;</span>]]
+ <span class="hljs-keyword">with</span> log.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>) <span class="hljs-keyword">as</span> out:
+  rc=subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_batch.py&#x27;</span>),actor,<span class="hljs-built_in">str</span>(<span class="hljs-built_in">next</span>(<span class="hljs-built_in">iter</span>(slots.values()))),<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;,&#x27;</span>.join(slots),<span class="hljs-string">&#x27;--foe-slots&#x27;</span>,json.dumps(slots),<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--stay&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-string">&#x27;12&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-built_in">str</span>(plan.get(<span class="hljs-string">&#x27;min_hp&#x27;</span>,<span class="hljs-number">.5</span>))]+extra,stdout=out,stderr=subprocess.STDOUT)
+ t=read();low=t.lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;change pok&#x27;</span>,<span class="hljs-string">&#x27;switch your&#x27;</span>]):
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;hp&#x27;</span>,<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;choose a pok&#x27;</span>,<span class="hljs-string">&#x27;pp:&#x27;</span>]):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BATTLE FINISHED OR OVERWORLD REVIEW&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> low:
+   enemy=<span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>].lower()<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> snap()<span class="hljs-keyword">if</span> x[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.37</span>).replace(<span class="hljs-string">&#x27;nin jask&#x27;</span>,<span class="hljs-string">&#x27;ninjask&#x27;</span>)
+   hits=[n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> matchups <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,n.lower(),w.strip(<span class="hljs-string">&#x27;.,&#x27;</span>)).ratio()&gt;=<span class="hljs-number">.78</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> enemy.split())]
+   <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(hits)==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> matchups[hits[<span class="hljs-number">0</span>]][<span class="hljs-string">&#x27;actor&#x27;</span>]!=actor:
+    nxt=matchups[hits[<span class="hljs-number">0</span>]][<span class="hljs-string">&#x27;actor&#x27;</span>];<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;REVIEWED SWITCH AT COMMAND&#x27;</span>,hits[<span class="hljs-number">0</span>],nxt,flush=<span class="hljs-literal">True</span>)
+    subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_switch.py&#x27;</span>),nxt],check=<span class="hljs-literal">True</span>);actor=nxt;<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Battle requires review&#x27;</span>)
+ upcoming=<span class="hljs-literal">None</span>
+ <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> (ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).read_text().splitlines()[::-<span class="hljs-number">1</span>]:
+  x=json.loads(line)
+  <span class="hljs-keyword">if</span> x[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;began:<span class="hljs-keyword">break</span>
+  text=<span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>]).lower().replace(<span class="hljs-string">&#x27;nin jask&#x27;</span>,<span class="hljs-string">&#x27;ninjask&#x27;</span>)
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;send in&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> text:<span class="hljs-keyword">continue</span>
+  tail=text.split(<span class="hljs-string">&#x27;send in&#x27;</span>,<span class="hljs-number">1</span>)[<span class="hljs-number">1</span>];words=re.findall(<span class="hljs-string">&#x27;[a-z-]+&#x27;</span>,tail)
+  hits=[n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> matchups <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,n.lower(),w).ratio()&gt;=<span class="hljs-number">.78</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> words)]
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(hits)==<span class="hljs-number">1</span>:upcoming=hits[<span class="hljs-number">0</span>]
+  <span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> upcoming:
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;INCOMING TEXT OBSCURED; decline free switch, verify actual next command&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+  act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">continue</span>
+ nxt=matchups[upcoming][<span class="hljs-string">&#x27;actor&#x27;</span>];<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PLANNED SWITCH&#x27;</span>,upcoming,nxt,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> nxt==actor:act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+ <span class="hljs-keyword">else</span>:
+  act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.7&#x27;</span>)
+  <span class="hljs-keyword">if</span> subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_pick.py&#x27;</span>),nxt]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Party selection review&#x27;</span>)
+  actor=nxt
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Phase limit&#x27;</span>)
+</code></pre>
+  </body>
+</html>

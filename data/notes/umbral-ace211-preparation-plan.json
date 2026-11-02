@@ -1,0 +1,30 @@
+{
+  "epoch": 1791924891.394166,
+  "source": "Installed static trainer UMBACE Ace0, NewWorld fieldtext, and frozen ownedDarkrai; no live battle state.",
+  "team": "Restore Meowstic with LightClay and Mawile; withdraw trainedDarkrai135Box2slot26 for Zeraora; replace Amoonguss with Meowstic and Volcanion with Mawile. KeepMagearna, ZapdosFly, Heatran. GiveDarkrai WideLens fromZapdos.",
+  "darkrai_stats": {
+    "hp": 375,
+    "spatk": 486,
+    "spdef": 289,
+    "speed": 515,
+    "nature": "Timid",
+    "moves": [
+      "DarkPulse",
+      "BrickBreak",
+      "NastyPlot",
+      "DarkVoid"
+    ]
+  },
+  "opening": "Meowstic priorityLightScreen, thenDarkrai; DarkVoid93.5% onNewWorldwithWideLens, NastyPlotonce, DarkPulse. LatiasDracoMeteor2xfield canOHKODarkrai unscreened; do notleadDarkraidirectly.",
+  "adaptation": "Mesprit andHoopa MagicalSeedrechargefirstturn despite+Speed, use immediateDarkPulse. SwitchMagearnaonSableyeappearance: may beIllusionZoroark; avoidDarkVoidagainstMagicBounce. MagearnaDazzlingGleam boosted1.5byfield answersbothDarkenemies.",
+  "field": "MistyTerrain fails onNewWorld. Darkmoves1.5; DracoMeteor2; DGandFlashCannon1.5; DarkVoidaccuracy85 beforeWideLens. Usepublic observations toadapt.",
+  "intro": "Fresh full-HP checkpoint before event38 while66411. Within120s call major_attempt start211 and trainer_music startUMBACE Ace (no activebattle). Enter38then linear_dialog88852 --source-page1 --command-range0 325 --burst to lastprebattleline. Thenmajor_enter211 --resume --active-dialogue; avoid duplicateattempt. Savedbuildremains unchanged throughscene. Introanchor adjusts trainerBGM to actualchallenge.",
+  "capture_team_return": "AfterReshiram/Kyurem resolve, exitfromtheir sectors straightto887 viaevents36/44, rebuildat83, thenreturn888 central. Avoidevent38untilbossready.",
+  "superseding_revision": {
+    "epoch": 1791926360.274453,
+    "reason": "All centralreturns37/38/47 set1857; external44blockedbehind47; noEscapePoint. KyuremCaughtnormalcheckpointrestored beforebattle. Prepare existingparty instead.",
+    "team": "Magearna lead WiseGlasses453/487, Zapdos410/421, Amoonguss547/547, Zeraora296/385, Volcanion487/487, Heatran517/517. UltraPotion200HP; preserve remainingfourforbattle. EntryexactHPwillbeverifiedfromfreshsave.",
+    "opening": "CalmMind setup onLatias:Dragonimmune/Psychicresistant/HPFireonlyneutralafterSteelFairyfire2x, reduceSpecialdamagewithCM. Aimthree netSpAboosts thenDazzlingGleam; SoulHeartsnowball. Heal if needed. AssesspublicMistBalldrops.",
+    "backup": "HeatranFlashFirechecksLatiasHPFireandSableyeWillOWisp; ZeraorafastPlasmaFists,VolcanionresistsFire. Saveoutsidebattlebeforeportal47."
+  }
+}

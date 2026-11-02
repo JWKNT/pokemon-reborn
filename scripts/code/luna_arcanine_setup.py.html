@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>luna_arcanine_setup.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of luna_arcanine_setup.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Guarded UI-only Luna opener. Importing this module performs no game input.
+
+Run only at the first command menu of Glass round 2: Lv90 Arcanine vs Lv83
+Weavile. This queues eight reviewed X items, healing when necessary, and never
+selects a move. A pending journal means the last item requires manual review.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> __future__ <span class="hljs-keyword">import</span> annotations
+
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> difflib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> pathlib
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> time
+<span class="hljs-keyword">import</span> unicodedata
+<span class="hljs-keyword">from</span> dataclasses <span class="hljs-keyword">import</span> asdict, dataclass
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+GAME = pathlib.Path(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game&#x27;</span>)
+<span class="hljs-comment"># Calibrated from an existing screencapture -l native image, not SCK points.</span>
+<span class="hljs-comment"># The shadowed retina image has its title bar at y76..131 and game at y132.</span>
+CAPTURE_CANVASES = {(<span class="hljs-number">2272</span>, <span class="hljs-number">1816</span>): (<span class="hljs-number">112</span>, <span class="hljs-number">132</span>, <span class="hljs-number">2048</span>, <span class="hljs-number">1536</span>),
+                    (<span class="hljs-number">1024</span>, <span class="hljs-number">796</span>): (<span class="hljs-number">0</span>, <span class="hljs-number">28</span>, <span class="hljs-number">1024</span>, <span class="hljs-number">768</span>)}
+SETUP = (<span class="hljs-string">&#x27;X Defend&#x27;</span>, <span class="hljs-string">&#x27;X Speed&#x27;</span>, <span class="hljs-string">&#x27;X Defend&#x27;</span>, <span class="hljs-string">&#x27;X Sp.Def&#x27;</span>, <span class="hljs-string">&#x27;X Sp.Def&#x27;</span>,
+         <span class="hljs-string">&#x27;X Sp.Atk&#x27;</span>, <span class="hljs-string">&#x27;X Sp.Atk&#x27;</span>, <span class="hljs-string">&#x27;X Sp.Atk&#x27;</span>)
+TRANSLATION = <span class="hljs-built_in">str</span>.maketrans({<span class="hljs-string">&#x27;р&#x27;</span>: <span class="hljs-string">&#x27;p&#x27;</span>, <span class="hljs-string">&#x27;у&#x27;</span>: <span class="hljs-string">&#x27;y&#x27;</span>, <span class="hljs-string">&#x27;а&#x27;</span>: <span class="hljs-string">&#x27;a&#x27;</span>, <span class="hljs-string">&#x27;о&#x27;</span>: <span class="hljs-string">&#x27;o&#x27;</span>,
+                           <span class="hljs-string">&#x27;с&#x27;</span>: <span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-string">&#x27;е&#x27;</span>: <span class="hljs-string">&#x27;e&#x27;</span>, <span class="hljs-string">&#x27;х&#x27;</span>: <span class="hljs-string">&#x27;x&#x27;</span>, <span class="hljs-string">&#x27;к&#x27;</span>: <span class="hljs-string">&#x27;k&#x27;</span>,
+                           <span class="hljs-string">&#x27;і&#x27;</span>: <span class="hljs-string">&#x27;i&#x27;</span>, <span class="hljs-string">&#x27;ј&#x27;</span>: <span class="hljs-string">&#x27;j&#x27;</span>, <span class="hljs-string">&#x27;п&#x27;</span>: <span class="hljs-string">&#x27;n&#x27;</span>})
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">normalized</span>(<span class="hljs-params">text</span>):
+    text = unicodedata.normalize(<span class="hljs-string">&#x27;NFKD&#x27;</span>, text.lower().translate(TRANSLATION))
+    <span class="hljs-keyword">return</span> re.sub(<span class="hljs-string">&#x27;[^a-z0-9]&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, text.encode(<span class="hljs-string">&#x27;ascii&#x27;</span>, <span class="hljs-string">&#x27;ignore&#x27;</span>).decode())
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">named</span>(<span class="hljs-params">text, expected</span>):
+    words = re.findall(<span class="hljs-string">&#x27;[a-z]+&#x27;</span>, text.lower().translate(TRANSLATION))
+    aliases = {<span class="hljs-string">&#x27;weavile&#x27;</span>: (<span class="hljs-string">&#x27;weavile&#x27;</span>, <span class="hljs-string">&#x27;weauile&#x27;</span>),
+               <span class="hljs-string">&#x27;arcanine&#x27;</span>: (<span class="hljs-string">&#x27;arcanine&#x27;</span>, <span class="hljs-string">&#x27;arcamine&#x27;</span>, <span class="hljs-string">&#x27;areanine&#x27;</span>)}
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">any</span>(normalized(word) <span class="hljs-keyword">in</span> aliases[expected] <span class="hljs-keyword">or</span>
+               difflib.SequenceMatcher(<span class="hljs-literal">None</span>, expected, normalized(word)).ratio() &gt;= <span class="hljs-number">.84</span>
+               <span class="hljs-keyword">for</span> word <span class="hljs-keyword">in</span> words)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">level_seen</span>(<span class="hljs-params">text, expected</span>):
+    <span class="hljs-comment"># Normalize only a labelled level token, never arbitrary HUD numbers.</span>
+    <span class="hljs-comment"># The actual outlined Lv90 glyph was read as Lụ9o: ụ is u after NFKD and</span>
+    <span class="hljs-comment"># the final o is a zero only within this explicit numeric level context.</span>
+    plain = unicodedata.normalize(<span class="hljs-string">&#x27;NFKD&#x27;</span>, text.lower().translate(TRANSLATION))
+    plain = plain.encode(<span class="hljs-string">&#x27;ascii&#x27;</span>, <span class="hljs-string">&#x27;ignore&#x27;</span>).decode()
+    tokens = re.findall(<span class="hljs-string">r&#x27;\bl[vu][ .:]*([0-9oq]{1,3})\b&#x27;</span>, plain)
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">any</span>(<span class="hljs-built_in">int</span>(token.replace(<span class="hljs-string">&#x27;o&#x27;</span>, <span class="hljs-string">&#x27;0&#x27;</span>).replace(<span class="hljs-string">&#x27;q&#x27;</span>, <span class="hljs-string">&#x27;0&#x27;</span>)) == expected
+               <span class="hljs-keyword">for</span> token <span class="hljs-keyword">in</span> tokens)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">hp_pair</span>(<span class="hljs-params">text, expected_max</span>):
+    <span class="hljs-comment"># Accept only an explicit fraction. Do not turn a level or two isolated</span>
+    <span class="hljs-comment"># numbers into HP, nor guess an unreadable digit.</span>
+    pairs = {(<span class="hljs-built_in">int</span>(a), <span class="hljs-built_in">int</span>(b)) <span class="hljs-keyword">for</span> a, b <span class="hljs-keyword">in</span>
+             re.findall(<span class="hljs-string">r&#x27;(?&lt;!\d)(\d{1,3})\s*/\s*(\d{2,3})(?!\d)&#x27;</span>, text)}
+    pairs = {(hp, total) <span class="hljs-keyword">for</span> hp, total <span class="hljs-keyword">in</span> pairs
+             <span class="hljs-keyword">if</span> total == expected_max <span class="hljs-keyword">and</span> <span class="hljs-number">0</span> &lt; hp &lt;= total}
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(pairs) != <span class="hljs-number">1</span>:
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Numeric HP is missing, ambiguous, zero, or has an unexpected maximum&#x27;</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">next</span>(<span class="hljs-built_in">iter</span>(pairs))
+
+
+<span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">VisibleState</span>:
+    hp: <span class="hljs-built_in">int</span>
+    total_hp: <span class="hljs-built_in">int</span>
+    status: <span class="hljs-built_in">str</span>
+    bar_fraction: <span class="hljs-built_in">float</span>
+    status_error: <span class="hljs-built_in">float</span>
+    hud_y_offset: <span class="hljs-built_in">int</span>
+    boosts: <span class="hljs-built_in">tuple</span>
+    boost_icon_error: <span class="hljs-built_in">float</span>
+    own_text: <span class="hljs-built_in">str</span>
+    foe_text: <span class="hljs-built_in">str</span>
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Queue</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, args</span>):
+        <span class="hljs-comment"># play is the only imported helper. Legacy battle helpers execute at</span>
+        <span class="hljs-comment"># import time, so invoke those as bounded subprocesses instead.</span>
+        <span class="hljs-keyword">import</span> play
+        <span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+        <span class="hljs-variable language_">self</span>.play, <span class="hljs-variable language_">self</span>.Image, <span class="hljs-variable language_">self</span>.args = play, Image, args
+        <span class="hljs-variable language_">self</span>.canvas = args.canvas
+        <span class="hljs-variable language_">self</span>.journal_path = args.journal
+        <span class="hljs-keyword">if</span> args.prior_journal <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+            <span class="hljs-variable language_">self</span>.journal = args.prior_journal
+            <span class="hljs-variable language_">self</span>.journal.setdefault(<span class="hljs-string">&#x27;initial_guard_stop_history&#x27;</span>, []).append({
+                <span class="hljs-string">&#x27;stop_epoch&#x27;</span>: <span class="hljs-variable language_">self</span>.journal.pop(<span class="hljs-string">&#x27;stop_epoch&#x27;</span>, <span class="hljs-literal">None</span>),
+                <span class="hljs-string">&#x27;stop_reason&#x27;</span>: <span class="hljs-variable language_">self</span>.journal.pop(<span class="hljs-string">&#x27;stop_reason&#x27;</span>, <span class="hljs-literal">None</span>),
+                <span class="hljs-string">&#x27;resume_epoch&#x27;</span>: time.time()})
+        <span class="hljs-keyword">else</span>:
+            <span class="hljs-variable language_">self</span>.journal = {<span class="hljs-string">&#x27;created_epoch&#x27;</span>: time.time(), <span class="hljs-string">&#x27;policy&#x27;</span>: <span class="hljs-string">&#x27;ordinary rendered UI only&#x27;</span>,
+                            <span class="hljs-string">&#x27;setup&#x27;</span>: <span class="hljs-built_in">list</span>(SETUP), <span class="hljs-string">&#x27;expected_actor&#x27;</span>: <span class="hljs-string">&#x27;Arcanine Lv90&#x27;</span>,
+                            <span class="hljs-string">&#x27;expected_foe&#x27;</span>: <span class="hljs-string">&#x27;Weavile Lv83&#x27;</span>, <span class="hljs-string">&#x27;actions&#x27;</span>: [], <span class="hljs-string">&#x27;pending&#x27;</span>: <span class="hljs-literal">None</span>,
+                            <span class="hljs-string">&#x27;complete&#x27;</span>: <span class="hljs-literal">False</span>}
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;expected_max_hp&#x27;</span>] = args.expected_max_hp
+        <span class="hljs-variable language_">self</span>.heals = <span class="hljs-variable language_">self</span>.cures = <span class="hljs-variable language_">self</span>.actions = <span class="hljs-number">0</span>
+        <span class="hljs-variable language_">self</span>.templates = <span class="hljs-variable language_">self</span>.status_templates()
+        <span class="hljs-comment"># Battle_Scene.pbGetStatsBoostsDisplayMap: accuracy, attack, Sp.Atk,</span>
+        <span class="hljs-comment"># speed, defense, Sp.Def, evasion. Round 2 must begin with zero stages.</span>
+        <span class="hljs-variable language_">self</span>.stages = [<span class="hljs-number">0</span>] * <span class="hljs-number">7</span>
+        <span class="hljs-variable language_">self</span>.write()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">write</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.journal_path.parent.mkdir(parents=<span class="hljs-literal">True</span>, exist_ok=<span class="hljs-literal">True</span>)
+        tmp = <span class="hljs-variable language_">self</span>.journal_path.with_suffix(<span class="hljs-variable language_">self</span>.journal_path.suffix + <span class="hljs-string">&#x27;.tmp&#x27;</span>)
+        tmp.write_text(json.dumps(<span class="hljs-variable language_">self</span>.journal, indent=<span class="hljs-number">2</span>) + <span class="hljs-string">&#x27;\n&#x27;</span>)
+        tmp.replace(<span class="hljs-variable language_">self</span>.journal_path)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">status_templates</span>(<span class="hljs-params">self</span>):
+        Image = <span class="hljs-variable language_">self</span>.Image
+        assets = GAME / <span class="hljs-string">&#x27;Graphics/Pictures/Battle&#x27;</span>
+        <span class="hljs-comment"># Battle_Scene.rb: player box base=(34,0), badge=(baseX+24,36).</span>
+        background = Image.<span class="hljs-built_in">open</span>(assets / <span class="hljs-string">&#x27;battlePlayerBoxS.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>)
+        background = background.crop((<span class="hljs-number">58</span>, <span class="hljs-number">36</span>, <span class="hljs-number">122</span>, <span class="hljs-number">52</span>))
+        badges = Image.<span class="hljs-built_in">open</span>(assets / <span class="hljs-string">&#x27;battleStatuses.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>)
+        templates = {<span class="hljs-string">&#x27;none&#x27;</span>: background.convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)}
+        <span class="hljs-keyword">for</span> i, status <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>((<span class="hljs-string">&#x27;sleep&#x27;</span>, <span class="hljs-string">&#x27;poison&#x27;</span>, <span class="hljs-string">&#x27;burn&#x27;</span>, <span class="hljs-string">&#x27;paralysis&#x27;</span>, <span class="hljs-string">&#x27;frozen&#x27;</span>)):
+            layer = badges.crop((<span class="hljs-number">0</span>, <span class="hljs-number">16</span> * i, <span class="hljs-number">64</span>, <span class="hljs-number">16</span> * (i + <span class="hljs-number">1</span>)))
+            templates[status] = Image.alpha_composite(background, layer).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+        <span class="hljs-keyword">return</span> templates
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">crop</span>(<span class="hljs-params">self, native, rect</span>):
+        left, top, width, height = <span class="hljs-variable language_">self</span>.canvas
+        x1, y1, x2, y2 = rect
+        <span class="hljs-keyword">return</span> native.crop((<span class="hljs-built_in">round</span>(left + x1 * width / <span class="hljs-number">512</span>),
+                            <span class="hljs-built_in">round</span>(top + y1 * height / <span class="hljs-number">384</span>),
+                            <span class="hljs-built_in">round</span>(left + x2 * width / <span class="hljs-number">512</span>),
+                            <span class="hljs-built_in">round</span>(top + y2 * height / <span class="hljs-number">384</span>)))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">ocr_crop</span>(<span class="hljs-params">self, native, rect, stem</span>):
+        crop = <span class="hljs-variable language_">self</span>.crop(native, rect)
+        crop = crop.resize((crop.width * <span class="hljs-number">3</span>, crop.height * <span class="hljs-number">3</span>),
+                           <span class="hljs-variable language_">self</span>.Image.Resampling.NEAREST)
+        path = ROOT / <span class="hljs-string">&#x27;work&#x27;</span> / (<span class="hljs-string">&#x27;luna-setup-&#x27;</span> + stem + <span class="hljs-string">&#x27;.png&#x27;</span>)
+        crop.save(path)
+        result = subprocess.run([<span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&#x27;scripts/observe&#x27;</span>), <span class="hljs-built_in">str</span>(path)],
+                                check=<span class="hljs-literal">True</span>, capture_output=<span class="hljs-literal">True</span>, text=<span class="hljs-literal">True</span>, timeout=<span class="hljs-number">20</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;\n&#x27;</span>.join(row[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> json.loads(result.stdout))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">status</span>(<span class="hljs-params">self, native</span>):
+        <span class="hljs-comment"># Compare actual rendered badge pixels to all five installed sprites</span>
+        <span class="hljs-comment"># and the blank databox. Absence of an OCR status word is not evidence</span>
+        <span class="hljs-comment"># of healthy status. Small color conversion errors are tolerated.</span>
+        errors = []
+        <span class="hljs-keyword">for</span> name, template <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.templates.items():
+            offsets = []
+            <span class="hljs-comment"># PokemonDataBox.update bobs the selected box down two game pixels.</span>
+            <span class="hljs-comment"># Compare both legal positions rather than mistaking that animation</span>
+            <span class="hljs-comment"># for a healthy badge or for an unexpected status.</span>
+            <span class="hljs-keyword">for</span> dy <span class="hljs-keyword">in</span> (<span class="hljs-number">0</span>, <span class="hljs-number">2</span>):
+                seen = <span class="hljs-variable language_">self</span>.crop(native, (<span class="hljs-number">326</span>, <span class="hljs-number">228</span> + dy, <span class="hljs-number">390</span>, <span class="hljs-number">244</span> + dy)).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+                scaled = template.resize(seen.size, <span class="hljs-variable language_">self</span>.Image.Resampling.NEAREST)
+                distance = <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">abs</span>(a - b) <span class="hljs-keyword">for</span> a, b <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(p, q))
+                               <span class="hljs-keyword">for</span> p, q <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(seen.getdata(), scaled.getdata()))
+                offsets.append((distance / (seen.width * seen.height * <span class="hljs-number">3</span>), dy))
+            error, dy = <span class="hljs-built_in">min</span>(offsets)
+            errors.append((error, name, dy))
+        errors.sort()
+        <span class="hljs-keyword">if</span> errors[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] &gt; <span class="hljs-number">20</span> <span class="hljs-keyword">or</span> errors[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] - errors[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] &lt; <span class="hljs-number">2</span>:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Status badge or HUD geometry is uncertain: &#x27;</span> + <span class="hljs-built_in">repr</span>(errors))
+        <span class="hljs-keyword">return</span> errors[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>], <span class="hljs-built_in">round</span>(errors[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>], <span class="hljs-number">3</span>), errors[<span class="hljs-number">0</span>][<span class="hljs-number">2</span>]
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">hp_bar</span>(<span class="hljs-params">self, native, dy</span>):
+        <span class="hljs-comment"># PBScene.rb: player x=268, baseX=34, gauge x=102,y=40,w=96.</span>
+        bar = <span class="hljs-variable language_">self</span>.crop(native, (<span class="hljs-number">404</span>, <span class="hljs-number">233</span> + dy, <span class="hljs-number">500</span>, <span class="hljs-number">237</span> + dy)).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+        filled = []
+        <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(bar.width):
+            colored = <span class="hljs-number">0</span>
+            <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(bar.height):
+                r, g, b = bar.getpixel((x, y))
+                <span class="hljs-keyword">if</span> (g &gt; <span class="hljs-number">75</span> <span class="hljs-keyword">and</span> g &gt; r * <span class="hljs-number">1.3</span> <span class="hljs-keyword">and</span> g &gt; b * <span class="hljs-number">1.3</span>) <span class="hljs-keyword">or</span> (
+                        r &gt; <span class="hljs-number">130</span> <span class="hljs-keyword">and</span> b &lt; <span class="hljs-number">85</span> <span class="hljs-keyword">and</span> g &lt; <span class="hljs-number">220</span>):
+                    colored += <span class="hljs-number">1</span>
+            filled.append(colored / <span class="hljs-built_in">max</span>(<span class="hljs-number">1</span>, bar.height) &gt; <span class="hljs-number">.45</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(filled):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;HP bar is not visible at the reviewed single-battle HUD position&#x27;</span>)
+        <span class="hljs-comment"># An HP fill must begin at the left and form a contiguous prefix.</span>
+        end = <span class="hljs-built_in">max</span>(i <span class="hljs-keyword">for</span> i, value <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(filled) <span class="hljs-keyword">if</span> value) + <span class="hljs-number">1</span>
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">sum</span>(filled[:end]) / end &lt; <span class="hljs-number">.95</span>:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;HP bar has unexpected gaps; HUD geometry is uncertain&#x27;</span>)
+        <span class="hljs-keyword">return</span> end / bar.width
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">boost_icons</span>(<span class="hljs-params">self, native, dy</span>):
+        <span class="hljs-comment"># pbGetStatsBoostsTabCoords: x=268+28-50=246, y=192-4=188.</span>
+        <span class="hljs-comment"># The 22x22 stage sprites overlap in the installed draw order; compare</span>
+        <span class="hljs-comment"># the complete composite rather than independent overlapping cells.</span>
+        assets = GAME / <span class="hljs-string">&#x27;Graphics/Pictures/Battle&#x27;</span>
+        background = <span class="hljs-variable language_">self</span>.Image.<span class="hljs-built_in">open</span>(assets / <span class="hljs-string">&#x27;statdis1.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>)
+        sprites = <span class="hljs-variable language_">self</span>.Image.<span class="hljs-built_in">open</span>(assets / <span class="hljs-string">&#x27;statdis2.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>)
+        positions = ((<span class="hljs-number">14</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">2</span>, <span class="hljs-number">10</span>), (<span class="hljs-number">26</span>, <span class="hljs-number">10</span>), (<span class="hljs-number">14</span>, <span class="hljs-number">20</span>),
+                     (<span class="hljs-number">2</span>, <span class="hljs-number">30</span>), (<span class="hljs-number">26</span>, <span class="hljs-number">30</span>), (<span class="hljs-number">14</span>, <span class="hljs-number">40</span>))
+        <span class="hljs-keyword">def</span> <span class="hljs-title function_">composite</span>(<span class="hljs-params">stages</span>):
+            panel = background.copy()
+            <span class="hljs-keyword">for</span> stage, position <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(stages, positions):
+                <span class="hljs-keyword">if</span> stage:
+                    x = <span class="hljs-number">0</span> <span class="hljs-keyword">if</span> stage &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-number">22</span>
+                    y = (<span class="hljs-built_in">abs</span>(stage) - <span class="hljs-number">1</span>) * <span class="hljs-number">22</span>
+                    icon = sprites.crop((x, y, x + <span class="hljs-number">22</span>, y + <span class="hljs-number">22</span>))
+                    panel.alpha_composite(icon, dest=position)
+            <span class="hljs-keyword">return</span> panel
+        <span class="hljs-keyword">def</span> <span class="hljs-title function_">score_pixels</span>(<span class="hljs-params">actual_pixels, stages</span>):
+            errors = [<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">abs</span>(a - b) <span class="hljs-keyword">for</span> a, b <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(actual, expected[:<span class="hljs-number">3</span>])) / <span class="hljs-number">3</span>
+                      <span class="hljs-keyword">for</span> actual, expected <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(actual_pixels, composite(stages).getdata())
+                      <span class="hljs-keyword">if</span> expected[<span class="hljs-number">3</span>] == <span class="hljs-number">255</span>]
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> errors:
+                <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Installed boost icon template has no opaque pixels&#x27;</span>)
+            <span class="hljs-keyword">return</span> <span class="hljs-built_in">sum</span>(errors) / <span class="hljs-built_in">len</span>(errors)
+        <span class="hljs-comment"># A blank healthy-status background can tie at both bob offsets. Locate</span>
+        <span class="hljs-comment"># the boost panel independently rather than inheriting that arbitrary</span>
+        <span class="hljs-comment"># tie choice. Only the two source-authorized positions are considered.</span>
+        candidates = []
+        <span class="hljs-keyword">for</span> offset <span class="hljs-keyword">in</span> (dy, <span class="hljs-number">2</span> - dy):
+            seen = <span class="hljs-variable language_">self</span>.crop(native, (<span class="hljs-number">246</span>, <span class="hljs-number">188</span> + offset, <span class="hljs-number">296</span>, <span class="hljs-number">252</span> + offset)).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+            <span class="hljs-comment"># Sample original sprite resolution; retina pixels repeat.</span>
+            seen = seen.resize(background.size, <span class="hljs-variable language_">self</span>.Image.Resampling.NEAREST)
+            pixels = <span class="hljs-built_in">list</span>(seen.getdata())
+            candidates.append((score_pixels(pixels, <span class="hljs-variable language_">self</span>.stages), offset, pixels))
+        _, _, actual_pixels = <span class="hljs-built_in">min</span>(candidates, key=<span class="hljs-keyword">lambda</span> value: value[:<span class="hljs-number">2</span>])
+        <span class="hljs-keyword">def</span> <span class="hljs-title function_">score</span>(<span class="hljs-params">stages</span>):
+            <span class="hljs-keyword">return</span> score_pixels(actual_pixels, stages)
+        error = score(<span class="hljs-variable language_">self</span>.stages)
+        <span class="hljs-keyword">if</span> error &gt; <span class="hljs-number">18</span>:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Visible boost panel does not prove expected stages &#x27;</span>
+                               + <span class="hljs-built_in">repr</span>(<span class="hljs-variable language_">self</span>.stages) + <span class="hljs-string">&#x27;; error=&#x27;</span> + <span class="hljs-built_in">str</span>(<span class="hljs-built_in">round</span>(error, <span class="hljs-number">2</span>)))
+        <span class="hljs-comment"># An absolute whole-panel threshold alone could accept an unchanged</span>
+        <span class="hljs-comment"># small icon. Require the expected stage in each cell to beat every</span>
+        <span class="hljs-comment"># alternate legal -6..+6 value, including the pre-item stage.</span>
+        <span class="hljs-keyword">for</span> position <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">7</span>):
+            rivals = []
+            <span class="hljs-keyword">for</span> stage <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(-<span class="hljs-number">6</span>, <span class="hljs-number">7</span>):
+                <span class="hljs-keyword">if</span> stage == <span class="hljs-variable language_">self</span>.stages[position]:
+                    <span class="hljs-keyword">continue</span>
+                candidate = <span class="hljs-variable language_">self</span>.stages.copy()
+                candidate[position] = stage
+                rivals.append((score(candidate), stage))
+            alternate_error, alternate = <span class="hljs-built_in">min</span>(rivals)
+            <span class="hljs-keyword">if</span> alternate_error - error &lt; <span class="hljs-number">.15</span>:
+                <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Boost icon is ambiguous or disagrees in cell &#x27;</span>
+                                   + <span class="hljs-built_in">str</span>(position) + <span class="hljs-string">&#x27;: expected &#x27;</span> + <span class="hljs-built_in">str</span>(<span class="hljs-variable language_">self</span>.stages[position])
+                                   + <span class="hljs-string">&#x27;, alternate &#x27;</span> + <span class="hljs-built_in">str</span>(alternate) + <span class="hljs-string">&#x27;, error gap &#x27;</span>
+                                   + <span class="hljs-built_in">str</span>(<span class="hljs-built_in">round</span>(alternate_error - error, <span class="hljs-number">3</span>)))
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">round</span>(error, <span class="hljs-number">3</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">guard_once</span>(<span class="hljs-params">self</span>):
+        rows = <span class="hljs-variable language_">self</span>.play.snap()
+        text = <span class="hljs-string">&#x27;\n&#x27;</span>.join(row[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows)
+        low = text.lower().translate(TRANSLATION)
+        labels={normalized(row[<span class="hljs-string">&#x27;text&#x27;</span>]) <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows}
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> {<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;bag&#x27;</span>} &lt;= labels <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> labels.intersection({<span class="hljs-string">&#x27;run&#x27;</span>,<span class="hljs-string">&#x27;riun&#x27;</span>}):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Exact battle command menu expected; no navigation attempted&#x27;</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(word <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> word <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;fainted&#x27;</span>, <span class="hljs-string">&#x27;switch in&#x27;</span>, <span class="hljs-string">&#x27;change pok&#x27;</span>, <span class="hljs-string">&#x27;for winning&#x27;</span>,
+                                       <span class="hljs-string">&#x27;out of usable&#x27;</span>, <span class="hljs-string">&#x27;no energy left&#x27;</span>, <span class="hljs-string">&#x27;choose a pok&#x27;</span>)):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Unexpected battle transition or replacement prompt&#x27;</span>)
+        prompt = <span class="hljs-string">&#x27; &#x27;</span>.join(row[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> row[<span class="hljs-string">&#x27;y&#x27;</span>] &gt; <span class="hljs-number">.72</span> <span class="hljs-keyword">and</span> row[<span class="hljs-string">&#x27;x&#x27;</span>] &lt; <span class="hljs-number">.55</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> named(prompt, <span class="hljs-string">&#x27;arcanine&#x27;</span>):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Command prompt does not independently identify Arcanine&#x27;</span>)
+        native = <span class="hljs-variable language_">self</span>.Image.<span class="hljs-built_in">open</span>(<span class="hljs-variable language_">self</span>.play.NATIVE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.canvas <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+            <span class="hljs-variable language_">self</span>.canvas = CAPTURE_CANVASES.get(native.size)
+            <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.canvas <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+                <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Uncalibrated native screenshot size; supply a verified --canvas: &#x27;</span>
+                                   + <span class="hljs-built_in">repr</span>(native.size))
+            <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;canvas&#x27;</span>] = <span class="hljs-built_in">list</span>(<span class="hljs-variable language_">self</span>.canvas)
+            <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;native_image_size&#x27;</span>] = <span class="hljs-built_in">list</span>(native.size)
+            <span class="hljs-variable language_">self</span>.write()
+        left, top, width, height = <span class="hljs-variable language_">self</span>.canvas
+        <span class="hljs-keyword">if</span> left &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> top &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> width &lt;= <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> height &lt;= <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> (
+                left + width &gt; native.width <span class="hljs-keyword">or</span> top + height &gt; native.height):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Configured game content rectangle is outside the captured window&#x27;</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(width / height - <span class="hljs-number">4</span> / <span class="hljs-number">3</span>) &gt; <span class="hljs-number">.01</span>:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Expected a 4:3 game canvas&#x27;</span>)
+        own = <span class="hljs-variable language_">self</span>.ocr_crop(native, (<span class="hljs-number">268</span>, <span class="hljs-number">192</span>, <span class="hljs-number">512</span>, <span class="hljs-number">281</span>), <span class="hljs-string">&#x27;own-hud&#x27;</span>)
+        foe = <span class="hljs-variable language_">self</span>.ocr_crop(native, (<span class="hljs-number">0</span>, <span class="hljs-number">30</span>, <span class="hljs-number">256</span>, <span class="hljs-number">112</span>), <span class="hljs-string">&#x27;foe-hud&#x27;</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> named(own, <span class="hljs-string">&#x27;arcanine&#x27;</span>) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> level_seen(own, <span class="hljs-number">90</span>):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Own HUD is not unambiguously Arcanine Lv90: &#x27;</span> + own)
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> named(foe, <span class="hljs-string">&#x27;weavile&#x27;</span>) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> level_seen(foe, <span class="hljs-number">83</span>):
+            wide_foe=<span class="hljs-string">&#x27;\n&#x27;</span>.join(row[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> row[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.37</span> <span class="hljs-keyword">and</span> row[<span class="hljs-string">&#x27;x&#x27;</span>]&lt;<span class="hljs-number">.5</span>)
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> named(wide_foe,<span class="hljs-string">&#x27;weavile&#x27;</span>) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> level_seen(wide_foe,<span class="hljs-number">83</span>):
+                <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Foe HUD is not unambiguously Weavile Lv83: &#x27;</span> + foe+<span class="hljs-string">&#x27;; widerHUD=&#x27;</span>+wide_foe)
+            foe=wide_foe
+        hp, total = hp_pair(own, <span class="hljs-variable language_">self</span>.args.expected_max_hp)
+        status, error, dy = <span class="hljs-variable language_">self</span>.status(native)
+        fraction = <span class="hljs-variable language_">self</span>.hp_bar(native, dy)
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(fraction - hp / total) &gt; <span class="hljs-number">.045</span>:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Numeric HP disagrees with the rendered HP bar&#x27;</span>)
+        <span class="hljs-keyword">if</span> status <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;none&#x27;</span>, <span class="hljs-string">&#x27;poison&#x27;</span>):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Unexpected status requires manual review: &#x27;</span> + status)
+        boost_error = <span class="hljs-variable language_">self</span>.boost_icons(native, dy)
+        <span class="hljs-keyword">return</span> VisibleState(hp, total, status, <span class="hljs-built_in">round</span>(fraction, <span class="hljs-number">4</span>), error, dy,
+                            <span class="hljs-built_in">tuple</span>(<span class="hljs-variable language_">self</span>.stages), boost_error, own, foe)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">guard</span>(<span class="hljs-params">self</span>):
+        first = <span class="hljs-variable language_">self</span>.guard_once()
+        time.sleep(<span class="hljs-number">.2</span>)
+        second = <span class="hljs-variable language_">self</span>.guard_once()
+        <span class="hljs-keyword">if</span> (first.hp, first.total_hp, first.status) != (second.hp, second.total_hp, second.status):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Two rendered-UI reads disagree; HP/status may still be animating&#x27;</span>)
+        <span class="hljs-keyword">return</span> second
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">public_evidence</span>(<span class="hljs-params">self, offset</span>):
+        path = ROOT / <span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>
+        <span class="hljs-keyword">with</span> path.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;rb&#x27;</span>) <span class="hljs-keyword">as</span> handle:
+            handle.seek(offset)
+            lines = handle.read(<span class="hljs-number">2_000_000</span>).decode(<span class="hljs-string">&#x27;utf-8&#x27;</span>).splitlines()
+        <span class="hljs-keyword">return</span> [<span class="hljs-string">&#x27;\n&#x27;</span>.join(json.loads(line)[<span class="hljs-string">&#x27;text&#x27;</span>]) <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> lines <span class="hljs-keyword">if</span> line.strip()]
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">proof</span>(<span class="hljs-params">self, item, evidence, before, after</span>):
+        compact = [normalized(text) <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> evidence]
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(<span class="hljs-string">&#x27;noeffect&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;wonthaveanyeffect&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">or</span>
+               <span class="hljs-string">&#x27;cantbeused&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;cannotbeused&#x27;</span> <span class="hljs-keyword">in</span> text
+               <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> compact):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Rendered item failure message; do not repeat automatically&#x27;</span>)
+        <span class="hljs-keyword">if</span> item.startswith(<span class="hljs-string">&#x27;X &#x27;</span>):
+            stat = {<span class="hljs-string">&#x27;X Defend&#x27;</span>: (<span class="hljs-string">&#x27;defense&#x27;</span>, <span class="hljs-string">&#x27;defence&#x27;</span>), <span class="hljs-string">&#x27;X Speed&#x27;</span>: (<span class="hljs-string">&#x27;speed&#x27;</span>,),
+                    <span class="hljs-string">&#x27;X Sp.Def&#x27;</span>: (<span class="hljs-string">&#x27;spdef&#x27;</span>, <span class="hljs-string">&#x27;specialdefense&#x27;</span>, <span class="hljs-string">&#x27;specialdefence&#x27;</span>),
+                    <span class="hljs-string">&#x27;X Sp.Atk&#x27;</span>: (<span class="hljs-string">&#x27;spatk&#x27;</span>, <span class="hljs-string">&#x27;spattack&#x27;</span>, <span class="hljs-string">&#x27;specialattack&#x27;</span>)}[item]
+            matching = [text <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> evidence <span class="hljs-keyword">if</span> named(text, <span class="hljs-string">&#x27;arcanine&#x27;</span>) <span class="hljs-keyword">and</span>
+                        <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> normalized(text) <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> stat) <span class="hljs-keyword">and</span>
+                        <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> normalized(text) <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;rose&#x27;</span>, <span class="hljs-string">&#x27;raised&#x27;</span>, <span class="hljs-string">&#x27;sharply&#x27;</span>))]
+            <span class="hljs-comment"># Turbo can finish these brief non-paused messages before the item</span>
+            <span class="hljs-comment"># helper&#x27;s next screenshot. Both stable HUD reads must instead</span>
+            <span class="hljs-comment"># prove the exact source-rendered panel transition in that case.</span>
+            <span class="hljs-keyword">if</span> before.boosts == after.boosts:
+                <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;X item did not produce a proved boost-panel transition&#x27;</span>)
+            matching.append(<span class="hljs-string">&#x27;RENDERED BOOST PANEL: &#x27;</span> + <span class="hljs-built_in">repr</span>(before.boosts) +
+                            <span class="hljs-string">&#x27; -&gt; &#x27;</span> + <span class="hljs-built_in">repr</span>(after.boosts) +
+                            <span class="hljs-string">&#x27;; exact installed sprite composite matched twice&#x27;</span>)
+        <span class="hljs-keyword">elif</span> item == <span class="hljs-string">&#x27;Ultra Potion&#x27;</span>:
+            matching = [text <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> evidence <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> normalized(text)
+                        <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;restored&#x27;</span>, <span class="hljs-string">&#x27;recovered&#x27;</span>, <span class="hljs-string">&#x27;regained&#x27;</span>))]
+            <span class="hljs-keyword">if</span> after.hp &gt; before.hp:
+                <span class="hljs-comment"># Charcoal Arcanine vs these four damaging Weavile moves has</span>
+                <span class="hljs-comment"># no passive HP recovery. A stable numeric/bar-confirmed HP</span>
+                <span class="hljs-comment"># increase independently proves the ordinary heal resolved.</span>
+                matching.append(<span class="hljs-string">&#x27;RENDERED HP INCREASE: &#x27;</span> + <span class="hljs-built_in">str</span>(before.hp) +
+                                <span class="hljs-string">&#x27; -&gt; &#x27;</span> + <span class="hljs-built_in">str</span>(after.hp))
+        <span class="hljs-keyword">else</span>:
+            matching = [text <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> evidence <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> normalized(text)
+                        <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;cured&#x27;</span>, <span class="hljs-string">&#x27;healed&#x27;</span>, <span class="hljs-string">&#x27;healthy&#x27;</span>, <span class="hljs-string">&#x27;poisoning&#x27;</span>))]
+            <span class="hljs-keyword">if</span> before.status == <span class="hljs-string">&#x27;poison&#x27;</span> <span class="hljs-keyword">and</span> after.status == <span class="hljs-string">&#x27;none&#x27;</span>:
+                matching.append(<span class="hljs-string">&#x27;RENDERED STATUS BADGE: poison -&gt; none&#x27;</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> matching:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Item effect was not proved by rendered UI; review the pending action&#x27;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">list</span>(<span class="hljs-built_in">dict</span>.fromkeys(matching))[:<span class="hljs-number">6</span>]
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">use</span>(<span class="hljs-params">self, item, state, setup_index=<span class="hljs-literal">None</span></span>):
+        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.actions &gt;= <span class="hljs-variable language_">self</span>.args.max_actions:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Total item action budget reached&#x27;</span>)
+        <span class="hljs-keyword">if</span> item == <span class="hljs-string">&#x27;Ultra Potion&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-variable language_">self</span>.heals &gt;= <span class="hljs-variable language_">self</span>.args.max_heals:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Ultra Potion budget reached&#x27;</span>)
+        <span class="hljs-keyword">if</span> item == <span class="hljs-string">&#x27;Full Heal&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-variable language_">self</span>.cures &gt;= <span class="hljs-variable language_">self</span>.args.max_cures:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Full Heal budget reached&#x27;</span>)
+        path = ROOT / <span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>
+        offset = path.stat().st_size
+        pending = {<span class="hljs-string">&#x27;item&#x27;</span>: item, <span class="hljs-string">&#x27;setup_index&#x27;</span>: setup_index, <span class="hljs-string">&#x27;before&#x27;</span>: asdict(state),
+                   <span class="hljs-string">&#x27;start_epoch&#x27;</span>: time.time(), <span class="hljs-string">&#x27;public_ui_offset&#x27;</span>: offset}
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>] = pending
+        <span class="hljs-variable language_">self</span>.write()
+        command = [sys.executable, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&#x27;scripts/battle_item.py&#x27;</span>), item, <span class="hljs-string">&#x27;Arcanine&#x27;</span>]
+        <span class="hljs-keyword">if</span> item.startswith(<span class="hljs-string">&#x27;X &#x27;</span>):
+            command.append(<span class="hljs-string">&#x27;--active&#x27;</span>)
+        <span class="hljs-keyword">else</span>:
+            command.extend((<span class="hljs-string">&#x27;--pocket&#x27;</span>, <span class="hljs-string">&#x27;Medicine&#x27;</span>))
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;QUEUED&#x27;</span>, item, <span class="hljs-string">&#x27;HP&#x27;</span>, state.hp, <span class="hljs-string">&#x27;/&#x27;</span>, state.total_hp, state.status, flush=<span class="hljs-literal">True</span>)
+        result = subprocess.run(command, capture_output=<span class="hljs-literal">True</span>, text=<span class="hljs-literal">True</span>, timeout=<span class="hljs-number">180</span>)
+        pending[<span class="hljs-string">&#x27;helper_stdout_tail&#x27;</span>] = result.stdout[-<span class="hljs-number">3500</span>:]
+        pending[<span class="hljs-string">&#x27;helper_stderr_tail&#x27;</span>] = result.stderr[-<span class="hljs-number">1500</span>:]
+        pending[<span class="hljs-string">&#x27;returncode&#x27;</span>] = result.returncode
+        <span class="hljs-variable language_">self</span>.write()
+        <span class="hljs-keyword">if</span> result.returncode:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Bounded named-item helper stopped; pending action requires manual review&#x27;</span>)
+        <span class="hljs-comment"># This helper selects no move. It only advances stable turn messages,</span>
+        <span class="hljs-comment"># cancels an accidental move grid, and stops at the command menu.</span>
+        ready = subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],
+                               capture_output=<span class="hljs-literal">True</span>, text=<span class="hljs-literal">True</span>, timeout=<span class="hljs-number">180</span>)
+        pending[<span class="hljs-string">&#x27;ready_returncode&#x27;</span>] = ready.returncode
+        <span class="hljs-variable language_">self</span>.write()
+        <span class="hljs-keyword">if</span> ready.returncode:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Turn readiness stopped; pending action requires manual review&#x27;</span>)
+        evidence = <span class="hljs-variable language_">self</span>.public_evidence(offset)
+        <span class="hljs-keyword">if</span> item.startswith(<span class="hljs-string">&#x27;X &#x27;</span>):
+            index = {<span class="hljs-string">&#x27;X Defend&#x27;</span>: <span class="hljs-number">4</span>, <span class="hljs-string">&#x27;X Speed&#x27;</span>: <span class="hljs-number">3</span>, <span class="hljs-string">&#x27;X Sp.Def&#x27;</span>: <span class="hljs-number">5</span>, <span class="hljs-string">&#x27;X Sp.Atk&#x27;</span>: <span class="hljs-number">2</span>}[item]
+            <span class="hljs-variable language_">self</span>.stages[index] += <span class="hljs-number">2</span>
+            <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.stages[index] &gt; <span class="hljs-number">6</span>:
+                <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Reviewed setup would exceed maximum stage; no automatic replay&#x27;</span>)
+        after = <span class="hljs-variable language_">self</span>.guard()
+        pending[<span class="hljs-string">&#x27;effect_ui_proof&#x27;</span>] = <span class="hljs-variable language_">self</span>.proof(item, evidence, state, after)
+        <span class="hljs-keyword">if</span> item == <span class="hljs-string">&#x27;Full Heal&#x27;</span> <span class="hljs-keyword">and</span> after.status == <span class="hljs-string">&#x27;poison&#x27;</span>:
+            <span class="hljs-comment"># The same opposing Poison Jab can poison again. Stop for review</span>
+            <span class="hljs-comment"># instead of silently asserting a cure or spending repeated cures.</span>
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Poison remains after Full Heal; possible immediate re-poisoning&#x27;</span>)
+        pending[<span class="hljs-string">&#x27;after&#x27;</span>] = asdict(after)
+        pending[<span class="hljs-string">&#x27;end_epoch&#x27;</span>] = time.time()
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;actions&#x27;</span>].append(pending)
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>] = <span class="hljs-literal">None</span>
+        <span class="hljs-variable language_">self</span>.actions += <span class="hljs-number">1</span>
+        <span class="hljs-variable language_">self</span>.heals += item == <span class="hljs-string">&#x27;Ultra Potion&#x27;</span>
+        <span class="hljs-variable language_">self</span>.cures += item == <span class="hljs-string">&#x27;Full Heal&#x27;</span>
+        <span class="hljs-variable language_">self</span>.write()
+        <span class="hljs-keyword">return</span> after
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">safe</span>(<span class="hljs-params">self, state</span>):
+        <span class="hljs-keyword">while</span> state.hp &lt; <span class="hljs-number">180</span> <span class="hljs-keyword">or</span> state.status == <span class="hljs-string">&#x27;poison&#x27;</span>:
+            <span class="hljs-comment"># Bag heals happen before the opponent&#x27;s attack. Cure only once HP</span>
+            <span class="hljs-comment"># meets the reviewed safety floor; cure never outranks HP recovery.</span>
+            item = <span class="hljs-string">&#x27;Ultra Potion&#x27;</span> <span class="hljs-keyword">if</span> state.hp &lt; <span class="hljs-number">180</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Full Heal&#x27;</span>
+            state = <span class="hljs-variable language_">self</span>.use(item, state)
+        <span class="hljs-keyword">return</span> state
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">self</span>):
+        state = <span class="hljs-variable language_">self</span>.guard()
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;initial&#x27;</span>] = asdict(state)
+        <span class="hljs-variable language_">self</span>.write()
+        <span class="hljs-keyword">for</span> index, item <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(SETUP):
+            state = <span class="hljs-variable language_">self</span>.safe(state)
+            <span class="hljs-comment"># Reconfirm actor, exact foe, HP and status immediately before each</span>
+            <span class="hljs-comment"># fixed setup item, including after an inserted potion or cure.</span>
+            state = <span class="hljs-variable language_">self</span>.guard()
+            <span class="hljs-keyword">if</span> state.hp &lt; <span class="hljs-number">180</span> <span class="hljs-keyword">or</span> state.status != <span class="hljs-string">&#x27;none&#x27;</span>:
+                <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Safety state changed before setup action&#x27;</span>)
+            state = <span class="hljs-variable language_">self</span>.use(item, state, index)
+        state = <span class="hljs-variable language_">self</span>.safe(state)
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;final&#x27;</span>] = asdict(state)
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;complete&#x27;</span>] = <span class="hljs-literal">True</span>
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;finished_epoch&#x27;</span>] = time.time()
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;boosts_proved&#x27;</span>] = {<span class="hljs-string">&#x27;defense&#x27;</span>: <span class="hljs-number">4</span>, <span class="hljs-string">&#x27;speed&#x27;</span>: <span class="hljs-number">2</span>,
+                                        <span class="hljs-string">&#x27;special_defense&#x27;</span>: <span class="hljs-number">4</span>, <span class="hljs-string">&#x27;special_attack&#x27;</span>: <span class="hljs-number">6</span>}
+        <span class="hljs-variable language_">self</span>.write()
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SETUP COMPLETE — stopped at command menu before attacking; HP&#x27;</span>,
+              state.hp, <span class="hljs-string">&#x27;/&#x27;</span>, state.total_hp, <span class="hljs-string">&#x27;status&#x27;</span>, state.status, flush=<span class="hljs-literal">True</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">canvas_arg</span>(<span class="hljs-params">text</span>):
+    <span class="hljs-keyword">try</span>:
+        values = <span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">int</span>(value) <span class="hljs-keyword">for</span> value <span class="hljs-keyword">in</span> text.split(<span class="hljs-string">&#x27;,&#x27;</span>))
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(values) != <span class="hljs-number">4</span>:
+            <span class="hljs-keyword">raise</span> ValueError
+        <span class="hljs-keyword">return</span> values
+    <span class="hljs-keyword">except</span> ValueError <span class="hljs-keyword">as</span> exc:
+        <span class="hljs-keyword">raise</span> argparse.ArgumentTypeError(<span class="hljs-string">&#x27;Canvas must be left,top,width,height&#x27;</span>) <span class="hljs-keyword">from</span> exc
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(<span class="hljs-string">&#x27;--expected-max-hp&#x27;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, default=<span class="hljs-number">294</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--canvas&#x27;</span>, <span class="hljs-built_in">type</span>=canvas_arg,
+                        <span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;Verified native-pixel left,top,width,height; default uses calibrated &#x27;</span>
+                             <span class="hljs-string">&#x27;2272x1816 shadowed-retina or 1024x796 unshadowed capture presets&#x27;</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--journal&#x27;</span>, <span class="hljs-built_in">type</span>=pathlib.Path,
+                        default=ROOT / <span class="hljs-string">&#x27;notes/luna-arcanine-setup-run.json&#x27;</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--max-actions&#x27;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, default=<span class="hljs-number">22</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--max-heals&#x27;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, default=<span class="hljs-number">8</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--max-cures&#x27;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, default=<span class="hljs-number">6</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--resume-initial-guard&#x27;</span>, action=<span class="hljs-string">&#x27;store_true&#x27;</span>,
+                        <span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;Retry the same untouched opening only if the journal has no &#x27;</span>
+                             <span class="hljs-string">&#x27;initial state, actions, pending item or completion&#x27;</span>)
+    args = parser.parse_args()
+    args.prior_journal = <span class="hljs-literal">None</span>
+    <span class="hljs-keyword">if</span> args.journal.exists():
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> args.resume_initial_guard:
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Journal already exists. Review it; do not automatically replay setup items. &#x27;</span>
+                             <span class="hljs-string">&#x27;Use a fresh journal only for a genuinely new round-2 opening.&#x27;</span>)
+        prior = json.loads(args.journal.read_text())
+        <span class="hljs-keyword">if</span> (<span class="hljs-string">&#x27;initial&#x27;</span> <span class="hljs-keyword">in</span> prior <span class="hljs-keyword">or</span> prior.get(<span class="hljs-string">&#x27;actions&#x27;</span>) != [] <span class="hljs-keyword">or</span>
+                prior.get(<span class="hljs-string">&#x27;pending&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> prior.get(<span class="hljs-string">&#x27;complete&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">False</span>):
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Initial-guard retry refused: this journal may have advanced gameplay&#x27;</span>)
+        <span class="hljs-keyword">if</span> (prior.get(<span class="hljs-string">&#x27;setup&#x27;</span>) != <span class="hljs-built_in">list</span>(SETUP) <span class="hljs-keyword">or</span>
+                prior.get(<span class="hljs-string">&#x27;expected_actor&#x27;</span>) != <span class="hljs-string">&#x27;Arcanine Lv90&#x27;</span> <span class="hljs-keyword">or</span>
+                prior.get(<span class="hljs-string">&#x27;expected_foe&#x27;</span>) != <span class="hljs-string">&#x27;Weavile Lv83&#x27;</span> <span class="hljs-keyword">or</span>
+                prior.get(<span class="hljs-string">&#x27;expected_max_hp&#x27;</span>, args.expected_max_hp) != args.expected_max_hp):
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Initial-guard retry refused: journal policy/build does not match&#x27;</span>)
+        args.prior_journal = prior
+    <span class="hljs-keyword">elif</span> args.resume_initial_guard:
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Initial-guard retry requires the existing stopped journal&#x27;</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-number">290</span> &lt;= args.expected_max_hp &lt;= <span class="hljs-number">310</span>:
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected Arcanine maximum HP; review the actual build&#x27;</span>)
+    queue = <span class="hljs-literal">None</span>
+    <span class="hljs-keyword">try</span>:
+        queue = Queue(args)
+        queue.run()
+    <span class="hljs-keyword">except</span> (RuntimeError, subprocess.SubprocessError, OSError, ValueError, KeyError) <span class="hljs-keyword">as</span> exc:
+        <span class="hljs-keyword">if</span> queue <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+            queue.journal[<span class="hljs-string">&#x27;stop_epoch&#x27;</span>] = time.time()
+            queue.journal[<span class="hljs-string">&#x27;stop_reason&#x27;</span>] = <span class="hljs-built_in">str</span>(exc)
+            queue.write()
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;STOP — &#x27;</span> + <span class="hljs-built_in">str</span>(exc)) <span class="hljs-keyword">from</span> exc
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:
+    main()
+</code></pre>
+  </body>
+</html>

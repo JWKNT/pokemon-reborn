@@ -1,0 +1,26 @@
+{
+  "completed": [
+    "First map786 B1F rails, Tyranitarite",
+    "Main map784 pressure plate1118 and lower route",
+    "Charlotte briefing quest475=114",
+    "Southeast pressure plate1121; explosive pillar1132; quest475=115"
+  ],
+  "current": "SW pressure plate1120 complete atSW192-40, boulder73[76,57]; cart128 transfer underway",
+  "plans": {
+    "sw_main": "work/191-sw-main-plan.json",
+    "sw_groups": "work/192-sw-push-groups.json",
+    "sw_basement": "work/191-sw-cart-solution.json",
+    "ne_main": "work/192-ne-cart-plan.json",
+    "ne_basement": "work/192-ne-boulder-plan.json"
+  },
+  "caveats": [
+    "Regenerate SW basement graphs/solution at actual map786 entry90,59 using actual switch mask; cached wide graph was prepared before final SE lever changes, and map transfers reset boulder positions.",
+    "NE main plan starts114,32 and assumes vars493/494/495=0 and switches1123/1124/1125=false; validate at entry.",
+    "NE basement source RockClimb142 transfers to786104,15. Candidate148push plan100 from108,17 to108,27; revalidate after actual entry. 35direction groups, no repeated box positions, max18pushes/group.",
+    "Only frozen normal saves and public coordinates; no live hidden state.",
+    "All six party members1HP from icicles; heal before any trainer. Five SuperRepels remained after last safe-room return (verify latest normal save).",
+    "Map784 wall-burst validation supports boulder73 only; .2 individual push input (a .35 hold overshot one tile; actual state remained on planned route and was rechecked); exact goal and other-boulder guard always required.",
+    "Rapid hazard helper plans static data while in Party then follows public coordinates in <=6tile bursts, no second Party roundtrip before movement. Must stop on capture/OCR/route failure."
+  ],
+  "unused_heal": "Map784 LightShard152 at115,36 is unconsumed: normal SW192-29 backup self-switch[784,152,A] nil. Source314 heals whole party; save it for a useful departure toward a trainer rather than before more icicles."
+}

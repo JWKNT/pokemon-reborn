@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>vitamin_batch.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of vitamin_batch.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Use a bounded vitamin quantity through the public bag and party menus.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+
+item, name, count = sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">4</span>]
+count = <span class="hljs-built_in">int</span>(count)
+<span class="hljs-keyword">assert</span> item <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;HP Up&#x27;</span>, <span class="hljs-string">&#x27;Protein&#x27;</span>, <span class="hljs-string">&#x27;Iron&#x27;</span>, <span class="hljs-string">&#x27;Calcium&#x27;</span>, <span class="hljs-string">&#x27;Zinc&#x27;</span>, <span class="hljs-string">&#x27;Carbos&#x27;</span>]
+<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span> &lt;= count &lt;= <span class="hljs-number">8</span>
+subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/field_medicine.py&#x27;</span>), item, name,
+                *([<span class="hljs-string">&#x27;--bag-open&#x27;</span>] <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--bag-open&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> [])], check=<span class="hljs-literal">True</span>)
+t = read()
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;how many&#x27;</span> <span class="hljs-keyword">in</span> t.lower(), (<span class="hljs-string">&#x27;Vitamin quantity prompt required&#x27;</span>, t)
+act(*[key <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(count-<span class="hljs-number">1</span>) <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;up:.12&#x27;</span>, <span class="hljs-string">&#x27;wait:.12&#x27;</span>)], <span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+snap()
+im = Image.<span class="hljs-built_in">open</span>(STATE)
+w, h = im.size
+p = ROOT/<span class="hljs-string">&#x27;work/vitamin-quantity.png&#x27;</span>
+im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.82</span>), <span class="hljs-built_in">int</span>(h*<span class="hljs-number">.82</span>), <span class="hljs-built_in">int</span>(w*<span class="hljs-number">.94</span>), <span class="hljs-built_in">int</span>(h*<span class="hljs-number">.92</span>))).resize((<span class="hljs-number">600</span>,<span class="hljs-number">400</span>)).save(p)
+qty = <span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>), <span class="hljs-built_in">str</span>(p)])))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VITAMIN QUANTITY&#x27;</span>, qty, flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">assert</span> re.search(<span class="hljs-string">r&#x27;(?&lt;!\d)0*&#x27;</span>+<span class="hljs-built_in">str</span>(count)+<span class="hljs-string">r&#x27;(?!\d)&#x27;</span>, qty), <span class="hljs-string">&#x27;Quantity verification failed; no use confirmed&#x27;</span>
+act(<span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-string">&#x27;wait:.7&#x27;</span>)
+t = read()
+<span class="hljs-built_in">print</span>(t, flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;increased&#x27;</span> <span class="hljs-keyword">in</span> t.lower(), <span class="hljs-string">&#x27;Vitamin result needs review&#x27;</span>
+act(<span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+t = read()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;used your last&#x27;</span> <span class="hljs-keyword">in</span> t.lower():
+    act(<span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/overworld.py&#x27;</span>)], check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VITAMIN USE COMPLETE; verify EVs at next ordinary checkpoint&#x27;</span>, flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+from play import *
+def run(s,*a):subprocess.run([sys.executable,str(ROOT/'scripts'/(s+'.py')),*map(str,a)],check=True)
+run('party_front','Swampert')
+run('eventq',38,6,'enter')
+run('fly_to',530,'--carrier','Zapdos')
+for mid,eid in [(530,11),(522,15),(594,10),(595,1),(596,13)]:run('eventq',mid,eid,'enter')
+run('eventq',877,82,'talk')
+run('choose_dialog','Yes|No','Yes','--source',877,82)
+run('dialog','--limit','12')
+run('checkpoint','Genesect316-ShutterA')

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>dept_floor.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of dept_floor.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Select a department-store floor from its visible numbered menu.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">from</span> statistics <span class="hljs-keyword">import</span> median
+floor=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=floor&lt;=<span class="hljs-number">11</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">selected</span>(<span class="hljs-params">rows</span>):
+ im=Image.<span class="hljs-built_in">open</span>(NATIVE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=im.size;options=[]
+ candidates=[r <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;([0-9I]+)F\s*[-–]&#x27;</span>,r[<span class="hljs-string">&#x27;text&#x27;</span>].strip()) <span class="hljs-keyword">and</span> r[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.72</span>]
+ <span class="hljs-keyword">assert</span> candidates,<span class="hljs-string">&#x27;No floor rows recognized&#x27;</span>
+ label_x=median(r[<span class="hljs-string">&#x27;x&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> candidates)
+ <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows:
+  <span class="hljs-keyword">match</span>=re.search(<span class="hljs-string">r&#x27;([0-9I]+)F\s*[-–]&#x27;</span>,r[<span class="hljs-string">&#x27;text&#x27;</span>].strip())
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">match</span> <span class="hljs-keyword">or</span> r[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span>:<span class="hljs-keyword">continue</span>
+  number=<span class="hljs-built_in">int</span>(<span class="hljs-keyword">match</span>[<span class="hljs-number">1</span>].replace(<span class="hljs-string">&#x27;I&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>));x=label_x;cy=r[<span class="hljs-string">&#x27;y&#x27;</span>]+r[<span class="hljs-string">&#x27;h&#x27;</span>]/<span class="hljs-number">2</span>
+  box=im.crop((<span class="hljs-built_in">int</span>((x-<span class="hljs-number">.036</span>)*w),<span class="hljs-built_in">int</span>((cy-r[<span class="hljs-string">&#x27;h&#x27;</span>]*<span class="hljs-number">.48</span>)*h),<span class="hljs-built_in">int</span>((x-<span class="hljs-number">.004</span>)*w),<span class="hljs-built_in">int</span>((cy+r[<span class="hljs-string">&#x27;h&#x27;</span>]*<span class="hljs-number">.48</span>)*h)))
+  score=<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">max</span>(p)&lt;<span class="hljs-number">150</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> box.getdata())/(box.width*box.height)
+  options.append((score,number))
+ <span class="hljs-keyword">assert</span> options,(<span class="hljs-string">&#x27;No numbered floor options&#x27;</span>,rows)
+ score,number=<span class="hljs-built_in">max</span>(options)
+ <span class="hljs-keyword">assert</span> score&gt;<span class="hljs-number">.12</span> <span class="hljs-keyword">and</span> score-<span class="hljs-built_in">sorted</span>(options)[-<span class="hljs-number">2</span>][<span class="hljs-number">0</span>]&gt;<span class="hljs-number">.08</span>,(<span class="hljs-string">&#x27;Floor arrow not located&#x27;</span>,options)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FLOOR ARROW VERIFIED&#x27;</span>,number,options,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">return</span> number
+rows=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;which floor&#x27;</span> <span class="hljs-keyword">in</span> text.lower(),<span class="hljs-string">&#x27;Floor choice must already be open&#x27;</span>
+current=selected(rows)
+<span class="hljs-keyword">if</span> current!=floor:act(*([<span class="hljs-string">&#x27;down:.08&#x27;</span> <span class="hljs-keyword">if</span> floor&gt;current <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;up:.08&#x27;</span>]*<span class="hljs-built_in">abs</span>(floor-current)),<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+<span class="hljs-keyword">assert</span> selected(snap())==floor,<span class="hljs-string">&#x27;Requested floor not selected; no confirmation sent&#x27;</span>
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+path=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;state=json.loads(path.read_text());state.setdefault(<span class="hljs-string">&#x27;variables&#x27;</span>,{})[<span class="hljs-string">&#x27;68&#x27;</span>]=floor;path.write_text(json.dumps(state)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/dialog.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-string">&#x27;113&#x27;</span>,<span class="hljs-string">&#x27;2&#x27;</span>,<span class="hljs-string">&#x27;enter&#x27;</span>],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+expected={<span class="hljs-number">1</span>:<span class="hljs-number">112</span>,<span class="hljs-number">2</span>:<span class="hljs-number">114</span>,<span class="hljs-number">3</span>:<span class="hljs-number">141</span>,<span class="hljs-number">4</span>:<span class="hljs-number">183</span>,<span class="hljs-number">5</span>:<span class="hljs-number">1</span>,<span class="hljs-number">6</span>:<span class="hljs-number">2</span>,<span class="hljs-number">7</span>:<span class="hljs-number">3</span>,<span class="hljs-number">8</span>:<span class="hljs-number">4</span>,<span class="hljs-number">9</span>:<span class="hljs-number">5</span>,<span class="hljs-number">10</span>:<span class="hljs-number">7</span>,<span class="hljs-number">11</span>:<span class="hljs-number">6</span>}[floor]
+actual=locate(expected);<span class="hljs-keyword">assert</span> actual[<span class="hljs-number">0</span>]==expected,actual
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FLOOR ARRIVAL VERIFIED&#x27;</span>,floor,actual,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

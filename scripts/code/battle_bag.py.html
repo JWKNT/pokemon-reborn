@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>battle_bag.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of battle_bag.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Open the battle bag from a verified command menu, regardless of cursor position.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> t.split() <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;bag&#x27;</span>,<span class="hljs-string">&#x27;bae&#x27;</span>]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Battle command menu expected&#x27;</span>)
+act(<span class="hljs-string">&#x27;right:0.22&#x27;</span>,<span class="hljs-string">&#x27;up:0.22&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.3&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

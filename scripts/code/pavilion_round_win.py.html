@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>pavilion_round_win.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of pavilion_round_win.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Close a publicly won Pavilion round and stop at the next-round prompt.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+name=sys.argv[<span class="hljs-number">1</span>];n=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]);roundno=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">3</span>])
+t=read();<span class="hljs-keyword">assert</span> re.search(<span class="hljs-string">r&#x27;de.?feated&#x27;</span>,t,re.I) <span class="hljs-keyword">and</span> name.lower() <span class="hljs-keyword">in</span> t.lower(),t
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;what will&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t.lower(),t
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">6</span>):
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;thanks for playing&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;heal&#x27;</span> <span class="hljs-keyword">in</span> t.lower():<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">assert</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t.lower()) <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27;pokemonreborn&#x27;</span>],t
+ act(<span class="hljs-string">&#x27;wait:.7&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> AssertionError(<span class="hljs-string">&#x27;Healing boundary not observed: &#x27;</span>+t)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/trainer_music.py&#x27;</span>),<span class="hljs-string">&#x27;finish&#x27;</span>,<span class="hljs-string">&#x27;--world-verified&#x27;</span>],check=<span class="hljs-literal">True</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;pavilion<span class="hljs-subst">{n}</span>-progress.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;completed_rounds&#x27;</span>].append(<span class="hljs-built_in">dict</span>(<span class="hljs-built_in">round</span>=roundno,trainer=name,result=<span class="hljs-string">&#x27;victory&#x27;</span>,items=[]));v[<span class="hljs-string">&#x27;current_round&#x27;</span>]=roundno+<span class="hljs-number">1</span>;p.write_text(json.dumps(v,indent=<span class="hljs-number">2</span>))
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STOPPED before next-round confirmation&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

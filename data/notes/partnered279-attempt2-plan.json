@@ -1,0 +1,59 @@
+{
+  "updated_epoch": 1791683138.2521758,
+  "status": "Heather won seven turns, zero bag items; proceeding Laura",
+  "final_six": [
+    "Cresselia",
+    "Mawile",
+    "Volcanion",
+    "Sylveon",
+    "Zapdos",
+    "Meowstic"
+  ],
+  "confirmed_preparation": {
+    "Meowstic": "Male, Prankster, Amplifield Rock, HP252 SpD252; Quick Guard/Misty Terrain/Sucker Punch/Light Screen. Training to120.",
+    "Volcanion": "EV Tuner consumed. HP252 SpD252, SpA354 SpD333 Def317 at120; Safety Goggles.",
+    "Mawile": "HP252 Atk252 unchanged; Mawilite.",
+    "Zapdos": "Tech Glasses, SpA417 Speed392 at120.",
+    "Sylveon": "Temporarily Box2 slot17 zero-based. Restore for Swampert.",
+    "XSpDef": 20
+  },
+  "rounds": [
+    {
+      "opponent": "Heather",
+      "order": [
+        "Cresselia",
+        "Mawile",
+        "Zapdos"
+      ],
+      "plan": "Cresselia Trick Room, focus Landorus with Psychic. Preserve Mawile and use Zapdos against Gyarados/Gengar after Tailwind. Adapt public state."
+    },
+    {
+      "opponent": "Laura",
+      "order": [
+        "Meowstic",
+        "Mawile",
+        "Volcanion"
+      ],
+      "plan": "Priority Misty Terrain first, eight turns. Light Screen if useful; switch Mawile for Intimidate against physical Venusaur. Volcanion Haze for excessive boosts and Flamethrower to attack."
+    },
+    {
+      "opponent": "Elias",
+      "order": [
+        "Cresselia",
+        "Mawile",
+        "Sylveon"
+      ],
+      "plan": "Cresselia lead avoids Mawile immediate Flamethrower KO. Moonblast dragons, inspect public focus. No Trick Room while Drampa active. Avoid donating boosted Mawile to Ditto."
+    },
+    {
+      "opponent": "Bennett",
+      "order": [
+        "Meowstic",
+        "Volcanion",
+        "Mawile"
+      ],
+      "plan": "Priority Misty Terrain replaces Starlight, then Light Screen. Volcanion special bulk and Flamethrower for Genesect. Adapt to enemy Charizard/Volcarona."
+    }
+  ],
+  "rule": "No saves between four rounds; any loss resets entire chain. All selected entry builds frozen from new pre-entry save."
+}

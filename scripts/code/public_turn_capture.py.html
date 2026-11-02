@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>public_turn_capture.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of public_turn_capture.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Run a normal UI helper while retaining only already-recorded public text frames.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,time,json,hashlib
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>];out=R/<span class="hljs-string">&#x27;work&#x27;</span>/(<span class="hljs-string">&#x27;public-turn-&#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">int</span>(time.time())));out.mkdir()
+p=subprocess.Popen([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/sys.argv[<span class="hljs-number">1</span>]),*sys.argv[<span class="hljs-number">2</span>:]])
+last=<span class="hljs-literal">None</span>;count=<span class="hljs-number">0</span>;last_saved=<span class="hljs-literal">None</span>;files=[]
+<span class="hljs-keyword">while</span> p.poll() <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+ <span class="hljs-keyword">try</span>:
+  h=json.loads((R/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+  <span class="hljs-keyword">if</span> h.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">and</span> time.time()-h[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;<span class="hljs-number">2</span>:
+   im=Image.<span class="hljs-built_in">open</span>(R/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>).crop((<span class="hljs-number">15</span>,<span class="hljs-number">493</span>,<span class="hljs-number">837</span>,<span class="hljs-number">628</span>))
+   k=hashlib.sha256(im.tobytes()).hexdigest();count=count+<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> k==last <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>;last=k
+   <span class="hljs-keyword">if</span> k != last_saved:
+    last_saved=k;f=out/<span class="hljs-string">f&#x27;<span class="hljs-subst">{time.time():<span class="hljs-number">.3</span>f}</span>.png&#x27;</span>;im.save(f);files.append(f)
+ <span class="hljs-keyword">except</span> (OSError,ValueError):<span class="hljs-keyword">pass</span>
+ time.sleep(<span class="hljs-number">.15</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;PUBLIC CONTROL COMPLETE&quot;</span>,p.returncode,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">from</span> concurrent.futures <span class="hljs-keyword">import</span> ThreadPoolExecutor
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">ocr</span>(<span class="hljs-params">f</span>):
+ a=json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>),<span class="hljs-built_in">str</span>(f)]))
+ <span class="hljs-keyword">return</span> f,<span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> a)
+rows=[]
+pool=ThreadPoolExecutor(max_workers=<span class="hljs-number">2</span>)
+<span class="hljs-keyword">for</span> f,t <span class="hljs-keyword">in</span> pool.<span class="hljs-built_in">map</span>(ocr,files):
+ <span class="hljs-keyword">if</span> t <span class="hljs-keyword">and</span> (<span class="hljs-keyword">not</span> rows <span class="hljs-keyword">or</span> rows[-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;text&#x27;</span>]!=t):rows.append({<span class="hljs-string">&#x27;epoch&#x27;</span>:<span class="hljs-built_in">float</span>(f.stem),<span class="hljs-string">&#x27;text&#x27;</span>:t,<span class="hljs-string">&#x27;frame&#x27;</span>:<span class="hljs-built_in">str</span>(f.relative_to(R))});<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUBLIC TEXT:&#x27;</span>,t,flush=<span class="hljs-literal">True</span>)
+(out/<span class="hljs-string">&#x27;text.json&#x27;</span>).write_text(json.dumps(rows,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+sys.exit(p.returncode)
+</code></pre>
+  </body>
+</html>

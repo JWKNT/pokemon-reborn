@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glitch_spinner_walk.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glitch_spinner_walk.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Play one bounded Rocket Hideout arrow route, checking actual landings.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> glitch_spinner_plan <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate,capture_ready
+tx,ty=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]);last=<span class="hljs-literal">None</span>;stalls=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">80</span>):
+ t=read().lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27; hp&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(t.split()):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Spinner battle review&#x27;</span>)
+ compact=<span class="hljs-string">&#x27;&#x27;</span>.join(t.split())
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;repel&#x27;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;woreoff&#x27;</span>,<span class="hljs-string">&#x27;uoreoff&#x27;</span>]):
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/renew_repel.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+ m,x,y=locate(<span class="hljs-number">448</span>);<span class="hljs-keyword">assert</span> m==<span class="hljs-number">448</span>
+ <span class="hljs-keyword">if</span> (x,y)==(tx,ty):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SPINNER ROUTE COMPLETE&#x27;</span>,x,y,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ stalls=stalls+<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> last==(x,y) <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>;last=(x,y)
+ <span class="hljs-keyword">if</span> stalls&gt;=<span class="hljs-number">3</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Spinner landing review&#x27;</span>)
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;448&#x27;</span>,<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],stderr=subprocess.DEVNULL))
+ steps=spinner_plan(v,(tx,ty));chunk=[]
+ <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> steps:
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;:&#x27;</span><span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;key&#x27;</span>]:
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> chunk:chunk.append(s)
+   <span class="hljs-keyword">break</span>
+  chunk.append(s)
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(chunk)&gt;=<span class="hljs-number">24</span>:<span class="hljs-keyword">break</span>
+ seq=[]
+ <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> chunk:
+  <span class="hljs-keyword">if</span> s[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;spin:&#x27;</span>):seq += [s[<span class="hljs-string">&#x27;key&#x27;</span>].split(<span class="hljs-string">&#x27;:&#x27;</span>)[-<span class="hljs-number">1</span>]+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">f&quot;wait:<span class="hljs-subst">{<span class="hljs-built_in">max</span>(<span class="hljs-number">3</span>,<span class="hljs-number">1</span>+s[<span class="hljs-string">&#x27;forced_tiles&#x27;</span>]*<span class="hljs-number">.25</span>):<span class="hljs-number">.2</span>f}</span>&quot;</span>]
+  <span class="hljs-keyword">else</span>:seq.append(s[<span class="hljs-string">&#x27;key&#x27;</span>]+<span class="hljs-string">&#x27;:.12&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SPINNER&#x27;</span>,chunk[<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;from&#x27;</span>],<span class="hljs-string">&#x27;→&#x27;</span>,chunk[-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;to&#x27;</span>],<span class="hljs-built_in">len</span>(chunk),<span class="hljs-string">&#x27;inputs&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">try</span>:act(*seq)
+ <span class="hljs-keyword">except</span> subprocess.CalledProcessError <span class="hljs-keyword">as</span> e:
+  <span class="hljs-keyword">if</span> e.returncode!=<span class="hljs-number">2</span>:<span class="hljs-keyword">raise</span>
+  capture_ready();<span class="hljs-keyword">continue</span>
+ r=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(z[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> r).lower();compact=<span class="hljs-string">&#x27;&#x27;</span>.join(t.split())
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;repel&#x27;</span><span class="hljs-keyword">in</span> compact <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;woreoff&#x27;</span>,<span class="hljs-string">&#x27;uoreoff&#x27;</span>]):<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27; hp&#x27;</span>,<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;no&#x27;</span>])<span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(z[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.73</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(z[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">22</span> <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> r):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Spinner scene review: &#x27;</span>+t)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Spinner route limit&#x27;</span>)
+</code></pre>
+  </body>
+</html>

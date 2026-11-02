@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>picnic_sprite.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of picnic_sprite.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Locate grayscale apparition silhouettes in recorded public pixels.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> cv2,numpy <span class="hljs-keyword">as</span> np
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">detect</span>(<span class="hljs-params">name,dark=<span class="hljs-literal">False</span>,path=<span class="hljs-literal">None</span></span>):
+ im=np.asarray(Image.<span class="hljs-built_in">open</span>(path <span class="hljs-keyword">or</span> R/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>).convert(<span class="hljs-string">&#x27;L&#x27;</span>).resize((<span class="hljs-number">512</span>,<span class="hljs-number">384</span>),Image.Resampling.NEAREST))
+ <span class="hljs-keyword">if</span> path <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+  <span class="hljs-keyword">from</span> picnic_background <span class="hljs-keyword">import</span> foreground
+  a=foreground(im,dark)
+ <span class="hljs-keyword">else</span>:a=(im&lt;<span class="hljs-number">90</span> <span class="hljs-keyword">if</span> dark <span class="hljs-keyword">else</span> im&gt;<span class="hljs-number">175</span>).astype(np.float32)
+ sheet=np.asarray(Image.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Graphics/Characters/pkmn_&#x27;</span>+name.lower()+<span class="hljs-string">&#x27;.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>));h,w=sheet.shape[:<span class="hljs-number">2</span>];h//=<span class="hljs-number">4</span>;w//=<span class="hljs-number">4</span>
+ found=[]
+ <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  <span class="hljs-keyword">for</span> col <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+   c=sheet[row*h:(row+<span class="hljs-number">1</span>)*h,col*w:(col+<span class="hljs-number">1</span>)*w];mask=(c[:,:,<span class="hljs-number">3</span>]&gt;<span class="hljs-number">150</span>).astype(np.float32)
+   score=cv2.matchTemplate(a,mask,cv2.TM_CCOEFF_NORMED)
+   <span class="hljs-comment"># The known centered player must never become its own target.</span>
+   cy,cx=<span class="hljs-built_in">round</span>(<span class="hljs-number">208</span>-h),<span class="hljs-built_in">round</span>(<span class="hljs-number">256</span>-w/<span class="hljs-number">2</span>)
+   score[<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,cy-<span class="hljs-number">14</span>):cy+<span class="hljs-number">15</span>,<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,cx-<span class="hljs-number">14</span>):cx+<span class="hljs-number">15</span>]=<span class="hljs-number">0</span>
+   <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>):
+    _,v,_,(x,y)=cv2.minMaxLoc(score)
+    found.append((<span class="hljs-built_in">float</span>(v),x+w/<span class="hljs-number">2</span>,y+h,row,col))
+    score[<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,y-<span class="hljs-number">15</span>):y+<span class="hljs-number">16</span>,<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,x-<span class="hljs-number">15</span>):x+<span class="hljs-number">16</span>]=<span class="hljs-number">0</span>
+ <span class="hljs-keyword">return</span> <span class="hljs-built_in">sorted</span>(found,reverse=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ <span class="hljs-keyword">import</span> sys,json
+ <span class="hljs-built_in">print</span>(json.dumps(detect(sys.argv[<span class="hljs-number">1</span>],<span class="hljs-string">&#x27;--dark&#x27;</span> <span class="hljs-keyword">in</span> sys.argv)[:<span class="hljs-number">10</span>]))
+</code></pre>
+  </body>
+</html>

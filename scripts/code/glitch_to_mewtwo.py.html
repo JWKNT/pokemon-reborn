@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glitch_to_mewtwo.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glitch_to_mewtwo.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Continue the inspected Glitch route, stopping before the Mewtwo interaction.
+
+Resume at an explicitly named stage after reviewing any interruption. All progress
+is through keyboard input; stage flags below update navigation notes only.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">observed</span>(<span class="hljs-params">values=<span class="hljs-literal">None</span>,switches=<span class="hljs-literal">None</span></span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text())
+ v.setdefault(<span class="hljs-string">&#x27;variables&#x27;</span>,{}).update({<span class="hljs-built_in">str</span>(k):z <span class="hljs-keyword">for</span> k,z <span class="hljs-keyword">in</span> (values <span class="hljs-keyword">or</span> {}).items()})
+ v.setdefault(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).update({<span class="hljs-built_in">str</span>(k):z <span class="hljs-keyword">for</span> k,z <span class="hljs-keyword">in</span> (switches <span class="hljs-keyword">or</span> {}).items()});p.write_text(json.dumps(v))
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">gate</span>(<span class="hljs-params">mid,event,badge,value,transfer=<span class="hljs-literal">None</span></span>):
+ rc=subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(event),<span class="hljs-string">&#x27;enter&#x27;</span> <span class="hljs-keyword">if</span> transfer <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;talk&#x27;</span>])
+ t=read()
+ gate_text=<span class="hljs-string">&#x27;&#x27;</span>.join(t.lower().split())
+ <span class="hljs-keyword">if</span> rc <span class="hljs-keyword">and</span> badge.lower() <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;youcanpasshere&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> gate_text:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected badge-gate interruption&#x27;</span>)
+ <span class="hljs-keyword">if</span> transfer <span class="hljs-keyword">or</span> badge.lower() <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;youcanpasshere&#x27;</span> <span class="hljs-keyword">in</span> gate_text:run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,mid,event,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+ actual=locate()
+ <span class="hljs-keyword">if</span> transfer:<span class="hljs-keyword">assert</span> actual[<span class="hljs-number">0</span>]==transfer
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">assert</span> actual[<span class="hljs-number">0</span>]==mid
+ observed({<span class="hljs-number">193</span>:value})
+start=sys.argv[<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;moon&#x27;</span>
+stages=[<span class="hljs-string">&#x27;moon&#x27;</span>,<span class="hljs-string">&#x27;opal&#x27;</span>,<span class="hljs-string">&#x27;rocket&#x27;</span>,<span class="hljs-string">&#x27;lavender&#x27;</span>,<span class="hljs-string">&#x27;standard&#x27;</span>,<span class="hljs-string">&#x27;wasteland&#x27;</span>,<span class="hljs-string">&#x27;mansion-switch&#x27;</span>,<span class="hljs-string">&#x27;mansion-exit&#x27;</span>,<span class="hljs-string">&#x27;citae&#x27;</span>,<span class="hljs-string">&#x27;victory-road&#x27;</span>,<span class="hljs-string">&#x27;mewtwo-prep&#x27;</span>]
+<span class="hljs-keyword">assert</span> start <span class="hljs-keyword">in</span> stages
+<span class="hljs-keyword">for</span> stage <span class="hljs-keyword">in</span> stages[stages.index(start):]:
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;GLITCH ROUTE STAGE&#x27;</span>,stage,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> stage==<span class="hljs-string">&#x27;moon&#x27;</span>:run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">445</span>,<span class="hljs-number">13</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ <span class="hljs-keyword">elif</span> stage==<span class="hljs-string">&#x27;opal&#x27;</span>:gate(<span class="hljs-number">447</span>,<span class="hljs-number">19</span>,<span class="hljs-string">&#x27;BLIGHT&#x27;</span>,<span class="hljs-number">37</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">447</span>,<span class="hljs-number">20</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ <span class="hljs-keyword">elif</span> stage==<span class="hljs-string">&#x27;rocket&#x27;</span>:run(<span class="hljs-string">&#x27;glitch_spinner_walk&#x27;</span>,<span class="hljs-number">26</span>,<span class="hljs-number">14</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">448</span>,<span class="hljs-number">53</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ <span class="hljs-keyword">elif</span> stage==<span class="hljs-string">&#x27;lavender&#x27;</span>:gate(<span class="hljs-number">449</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;RIME&#x27;</span>,<span class="hljs-number">38</span>)
+ <span class="hljs-keyword">elif</span> stage==<span class="hljs-string">&#x27;standard&#x27;</span>:gate(<span class="hljs-number">449</span>,<span class="hljs-number">13</span>,<span class="hljs-string">&#x27;STANDARD&#x27;</span>,<span class="hljs-number">39</span>,<span class="hljs-number">450</span>)
+ <span class="hljs-keyword">elif</span> stage==<span class="hljs-string">&#x27;wasteland&#x27;</span>:run(<span class="hljs-string">&#x27;surface_event&#x27;</span>,<span class="hljs-number">450</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ <span class="hljs-keyword">elif</span> stage==<span class="hljs-string">&#x27;mansion-switch&#x27;</span>:
+  run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">451</span>,<span class="hljs-number">13</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">451</span>,<span class="hljs-number">13</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>);observed({<span class="hljs-number">193</span>:<span class="hljs-number">40</span>},{<span class="hljs-number">519</span>:<span class="hljs-literal">True</span>})
+ <span class="hljs-keyword">elif</span> stage==<span class="hljs-string">&#x27;mansion-exit&#x27;</span>:run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">451</span>,<span class="hljs-number">11</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ <span class="hljs-keyword">elif</span> stage==<span class="hljs-string">&#x27;citae&#x27;</span>:gate(<span class="hljs-number">452</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;STRIKE&#x27;</span>,<span class="hljs-number">41</span>,<span class="hljs-number">453</span>)
+ <span class="hljs-keyword">elif</span> stage==<span class="hljs-string">&#x27;victory-road&#x27;</span>:run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">453</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ <span class="hljs-keyword">elif</span> stage==<span class="hljs-string">&#x27;mewtwo-prep&#x27;</span>:
+  run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">455</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">455</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>);run(<span class="hljs-string">&#x27;mark_event&#x27;</span>,<span class="hljs-number">455</span>,<span class="hljs-number">2</span>)
+  run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>)
+  run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">455</span>,<span class="hljs-number">36</span>,<span class="hljs-number">21</span>)
+  run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Mewtwo-ready&#x27;</span>)
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MEWTWO PREBATTLE STOP&#x27;</span>,locate(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

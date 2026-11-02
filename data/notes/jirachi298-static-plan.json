@@ -1,0 +1,96 @@
+{
+  "source": "Installed Map854.rxdata and Scripts/Trainers.rb; local walkthrough copy",
+  "quest_variable": 615,
+  "anomaly": {
+    "id": 174,
+    "trainer": [
+      "JIRACHI",
+      "Jirachi",
+      0
+    ],
+    "event": [
+      854,
+      52
+    ],
+    "entry_tile": [
+      74,
+      97
+    ],
+    "plan": "Volcanion lead for Lucario; exploit free switches, Cresselia extended Trick Room and Magearna doubled Calm Mind. Keep Volcanion Haze available for escalating boosts."
+  },
+  "follow_up": {
+    "euphie_trainer": [
+      "EUPHIE",
+      "Euphie",
+      0
+    ],
+    "euphie_event": [
+      854,
+      59
+    ],
+    "euphie_trigger_stage": 50,
+    "gauntlet_event": [
+      854,
+      82
+    ],
+    "gauntlet_trigger_stage": 56,
+    "partner": [
+      "EUPHIE",
+      "Euphie",
+      0
+    ],
+    "player_party_size": 6,
+    "between_round_heals": "Full HP/status/PP: pbDoubleTrainerBattle heals player and partner after each battle while partner registered.",
+    "no_saves_between_rounds": true,
+    "opponents": [
+      [
+        [
+          "ANNA",
+          "Anna",
+          1
+        ],
+        [
+          "NOEL2",
+          "Noel",
+          1
+        ]
+      ],
+      [
+        [
+          "CHARLOTTE",
+          "Charlotte",
+          1
+        ],
+        [
+          "LAURA",
+          "Laura",
+          2
+        ]
+      ],
+      [
+        [
+          "CHILDLIN",
+          "Lin",
+          1
+        ],
+        [
+          "ANTICS",
+          "Antics",
+          0
+        ]
+      ]
+    ],
+    "preparation": "Consider acquiring Tapu Fini and other Tapus before committing to Euphie chain; Misty Surge counters Psychic Terrain/Psych Up. Keep Haze and strong physical attacker for evasion/stat chains. Inspect exit access after Jirachi capture."
+  },
+  "capture": {
+    "wild_level": 115,
+    "installed_last_four_moves": [
+      "FUTURESIGHT",
+      "COSMICPOWER",
+      "LASTRESORT",
+      "DOOMDESIRE"
+    ],
+    "catch_rate": 3,
+    "plan": "Paralyze with Zapdos; weaken cautiously while Cosmic Power boosts accumulate, using Cresselia Psychic for tiny resisted chip near low HP. Timer Balls. No Double-Edge/recoil in actual final four, no Rest. Watch PP/Struggle late; budget18Timer+20Ultra from prequest bag."
+  }
+}

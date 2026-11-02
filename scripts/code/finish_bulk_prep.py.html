@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>finish_bulk_prep.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of finish_bulk_prep.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finish already-planned normal-UI EV phases, verifying actual saved stats.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">verify</span>(<span class="hljs-params">label,ce,xe</span>):
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+ j=json.loads((ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text());p={x[<span class="hljs-string">&#x27;species&#x27;</span>]:x <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> j[<span class="hljs-string">&#x27;party&#x27;</span>]}
+ <span class="hljs-keyword">assert</span> p[<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span>][<span class="hljs-string">&#x27;ev&#x27;</span>]==ce,p[<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span>]
+ <span class="hljs-keyword">assert</span> p[<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span>][<span class="hljs-string">&#x27;ev&#x27;</span>]==xe,p[<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span>]
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;EV PHASE VERIFIED&#x27;</span>,label,ce,xe,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">train</span>(<span class="hljs-params">n</span>):
+ run(<span class="hljs-string">&#x27;train_wild_bulk&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-number">1</span>,n,<span class="hljs-string">&#x27;--hunter&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>,<span class="hljs-string">&#x27;--targets&#x27;</span>,<span class="hljs-string">&#x27;Meditite,Donphan,Rhydon,Rhyhorn,Boldore,Rockruff&#x27;</span>,<span class="hljs-string">&#x27;--flex-targets&#x27;</span>,<span class="hljs-string">&#x27;--grass-pair&#x27;</span>,<span class="hljs-string">&#x27;--ev-ledger&#x27;</span>)
+run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Weight&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>)
+run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Belt&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>)
+train(<span class="hljs-number">1</span>)
+verify(<span class="hljs-string">&#x27;EV-cofa-HP-complete&#x27;</span>,[<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">234</span>,<span class="hljs-number">27</span>,<span class="hljs-number">54</span>,<span class="hljs-number">41</span>,<span class="hljs-number">13</span>,<span class="hljs-number">42</span>])
+run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Spell Tag&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>)
+run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Weight&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>)
+train(<span class="hljs-number">1</span>)
+verify(<span class="hljs-string">&#x27;EV-HP-complete&#x27;</span>,[<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">252</span>,<span class="hljs-number">27</span>,<span class="hljs-number">54</span>,<span class="hljs-number">41</span>,<span class="hljs-number">13</span>,<span class="hljs-number">42</span>])
+run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Belt&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>)
+train(<span class="hljs-number">3</span>)
+verify(<span class="hljs-string">&#x27;EV-training-complete&#x27;</span>,[<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">252</span>,<span class="hljs-number">27</span>,<span class="hljs-number">135</span>,<span class="hljs-number">41</span>,<span class="hljs-number">13</span>,<span class="hljs-number">42</span>])
+run(<span class="hljs-string">&#x27;party_take_named&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>)
+run(<span class="hljs-string">&#x27;grass_to_circus_heal&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">90</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;mart_open&#x27;</span>);run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,<span class="hljs-string">&#x27;Hyper Potion&#x27;</span>,<span class="hljs-number">6</span>,<span class="hljs-number">1000</span>);run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>)
+run(<span class="hljs-string">&#x27;circus_to_blake&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DEFENSIVE PREPARATION COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

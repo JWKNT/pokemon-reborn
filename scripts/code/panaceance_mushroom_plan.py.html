@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>panaceance_mushroom_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of panaceance_mushroom_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only ordinary-movement plan for Panaceance mushroom puzzle.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> ast,heapq,json,re,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+node=<span class="hljs-built_in">next</span>(n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> ast.parse((ROOT/<span class="hljs-string">&#x27;scripts/nav.py&#x27;</span>).read_text()).body <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(n,ast.FunctionDef)<span class="hljs-keyword">and</span> n.name==<span class="hljs-string">&#x27;route&#x27;</span>)
+<span class="hljs-built_in">exec</span>(<span class="hljs-built_in">compile</span>(ast.Module(body=[node],type_ignores=[]),<span class="hljs-string">&#x27;nav-route&#x27;</span>,<span class="hljs-string">&#x27;exec&#x27;</span>))
+ids=[<span class="hljs-string">&#x27;1763&#x27;</span>,<span class="hljs-string">&#x27;1770&#x27;</span>,<span class="hljs-string">&#x27;1771&#x27;</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">build</span>():
+ grids={}
+ <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  <span class="hljs-keyword">for</span> o <span class="hljs-keyword">in</span> [<span class="hljs-literal">False</span>,<span class="hljs-literal">True</span>]:
+   sw={k:i==s <span class="hljs-keyword">for</span> i,k <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(ids)};sw[<span class="hljs-string">&#x27;1773&#x27;</span>]=o
+   v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;879&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,json.dumps({<span class="hljs-string">&#x27;switches&#x27;</span>:sw})],stderr=subprocess.DEVNULL))
+   triggers={}
+   <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values():
+    changes=[c[<span class="hljs-string">&#x27;parameters&#x27;</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>]<span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">121</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>])<span class="hljs-keyword">in</span> ids <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">2</span>]==<span class="hljs-number">0</span>]
+    <span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> changes:triggers[e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]]=ids.index(<span class="hljs-built_in">str</span>(changes[-<span class="hljs-number">1</span>][<span class="hljs-number">0</span>]))
+   grids[s,o]=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>),triggers
+ <span class="hljs-keyword">return</span> grids
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ x,y,s=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">4</span>]);o=<span class="hljs-built_in">bool</span>(<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">4</span>]));target=sys.argv[<span class="hljs-number">5</span>]
+ grids=build();start=x,y,s,o;q=[(<span class="hljs-number">0</span>,start)];dist={start:<span class="hljs-number">0</span>};prev={start:<span class="hljs-literal">None</span>};goal=<span class="hljs-literal">None</span>
+ <span class="hljs-keyword">while</span> q:
+  cost,u=heapq.heappop(q)
+  <span class="hljs-keyword">if</span> cost!=dist[u]:<span class="hljs-keyword">continue</span>
+  x,y,s,o=u
+  <span class="hljs-keyword">if</span> target==<span class="hljs-string">&#x27;blue&#x27;</span><span class="hljs-keyword">and</span> s==<span class="hljs-number">1</span> <span class="hljs-keyword">or</span> target==<span class="hljs-string">&#x27;red&#x27;</span><span class="hljs-keyword">and</span> s==<span class="hljs-number">0</span> <span class="hljs-keyword">or</span> target==<span class="hljs-string">&#x27;purple&#x27;</span><span class="hljs-keyword">and</span> s==<span class="hljs-number">2</span> <span class="hljs-keyword">or</span> target==<span class="hljs-string">&#x27;flower&#x27;</span><span class="hljs-keyword">and</span> o <span class="hljs-keyword">and</span> <span class="hljs-built_in">abs</span>(x-<span class="hljs-number">43</span>)+<span class="hljs-built_in">abs</span>(y-<span class="hljs-number">134</span>)==<span class="hljs-number">1</span>:goal=u;<span class="hljs-keyword">break</span>
+  graph,tr=grids[s,o];edges=[]
+  <span class="hljs-keyword">for</span> key,p <span class="hljs-keyword">in</span> graph.get((x,y),[]):
+   <span class="hljs-keyword">if</span> <span class="hljs-number">0</span>&lt;=p[<span class="hljs-number">0</span>]&lt;=<span class="hljs-number">65</span> <span class="hljs-keyword">and</span> <span class="hljs-number">80</span>&lt;=p[<span class="hljs-number">1</span>]&lt;=<span class="hljs-number">145</span>:edges.append(((*p,tr.get(p,s),o),key))
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> o <span class="hljs-keyword">and</span> <span class="hljs-built_in">abs</span>(x-<span class="hljs-number">17</span>)+<span class="hljs-built_in">abs</span>(y-<span class="hljs-number">119</span>)==<span class="hljs-number">1</span>:edges.append(((x,y,s,<span class="hljs-literal">True</span>),<span class="hljs-string">&#x27;orb&#x27;</span>))
+  <span class="hljs-keyword">for</span> v,k <span class="hljs-keyword">in</span> edges:
+   n=cost+<span class="hljs-number">1</span>
+   <span class="hljs-keyword">if</span> n&lt;dist.get(v,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):dist[v]=n;prev[v]=u,k;heapq.heappush(q,(n,v))
+ <span class="hljs-keyword">if</span> goal <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No route; explored &#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">len</span>(dist)))
+ steps=[];u=goal
+ <span class="hljs-keyword">while</span> prev[u]:p,k=prev[u];steps.append(<span class="hljs-built_in">dict</span>(before=p,after=u,key=k));u=p
+ steps.reverse();result=<span class="hljs-built_in">dict</span>(start=start,goal=goal,steps=steps)
+ (ROOT/<span class="hljs-string">&#x27;work/319-mushroom-plan.json&#x27;</span>).write_text(json.dumps(result,indent=<span class="hljs-number">2</span>))
+ <span class="hljs-built_in">print</span>(json.dumps(<span class="hljs-built_in">dict</span>(steps=<span class="hljs-built_in">len</span>(steps),goal=goal,changes=[a <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> steps <span class="hljs-keyword">if</span> a[<span class="hljs-string">&#x27;before&#x27;</span>][<span class="hljs-number">2</span>:]!=a[<span class="hljs-string">&#x27;after&#x27;</span>][<span class="hljs-number">2</span>:]])))
+</code></pre>
+  </body>
+</html>

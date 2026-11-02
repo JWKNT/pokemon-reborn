@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>owned_box_index.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of owned_box_index.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Read an explicit owned frozen save; compact inventory only, never battle/runtime data.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+<span class="hljs-keyword">raise</span> <span class="hljs-string">&#x27;Explicit frozen save required&#x27;</span> <span class="hljs-keyword">unless</span> <span class="hljs-variable constant_">ARGV</span>[<span class="hljs-number">0</span>] &amp;&amp; <span class="hljs-title class_">File</span>.file?(<span class="hljs-variable constant_">ARGV</span>[<span class="hljs-number">0</span>])
+v=load_rgss(<span class="hljs-variable constant_">ARGV</span>[<span class="hljs-number">0</span>]);s=plain(v[<span class="hljs-symbol">:PokemonStorage</span>]);out=[]
+s[<span class="hljs-string">&#x27;boxes&#x27;</span>].each_with_index <span class="hljs-keyword">do</span> |<span class="hljs-params">box,b</span>|
+ box[<span class="hljs-string">&#x27;pokemon&#x27;</span>].each_with_index <span class="hljs-keyword">do</span> |<span class="hljs-params">p,i</span>|
+  <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> p
+  out &lt;&lt; {<span class="hljs-symbol">box:</span>b,<span class="hljs-symbol">slot:</span>i,<span class="hljs-symbol">name:</span>p[<span class="hljs-string">&#x27;name&#x27;</span>],<span class="hljs-symbol">species:</span>p[<span class="hljs-string">&#x27;species&#x27;</span>],<span class="hljs-symbol">level:</span>p[<span class="hljs-string">&#x27;level&#x27;</span>],<span class="hljs-symbol">trainerID:</span>p[<span class="hljs-string">&#x27;trainerID&#x27;</span>],<span class="hljs-symbol">ot:</span>p[<span class="hljs-string">&#x27;ot&#x27;</span>],<span class="hljs-symbol">item:</span>p[<span class="hljs-string">&#x27;item&#x27;</span>],<span class="hljs-symbol">ability:</span>p[<span class="hljs-string">&#x27;ability&#x27;</span>],<span class="hljs-symbol">moves:</span>p[<span class="hljs-string">&#x27;moves&#x27;</span>].map{|<span class="hljs-params">m</span>|m[<span class="hljs-string">&#x27;move&#x27;</span>]}}
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(out)
+</code></pre>
+  </body>
+</html>

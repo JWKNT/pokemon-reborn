@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>finite_helpers.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of finite_helpers.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute an explicit finite list of reviewed normal-control helpers.
+
+No automatic replay or resume. A new plan/journal is required after inspecting a
+stopped step. Existing helper guards remain active; capture restart stops the list.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse,json,re,subprocess,sys,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">health</span>():
+ h=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> h.get(<span class="hljs-string">&#x27;active&#x27;</span>)<span class="hljs-keyword">and</span> time.time()-h[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;<span class="hljs-number">8</span>,<span class="hljs-string">&#x27;Fresh recording required&#x27;</span>;<span class="hljs-keyword">return</span> h
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument(<span class="hljs-string">&#x27;plan&#x27;</span>,<span class="hljs-built_in">type</span>=Path);p.add_argument(<span class="hljs-string">&#x27;journal&#x27;</span>,<span class="hljs-built_in">type</span>=Path);p.add_argument(<span class="hljs-string">&#x27;--execute&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>);a=p.parse_args()
+ steps=json.loads(a.plan.read_text());<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=<span class="hljs-built_in">len</span>(steps)&lt;=<span class="hljs-number">80</span>
+ <span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> steps:
+  <span class="hljs-keyword">assert</span> re.fullmatch(<span class="hljs-string">&#x27;[a-z][a-z0-9_]*&#x27;</span>,step[<span class="hljs-number">0</span>])<span class="hljs-keyword">and</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(step[<span class="hljs-number">0</span>]+<span class="hljs-string">&#x27;.py&#x27;</span>)).is_file();<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(<span class="hljs-built_in">type</span>(x)<span class="hljs-keyword">in</span>[<span class="hljs-built_in">str</span>,<span class="hljs-built_in">int</span>,<span class="hljs-built_in">float</span>]<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> step[<span class="hljs-number">1</span>:])
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> a.execute:<span class="hljs-built_in">print</span>(json.dumps(steps,indent=<span class="hljs-number">2</span>));<span class="hljs-keyword">return</span>
+ <span class="hljs-keyword">from</span> input_owner <span class="hljs-keyword">import</span> acquire
+ acquire()
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> a.journal.exists();initial=health();data={<span class="hljs-string">&#x27;plan&#x27;</span>:<span class="hljs-built_in">str</span>(a.plan.resolve()),<span class="hljs-string">&#x27;status&#x27;</span>:<span class="hljs-string">&#x27;running&#x27;</span>,<span class="hljs-string">&#x27;events&#x27;</span>:[]};log=a.journal.with_suffix(<span class="hljs-string">&#x27;.log&#x27;</span>)
+ <span class="hljs-keyword">with</span> log.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;x&#x27;</span>)<span class="hljs-keyword">as</span> out:
+  <span class="hljs-keyword">for</span> i,step <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(steps):
+   before=health();<span class="hljs-keyword">assert</span> before[<span class="hljs-string">&#x27;pid&#x27;</span>]==initial[<span class="hljs-string">&#x27;pid&#x27;</span>]<span class="hljs-keyword">and</span> before[<span class="hljs-string">&#x27;restart_count&#x27;</span>]==initial[<span class="hljs-string">&#x27;restart_count&#x27;</span>],<span class="hljs-string">&#x27;Capture changed; review before next input&#x27;</span>
+   event={<span class="hljs-string">&#x27;index&#x27;</span>:i,<span class="hljs-string">&#x27;helper&#x27;</span>:step[<span class="hljs-number">0</span>],<span class="hljs-string">&#x27;args&#x27;</span>:step[<span class="hljs-number">1</span>:],<span class="hljs-string">&#x27;started_epoch&#x27;</span>:time.time()};data[<span class="hljs-string">&#x27;events&#x27;</span>].append(event);a.journal.write_text(json.dumps(data,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+   out.write(<span class="hljs-string">&#x27;START &#x27;</span>+<span class="hljs-built_in">repr</span>(step)+<span class="hljs-string">&#x27;\n&#x27;</span>);out.flush();r=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(step[<span class="hljs-number">0</span>]+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,step[<span class="hljs-number">1</span>:])],cwd=ROOT,stdout=out,stderr=subprocess.STDOUT)
+   event.update(returncode=r.returncode,ended_epoch=time.time());a.journal.write_text(json.dumps(data,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;HELPER RETURN&#x27;</span>,i,step[<span class="hljs-number">0</span>],r.returncode,flush=<span class="hljs-literal">True</span>)
+   <span class="hljs-keyword">if</span> r.returncode:<span class="hljs-keyword">break</span>
+   after=health()
+   <span class="hljs-keyword">if</span> after[<span class="hljs-string">&#x27;restart_count&#x27;</span>]!=initial[<span class="hljs-string">&#x27;restart_count&#x27;</span>]:event[<span class="hljs-string">&#x27;capture_restart_review&#x27;</span>]=<span class="hljs-literal">True</span>;<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">else</span>:data[<span class="hljs-string">&#x27;status&#x27;</span>]=<span class="hljs-string">&#x27;completed&#x27;</span>;a.journal.write_text(json.dumps(data,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FINITE LIST COMPLETE&#x27;</span>,<span class="hljs-built_in">len</span>(steps));<span class="hljs-keyword">return</span>
+ data[<span class="hljs-string">&#x27;status&#x27;</span>]=<span class="hljs-string">&#x27;stopped_for_actual_state_review&#x27;</span>;a.journal.write_text(json.dumps(data,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>);<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Inspect log and actual screen; never replay the list&#x27;</span>)
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:main()
+</code></pre>
+  </body>
+</html>

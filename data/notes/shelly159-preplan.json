@@ -1,0 +1,77 @@
+{
+  "review": "Installed exact roster159 and FairyTale field; owned frozen AmethystWon party outside battle",
+  "key_stats": {
+    "Mawile_base_speed": 141,
+    "Mawile_2_XSpeed": 423,
+    "MegaMawile_attack_before_HugePower": 354,
+    "MegaMawile_defense": 336,
+    "MegaMawile_spdef": 267,
+    "Muk_speed": 163,
+    "Xerneas_speed": 355,
+    "Leavanny_speed": 371
+  },
+  "lead": "Mawile",
+  "opening": [
+    "X Defend on first-turn Magical Seed Kings Shield; expect Acid Armor or weak Power-Up Punch",
+    "Mega Swords Dance (+3 on Fairy Tale)",
+    "Swords Dance (+6 total)",
+    "X Speed (+2)",
+    "X Speed (+4 total, speed423)",
+    "If HP low, one reserved Ultra Potion before KO; judge public damage",
+    "Iron Head Muk; at+6 attack it should KO even +6 Defense"
+  ],
+  "later": [
+    "Iron Head Scizor; boosted defense reduces priority Bullet Punch",
+    "Iron Head Xerneas/Primarina; outspeed before Geomancy/Substitute",
+    "Leavanny Magical Seed: spend protected first turn on Swords Dance, then Iron Head; do not attack into Kings Shield",
+    "Yanmega: Sucker Punch; Detect may consume one turn, then priority OHKO; 5PP available"
+  ],
+  "fallback": "Keep Volcanion recovered; static FairyTale Fire attacks gain Dragon component, making Fairy foes immune. Use Flash Cannon vsFairy, Steam Eruption other targets. Cresselia limitedPP, noCalmMindPP. Never read live logs.",
+  "field_recovery": [
+    {
+      "item": "Revive",
+      "target": "Volcanion"
+    },
+    {
+      "item": "Revive",
+      "target": "Zapdos"
+    },
+    {
+      "item": "Revive",
+      "target": "Swampert"
+    },
+    {
+      "item": "Ultra Potion",
+      "target": "Mawile"
+    },
+    {
+      "item": "Ultra Potion",
+      "target": "Mawile"
+    },
+    {
+      "item": "Ultra Potion",
+      "target": "Volcanion"
+    },
+    {
+      "item": "Ultra Potion",
+      "target": "Zapdos"
+    },
+    {
+      "item": "Ultra Potion",
+      "target": "Swampert"
+    },
+    {
+      "item": "Ultra Potion",
+      "target": "Cresselia"
+    },
+    {
+      "item": "Ultra Potion",
+      "target": "Amoonguss"
+    }
+  ],
+  "remaining_after_plan": {
+    "UltraPotion": 1,
+    "Revive": 5
+  },
+  "note": "Normal save before entry. One XDefend and two XSpeed are a bounded setup; optional1Ultra if publicHP warrants. All enemy nicknames must populate guards."
+}

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>saphira_source_probe.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of saphira_source_probe.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Read-only installed-data lookup for future Saphira preparation.</span>
+<span class="hljs-comment"># No save/runtime/log access, input, game mutation, or control-helper import.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+root = <span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data&#x27;</span>
+result = {<span class="hljs-symbol">sylveon_events:</span> [], <span class="hljs-symbol">marill_encounters:</span> [], <span class="hljs-symbol">preparation_events:</span> []}
+<span class="hljs-title class_">Dir</span>.glob(<span class="hljs-title class_">File</span>.join(root, <span class="hljs-string">&#x27;Map[0-9][0-9][0-9].rxdata&#x27;</span>)).sort.each <span class="hljs-keyword">do</span> |<span class="hljs-params">path</span>|
+  map = load_rgss(path)
+  map.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">eid, event</span>|
+    pages = event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@pages</span>)
+    text = pages.map {|<span class="hljs-params">p</span>| p.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@list</span>).map {|<span class="hljs-params">c</span>| c.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@parameters</span>).to_s}.join(<span class="hljs-string">&quot;\n&quot;</span>)}.join(<span class="hljs-string">&quot;\n&quot;</span>)
+    item = {<span class="hljs-symbol">map:</span> <span class="hljs-title class_">File</span>.basename(path)[<span class="hljs-number">3</span>,<span class="hljs-number">3</span>].to_i, <span class="hljs-symbol">id:</span> eid, <span class="hljs-symbol">event:</span> plain(event)}
+    result[<span class="hljs-symbol">:sylveon_events</span>] &lt;&lt; item <span class="hljs-keyword">if</span> text.<span class="hljs-keyword">include</span>?(<span class="hljs-string">&#x27;SYLVEON&#x27;</span>)
+    tokens = [<span class="hljs-string">&#x27;CALMMINT&#x27;</span>, <span class="hljs-string">&#x27;CAREFULMINT&#x27;</span>, <span class="hljs-string">&#x27;AMPLIFIELDROCK&#x27;</span>, <span class="hljs-string">&#x27;ICEPUNCH&#x27;</span>, <span class="hljs-string">&#x27;WISEGLASSES&#x27;</span>, <span class="hljs-string">&#x27;POWERBAND&#x27;</span>, <span class="hljs-string">&#x27;POWERANKLET&#x27;</span>].select {|<span class="hljs-params">t</span>| text.<span class="hljs-keyword">include</span>?(t)}
+    result[<span class="hljs-symbol">:preparation_events</span>] &lt;&lt; item.merge(<span class="hljs-symbol">tokens:</span> tokens) <span class="hljs-keyword">if</span> tokens.any?
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+load <span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Scripts/Reborn/enctext.rb&#x27;</span>
+result[<span class="hljs-symbol">:marill_lookup_origin</span>] = <span class="hljs-string">&#x27;Installed enctext.rb static declarations; not a current encounter/runtime query.&#x27;</span>
+<span class="hljs-variable constant_">ENCHASH</span>.each <span class="hljs-keyword">do</span> |<span class="hljs-params">mapid, entries</span>|
+  <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> <span class="hljs-variable constant_">JSON</span>.generate(entries).match?(<span class="hljs-regexp">/MARILL|AZUMARILL/</span>)
+  selected = entries.select {|<span class="hljs-params">_, v</span>| <span class="hljs-variable constant_">JSON</span>.generate(v).match?(<span class="hljs-regexp">/MARILL|AZUMARILL/</span>)}
+  result[<span class="hljs-symbol">:marill_encounters</span>] &lt;&lt; {<span class="hljs-symbol">map:</span> mapid, <span class="hljs-symbol">entries:</span> selected}
+<span class="hljs-keyword">end</span>
+load <span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Scripts/Reborn/montext.rb&#x27;</span>
+result[<span class="hljs-symbol">:species</span>] = <span class="hljs-variable constant_">MONHASH</span>.select {|<span class="hljs-params">name,_</span>| [<span class="hljs-symbol">:SWAMPERT</span>, <span class="hljs-symbol">:SYLVEON</span>, <span class="hljs-symbol">:NOIVERN</span>, <span class="hljs-symbol">:SALAMENCE</span>, <span class="hljs-symbol">:GARCHOMP</span>, <span class="hljs-symbol">:HAXORUS</span>, <span class="hljs-symbol">:CHARIZARD</span>, <span class="hljs-symbol">:DRAGONITE</span>, <span class="hljs-symbol">:STEELIX</span>, <span class="hljs-symbol">:CLEFABLE</span>, <span class="hljs-symbol">:AZUMARILL</span>, <span class="hljs-symbol">:COFAGRIGUS</span>].<span class="hljs-keyword">include</span>?(name)}
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(result)
+</code></pre>
+  </body>
+</html>

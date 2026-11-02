@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glitch382_support.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glitch382_support.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Four explicit bench supplies behind Cresselia against reviewed Carbink only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> re
+steps=[(<span class="hljs-string">&#x27;Full Heal&#x27;</span>,<span class="hljs-string">&#x27;Latias&#x27;</span>),(<span class="hljs-string">&#x27;Bubble Tea&#x27;</span>,<span class="hljs-string">&#x27;Latias&#x27;</span>),(<span class="hljs-string">&#x27;Bubble Tea&#x27;</span>,<span class="hljs-string">&#x27;Kyogre&#x27;</span>),(<span class="hljs-string">&#x27;Bubble Tea&#x27;</span>,<span class="hljs-string">&#x27;Kyogre&#x27;</span>)]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">hp</span>():
+ t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;carbink&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;cresselia&#x27;</span> <span class="hljs-keyword">in</span> t.lower(),<span class="hljs-string">&#x27;Support matchup changed&#x27;</span>
+ h=re.search(<span class="hljs-string">r&#x27;(\d+)\s*[/F]\s*639&#x27;</span>,t);<span class="hljs-keyword">assert</span> h,<span class="hljs-string">&#x27;Fresh own HP required&#x27;</span>
+ <span class="hljs-keyword">return</span> <span class="hljs-built_in">int</span>(h[<span class="hljs-number">1</span>])
+journal=ROOT/<span class="hljs-string">&#x27;work/glitch382-support.json&#x27;</span>
+j=json.loads(journal.read_text()) <span class="hljs-keyword">if</span> journal.exists() <span class="hljs-keyword">else</span> <span class="hljs-built_in">dict</span>(done=<span class="hljs-number">0</span>,pending=<span class="hljs-literal">None</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> j[<span class="hljs-string">&#x27;pending&#x27;</span>],<span class="hljs-string">&#x27;Interrupted item needs public review&#x27;</span>
+<span class="hljs-keyword">for</span> index,(item,name) <span class="hljs-keyword">in</span> <span class="hljs-built_in">list</span>(<span class="hljs-built_in">enumerate</span>(steps))[j[<span class="hljs-string">&#x27;done&#x27;</span>]:]:
+ health=hp()
+ <span class="hljs-keyword">if</span> health&lt;<span class="hljs-number">350</span>:
+  <span class="hljs-keyword">assert</span> health&gt;<span class="hljs-number">180</span>,<span class="hljs-string">&#x27;Unsafe support HP; review before another move&#x27;</span>
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_move.py&#x27;</span>),<span class="hljs-string">&#x27;3&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>],check=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">assert</span> hp()&gt;health,<span class="hljs-string">&#x27;Moonlight did not improve health&#x27;</span>
+ j[<span class="hljs-string">&#x27;pending&#x27;</span>]=[item,name];journal.write_text(json.dumps(j))
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_item.py&#x27;</span>),item,name],check=<span class="hljs-literal">True</span>)
+ j.update(done=index+<span class="hljs-number">1</span>,pending=<span class="hljs-literal">None</span>);journal.write_text(json.dumps(j))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;EXPLICIT BENCH SUPPLIES COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

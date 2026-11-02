@@ -1,0 +1,18 @@
+{
+  "source": "Installed trainers.dat HEATRAN/Heatran/0; own Heatran294-LowerIce frozen save. No live battle state.",
+  "roster": "work/294-heatran-roster.json",
+  "lead_candidate": "Volcanion: speed218 exceeds Tyranitar196; Steam Eruption twice. Tyranitar boosted Thunderbolt worst estimated~323, survives one from full452. Confirm field poison timing; heal before boss.",
+  "threats": [
+    "Sand Rush Choice Band Excadrill. Cresselia and Zapdos immune Earthquake; preserve Volcanion for super-effective Steam Eruption.",
+    "Primarina Water STAB absorbed by Volcanion; Magearna resists Fairy and is slightly faster.",
+    "Mawile handles Zygarde/Charizard once safely under Trick Room.",
+    "Heatran Air Balloon must be popped before Ground attacks. Swampert Surf is super effective; EarthPower hits Swampert neutrally. Volcanion has a Ground weakness."
+  ],
+  "needed_before_entry": [
+    "After puzzles, restore Bulldoze TM78 over RockClimb slot1; Strength already in slot0",
+    "Give SafetyGoggles to Volcanion to prevent sand chip",
+    "Verify fullHP and PP; reorder Volcanion first; fresh pre-entry checkpoint",
+    "Use major172, map873 event16 trigger from17,15 up; close major at public victory before wild catch"
+  ],
+  "caution": "Read public Excadrill action before switching. Earthquake immunities Cresselia/Zapdos are useful against Choice lock; Roost removes Zapdos Flying type until turn end, making it unsafe if Zapdos moves first. Cresselia Moonlight reduced in sand but can recover normally after weather ends."
+}

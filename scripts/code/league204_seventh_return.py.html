@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>league204_seventh_return.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of league204_seventh_return.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Leave Seventh Street normally and resume the reviewed Victory Road return.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,sys,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RETURN&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>);env.pop(<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>,<span class="hljs-literal">None</span>)
+ <span class="hljs-keyword">if</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;eventq&#x27;</span>]:env.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;112&#x27;</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>,env=env)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">324</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">168</span>,<span class="hljs-number">12</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">168</span>,<span class="hljs-number">18</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;7th Street|Lapis Ward&#x27;</span>,<span class="hljs-string">&#x27;Lapis Ward&#x27;</span>);run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=5&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Prep204-Seventh-exit&#x27;</span>)
+<span class="hljs-keyword">try</span>:run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">168</span>,<span class="hljs-number">11</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+<span class="hljs-keyword">except</span> subprocess.CalledProcessError:
+ <span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+ <span class="hljs-keyword">assert</span> locate(<span class="hljs-number">168</span>)==(<span class="hljs-number">168</span>,<span class="hljs-number">30</span>,<span class="hljs-number">6</span>),<span class="hljs-string">&#x27;Unexpected elevator exit state&#x27;</span>
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">168</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Prep204-Lapis-return&#x27;</span>)
+run(<span class="hljs-string">&#x27;league203_return_victory&#x27;</span>,<span class="hljs-string">&#x27;Prep204-Lapis-return&#x27;</span>)
+</code></pre>
+  </body>
+</html>

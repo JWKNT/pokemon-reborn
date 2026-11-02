@@ -1,0 +1,10 @@
+{
+  "source": "Installed trainer and event assets; no active battle data.",
+  "route": "Fly814, E16->798, E3->796, E71->791, E54->810, E27/28->855",
+  "gate": "Fennekin PsychicTerrain3 thenFlameCharge1 vsLv1Unown. Event11 shifts y+122; switch1667 permanently unlocksentry.",
+  "boss": "Mawile+Magearna opening. Mega IronHead Clefable and TrickRoom. Avoid special setup while foes usePsychUp; focusClefable then Gardevoir; Volcanion handlesVictini andHaze resetsboosts. Cresselia secondaryTrickRoom.",
+  "capture": "One-timeLele115 afterboss; catch forfuture, useZapdosTWave and controlledchip ifneeded.",
+  "correction": "InstalledGardevoir carriesLeftovers, notGardevoirite. ClefableUnaware makesSwordsDance ineffective againstit.",
+  "quest": "Accepted and saved Tapu303-Accepted, variable617=1. Door active now.",
+  "route_correction": "810[25,20] is above the portal shelf. Reach[30,23] and useRockClimb south viaE7 ->[30,25], thenE27. BringSwampert; current six fromLele303Team had noRockClimb-compatible Pokemon."
+}

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_final_plate189.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_final_plate189.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finish the reviewed B1F pressure plate and exit cart, then pause in party.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(name+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;487&#x27;</span>]==<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;786&#x27;</span>][<span class="hljs-string">&#x27;41&#x27;</span>]==[<span class="hljs-number">53</span>,<span class="hljs-number">25</span>]
+run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+run(<span class="hljs-string">&#x27;victory_boulder_queue&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/189-boulder41-final-plan.json&#x27;</span>,<span class="hljs-number">41</span>,<span class="hljs-string">&#x27;FinalPlate189&#x27;</span>)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1117&#x27;</span>]
+run(<span class="hljs-string">&#x27;victory_rail_queue&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/189-exit-cart-plan.json&#x27;</span>,<span class="hljs-string">&#x27;ExitCart189&#x27;</span>)
+</code></pre>
+  </body>
+</html>

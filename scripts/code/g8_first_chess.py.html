@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g8_first_chess.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g8_first_chess.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">stage</span>(<span class="hljs-params">n</span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;150&#x27;</span>]=n;p.write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;293,10,4,up,wait:2&#x27;</span>,<span class="hljs-string">&#x27;293,10,30,up,wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">313</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--active&#x27;</span>);stage(<span class="hljs-number">28</span>)
+run(<span class="hljs-string">&#x27;chess_push&#x27;</span>,<span class="hljs-number">313</span>,<span class="hljs-number">9</span>,<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">7</span>)
+run(<span class="hljs-string">&#x27;chess_push&#x27;</span>,<span class="hljs-number">313</span>,<span class="hljs-number">42</span>,<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">5</span>)
+run(<span class="hljs-string">&#x27;chess_push&#x27;</span>,<span class="hljs-number">313</span>,<span class="hljs-number">42</span>,<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-number">2</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FIRST BOARD POSITIONED; INSPECT BEFORE CHECK&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

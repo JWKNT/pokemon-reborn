@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>intercept_tauros.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of intercept_tauros.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded screenshot-driven interception of the roaming shortcut Tauros.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> track_tauros <span class="hljs-keyword">import</span> capture,detect
+<span class="hljs-keyword">import</span> play
+play.KEY=<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&quot;scripts/key_fast&quot;</span>)
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">100</span>):
+ a=capture();r=detect(a)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> r <span class="hljs-keyword">or</span> r[<span class="hljs-number">0</span>]&gt;<span class="hljs-number">12</span>:
+  t=read();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;REVIEW&#x27;</span>,t,flush=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;tauros&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;yes&#x27;</span> <span class="hljs-keyword">in</span> t.lower():<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;close bag&#x27;</span>,<span class="hljs-string">&#x27;quit game&#x27;</span>]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;UI review&#x27;</span>)
+  act(<span class="hljs-string">&#x27;wait:0.1&#x27;</span>);<span class="hljs-keyword">continue</span>
+ score,x,y,row,_=r
+ vx,vy={<span class="hljs-number">0</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-number">1</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">2</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">3</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)}[row]
+ dx=x+vx*<span class="hljs-number">24</span>-<span class="hljs-number">256</span>;dy=y+vy*<span class="hljs-number">24</span>-<span class="hljs-number">208</span>
+ <span class="hljs-built_in">print</span>(i,<span class="hljs-built_in">round</span>(score,<span class="hljs-number">1</span>),dx,dy,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(dx)&lt;<span class="hljs-number">20</span> <span class="hljs-keyword">and</span> <span class="hljs-number">12</span>&lt;<span class="hljs-built_in">abs</span>(dy)&lt;<span class="hljs-number">52</span>:
+  direction=<span class="hljs-string">&#x27;down&#x27;</span> <span class="hljs-keyword">if</span> dy&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;up&#x27;</span>
+  act(direction+<span class="hljs-string">&#x27;:0.025&#x27;</span>,<span class="hljs-string">&#x27;c:0.08&#x27;</span>,<span class="hljs-string">&#x27;wait:0.08&#x27;</span>,<span class="hljs-string">&#x27;c:0.08&#x27;</span>,<span class="hljs-string">&#x27;wait:0.15&#x27;</span>)
+  t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;tauros&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;yes&#x27;</span> <span class="hljs-keyword">in</span> t.lower():<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">elif</span> <span class="hljs-built_in">abs</span>(dy)&lt;<span class="hljs-number">20</span> <span class="hljs-keyword">and</span> <span class="hljs-number">12</span>&lt;<span class="hljs-built_in">abs</span>(dx)&lt;<span class="hljs-number">52</span>:
+  direction=<span class="hljs-string">&#x27;right&#x27;</span> <span class="hljs-keyword">if</span> dx&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;left&#x27;</span>
+  act(direction+<span class="hljs-string">&#x27;:0.025&#x27;</span>,<span class="hljs-string">&#x27;c:0.08&#x27;</span>,<span class="hljs-string">&#x27;wait:0.08&#x27;</span>,<span class="hljs-string">&#x27;c:0.08&#x27;</span>,<span class="hljs-string">&#x27;wait:0.15&#x27;</span>)
+  t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;tauros&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;yes&#x27;</span> <span class="hljs-keyword">in</span> t.lower():<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">else</span>:
+  act(<span class="hljs-string">&#x27;wait:0.04&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Interception limit&#x27;</span>)
+</code></pre>
+  </body>
+</html>

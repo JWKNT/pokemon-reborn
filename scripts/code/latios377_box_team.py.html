@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>latios377_box_team.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of latios377_box_team.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Store four verified party members in empty Box4; begins at Cresselia Store menu.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Magearna&#x27;</span>,<span class="hljs-string">&#x27;Darkrai&#x27;</span>,<span class="hljs-string">&#x27;Rayquaza&#x27;</span>]:
+ t=read();<span class="hljs-keyword">assert</span> name.lower() <span class="hljs-keyword">in</span> t.lower(),t
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (<span class="hljs-string">&#x27;--resume-box-choice&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">and</span> name==<span class="hljs-string">&#x27;Cresselia&#x27;</span>):
+  <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;store&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;selected&#x27;</span> <span class="hljs-keyword">in</span> t.lower(),t
+  act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>);t=read()
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;deposit in which&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> re.search(<span class="hljs-string">r&#x27;[•›&gt;]\s*Box\W*2&#x27;</span>,t,re.I),t
+ act(<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>);t=read();<span class="hljs-keyword">assert</span> re.search(<span class="hljs-string">r&#x27;[•›&gt;]\s*Box\W*4&#x27;</span>,t,re.I),t
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.5&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STORED&#x27;</span>,name,t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> name!=<span class="hljs-string">&#x27;Rayquaza&#x27;</span>:act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;latios&#x27;</span> <span class="hljs-keyword">in</span> t.lower(),t
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;No&#x27;</span>],check=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/overworld.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),<span class="hljs-string">&#x27;Neoteric377-Solo-Latios&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "major": 199,
+  "first_attempt": "Normal UI forfeit at first command, no items, to unlock Anna PC after checking installed loss branch and native1875false.",
+  "unlock_verified": "notes/Darkrai326-PCUnlocked-navigation.json",
+  "plan": [
+    "Replace Swampert with Genesect (Box3 slot2 zero-based).",
+    "Genesect lead278speed, Magearna second205speed.",
+    "Turn1 SimpleBeamCamerupt removesSturdy, FlashCannonCamerupt defeatsHP1 beforeits153speed.",
+    "Whimsicott Moonblast/Hurricane bothresistedorneutralGenesect; useFlashCannonWhimsnext.",
+    "KeepGenesect abilitysuppressionforWonderGuardMime later."
+  ],
+  "save_edits": false
+}

@@ -1,0 +1,17 @@
+"""Reviewed elevator, ice and cliff route from circus to Blake's approach."""
+from play import *
+def run(s,*a):subprocess.run([sys.executable,str(ROOT/'scripts'/(s+'.py')),*map(str,a)],check=True)
+run('use_field_item','Super Repel')
+run('party_swap',4,1)
+run('q','355,13,34,left:.12,wait:2','365,8,33,up:.12,wait:2','365,8,48,up:.03,c,wait:1')
+run('choose_dialog','Agate Circus|Route 2','Route 2');act('c:.12','wait:1')
+p=ROOT/'notes/navigation-state.json';j=json.loads(p.read_text());j['variables']['74']=1;p.write_text(json.dumps(j))
+run('q','365,9,51,down:.12,wait:2','365,4,63,left:.12,wait:2')
+run('layer_walk',358,47,13,0);act('up:.12','wait:2')
+run('surface_walk',361,8,16);act('left:.12','wait:2')
+run('surface_event',364,24,'enter');run('surface_event',366,23,'enter');run('surface_event',373,14,'enter')
+run('q','439,88,35,up:.12,wait:2')
+run('eventq',441,2,'enter');run('eventq',442,1,'enter')
+run('q','439,82,21')
+run('party_swap',0,1);run('checkpoint','Blake-defensive-retry-ready')
+print('BLAKE APPROACH READY',flush=True)

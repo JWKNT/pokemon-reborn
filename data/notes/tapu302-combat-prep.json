@@ -1,0 +1,13 @@
+{
+  "source": "Installed trainers.dat/fieldtext.rb, frozen owned Postgame302-Fawkes1 save; no active battle logs.",
+  "Koko": {
+    "battle": "Doubles ElectricTerrain;seedCharge+Speed. Surf becomesElectric; Ground immune.",
+    "opening_foes": [
+      "Zeraora CloseCombat",
+      "Xurkitree EnergyBall/TailGlow"
+    ],
+    "proposal": "Superseded by notes/tapu304-next-prep.json: own Excadrill MoldBreaker hits Levitate ally. Change ability normally; Protect+TR opening, not SD into CloseCombat."
+  },
+  "other_core": "Magearna/MegaMawile/Volcanion/Cresselia/Zapdos/Swampert. LelePsychUp discourages specialboost sharing; IronHead sweeper underTR. BuluFerroGengar opener favorsVolcanionFlamethrower plusMageTR. Fini singles MageCM/FlashCannon.",
+  "terrain_access": "Unown level1; Comfey49alreadyGrassyTerrain. Fennekin15giftPsychicTerrain sufficient. Zeraora110PlasmaFists,Meowstic120MistyTerrain."
+}

@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>yveltal385_catch_chip.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of yveltal385_catch_chip.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*a],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;battle_item&#x27;</span>,<span class="hljs-string">&#x27;X Defend&#x27;</span>,<span class="hljs-string">&#x27;Mewtwo&#x27;</span>);act(<span class="hljs-string">&#x27;wait:1&#x27;</span>);run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>);run(<span class="hljs-string">&#x27;battle_move&#x27;</span>,<span class="hljs-string">&#x27;2&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>);run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+</code></pre>
+  </body>
+</html>

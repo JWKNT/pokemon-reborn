@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>plan_wasteland_small309.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of plan_wasteland_small309.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Offline breadth-first push planner for the two short Wasteland entrance rooms.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> ast,json,heapq,re,subprocess
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>];ns=<span class="hljs-built_in">dict</span>(ROOT=R,json=json,heapq=heapq,re=re)
+t=ast.parse((R/<span class="hljs-string">&#x27;scripts/nav.py&#x27;</span>).read_text());<span class="hljs-built_in">exec</span>(<span class="hljs-built_in">compile</span>(ast.Module(body=[x <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> t.body <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(x,ast.FunctionDef)<span class="hljs-keyword">and</span> x.name==<span class="hljs-string">&#x27;route&#x27;</span>],type_ignores=[]),<span class="hljs-string">&#x27;nav.py&#x27;</span>,<span class="hljs-string">&#x27;exec&#x27;</span>),ns)
+<span class="hljs-keyword">for</span> mid,start,goal <span class="hljs-keyword">in</span> [(<span class="hljs-number">275</span>,(<span class="hljs-number">9</span>,<span class="hljs-number">10</span>),(<span class="hljs-number">17</span>,<span class="hljs-number">13</span>)),(<span class="hljs-number">276</span>,(<span class="hljs-number">10</span>,<span class="hljs-number">6</span>),(<span class="hljs-number">20</span>,<span class="hljs-number">15</span>))]:
+ v=json.load(<span class="hljs-built_in">open</span>(R/<span class="hljs-string">f&#x27;work/309-map<span class="hljs-subst">{mid}</span>.json&#x27;</span>));boxes={<span class="hljs-built_in">int</span>(k):(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])<span class="hljs-keyword">for</span> k,e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items()<span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Boulder&#x27;</span>}
+ <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">list</span>(v[<span class="hljs-string">&#x27;events&#x27;</span>]):
+  <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;events&#x27;</span>][k][<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Boulder&#x27;</span>:<span class="hljs-keyword">del</span> v[<span class="hljs-string">&#x27;events&#x27;</span>][k]
+ v[<span class="hljs-string">&#x27;position&#x27;</span>]=<span class="hljs-built_in">list</span>(start);g=ns[<span class="hljs-string">&#x27;route&#x27;</span>](v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">reach</span>(<span class="hljs-params">p,b</span>):
+  q=deque([p]);s={p}
+  <span class="hljs-keyword">while</span> q:
+   <span class="hljs-keyword">for</span> _,n <span class="hljs-keyword">in</span> g.get(q.popleft(),[]):
+    <span class="hljs-keyword">if</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> b <span class="hljs-keyword">and</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> s:s.add(n);q.append(n)
+  <span class="hljs-keyword">return</span> s
+ q=deque([(start,<span class="hljs-built_in">tuple</span>(boxes.values()),[])]);seen=<span class="hljs-built_in">set</span>();ids=<span class="hljs-built_in">list</span>(boxes)
+ <span class="hljs-keyword">while</span> q:
+  p,b,plan=q.popleft();rr=reach(p,b);key=(<span class="hljs-built_in">min</span>(rr),b)
+  <span class="hljs-keyword">if</span> key <span class="hljs-keyword">in</span> seen:<span class="hljs-keyword">continue</span>
+  seen.add(key)
+  <span class="hljs-keyword">if</span> goal <span class="hljs-keyword">in</span> rr:
+   <span class="hljs-built_in">print</span>(mid,plan,flush=<span class="hljs-literal">True</span>);json.dump(plan,<span class="hljs-built_in">open</span>(R/<span class="hljs-string">f&#x27;work/309-small-<span class="hljs-subst">{mid}</span>-plan.json&#x27;</span>,<span class="hljs-string">&#x27;w&#x27;</span>),indent=<span class="hljs-number">2</span>);<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">for</span> i,(x,y)<span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(b):
+   <span class="hljs-keyword">for</span> dx,dy,d <span class="hljs-keyword">in</span> [(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;down&#x27;</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;up&#x27;</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;left&#x27;</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;right&#x27;</span>)]:
+    back=(x-dx,y-dy);to=(x+dx,y+dy)
+    <span class="hljs-keyword">if</span> back <span class="hljs-keyword">in</span> rr <span class="hljs-keyword">and</span> to <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> b <span class="hljs-keyword">and</span> (d,to)<span class="hljs-keyword">in</span> g.get((x,y),[]):
+     bb=<span class="hljs-built_in">list</span>(b);bb[i]=to;q.append((back,<span class="hljs-built_in">tuple</span>(bb),plan+[<span class="hljs-built_in">dict</span>(event=ids[i],direction=d,before=[x,y],after=to)]))
+ <span class="hljs-keyword">else</span>:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;No route&#x27;</span>,mid,<span class="hljs-string">&#x27;states&#x27;</span>,<span class="hljs-built_in">len</span>(seen),<span class="hljs-string">&#x27;start edges&#x27;</span>,g.get(start));<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;reachable&#x27;</span>,<span class="hljs-built_in">sorted</span>(reach(start,<span class="hljs-built_in">tuple</span>(boxes.values()))))
+</code></pre>
+  </body>
+</html>

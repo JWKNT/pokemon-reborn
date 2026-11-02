@@ -1,0 +1,13 @@
+{
+  "Bulu": "Doubles Ferrothorn/Gengar. Volcanion Flamethrower Ferrothorn + Magearna TrickRoom opening; then target public replacements. SludgeWave turns grass corrosive, HeatWave burns. Comfey49GrassyTerrain gate. portal809 via791E53.",
+  "Koko_correction": "Owned Excadrill MoldBreaker Earthquake can hit Levitate Cresselia. Change ability normally toSandRush/SandForce before pairing; do not use old SD opening against Zeraora CloseCombat. Prefer Protect Exca + CressTR T1 then EQ at+0 exploiting Electric weakness. Review actualdamage.",
+  "capsule": "Circus355E89[34,36] shard exchange, price/color stated byNPC; owncapsule0.",
+  "training": "Exca100 EVHP247Atk252 needs125. Two or three normal Fawkes fights yield12XL each; existing12XL. TeachProtect overRockSmash for Koko.",
+  "electric_gate": "Owned Zeraora110PlasmaFists verified oldnotes electric field change; verify exactstatic before gate.",
+  "routes": {
+    "Fini": "791E56->808[29,24],808E25portal noRockClimb",
+    "Bulu": "791E53->809[26,27]",
+    "Koko": "791E55->807[25,39]"
+  },
+  "boundary_helper": "Prefer close_major_public_only.py for trainer->wild chains; its public command guard predates and prevents the major_victory_boundary error. major_victory_boundary now has command guard too. No phrase requirement at a blank public world/fade."
+}

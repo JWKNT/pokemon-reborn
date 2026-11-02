@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>dragon_perish.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of dragon_perish.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Four-turn normal-input Perish Song plan; adapts only to visible KO/command state.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">r</span>(<span class="hljs-params">s,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">ready</span>():r(<span class="hljs-string">&#x27;battle_ready&#x27;</span>);<span class="hljs-keyword">return</span> read().lower()
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">party</span>(<span class="hljs-params">t</span>):<span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;choose a pok&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> (<span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> t.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">won</span>(<span class="hljs-params">t</span>):<span class="hljs-keyword">return</span> <span class="hljs-built_in">bool</span>(re.search(<span class="hljs-string">r&#x27;de.?feated|for winning&#x27;</span>,t))
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span><span class="hljs-keyword">in</span> t
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--resume-turn&#x27;</span> <span class="hljs-keyword">in</span> sys.argv:
+ turn=<span class="hljs-built_in">int</span>(sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--resume-turn&#x27;</span>)+<span class="hljs-number">1</span>]);<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=turn&lt;=<span class="hljs-number">3</span>
+<span class="hljs-keyword">else</span>:
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;kricketune&#x27;</span><span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;krickertune&#x27;</span><span class="hljs-keyword">in</span> t
+ r(<span class="hljs-string">&#x27;battle_move&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>);t=ready();turn=<span class="hljs-number">1</span>
+<span class="hljs-keyword">while</span> turn&lt;<span class="hljs-number">4</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> won(t):
+ <span class="hljs-keyword">if</span> party(t):
+  <span class="hljs-comment"># Kricketune KO first/second turn, or sacrificial Cofagrigus KO third.</span>
+  r(<span class="hljs-string">&#x27;party_pick&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>);t=ready()
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span><span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;reshiram&#x27;</span><span class="hljs-keyword">in</span> t,<span class="hljs-string">&#x27;Unexpected dragon command &#x27;</span>+t
+ prompt=t.split(<span class="hljs-string">&#x27;what&#x27;</span>)[-<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;what&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">else</span> t
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">actor</span>(<span class="hljs-params">name</span>):<span class="hljs-keyword">return</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,name,w.strip(<span class="hljs-string">&#x27;.,?!&#x27;</span>)).ratio()&gt;<span class="hljs-number">.78</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> prompt.split())
+ <span class="hljs-keyword">if</span> actor(<span class="hljs-string">&#x27;kricketune&#x27;</span>):
+  r(<span class="hljs-string">&#x27;battle_move&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+ <span class="hljs-keyword">elif</span> actor(<span class="hljs-string">&#x27;swampert&#x27;</span>):
+  <span class="hljs-keyword">if</span> turn <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>,<span class="hljs-number">3</span>]:r(<span class="hljs-string">&#x27;battle_move&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+  <span class="hljs-keyword">else</span>:r(<span class="hljs-string">&#x27;battle_switch&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>)
+ <span class="hljs-keyword">elif</span> actor(<span class="hljs-string">&#x27;cofagrigus&#x27;</span>):
+  <span class="hljs-comment"># If the switch-in survived turn3, a neutral status action burns the last turn.</span>
+  <span class="hljs-keyword">assert</span> turn==<span class="hljs-number">3</span>;r(<span class="hljs-string">&#x27;battle_move&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Reviewed actor not visible: &#x27;</span>+prompt)
+ turn+=<span class="hljs-number">1</span>;t=ready()
+<span class="hljs-keyword">assert</span> won(t),<span class="hljs-string">&#x27;Need observed four-turn Perish victory: &#x27;</span>+t
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DRAGON PERISH VICTORY&#x27;</span>,turn,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

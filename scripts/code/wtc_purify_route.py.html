@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>wtc_purify_route.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of wtc_purify_route.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Recorded normal-input cleanup after an actual PULSE victory; restart by stage.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> wtc_model <span class="hljs-keyword">import</span> predict
+
+stage=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>])<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(name+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">purify</span>(<span class="hljs-params">water</span>):
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>):
+  s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+  <span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;548&#x27;</span>), <span class="hljs-string">&#x27;Actual saved PULSE victory required&#x27;</span>
+  <span class="hljs-keyword">if</span> s[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-built_in">str</span>(water))==<span class="hljs-number">3</span>:<span class="hljs-keyword">return</span>
+  mid,x,y=locate()
+  v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],stderr=subprocess.DEVNULL))
+  controls=[<span class="hljs-built_in">int</span>(eid)<span class="hljs-keyword">for</span> eid,e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items()<span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">122</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]==water <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>]<span class="hljs-keyword">or</span>[])<span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span> <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>]<span class="hljs-keyword">or</span>[])]
+  <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(controls)==<span class="hljs-number">1</span>,(<span class="hljs-string">&#x27;Water control needs review&#x27;</span>,mid,controls)
+  new,newmid,_=predict(s,mid,controls[<span class="hljs-number">0</span>])
+  <span class="hljs-keyword">assert</span> new[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-built_in">str</span>(water)]<span class="hljs-keyword">in</span>[<span class="hljs-number">1</span>,<span class="hljs-number">3</span>]
+  run(<span class="hljs-string">&#x27;wtc_water&#x27;</span>,mid,controls[<span class="hljs-number">0</span>],newmid)
+ <span class="hljs-keyword">assert</span> json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-built_in">str</span>(water)]==<span class="hljs-number">3</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">exit_to</span>(<span class="hljs-params">dest</span>):
+ mid,_,_=locate()
+ <span class="hljs-keyword">if</span> mid!=dest:run(<span class="hljs-string">&#x27;wtc_room_exit&#x27;</span>,mid,dest)
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">1</span>:
+ purify(<span class="hljs-number">258</span>);exit_to(<span class="hljs-number">469</span>);purify(<span class="hljs-number">257</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PURIFICATION STAGE 1 COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">2</span>:
+ exit_to(<span class="hljs-number">472</span>);purify(<span class="hljs-number">261</span>);exit_to(<span class="hljs-number">471</span>);purify(<span class="hljs-number">260</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PURIFICATION STAGE 2 COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">3</span>:
+ <span class="hljs-comment"># The dirty-high North controller is reached from Opal&#x27;s south entrance;</span>
+ <span class="hljs-comment"># its eastern entrance is isolated until the water is clean.</span>
+ exit_to(<span class="hljs-number">498</span>);exit_to(<span class="hljs-number">501</span>);exit_to(<span class="hljs-number">480</span>);purify(<span class="hljs-number">256</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PURIFICATION STAGE 3 COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">4</span>:
+ exit_to(<span class="hljs-number">474</span>);purify(<span class="hljs-number">259</span>);exit_to(<span class="hljs-number">468</span>);purify(<span class="hljs-number">262</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PURIFICATION STAGE 4 COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">5</span>:
+ exit_to(<span class="hljs-number">502</span>);exit_to(<span class="hljs-number">475</span>);purify(<span class="hljs-number">263</span>);exit_to(<span class="hljs-number">496</span>);run(<span class="hljs-string">&#x27;beryl_flush&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PURIFICATION STAGE 5 COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(s[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-built_in">str</span>(i))==<span class="hljs-number">3</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">256</span>,<span class="hljs-number">265</span>))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ALL NINE WATER GRIDS PURIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

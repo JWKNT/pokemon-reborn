@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>magearna286_setup.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of magearna286_setup.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded reviewed Roserade setup; all state comes from rendered battle UI.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> public_owned_hp <span class="hljs-keyword">import</span> read <span class="hljs-keyword">as</span> hp_read
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">guard</span>():
+ rows=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows).lower()
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;roserade&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;volcanion&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;run&#x27;</span> <span class="hljs-keyword">in</span> text,text
+ <span class="hljs-keyword">return</span> hp_read(rows,<span class="hljs-number">434</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">item</span>(<span class="hljs-params">name</span>):
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_item.py&#x27;</span>),name,<span class="hljs-string">&#x27;Volcanion&#x27;</span>],check=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;X Sp. Atk&#x27;</span>,<span class="hljs-string">&#x27;X Speed&#x27;</span>,<span class="hljs-string">&#x27;X Sp. Atk&#x27;</span>,<span class="hljs-string">&#x27;X Speed&#x27;</span>]:
+ hp=guard();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SETUP GUARD HP&#x27;</span>,hp,<span class="hljs-string">&#x27;NEXT&#x27;</span>,name,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> hp&lt;<span class="hljs-number">240</span>:
+  item(<span class="hljs-string">&#x27;Full Restore&#x27;</span>);hp=guard();<span class="hljs-keyword">assert</span> hp&gt;=<span class="hljs-number">240</span>,<span class="hljs-string">&#x27;Healing did not establish safe HP&#x27;</span>
+ item(name)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SETUP COMPLETE HP&#x27;</span>,guard(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

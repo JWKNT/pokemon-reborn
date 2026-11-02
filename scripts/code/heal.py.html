@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>heal.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of heal.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+act(<span class="hljs-string">&#x27;c&#x27;</span>)
+blank=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">30</span>):
+ r=snap();txt=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> r);<span class="hljs-built_in">print</span>(txt,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> txt.lower() <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;sent out&#x27;</span>,<span class="hljs-string">&#x27;would like to battle&#x27;</span>,<span class="hljs-string">&#x27;choose a pok&#x27;</span>,<span class="hljs-string">&#x27;pp:&#x27;</span>,<span class="hljs-string">&#x27;fainted&#x27;</span>]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Battle interrupted healing; stop&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;hope to see&#x27;</span> <span class="hljs-keyword">in</span> txt.lower() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;fully healed&#x27;</span> <span class="hljs-keyword">in</span> txt.lower():act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.5&#x27;</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(v[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.73</span> <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> r):act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.8&#x27;</span>)
+ <span class="hljs-keyword">else</span>:
+  blank+=<span class="hljs-number">1</span>
+  <span class="hljs-keyword">if</span> blank&gt;=<span class="hljs-number">3</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No nurse dialogue; position review&#x27;</span>)
+  act(<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+</code></pre>
+  </body>
+</html>

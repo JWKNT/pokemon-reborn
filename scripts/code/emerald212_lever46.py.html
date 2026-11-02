@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>emerald212_lever46.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of emerald212_lever46.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Time ordinary movement against pixels in the recorded warning animation.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">&#x27;805,29,61&#x27;</span>],check=<span class="hljs-literal">True</span>,env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;112&#x27;</span>))
+out=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">f&#x27;emerald-warning-<span class="hljs-subst">{<span class="hljs-built_in">int</span>(time.time())}</span>&#x27;</span>;out.mkdir()
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">red</span>():
+ a=np.asarray(Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)).astype(<span class="hljs-built_in">float</span>)
+ <span class="hljs-keyword">return</span> <span class="hljs-built_in">int</span>(((a[:,:,<span class="hljs-number">0</span>]&gt;<span class="hljs-number">90</span>)&amp;(a[:,:,<span class="hljs-number">0</span>]&gt;a[:,:,<span class="hljs-number">1</span>]*<span class="hljs-number">1.45</span>)&amp;(a[:,:,<span class="hljs-number">0</span>]&gt;a[:,:,<span class="hljs-number">2</span>]*<span class="hljs-number">1.15</span>)).<span class="hljs-built_in">sum</span>())
+<span class="hljs-comment"># Validate framing and usage once for this bounded reactive sequence.</span>
+<span class="hljs-comment"># Every key still checks the recorder heartbeat and writes its action log.</span>
+act()
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">*keys</span>):subprocess.run([KEY,*keys],check=<span class="hljs-literal">True</span>)
+send(<span class="hljs-string">&#x27;right:.12&#x27;</span>)
+t=time.time();observed=[]
+<span class="hljs-keyword">while</span> time.time()-t&lt;<span class="hljs-number">3</span>:
+ n=red();observed.append([time.time(),n])
+ <span class="hljs-keyword">if</span> n&gt;<span class="hljs-number">10000</span>:<span class="hljs-keyword">break</span>
+ time.sleep(<span class="hljs-number">.04</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Warning not observed&#x27;</span>)
+shutil.copyfile(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>,out/<span class="hljs-string">&#x27;warning.png&#x27;</span>)
+send(<span class="hljs-string">&#x27;left:.12&#x27;</span>)
+t=time.time()
+<span class="hljs-keyword">while</span> time.time()-t&lt;<span class="hljs-number">3</span>:
+ n=red();observed.append([time.time(),n])
+ <span class="hljs-keyword">if</span> n&lt;<span class="hljs-number">4000</span>:<span class="hljs-keyword">break</span>
+ time.sleep(<span class="hljs-number">.04</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Warning did not clear&#x27;</span>)
+shutil.copyfile(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>,out/<span class="hljs-string">&#x27;cleared.png&#x27;</span>)
+send(<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;up:2.02&#x27;</span>,<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>,<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;up:1.02&#x27;</span>,<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;left:.18&#x27;</span>,<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>)
+shutil.copyfile(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>,out/<span class="hljs-string">&#x27;result.png&#x27;</span>)
+(out/<span class="hljs-string">&#x27;samples.json&#x27;</span>).write_text(json.dumps(observed))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FRAMES&#x27;</span>,out,flush=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),<span class="hljs-string">&#x27;Emerald212-Lever46&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

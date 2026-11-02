@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>cal_mag_opener.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of cal_mag_opener.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute the reviewed Sturdy opener using public HUDs and normal inputs only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib,re
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">resembles</span>(<span class="hljs-params">name,text</span>):
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,name.lower(),re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,word.lower())).ratio()&gt;=<span class="hljs-number">.74</span> <span class="hljs-keyword">for</span> word <span class="hljs-keyword">in</span> text.split())
+
+last_actor=<span class="hljs-literal">None</span>
+counts={<span class="hljs-string">&#x27;Boldore&#x27;</span>:<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>:<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>:<span class="hljs-number">0</span>}
+<span class="hljs-keyword">for</span> cycle <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">60</span>):
+    rows=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows);low=text.lower()
+    <span class="hljs-built_in">print</span>(text,flush=<span class="hljs-literal">True</span>)
+    control=ROOT/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>
+    <span class="hljs-keyword">if</span> control.exists() <span class="hljs-keyword">and</span> json.loads(control.read_text()).get(<span class="hljs-string">&#x27;stop&#x27;</span>):
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STOP REQUESTED&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(x <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;out of usable&#x27;</span>,<span class="hljs-string">&#x27;send in&#x27;</span>,<span class="hljs-string">&#x27;switch your&#x27;</span>,<span class="hljs-string">&#x27;change pok&#x27;</span>,<span class="hljs-string">&#x27;trying to learn&#x27;</span>,<span class="hljs-string">&#x27;defeated&#x27;</span>,<span class="hljs-string">&#x27;derfeated&#x27;</span>]):
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OPENER BOUNDARY REVIEW&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> low.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>:
+        next_actor={<span class="hljs-string">&#x27;Boldore&#x27;</span>:<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>:<span class="hljs-string">&#x27;Arcanine&#x27;</span>}.get(last_actor)
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> next_actor:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected forced switch&#x27;</span>)
+        subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_switch.py&#x27;</span>),next_actor],check=<span class="hljs-literal">True</span>)
+        <span class="hljs-keyword">continue</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;bag&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;run&#x27;</span> <span class="hljs-keyword">in</span> low:
+        foes=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> r[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.37</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> resembles(<span class="hljs-string">&#x27;Magmortar&#x27;</span>,foes):
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MAGMORTAR OPENER COMPLETE OR NEW FOE&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+        prompt=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> r[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span> <span class="hljs-keyword">and</span> r[<span class="hljs-string">&#x27;x&#x27;</span>]&lt;<span class="hljs-number">.5</span>)
+        actors=[n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> counts <span class="hljs-keyword">if</span> resembles(n,prompt)]
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(actors)!=<span class="hljs-number">1</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Actor review: &#x27;</span>+prompt)
+        actor=actors[<span class="hljs-number">0</span>]
+        <span class="hljs-keyword">if</span> last_actor <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> actor!=<span class="hljs-string">&#x27;Boldore&#x27;</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Full Sturdy opener must start with Boldore&#x27;</span>)
+        <span class="hljs-keyword">if</span> counts[actor]&gt;=({<span class="hljs-string">&#x27;Boldore&#x27;</span>:<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>:<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>:<span class="hljs-number">1</span>}[actor]):
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OPENER MOVE BUDGET REVIEW&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+        slot=<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> actor==<span class="hljs-string">&#x27;Boldore&#x27;</span> <span class="hljs-keyword">else</span> (<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> actor==<span class="hljs-string">&#x27;Arcanine&#x27;</span> <span class="hljs-keyword">or</span> counts[actor]==<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-number">3</span>)
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;REVIEWED OPENER ACTION&#x27;</span>,actor,slot,flush=<span class="hljs-literal">True</span>)
+        subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_move.py&#x27;</span>),<span class="hljs-built_in">str</span>(slot),<span class="hljs-string">&#x27;--watch&#x27;</span>],check=<span class="hljs-literal">True</span>)
+        counts[actor]+=<span class="hljs-number">1</span>;last_actor=actor
+        <span class="hljs-keyword">continue</span>
+    <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;\b(?:yes|no)\b&#x27;</span>,low):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected choice&#x27;</span>)
+    act(<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Opener observation budget exhausted&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OPENER COUNTS&#x27;</span>,json.dumps(counts),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

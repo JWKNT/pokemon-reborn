@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_upper_relayout.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_upper_relayout.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed companion swap and central pallet relayout; ordinary controls only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> glass_positions <span class="hljs-keyword">import</span> refresh
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">732</span>,<span class="hljs-number">65</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Glass-central-Espeon-rejoined&#x27;</span>)
+v=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> v[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;947&#x27;</span>) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> v[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;946&#x27;</span>)
+<span class="hljs-keyword">assert</span> (v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;404&#x27;</span>],v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;405&#x27;</span>])==(<span class="hljs-number">41</span>,<span class="hljs-number">22</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;p.write_text(json.dumps(refresh(v,json.loads((ROOT/<span class="hljs-string">&#x27;work/story-map-732-events.json&#x27;</span>).read_text()))))
+<span class="hljs-keyword">for</span> core,direction <span class="hljs-keyword">in</span> [(<span class="hljs-number">157</span>,<span class="hljs-string">&#x27;left&#x27;</span>),(<span class="hljs-number">153</span>,<span class="hljs-string">&#x27;down&#x27;</span>),(<span class="hljs-number">157</span>,<span class="hljs-string">&#x27;right&#x27;</span>)]:run(<span class="hljs-string">&#x27;glass_pallet&#x27;</span>,core,direction)
+p=ROOT/<span class="hljs-string">&#x27;notes/route-next.json&#x27;</span>;p.write_text(json.dumps([[<span class="hljs-number">732</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">43</span>,<span class="hljs-number">15</span>,[]],[<span class="hljs-number">732</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">43</span>,<span class="hljs-number">16</span>,[]]]));run(<span class="hljs-string">&#x27;queue_route&#x27;</span>,p)
+run(<span class="hljs-string">&#x27;glass_companion_wait&#x27;</span>,<span class="hljs-string">&#x27;Espeon&#x27;</span>,<span class="hljs-number">43</span>,<span class="hljs-number">15</span>,<span class="hljs-string">&#x27;up&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Glass-upper-Espeon-waiting&#x27;</span>)
+v=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> v[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;947&#x27;</span>) <span class="hljs-keyword">and</span> (v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;406&#x27;</span>],v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;407&#x27;</span>])==(<span class="hljs-number">43</span>,<span class="hljs-number">15</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;UPPER RELAYOUT COMPLETE; ESPEON WAITING43,15&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

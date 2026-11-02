@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>hypno_guarded_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of hypno_guarded_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure proposal for PULSE Hypno, from an explicitly supplied visible-turn ledger.
+
+No gameplay imports, native saves, battle logs, AI/RNG, UI, or subprocesses.
+The output is ONE ordinary-control action proposal, never an executed queue.
+Every completed turn (including items/failed actions) must be entered first.
+See notes/hypno-guarded-plan-2026-10-03.md for the input contract and limitations.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> math
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+<span class="hljs-keyword">from</span> glass_damage_review <span class="hljs-keyword">import</span> damage
+
+BUILD = <span class="hljs-built_in">dict</span>(species=<span class="hljs-string">&quot;ARCANINE&quot;</span>, level=<span class="hljs-number">90</span>, totalhp=<span class="hljs-number">294</span>, attack=<span class="hljs-number">228</span>,
+             spdef=<span class="hljs-number">171</span>, speed=<span class="hljs-number">176</span>, item=<span class="hljs-string">&quot;CHARCOAL&quot;</span>, ability=<span class="hljs-string">&quot;INTIMIDATE&quot;</span>)
+MOVES = {<span class="hljs-string">&quot;SAFEGUARD&quot;</span>, <span class="hljs-string">&quot;FLAMETHROWER&quot;</span>, <span class="hljs-string">&quot;CRUNCH&quot;</span>, <span class="hljs-string">&quot;MORNINGSUN&quot;</span>}
+ITEMS = {<span class="hljs-string">&quot;XSPEED&quot;</span>: <span class="hljs-string">&quot;X Speed&quot;</span>, <span class="hljs-string">&quot;XATTACK&quot;</span>: <span class="hljs-string">&quot;X Attack&quot;</span>,
+         <span class="hljs-string">&quot;XSPDEF&quot;</span>: <span class="hljs-string">&quot;X Sp. Def&quot;</span>, <span class="hljs-string">&quot;FULLHEAL&quot;</span>: <span class="hljs-string">&quot;Full Heal&quot;</span>,
+         <span class="hljs-string">&quot;ULTRAPOTION&quot;</span>: <span class="hljs-string">&quot;Ultra Potion&quot;</span>, <span class="hljs-string">&quot;FULLRESTORE&quot;</span>: <span class="hljs-string">&quot;Full Restore&quot;</span>}
+ENEMY_MOVES = {<span class="hljs-string">&quot;HYPNOSIS&quot;</span>, <span class="hljs-string">&quot;DREAMEATER&quot;</span>, <span class="hljs-string">&quot;DARKPULSE&quot;</span>, <span class="hljs-string">&quot;CALMMIND&quot;</span>}
+RESULTS = {<span class="hljs-string">&quot;success&quot;</span>, <span class="hljs-string">&quot;failed&quot;</span>, <span class="hljs-string">&quot;asleep&quot;</span>, <span class="hljs-string">&quot;flinched&quot;</span>}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">require</span>(<span class="hljs-params">test, message</span>):
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> test:
+        <span class="hljs-keyword">raise</span> ValueError(message)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">boosted</span>(<span class="hljs-params">stat, stage</span>):
+    <span class="hljs-keyword">return</span> math.floor(stat * (<span class="hljs-number">2</span> + stage) / <span class="hljs-number">2</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">pulse_ranges</span>(<span class="hljs-params">enemy_spa, own_spdef</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Starlight Dark+Fairy vs Fire: STAB1.5, field1.5, effectiveness0.5.&quot;&quot;&quot;</span>
+    atk = boosted(<span class="hljs-number">287</span>, enemy_spa)
+    normal = damage(<span class="hljs-number">100</span>, <span class="hljs-number">80</span>, atk, boosted(<span class="hljs-number">171</span>, own_spdef),
+                    modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">1.5</span> * <span class="hljs-number">.5</span>)
+    critical = damage(<span class="hljs-number">100</span>, <span class="hljs-number">80</span>, atk, <span class="hljs-number">171</span>, modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">1.5</span> * <span class="hljs-number">.5</span> * <span class="hljs-number">1.5</span>)
+    <span class="hljs-keyword">return</span> normal, critical
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">crunch_range</span>(<span class="hljs-params">own_attack</span>):
+    <span class="hljs-comment"># Ignore possible defense drops/crits: this is a conservative HP upper bound.</span>
+    <span class="hljs-keyword">return</span> damage(<span class="hljs-number">90</span>, <span class="hljs-number">80</span>, boosted(<span class="hljs-number">228</span>, own_attack), <span class="hljs-number">479</span>, modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">2</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">ledger</span>(<span class="hljs-params">state</span>):
+    o = state[<span class="hljs-string">&quot;observation&quot;</span>]
+    require(o.get(<span class="hljs-string">&quot;confirmed&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span> <span class="hljs-keyword">and</span> o.get(<span class="hljs-string">&quot;command_menu&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>,
+            <span class="hljs-string">&quot;Fresh visible command-menu confirmation is required&quot;</span>)
+    require(o.get(<span class="hljs-string">&quot;actor&quot;</span>) == <span class="hljs-string">&quot;Arcanine&quot;</span> <span class="hljs-keyword">and</span> o.get(<span class="hljs-string">&quot;foe&quot;</span>) == <span class="hljs-string">&quot;Hypno&quot;</span>,
+            <span class="hljs-string">&quot;This proposal handles only the unchanged Arcanine/Hypno singles&quot;</span>)
+    require(o.get(<span class="hljs-string">&quot;field&quot;</span>) == <span class="hljs-string">&quot;STARLIGHT&quot;</span> <span class="hljs-keyword">and</span> o.get(<span class="hljs-string">&quot;weather&quot;</span>) == <span class="hljs-string">&quot;NONE&quot;</span>,
+            <span class="hljs-string">&quot;Starlight with no weather must be confirmed&quot;</span>)
+    require(state.get(<span class="hljs-string">&quot;ledger_complete&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>, <span class="hljs-string">&quot;Missed messages/turns require review&quot;</span>)
+    require(<span class="hljs-built_in">all</span>(state[<span class="hljs-string">&quot;build&quot;</span>].get(k) == v <span class="hljs-keyword">for</span> k, v <span class="hljs-keyword">in</span> BUILD.items()),
+            <span class="hljs-string">&quot;Frozen outside-battle Arcanine build differs from reviewed stats&quot;</span>)
+    require(<span class="hljs-built_in">set</span>(state[<span class="hljs-string">&quot;build&quot;</span>][<span class="hljs-string">&quot;moves&quot;</span>]) == MOVES, <span class="hljs-string">&quot;Reviewed four moves are required&quot;</span>)
+    turns = state.get(<span class="hljs-string">&quot;turns&quot;</span>, [])
+    require(<span class="hljs-built_in">isinstance</span>(o.get(<span class="hljs-string">&quot;turn&quot;</span>), <span class="hljs-built_in">int</span>) <span class="hljs-keyword">and</span> o[<span class="hljs-string">&quot;turn&quot;</span>] == <span class="hljs-built_in">len</span>(turns) + <span class="hljs-number">1</span>,
+            <span class="hljs-string">&quot;Command turn must follow every contiguous completed turn&quot;</span>)
+    require(<span class="hljs-built_in">isinstance</span>(o.get(<span class="hljs-string">&quot;hp&quot;</span>), <span class="hljs-built_in">int</span>) <span class="hljs-keyword">and</span> <span class="hljs-number">0</span> &lt; o[<span class="hljs-string">&quot;hp&quot;</span>] &lt;= <span class="hljs-number">294</span>,
+            <span class="hljs-string">&quot;Fresh visible numeric Arcanine HP is required&quot;</span>)
+    require(o.get(<span class="hljs-string">&quot;status&quot;</span>) <span class="hljs-keyword">in</span> (<span class="hljs-literal">None</span>, <span class="hljs-string">&quot;SLEEP&quot;</span>), <span class="hljs-string">&quot;Unexpected status requires review&quot;</span>)
+    stock = {k: <span class="hljs-built_in">int</span>(state[<span class="hljs-string">&quot;stock&quot;</span>].get(k, <span class="hljs-number">0</span>)) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> ITEMS}
+    require(<span class="hljs-built_in">all</span>(v &gt;= <span class="hljs-number">0</span> <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> stock.values()), <span class="hljs-string">&quot;Invalid frozen stock&quot;</span>)
+    attack = speed = spdef = enemy_spa = safeguard = <span class="hljs-number">0</span>
+    foe_hp_bound = <span class="hljs-number">381</span>
+    last_pulse_damage = <span class="hljs-literal">None</span>
+    <span class="hljs-keyword">for</span> n, row <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(turns, <span class="hljs-number">1</span>):
+        require(row.get(<span class="hljs-string">&quot;turn&quot;</span>) == n <span class="hljs-keyword">and</span> row.get(<span class="hljs-string">&quot;completed&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>
+                <span class="hljs-keyword">and</span> row.get(<span class="hljs-string">&quot;confirmed&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>,
+                <span class="hljs-string">&quot;Each turn must have a confirmed completion, not a button receipt&quot;</span>)
+        p, e = row[<span class="hljs-string">&quot;player&quot;</span>], row[<span class="hljs-string">&quot;enemy&quot;</span>]
+        action, result = p[<span class="hljs-string">&quot;action&quot;</span>], p[<span class="hljs-string">&quot;result&quot;</span>]
+        require(action <span class="hljs-keyword">in</span> ITEMS <span class="hljs-keyword">or</span> action <span class="hljs-keyword">in</span> MOVES, <span class="hljs-string">&quot;Unknown player action requires review&quot;</span>)
+        require(result <span class="hljs-keyword">in</span> RESULTS <span class="hljs-keyword">and</span> e[<span class="hljs-string">&quot;move&quot;</span>] <span class="hljs-keyword">in</span> ENEMY_MOVES
+                <span class="hljs-keyword">and</span> e[<span class="hljs-string">&quot;result&quot;</span>] <span class="hljs-keyword">in</span> {<span class="hljs-string">&quot;success&quot;</span>, <span class="hljs-string">&quot;failed&quot;</span>}, <span class="hljs-string">&quot;Unknown outcome requires review&quot;</span>)
+        <span class="hljs-keyword">if</span> action <span class="hljs-keyword">in</span> ITEMS:
+            require(<span class="hljs-built_in">isinstance</span>(p.get(<span class="hljs-string">&quot;consumed&quot;</span>), <span class="hljs-built_in">bool</span>), <span class="hljs-string">&quot;Confirm consumed/refunded item&quot;</span>)
+            require(p[<span class="hljs-string">&quot;consumed&quot;</span>] == (result == <span class="hljs-string">&quot;success&quot;</span>),
+                    <span class="hljs-string">&quot;Item consumption/outcome disagreement requires reconciliation&quot;</span>)
+            <span class="hljs-keyword">if</span> p[<span class="hljs-string">&quot;consumed&quot;</span>]:
+                stock[action] -= <span class="hljs-number">1</span>
+                require(stock[action] &gt;= <span class="hljs-number">0</span>, <span class="hljs-string">&quot;Consumed quantity exceeds frozen stock&quot;</span>)
+        <span class="hljs-keyword">if</span> result == <span class="hljs-string">&quot;success&quot;</span>:
+            <span class="hljs-keyword">if</span> action <span class="hljs-keyword">in</span> {<span class="hljs-string">&quot;XSPEED&quot;</span>, <span class="hljs-string">&quot;XATTACK&quot;</span>, <span class="hljs-string">&quot;XSPDEF&quot;</span>}:
+                old = {<span class="hljs-string">&quot;XSPEED&quot;</span>: speed, <span class="hljs-string">&quot;XATTACK&quot;</span>: attack, <span class="hljs-string">&quot;XSPDEF&quot;</span>: spdef}[action]
+                require(old &lt; <span class="hljs-number">6</span>, <span class="hljs-string">&quot;A capped X item cannot count as a successful boost&quot;</span>)
+                <span class="hljs-keyword">if</span> action == <span class="hljs-string">&quot;XSPEED&quot;</span>:
+                    speed = <span class="hljs-built_in">min</span>(<span class="hljs-number">6</span>, speed + <span class="hljs-number">2</span>)
+                <span class="hljs-keyword">elif</span> action == <span class="hljs-string">&quot;XATTACK&quot;</span>:
+                    attack = <span class="hljs-built_in">min</span>(<span class="hljs-number">6</span>, attack + <span class="hljs-number">2</span>)
+                <span class="hljs-keyword">else</span>:
+                    spdef = <span class="hljs-built_in">min</span>(<span class="hljs-number">6</span>, spdef + <span class="hljs-number">2</span>)
+            <span class="hljs-keyword">elif</span> action == <span class="hljs-string">&quot;SAFEGUARD&quot;</span>:
+                require(safeguard == <span class="hljs-number">0</span>, <span class="hljs-string">&quot;Safeguard fails while already active&quot;</span>)
+                safeguard = <span class="hljs-number">5</span>
+            <span class="hljs-keyword">elif</span> action == <span class="hljs-string">&quot;CRUNCH&quot;</span>:
+                foe_hp_bound = <span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>, foe_hp_bound - crunch_range(attack)[<span class="hljs-number">0</span>])
+        <span class="hljs-keyword">if</span> e[<span class="hljs-string">&quot;move&quot;</span>] == <span class="hljs-string">&quot;CALMMIND&quot;</span> <span class="hljs-keyword">and</span> e[<span class="hljs-string">&quot;result&quot;</span>] == <span class="hljs-string">&quot;success&quot;</span>:
+            require(enemy_spa &lt; <span class="hljs-number">6</span>, <span class="hljs-string">&quot;A capped Calm Mind cannot count as a successful boost&quot;</span>)
+            enemy_spa += <span class="hljs-number">1</span>
+        <span class="hljs-keyword">if</span> e[<span class="hljs-string">&quot;move&quot;</span>] == <span class="hljs-string">&quot;HYPNOSIS&quot;</span> <span class="hljs-keyword">and</span> e[<span class="hljs-string">&quot;result&quot;</span>] == <span class="hljs-string">&quot;success&quot;</span>:
+            require(safeguard == <span class="hljs-number">0</span>, <span class="hljs-string">&quot;No Guard does not bypass active Safeguard&quot;</span>)
+        <span class="hljs-keyword">if</span> e[<span class="hljs-string">&quot;move&quot;</span>] == <span class="hljs-string">&quot;DREAMEATER&quot;</span> <span class="hljs-keyword">and</span> e[<span class="hljs-string">&quot;result&quot;</span>] == <span class="hljs-string">&quot;success&quot;</span>:
+            <span class="hljs-comment"># Never guess the Big Root healing quantity from an obscured HP bar.</span>
+            foe_hp_bound = <span class="hljs-number">381</span>
+        <span class="hljs-keyword">if</span> e[<span class="hljs-string">&quot;move&quot;</span>] == <span class="hljs-string">&quot;DARKPULSE&quot;</span> <span class="hljs-keyword">and</span> e[<span class="hljs-string">&quot;result&quot;</span>] == <span class="hljs-string">&quot;success&quot;</span>:
+            last_pulse_damage = row.get(<span class="hljs-string">&quot;observed_hp_damage&quot;</span>)
+            require(last_pulse_damage <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">isinstance</span>(last_pulse_damage, <span class="hljs-built_in">int</span>)
+                    <span class="hljs-keyword">and</span> last_pulse_damage &gt;= <span class="hljs-number">0</span>, <span class="hljs-string">&quot;Invalid visible HP delta&quot;</span>)
+        expired = safeguard == <span class="hljs-number">1</span>
+        safeguard = <span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>, safeguard - <span class="hljs-number">1</span>)
+        require(row.get(<span class="hljs-string">&quot;safeguard_expired&quot;</span>) <span class="hljs-keyword">is</span> expired,
+                <span class="hljs-string">&quot;Safeguard expiry line disagrees with completed-turn count&quot;</span>)
+    require(foe_hp_bound &gt; <span class="hljs-number">0</span>, <span class="hljs-string">&quot;A conservative winning hit is already recorded; verify victory&quot;</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">dict</span>(attack=attack, speed=speed, spdef=spdef, enemy_spa=enemy_spa,
+                safeguard=safeguard, foe_hp_bound=foe_hp_bound, stock=stock,
+                last_pulse_damage=last_pulse_damage)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">propose</span>(<span class="hljs-params">state</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Return review or one proposal. Caller must observe again before any next action.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">try</span>:
+        d = ledger(state)
+        o = state[<span class="hljs-string">&quot;observation&quot;</span>]
+        normal, critical = pulse_ranges(d[<span class="hljs-string">&quot;enemy_spa&quot;</span>], d[<span class="hljs-string">&quot;spdef&quot;</span>])
+        cr = crunch_range(d[<span class="hljs-string">&quot;attack&quot;</span>])
+        report = <span class="hljs-built_in">dict</span>(turn=o[<span class="hljs-string">&quot;turn&quot;</span>], derived=d, dark_pulse_normal=normal,
+                      dark_pulse_critical=critical, crunch=cr,
+                      critical_can_ohko_full_hp=critical[<span class="hljs-number">1</span>] &gt;= <span class="hljs-number">294</span>,
+                      warning=<span class="hljs-string">&quot;Positive Sp. Def does not protect from critical hits.&quot;</span>)
+
+        <span class="hljs-keyword">def</span> <span class="hljs-title function_">choose</span>(<span class="hljs-params">action, reason</span>):
+            <span class="hljs-keyword">if</span> action <span class="hljs-keyword">in</span> ITEMS:
+                require(d[<span class="hljs-string">&quot;stock&quot;</span>][action] &gt; <span class="hljs-number">0</span>, <span class="hljs-string">f&quot;No verified stock for <span class="hljs-subst">{action}</span>&quot;</span>)
+                argv = [<span class="hljs-string">&quot;python3&quot;</span>, <span class="hljs-string">&quot;scripts/battle_item.py&quot;</span>, ITEMS[action], <span class="hljs-string">&quot;Arcanine&quot;</span>]
+                <span class="hljs-keyword">if</span> action <span class="hljs-keyword">in</span> {<span class="hljs-string">&quot;XSPEED&quot;</span>, <span class="hljs-string">&quot;XATTACK&quot;</span>, <span class="hljs-string">&quot;XSPDEF&quot;</span>}:
+                    argv.append(<span class="hljs-string">&quot;--active&quot;</span>)
+            <span class="hljs-keyword">else</span>:
+                require(<span class="hljs-built_in">isinstance</span>(o[<span class="hljs-string">&quot;pp&quot;</span>].get(action), <span class="hljs-built_in">int</span>) <span class="hljs-keyword">and</span> o[<span class="hljs-string">&quot;pp&quot;</span>][action] &gt; <span class="hljs-number">0</span>,
+                        <span class="hljs-string">f&quot;Fresh visible PP confirmation required for <span class="hljs-subst">{action}</span>&quot;</span>)
+                argv = [<span class="hljs-string">&quot;python3&quot;</span>, <span class="hljs-string">&quot;scripts/battle_named_move.py&quot;</span>, <span class="hljs-string">&quot;Arcanine&quot;</span>, action]
+            <span class="hljs-keyword">return</span> <span class="hljs-built_in">dict</span>(status=<span class="hljs-string">&quot;proposal&quot;</span>, action=action, reason=reason,
+                        ordinary_helper_argv=argv, **report)
+
+        <span class="hljs-comment"># Priority items occur before Hypno&#x27;s attack; Dream Eater fails after cure.</span>
+        <span class="hljs-keyword">if</span> o[<span class="hljs-string">&quot;status&quot;</span>] == <span class="hljs-string">&quot;SLEEP&quot;</span>:
+            <span class="hljs-keyword">if</span> o[<span class="hljs-string">&quot;hp&quot;</span>] &lt;= normal[<span class="hljs-number">1</span>] <span class="hljs-keyword">and</span> d[<span class="hljs-string">&quot;stock&quot;</span>][<span class="hljs-string">&quot;FULLRESTORE&quot;</span>]:
+                <span class="hljs-keyword">return</span> choose(<span class="hljs-string">&quot;FULLRESTORE&quot;</span>, <span class="hljs-string">&quot;Cure sleep and restore HP before any enemy action&quot;</span>)
+            require(o[<span class="hljs-string">&quot;hp&quot;</span>] &gt; normal[<span class="hljs-number">1</span>],
+                    <span class="hljs-string">&quot;Sleep plus potentially lethal Dark Pulse: separate HP/status item dilemma&quot;</span>)
+            <span class="hljs-keyword">return</span> choose(<span class="hljs-string">&quot;FULLHEAL&quot;</span>, <span class="hljs-string">&quot;Cure sleep first; confirm enemy action and new HP afterward&quot;</span>)
+
+        faster = boosted(<span class="hljs-number">176</span>, d[<span class="hljs-string">&quot;speed&quot;</span>]) &gt; <span class="hljs-number">196</span>
+        <span class="hljs-keyword">if</span> faster <span class="hljs-keyword">and</span> cr[<span class="hljs-number">0</span>] &gt;= d[<span class="hljs-string">&quot;foe_hp_bound&quot;</span>]:
+            <span class="hljs-keyword">return</span> choose(<span class="hljs-string">&quot;CRUNCH&quot;</span>, <span class="hljs-string">&quot;Conservative faster finishing hit; no exposed enemy turn&quot;</span>)
+
+        <span class="hljs-comment"># Respect the current critical margin. +2 enemy SpA cannot be fixed by HP/SpDef.</span>
+        accept = state.get(<span class="hljs-string">&quot;accept_critical_risk&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>
+        <span class="hljs-keyword">if</span> o[<span class="hljs-string">&quot;hp&quot;</span>] &lt;= critical[<span class="hljs-number">1</span>] <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> accept:
+            <span class="hljs-keyword">if</span> critical[<span class="hljs-number">1</span>] &lt; <span class="hljs-number">294</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">min</span>(<span class="hljs-number">294</span>, o[<span class="hljs-string">&quot;hp&quot;</span>] + <span class="hljs-number">200</span>) &gt; critical[<span class="hljs-number">1</span>]:
+                <span class="hljs-keyword">return</span> choose(<span class="hljs-string">&quot;ULTRAPOTION&quot;</span>, <span class="hljs-string">&quot;Restore HP above the current critical maximum&quot;</span>)
+            <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Critical maximum reaches current/full HP; explicit tactical review required&quot;</span>)
+        <span class="hljs-keyword">if</span> o[<span class="hljs-string">&quot;hp&quot;</span>] &lt;= normal[<span class="hljs-number">1</span>]:
+            require(<span class="hljs-built_in">min</span>(<span class="hljs-number">294</span>, o[<span class="hljs-string">&quot;hp&quot;</span>] + <span class="hljs-number">200</span>) &gt; normal[<span class="hljs-number">1</span>],
+                    <span class="hljs-string">&quot;Ultra Potion cannot reach ordinary survival margin&quot;</span>)
+            <span class="hljs-keyword">return</span> choose(<span class="hljs-string">&quot;ULTRAPOTION&quot;</span>, <span class="hljs-string">&quot;Heal before the currently lethal ordinary Dark Pulse&quot;</span>)
+
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> faster:
+            <span class="hljs-keyword">return</span> choose(<span class="hljs-string">&quot;XSPEED&quot;</span>, <span class="hljs-string">&quot;One +2 Speed item makes Arcanine352 faster than Hypno196&quot;</span>)
+        <span class="hljs-keyword">if</span> d[<span class="hljs-string">&quot;safeguard&quot;</span>] == <span class="hljs-number">0</span>:
+            <span class="hljs-keyword">return</span> choose(<span class="hljs-string">&quot;SAFEGUARD&quot;</span>, <span class="hljs-string">&quot;Awake faster cast after expiry, before Hypnosis can act&quot;</span>)
+        <span class="hljs-comment"># One defensive item only when actual ordinary damage/boost warrants it.</span>
+        <span class="hljs-keyword">if</span> d[<span class="hljs-string">&quot;spdef&quot;</span>] == <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> (normal[<span class="hljs-number">1</span>] &gt;= <span class="hljs-number">160</span> <span class="hljs-keyword">or</span>
+                d[<span class="hljs-string">&quot;last_pulse_damage&quot;</span>] <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> d[<span class="hljs-string">&quot;last_pulse_damage&quot;</span>] &gt;= <span class="hljs-number">100</span>):
+            <span class="hljs-keyword">return</span> choose(<span class="hljs-string">&quot;XSPDEF&quot;</span>, <span class="hljs-string">&quot;One defensive boost responds to observed/boosted ordinary damage&quot;</span>)
+        <span class="hljs-keyword">if</span> d[<span class="hljs-string">&quot;attack&quot;</span>] &lt; <span class="hljs-number">4</span>:
+            <span class="hljs-keyword">return</span> choose(<span class="hljs-string">&quot;XATTACK&quot;</span>, <span class="hljs-string">&quot;Reach +4 Attack with two items; two ordinary Crunch hits suffice&quot;</span>)
+        <span class="hljs-keyword">return</span> choose(<span class="hljs-string">&quot;CRUNCH&quot;</span>, <span class="hljs-string">&quot;Attack promptly rather than adding unnecessary setup turns&quot;</span>)
+    <span class="hljs-keyword">except</span> (KeyError, TypeError, ValueError) <span class="hljs-keyword">as</span> exc:
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">dict</span>(status=<span class="hljs-string">&quot;review&quot;</span>, reason=<span class="hljs-built_in">str</span>(exc), ordinary_helper_argv=<span class="hljs-literal">None</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(<span class="hljs-string">&quot;ledger_json&quot;</span>, <span class="hljs-built_in">type</span>=Path)
+    args = parser.parse_args()
+    value = propose(json.loads(args.ledger_json.read_text()))
+    <span class="hljs-built_in">print</span>(json.dumps(value, indent=<span class="hljs-number">2</span>))
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span> <span class="hljs-keyword">if</span> value[<span class="hljs-string">&quot;status&quot;</span>] == <span class="hljs-string">&quot;proposal&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">2</span>
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    <span class="hljs-keyword">raise</span> SystemExit(main())
+</code></pre>
+  </body>
+</html>

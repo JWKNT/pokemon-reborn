@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_trainer_enter.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_trainer_enter.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Installed/pure paired trainer-source fixtures; never execute game controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> unittest
+<span class="hljs-keyword">from</span> trainer_enter <span class="hljs-keyword">import</span> ROOT,dry_source,installed_event,validate_pair
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Tests</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">setUp</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.lyla=installed_event(<span class="hljs-number">763</span>,<span class="hljs-number">45</span>)[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>]
+        <span class="hljs-variable language_">self</span>.ezra=installed_event(<span class="hljs-number">763</span>,<span class="hljs-number">46</span>)[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>]
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_exact_installed_pair_and_reverse_source_labels</span>(<span class="hljs-params">self</span>):
+        result=validate_pair(<span class="hljs-variable language_">self</span>.lyla,<span class="hljs-variable language_">self</span>.ezra,<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-string">&#x27;NWCultistF&#x27;</span>,<span class="hljs-string">&#x27;Lyla &amp; Ezra&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(result[<span class="hljs-string">&#x27;primary&#x27;</span>],[<span class="hljs-string">&#x27;NWCultistF&#x27;</span>,<span class="hljs-string">&#x27;Lyla&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(result[<span class="hljs-string">&#x27;paired&#x27;</span>],[<span class="hljs-string">&#x27;NWCultist&#x27;</span>,<span class="hljs-string">&#x27;Ezra&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertTrue(result[<span class="hljs-string">&#x27;choice_free&#x27;</span>])
+        validate_pair(<span class="hljs-variable language_">self</span>.ezra,<span class="hljs-variable language_">self</span>.lyla,<span class="hljs-number">46</span>,<span class="hljs-number">45</span>,<span class="hljs-string">&#x27;NWCultist&#x27;</span>,<span class="hljs-string">&#x27;Ezra &amp; Lyla&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_names_classes_duplicates_and_defeated_pages_fail_closed</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">for</span> args <span class="hljs-keyword">in</span> [(<span class="hljs-number">45</span>,<span class="hljs-number">45</span>,<span class="hljs-string">&#x27;NWCultistF&#x27;</span>,<span class="hljs-string">&#x27;Lyla &amp; Ezra&#x27;</span>),
+                     (<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-string">&#x27;NWCultist&#x27;</span>,<span class="hljs-string">&#x27;Lyla &amp; Ezra&#x27;</span>),
+                     (<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-string">&#x27;NWCultistF&#x27;</span>,<span class="hljs-string">&#x27;Ezra &amp; Lyla&#x27;</span>),
+                     (<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-string">&#x27;NWCultistF&#x27;</span>,<span class="hljs-string">&#x27;Lyla&#x27;</span>),
+                     (<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-string">&#x27;NWCultistF&#x27;</span>,<span class="hljs-string">&#x27;Lyla &amp; Lyla&#x27;</span>)]:
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.subTest(args=args),<span class="hljs-variable language_">self</span>.assertRaises(AssertionError):
+                validate_pair(<span class="hljs-variable language_">self</span>.lyla,<span class="hljs-variable language_">self</span>.ezra,*args)
+        defeated=installed_event(<span class="hljs-number">763</span>,<span class="hljs-number">46</span>)[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;list&#x27;</span>]
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(AssertionError):validate_pair(<span class="hljs-variable language_">self</span>.lyla,defeated,<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-string">&#x27;NWCultistF&#x27;</span>,<span class="hljs-string">&#x27;Lyla &amp; Ezra&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_either_source_choice_is_rejected</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">for</span> code <span class="hljs-keyword">in</span> [<span class="hljs-number">102</span>,<span class="hljs-number">103</span>,<span class="hljs-number">104</span>]:
+            <span class="hljs-keyword">for</span> first <span class="hljs-keyword">in</span> [<span class="hljs-literal">True</span>,<span class="hljs-literal">False</span>]:
+                a,b=copy.deepcopy((<span class="hljs-variable language_">self</span>.lyla,<span class="hljs-variable language_">self</span>.ezra))
+                (a <span class="hljs-keyword">if</span> first <span class="hljs-keyword">else</span> b).append({<span class="hljs-string">&#x27;code&#x27;</span>:code,<span class="hljs-string">&#x27;parameters&#x27;</span>:[[<span class="hljs-string">&#x27;Yes&#x27;</span>,<span class="hljs-string">&#x27;No&#x27;</span>],<span class="hljs-number">2</span>]})
+                <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.subTest(code=code,first=first),<span class="hljs-variable language_">self</span>.assertRaises(AssertionError):
+                    validate_pair(a,b,<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-string">&#x27;NWCultistF&#x27;</span>,<span class="hljs-string">&#x27;Lyla &amp; Ezra&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_source_dryrun_and_module_import_do_not_load_play</span>(<span class="hljs-params">self</span>):
+        args=argparse.Namespace(<span class="hljs-built_in">map</span>=<span class="hljs-number">763</span>,event=<span class="hljs-number">45</span>,paired_event=<span class="hljs-number">46</span>,source_page=<span class="hljs-literal">None</span>,
+                                trainer_class=<span class="hljs-string">&#x27;NWCultistF&#x27;</span>,name=<span class="hljs-string">&#x27;Lyla &amp; Ezra&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertTrue(dry_source(args)[<span class="hljs-string">&#x27;no_UI_or_runtime_reads&#x27;</span>])
+        subprocess.run([sys.executable,<span class="hljs-string">&#x27;-c&#x27;</span>,
+            <span class="hljs-string">&quot;import sys; sys.path.insert(0,&#x27;scripts&#x27;); import trainer_enter; assert &#x27;play&#x27; not in sys.modules&quot;</span>],
+            cwd=ROOT,check=<span class="hljs-literal">True</span>,capture_output=<span class="hljs-literal">True</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_existing_intro_and_choice_refusals_are_retained</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-comment"># Source invariants matter because the paired extension does not add</span>
+        <span class="hljs-comment"># a new route for accepting an unseen intro or GUI choice.</span>
+        source=(ROOT/<span class="hljs-string">&#x27;scripts/trainer_enter.py&#x27;</span>).read_text()
+        <span class="hljs-variable language_">self</span>.assertIn(<span class="hljs-string">&quot;assert intro,&#x27;Unobserved intro requires review&#x27;&quot;</span>,source)
+        <span class="hljs-variable language_">self</span>.assertIn(<span class="hljs-string">&quot;raise SystemExit(&#x27;Unexpected intro state&#x27;)&quot;</span>,source)
+        <span class="hljs-variable language_">self</span>.assertIn(<span class="hljs-string">&quot;else:assert not any(c[&#x27;code&#x27;] in [102,103,104]for c in cs)&quot;</span>,source)
+        <span class="hljs-variable language_">self</span>.assertIn(<span class="hljs-string">&quot;for _ in range(a.intro_cycles):&quot;</span>,source)
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:unittest.main()
+</code></pre>
+  </body>
+</html>

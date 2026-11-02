@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>library_monitor.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of library_monitor.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Press one planned library monitor, then update the route notes only on success.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,pathlib,json
+root=pathlib.Path(__file__).resolve().parent.parent
+n=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);targets={<span class="hljs-number">18</span>:(<span class="hljs-number">16</span>,<span class="hljs-number">24</span>,<span class="hljs-string">&#x27;up&#x27;</span>),<span class="hljs-number">17</span>:(<span class="hljs-number">2</span>,<span class="hljs-number">24</span>,<span class="hljs-string">&#x27;up&#x27;</span>),<span class="hljs-number">62</span>:(<span class="hljs-number">8</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;up&#x27;</span>),<span class="hljs-number">87</span>:(<span class="hljs-number">4</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;up&#x27;</span>),<span class="hljs-number">55</span>:(<span class="hljs-number">12</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;up&#x27;</span>),<span class="hljs-number">69</span>:(<span class="hljs-number">16</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;up&#x27;</span>),<span class="hljs-number">91</span>:(<span class="hljs-number">2</span>,<span class="hljs-number">15</span>,<span class="hljs-string">&#x27;up&#x27;</span>)}
+x,y,k=targets[n]
+r=subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(root/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">f&#x27;182,<span class="hljs-subst">{x}</span>,<span class="hljs-subst">{y}</span>,<span class="hljs-subst">{k}</span>,c,wait:2,down,wait:.3&#x27;</span>])
+<span class="hljs-keyword">if</span> r:<span class="hljs-keyword">raise</span> SystemExit(r)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(root/<span class="hljs-string">&#x27;scripts/puzzle_note.py&#x27;</span>),<span class="hljs-built_in">str</span>(n)],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

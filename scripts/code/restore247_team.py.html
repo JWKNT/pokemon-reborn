@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>restore247_team.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of restore247_team.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Restore the trained boss team, heal normally and save its verified build.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,subprocess,sys,json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+E=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TEAM READY&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],env=E,check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">116</span>,<span class="hljs-number">521</span>)
+run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>)
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-number">38</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;38,9,20,up:.12,c,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;pc_open_reviewed&#x27;</span>)
+run(<span class="hljs-string">&#x27;pc_exchange_named&#x27;</span>,<span class="hljs-number">23</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;Aegislash&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>)
+run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Sylveon&#x27;</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;38,5,22,up:.12&#x27;</span>)
+run(<span class="hljs-string">&#x27;heal&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Postgame247-TeamReady&#x27;</span>)
+j=json.loads((R/<span class="hljs-string">&#x27;notes/Postgame247-TeamReady-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(p[<span class="hljs-string">&#x27;level&#x27;</span>]==<span class="hljs-number">110</span> <span class="hljs-keyword">and</span> p[<span class="hljs-string">&#x27;hp&#x27;</span>]==p[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">and</span> p[<span class="hljs-string">&#x27;status&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> j[<span class="hljs-string">&#x27;party&#x27;</span>])
+<span class="hljs-keyword">assert</span> [m[<span class="hljs-string">&#x27;move&#x27;</span>]<span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> j[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;moves&#x27;</span>]]==[<span class="hljs-string">&#x27;DRAININGKISS&#x27;</span>,<span class="hljs-string">&#x27;MISTYTERRAIN&#x27;</span>,<span class="hljs-string">&#x27;CALMMIND&#x27;</span>,<span class="hljs-string">&#x27;MOONBLAST&#x27;</span>]
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ALL SIX FULLY TRAINED AND HEALED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

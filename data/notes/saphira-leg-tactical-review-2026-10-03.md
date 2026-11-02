@@ -1,0 +1,107 @@
+# Future Hardy→Saphira preparation: installed-source tactical review
+
+**Future proposal, not executed.** No UI/input, live save, memory, AI/RNG, current battle log or game data was accessed. Installed19.5.43 source takes precedence over the checked [BigJRA Episode19 walkthrough](https://bigjra.github.io/reborn/#labradorra-city). Existing route anchors are in `hardy-puzzle-saphira-route-2026-10-03.md`; this review adds team/commitment mechanics. No future battle configs or major IDs were allocated.
+
+## Firm preparation decisions
+
+1. After Hardy's actual17th badge, HARDCAP is95. Refresh owned reserves and train the relevant members normally; the old six is not a blanket solution to three different tournament fields.
+2. Obtain the guaranteed **Sylveon75** and **Swampertite** normally before tournament entry. Map774 consoleE122[32,17] takes3862→switch1064/Sylveon and2368→1063/Swampertite. Sylveon rewardE128[36,18] is female75, holding RibbonCollar, with **Wish / MistyTerrain / HealBell / Moonblast**. Swampertite is the separate unlocked safeE126[35,18], sets1065 after collection; verify the actual event/page instead of assuming the reward auto-enters the bag. These are ordinary quest codes, not additional challenge passwords. **The frozen post-Hypno bag has MEGARING=0**, so every MegaSwamp recommendation below is conditional on the optional normal Arclight quest in `mega-ring-preplan-2026-10-03.md`. Swampertite alone does not enable Mega evolution. If the detour is deferred, review the separate non-Mega plan instead of replaying this sweep with ordinary Swamp.
+3. After PULSE Mime, normally relearn **Ghost Curse on Cofagrigus over DarkPulse** for the chest/Steelix leg. Hypothetical252HP/333Def/210SpA/218SpDef/68Speed Timid build is not yet executed. Curse is a natural reminder move; use the normal reminder unlock when available, not a trainer/debug editor. Retain Hex/Wisp/TrickRoom. Curse is also useful against final Dragonite, with the free-entry restriction below.
+4. Keep a normal **FocusSash** reserved for Cofa's Saphira Dragonite plan. A backup Kricketune also needs a full-HP/intact Sash. Do not count a previously consumed Sash as owned: verify the fresh bag/held item checkpoint. If both plans are carried, reserve two Sashes. The optional Scarborough collar/sticker quest unlocks normal penthouse Sash purchases; ownership/unlock must be checked first.
+5. Kricketune50 is too slow to promise a safe Steelix switch-and-song. Historical82Speed vs installed Steelix96 means a Sash consumed on entry leaves it vulnerable before singing. Train **65+**, verify **Speed>96**, fullHP and intactSash. HistoricalIV/EV predicts98Speed at60,105 at65, but measured stats govern. Keep PerishSong PP for the boss and at least one other living reserve.
+
+Sylveon should first be a bulky Fairy/Mime counter, not a promised solo Saphira sweep. Suggested **Calm, HP252/SpDef252**, Moonblast/MistyTerrain/Wish/HealBell; choose a fourth slot change only after actual role/stats are reviewed. CuteCharm is sufficient for Moonblast; **Pixilate is only required if using a normally taught HyperVoice/QuickAttack**. AbilityCapsule's normal selector can select the hidden ability in this install; inspect the named result. Ordinary Circus HyperVoice costs5GreenShards if desired. No breeding is necessary for the gift's Wish. The gift's IVs/nature/ability are random and EVs start at zero. Its conditional short Noivern opening, normal Calm/PowerBand acquisition and measured critical guards are reviewed separately in `sylveon-saphira-opening-review-2026-10-03.md`.
+
+Normal nature changes: SevenStreet psychologist's `aChangeNature` selects improved/reduced stats; Calm=SpDef/Atk, Careful=SpDef/SpAtk. Pay the normal quest NPC's twoHeartScales, or a legitimately acquired mint. Do not use switch2190 mint gifts (extra password) or map5 developer mart. Normal EV power-item vendor355E83[36,14] sells Weight/Band/Anklet/Lens; installed boosted power items replace ordinary EV gains with32 in their chosen stat. Eight successful KOs cap a zero stat at252. Fresh EVs and one pilot checkpoint must establish the exact counts; remove oldEVs with normal friendship berries/reset disc before investing. Train and candy only up to95 after badge17.
+
+## Tournament: roster changes are legal between rounds
+
+Entry414E50/51→768 commits to the building, with no assumed external shopping. The separate arenas autorun on entry. Waiting-room PCs:768E67[4,53],776E67[20,53],777E21[20,53]/E67[20,79],778E23[44,12]. **Normal deposit/withdraw heals HP/status/PP**: Storage.rb:148/172/191. Plan different sixes at these real checkpoints; retain a Fly carrier in storage as needed. Lumi/Eve's NPC partner causes normal `pbHealAll`, including PP/faints with Nuzlocke off. Solo Cal/Florinia has no guaranteed event full-heal; storage and bag preparation remain available afterward.
+
+|Fight/field|Exact installed roster|Practical approach and traps|
+|---|---|---|
+|Lumi0+Eve0, Inverse; Cal3 partner on878true, Florinia2 otherwise|Lumi: AlolanNinetales93/Mamoswine93/Lapras94/Aurorus94/Goodra94/Glaceon95. Eve: Porygon2 93/Sigilyph93/Alakazam94/Reuniclus94/Metagross94/Espeon95.|Mien's **WideGuard** covers DazzlingGleam/IcyWind/Blizzard/HyperVoice while partner attacks. Fighting becomes strong against normally Psychic-resistant targets; use **BrickBreak** around their Protects rather than HJK crash. Normal Ghost immunity becomes a weakness, and Steel resistances become weaknesses: no default Cofa/Klinklang tank assumption. Fire into Ice is resisted under Inverse. MagicalSeeds boost five stats but impose recharge. Porygon2 Conversion changes typing; guard its observed type. Our/partner/Lumi/Eve are four columns in a future major display if editorial scope ever changes.|
+|Cal2, Dragon'sDen; first on878true, second otherwise|Magmortar93/Arcanine93/Camerupt93/Kommo-o94/Charizard94/MegaMedicham95.|Prepared MegaSwamp offers special bulk and Ground damage; **don't treat Water as a Fire counter on this field**. RockSlide for airborne Charizard; EQ for grounded Fire. Magmortar/Camerupt seeds grant+SpAtk and FlashFire; LavaPlume has an extra field boost. Kommo-o Sash+field DD and MegaMedicham must be planned as physical threats. Cofa Wisp/TR is a backup after the special lead is controlled; no bare TR guarantee into Magmortar.|
+|Florinia3, Glitch|Hippowdon93/Torterra94/Ferrothorn94/Sandslash94/Tangrowth94/Cradily95.|Bring **Cryogonal95 with Haze** (normal reminder over FreezeDry for this leg), Recover/IceBeam/LightScreen; Arc for Ferrothorn, Mien BrickBreak for Cradily. Burn Hippowdon before a Cryo switch: EQ immunity helps but StoneEdge critical threatens unburned Cryo. Glitch uses Gen1 move type categories; Dark/Fairy/Steel become Normal, and **Special=max(SpAtk,SpDef) after their stages**, so XSpDef can raise Cryo's offense too. Haze removes enemy seeded Amnesia/Stockpile and our boosts: do not blindly maintain a six-boost sweep after Haze. Ferrothorn's special AV and Explosion, Torterra Amnesia, Cradily Recover/Stockpile require explicit PP/HP branches.|
+
+Compiled rosters with all moves/items/IVs/EVs are `work/tournament-{lumi,eve,cal,florinia}-installed-team.json`. Cal and Florinia source trainer items are empty. The settled major roadmap **excludes these three competitive fights**, keeping them in the full journey; it includes Gargantuan and Gym18. Do not add unrequested intermediate chapters.
+
+## Chest defense is26waves and immediately commits to Steelix
+
+779/780 use Dragon'sDen. Start only after a whole-challenge checkpoint with fixed six, medicine, PP and held items. Chest779E74/75[26/27,43] sets475102; StoryE76→475103/1074true. E81/E83/E85 are parallel scheduler/movement/collision controllers. **Speed-up off** is the source's own recommendation. Stay near the chest and intercept visible threats using reviewed bounded routes, not an unobserved long path.
+
+The pause menu itself **does not pause threats**: PauseMenu.rb:24→pbUpdateSceneMap→Scene_Map.miniupdate→Game_Map.update→event.update. Bag and Pokémon screens are enclosed in `pbFadeOutIn`/`pbPushFade`; `pbUpdateSceneMap` refuses updates while `pbIsFaded` (Messages.rb:135, SpriteWindow.rb:818–846). Enter Bag/party promptly and do planning/healing/PP restoration there. A future wrapper must prove the actual screen before treating the challenge as paused; never spend minutes on the field/pause command list. Between waves there is no automatic HP/PP heal, and a consumed held Sash/seed does not come back.
+
+|Wave|Opponent|
+|---:|---|
+|1|Mandibuzz87|
+|2–3|Ambipom87 each|
+|4|KnightDan: Hitmonchan/Vaporeon/Noivern87|
+|5|Blaziken91|
+|6|Charizard88|
+|7|KnightFrey: Altaria/Mawile/Garchomp87|
+|8|Tyrantrum87|
+|9|Zoroark92|
+|10|Mandibuzz87|
+|11|Magneton92|
+|12|KnightEdgard: Bisharp/Arcanine/Haxorus87|
+|13–14|Druddigon87 each|
+|15|Tyrantrum87|
+|16–18|Aerodactyl88 each|
+|19|Garchomp90|
+|20|Flygon88|
+|21|KnightKalezis: Kommo-o/Klinklang/Salamence87|
+|22–23|Flygon88 each|
+|24|Aerodactyl88|
+|25|Druddigon87|
+|26|Charizard90|
+
+Exact generated wild moves and four trainer extracts are in `work/saphira-defense-rosters-source.json` and `work/saphira-knight-*-source.json`. Wild encounter generation is ordinary/random, not the fixed trainer IV/EV tables. Wave collision scripts set **Never_Escape1080**, clear it after battle, and hide/remove the threat only when **battle result117==1**. Do not count capture/flee as clearing a wave. FoulPlay Mandibuzz/Zoroark punish an unnecessary physical setup; heal lead/status/PP normally and use Mien's reliable Fighting move where applicable. Charizard/Blaziken Fire attacks and Druddigon GunkShot are reasons to keep Fairy/Perish reserves off the front. Preserve full-HP Cofa and CursePP before clearing final Charizard.
+
+E81 next autorun page runs **Steelix/Gargantuan/1 immediately after wave26** (i275); **no guaranteed final party-order/menu/save/PC window**. The successful challenge must remain consecutive. A future challenge journal should cover26 visible wins plus boss victory, shared challenge-attempt count and per-round medicine ledger. Full journeys retain every failed defense/attempt. Major archive includes **only Gargantuan**, per the roadmap; label attempts as the full defense+boss challenge count and its items as the boss's visible uses, with an explicit whole-chain reconciliation.
+
+### Gargantuan primary: Ghost Curse
+
+Installed ordinary trainer—not a scripted shield boss—Steelix100 female **form2/SheerForce/AssaultVest/Adamant**; EV[3252,252,4,0,252,0], IV31. Form2 inherits regular base stats: estimated **1104HP/295Atk/437Def/131SpA/229SpDef/96Speed**, AV→343 effectiveSpDef. Moves EQ/DragonTail/FireFang/HeavySlam. No recovery or alternate party member.
+
+Curse handler `Battle_MoveEffects.rb:7657–7693` pays half the Ghost user's maxHP and then sets the target effect even if that payment faints Cofa. EOT `Battle.rb:5605` takes one quarter maxHP: **276 per tick** here. It is only cleared on Holy; damage immunity is MagicGuard (or WonderGuard on Colosseum), none present here. There is **no Gargantuan form/toobig/shield exception**, and no event clear. DragonTail is−6 priority, so Curse acts first even with Cofa68Speed<96; phasing afterward does not remove the opponent's curse.
+
+The hypothetical Cofa252HP/333Def takes approximately **EQ97–114, FireFang83–98, HeavySlam116–137**; corresponding critical ceilings171/146/205. Thus a **full-HP Cofa lead or a genuine free replacement** can apply Curse. A hot switch followed by a second hit is a different situation and needs an HP check. Preserve Cofa until final wave; if necessary restore it during the actual Bag/party pause before winning that wave. After Curse, preserve a living bench member and stall remaining ticks with normal heals/Protect; a sacrificed Cofa is acceptable. If Cofa faints from the incoming hit before it acts, Curse did not happen—require the visible curse message.
+
+Perish backup: Kricket65+Speed>96, fullHP/Sash. It can survive a single ordinary entry hit and sing on the next turn before Steelix, but **DragonTail can phase it on entry**, so inspect/resummon rather than assert success. SheerForce suppresses FireFang burn/flinch; a Mummy contact exchange can change that ability, so don't carry the suppression assumption after switching Cofa into contact. Successful PerishSong leaves3 end-turn ticks; keep another living reserve. Do not sacrifice the whole team at count0.
+
+## Saphira: normal independent preparation after Steelix
+
+Steelix win transfers to780/current coordinates and sets1098true. **Only now** a real field preparation opportunity exists. One-use LightShard780E74[26,40] heals HP/status/PP/revival, not held consumables. Use it after any planned party/held-item change. Stage[30,12] before touch780E93[30,11]. Record fresh team/items and do not assume a PC in this room. If a planned normal reminder/nature/training trip requires exiting, source-review the actual exit before doing it; complete the important build before tournament entry.
+
+Saphira roster: **Noivern95 ElementalSeed/Infiltrator; Salamence96 Sash/Moxie; Garchomp96 Scarf/RoughSkin; Haxorus95 Sash/MoldBreaker; Charizard97 CharizarditeX; Dragonite100 Iapapa/Multiscale**. Three FullRestores. Every physical dragon except ScarfGarchomp carries DragonDance. Exact moves/EVs are in `work/saphira-installed-team.json`.
+
+Dragon'sDen: Dragon/Fire damage×1.5, Water/Ice×0.5, Dragon defense×1.3; DragonDance gives+2Atk/+2Speed. Noivern seed gives+1SpAtk and a FlashFire effect which adds×1.5 to Fire. Infiltrator bypasses LightScreen/Reflect. Criticals bypass positive defensive stages. Multiscale Dragonite loses **all weaknesses contributed by its Dragon type**, including Fairy/Ice, plus ordinary full-HP Multiscale halves damage. Never promise a simple Cryo IceBeam/Fairy OHKO into full Dragonite.
+
+### Practical proposed route: bulky MegaSwamp + Curse insurance, keep Dragon'sDen
+
+Normal **Careful MegaSwampert95**, EV[252,4,0,0,212,40], uses owned historical IV[9,30,12,7,10,18]: estimate **363HP/319Atk/225Def/172SpA/300SpDef/164Speed**. This is a future rebuild, not the current Swamp. Actual EVs must be cleared/freed normally before power-item training. **+6Speed656** beats installed Noivern360, ScarfGarchomp480, and one field DD Salamence630/Haxorus610/Charizard638. No reliance on SwiftSwim/rain. Four moves **Protect / Earthquake / Surf / RockSlide**; normal reminder restores RockSlide/Protect and owned HM Surf. Hold Swampertite (give normally). Setup six stages Attack/Speed/Defense/SpDef with ordinary self-X items, plus one XAccuracy(+2 stages) for RockSlide. Do not apply partner-target X item assumptions.
+
+First ordinary move **Mega+Protect** allows the form change without taking the first attack; prove the Mega form visibly. Noivern critical ceilings are approximately **DragonPulse322, Boomburst236, Flamethrower170** against that build. While DragonPulse's10PP remains, use a conservative **HP>325 before a setup/move** or a priority full heal; do not blindly take two damaged turns. Noivern's seed makes an unprotected Cofagrigus TR opener unsafe. Count each visible DragonPulse use (including a blocked one that spendsPP); **never inspect live opponentPP/AI**. **MaxPotion becomes available in normal default marts at17badges; FullRestore and Revive enter only at18** (`Mart.rb:735–741`). Buy MaxPotions and normal status cures before tournament entry; use FullRestore only if legitimately already owned. UltraPotion's200HP may leave the guard unsatisfied. A full-heal turn can still end at lowHP after a critical—inspect the next command.
+
+Once ten visible DragonPulses prove exhaustion, the remaining critical ceiling is below240. Raise SpDef and follow **HP>240** before setup; full heal otherwise. At+6SpDef, ordinary Boomburst≤40, Fire≤29, so multiple guarded setup actions fit between heals. This is a finite PP-stall plan; stop if Noivern starts Struggle or faints before setup completes. Build order and stock quantities need actual fresh damage/PP evidence; this note does not certify a blind script. Carry roughly25 full-HP restorations as a generous initial budget, and normal status cures/already-owned Revives; buy supplies before the tournament lock. FullHeal cures status and does not restoreHP.
+
+At+6Atk: **RockSlide541–636 into Noivern,536–630 into Salamence; EQ463–545 into Garchomp,491–578 into Haxorus,806–948 into MegaCharX**. Respect both Sashes; take two attacks, with+6Speed still beating a single field DD. Ground/Rock moves avoid Dragon'sDen Water/Ice penalties. Keep Surf as an ordinary utility move, but **do not press it twice** in this plan.
+
+**The sweep is practical, not a guaranteed critical-proof chain.** A healing turn against Noivern/Garchomp still allows their attack, so the next opponent does not necessarily meet a full-HP Swamp. Before first striking Salamence/Haxorus, inspect actual HP and public DD stages. If the foe is unboosted and HP exceeds its unboosted critical ceiling, a first Sash strike is safe: an attack has the reviewed base-stage ceiling, while a DD gives no damage and the next attack wins the one-DD speed race. Do not insert a heal between those two strikes when that race is valid. If HP was already low, healing before the first strike can grant DD; the subsequent positive Attack boost survives critical calculations and invalidates the unboosted ceiling. Repeated healing can also grant additional DD and lose the speed race. There is no unconditional handoff proof. Use an explicit observed-HP/stage fallback, a preserved free-entry finisher, or an ordinary retry rather than claiming XDefense prevents those criticals. The non-Mega AV review applies the same restriction.
+
+At final Dragonite, do not bank on two RockSlides while it can use field DD and priority ExtremeSpeed. Prepare a **full-HP/intact-Sash Cofa free entry after Swamp's actual/intentional faint**, then Curse immediately. Normal ExtremeSpeed is immune; DragonClaw/FirePunch can be survived once by Sash, and Curse still applies if its halfHP payment sacrifices Cofa. **A hot switch into a physical hit can consume Sash before Cofa's next action and is not guaranteed**; only an observed DD/immuneES switch preserving fullHP qualifies. Curse bypasses Multiscale and huge defenses; keep living reserves and use normal healing/Revives through the ticks/Iapapa/FullRestore healing. No need to win a setup-speed race with Dragonite. Require the visible curse effect before stalling.
+
+### Field-change alternatives are guarded options
+
+MistyTerrain really replaces the field in Reborn (not a weather/terrain overlay), for5turns or8 with AmplifieldRock. Fairy special defense×1.5, Moonblast power×1.5, Dragon damage×0.5 and grounded status prevention help Sylveon. It **cannot refresh while already Misty** and expires back to its actual backup. Defog's Indoor field-change runs `breakField`, popping temporary Misty and revealing that backup—normallyDragon'sDen here, orIndoor if that was the actual backing field. It does not blindly establish permanentIndoor. Installed baseDen has no Defog field-change entry. Guard actual field messages/timer before any queued action. AmplifieldRock normal pickups include179E45[22,11] and383E13[28,16], subject to actual collected flags. Do not assume the old5turn route and silently extend it. A bulk-trained Sylveon can fight during this window, but Haxorus/Garchomp Poison/Steel coverage still punishes it; no unconditional solo sweep is claimed.
+
+Two Surf/MuddyWater/SparklingAria uses permanently change Dragon'sDen to Cave. Ice becomes effective and Dragonite's special weakness protection disappears. **However the SECOND Earthquake/Bulldoze/Magnitude/etc in Cave causes full-HP ceiling-collapse damage to all unprotected battlers, including when an opponent uses it** (`Battle_Field.rb:587`). Sash Salamence and Haxorus each getting an EQ turn can therefore destroy a careless sweep. Cave IcePunch/RockSlide plans require a quake ledger/Protect and a new review. They are not the final preferred plan.
+
+## Badge18 and future ordinary queue boundaries
+
+Saphira victoryE93 sets475104 **without awarding badge18**. Return to chest780E91/92[26/27,43], stand south[26/27,44], faceUp, interact. This sets475105, `badges[17]=true`,659true and givesTM02. Only then cap100 and a post-badge save checkpoint is legitimate.
+
+Useful future normal-control batches: (1)774console/reward acquisition with flags/visible-name guards; (2)PC waiting-room exchange/heal with exact six/PP/held checks; (3)one or a few bounded chest threat intercepts, return immediately to a proved Bag/party screen for thinking; (4)Steelix Curse single action then bounded healing/tick ledger; (5)Noivern public move-use ledger with actor/form/HP/stage/menu guards, never blind setup; (6)chest badge interaction with final badge/switch proof. No full geometric route through unobserved rooms is fabricated here.
+
+Validation artifacts: `scripts/saphira_source_probe.rb` (static map/species lookup), `scripts/saphira_damage_review.py` (standalone read-only estimates), `work/saphira-future-damage-review.json`, full static26wave/controller/trainer extracts. Small damage rounding uncertainty remains; use conservative ceilings and fresh numeric party stats before executing a future plan. Source probes and calculator do not import legacy input helpers and were run only against installed/frozen data; syntax checks pass.

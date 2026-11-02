@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>static_transfer_to.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of static_transfer_to.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Read-only installed event transfer lookup; pages remain proposals, not active route proof.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+targets=<span class="hljs-variable constant_">ARGV</span>.map(&amp;<span class="hljs-symbol">:to_i</span>);<span class="hljs-keyword">raise</span> <span class="hljs-string">&#x27;Target map IDs required&#x27;</span> <span class="hljs-keyword">if</span> targets.empty?
+r=[]
+<span class="hljs-title class_">Dir</span>.glob(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data/Map[0-9][0-9][0-9].rxdata&#x27;</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">f</span>|
+ mid=<span class="hljs-title class_">File</span>.basename(f)[<span class="hljs-number">3</span>,<span class="hljs-number">3</span>].to_i;m=load_rgss(f)
+ m.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">id,e</span>|
+  p=plain(e);p[<span class="hljs-string">&#x27;pages&#x27;</span>].each_with_index <span class="hljs-keyword">do</span> |<span class="hljs-params">pg,i</span>|
+   pg[<span class="hljs-string">&#x27;list&#x27;</span>].each <span class="hljs-keyword">do</span> |<span class="hljs-params">c</span>|
+    <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span> &amp;&amp; c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]==<span class="hljs-number">0</span> &amp;&amp; targets.<span class="hljs-keyword">include</span>?(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>])
+    r &lt;&lt; {<span class="hljs-symbol">map:</span>mid,<span class="hljs-symbol">event:</span>id,<span class="hljs-symbol">x:</span>p[<span class="hljs-string">&#x27;x&#x27;</span>],<span class="hljs-symbol">y:</span>p[<span class="hljs-string">&#x27;y&#x27;</span>],<span class="hljs-symbol">page:</span>i,<span class="hljs-symbol">destination:</span>c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>,<span class="hljs-number">3</span>],<span class="hljs-symbol">condition:</span>pg[<span class="hljs-string">&#x27;condition&#x27;</span>]}
+   <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">end</span>
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(r)
+</code></pre>
+  </body>
+</html>

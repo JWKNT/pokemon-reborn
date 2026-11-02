@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>cauldron340_caves.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of cauldron340_caves.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Follow the read-only validated Teknite room route with ordinary guarded movement.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,json,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TEKNITE&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+start=<span class="hljs-built_in">int</span>(sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--from&#x27;</span>)+<span class="hljs-number">1</span>]) <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--from&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> json.loads((R/<span class="hljs-string">&#x27;work/340-teknite-plan.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;transfers&#x27;</span>][start:]:
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,step[<span class="hljs-string">&#x27;map&#x27;</span>],step[<span class="hljs-string">&#x27;event&#x27;</span>],<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;settle_arrival&#x27;</span>,step[<span class="hljs-string">&#x27;arrival&#x27;</span>][<span class="hljs-number">0</span>])
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">646</span>,<span class="hljs-number">22</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;finish_rock_climb&#x27;</span>,<span class="hljs-number">646</span>,<span class="hljs-number">19</span>,<span class="hljs-number">23</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Cauldron340-RidgeClimb&#x27;</span>)
+</code></pre>
+  </body>
+</html>

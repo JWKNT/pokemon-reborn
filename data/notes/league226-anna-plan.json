@@ -1,0 +1,36 @@
+{
+  "source": "Installed static Reborn fieldtext.rb STARLIGHT and trainer export; no live battle data",
+  "lead": "Mawile, allHP and fullPP restored.",
+  "target_setup": {
+    "Mega": true,
+    "Attack": 6,
+    "Speed": 6,
+    "SpecialDefense": 4,
+    "Defense": 2
+  },
+  "rationale": [
+    "Mawile Speed119 needs3XSpeed (+6,476) to exceed Starmie361 and MegaMetagross350.",
+    "Ninetales Moonblast has1.5 move boost and1.3 Fairy boost; Mega Mawile at+4SpDef takes about46HP, but criticals ignore boosts.",
+    "Starlight boosts Psychic/Dark1.5 and Fairy1.3; Dark attacks also gain Fairy type interaction.",
+    "AuroraVeil works on this field and lasts8turns withLightClay; retain defense against possible Metagross surviving SuckerPunch whileVeil is up.",
+    "Nostra Jirachi can boostDef+2 withCosmicPower and heal fully withWish. Prefer +6AtkIronHead afterVeil expires, or observe and adapt."
+  ],
+  "intended_actions": "Mega+SwordsDance first; XSpDef twice, 3XSpeed and2moreSwordsDance, XDefend1, healing as publicHP requires. Attack promptly once setup complete; noXAccuracy needed forIronHead/SuckerPunch.",
+  "attack_preferences": {
+    "Ninetales": "IronHead",
+    "Starmie": "SuckerPunch; attacks only",
+    "Gardevoir": "IronHead",
+    "Sylveon": "IronHead",
+    "Metagross": "SuckerPunch; may need2 ifVeil active",
+    "Nostra": "IronHead; monitorVeil andCosmicPower"
+  },
+  "do_not_save": true,
+  "reviewed_epoch": 1791363071.724446,
+  "route_validation": {
+    "preentry_switch506": true,
+    "preentry_switch735": true,
+    "Lin_first_team": "LIN/Lin/0",
+    "Lin_second_team": "LIN/Lin/3",
+    "no_intermediate_pbSave": "Reviewed installedAnna820E66,Lin821E10 andLin824E3; onlypbSave appears afterChild at824E3command1010"
+  }
+}

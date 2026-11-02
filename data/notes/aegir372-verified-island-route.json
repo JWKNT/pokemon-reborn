@@ -1,0 +1,17 @@
+{
+  "verified_epoch": 1791973484.32967,
+  "route": "Lower Aegir landing85043,66 to Florinia island85047,51",
+  "steps": [
+    "surface_walk85026,65",
+    "dive851",
+    "underwater85123,61 event3 enter ->12,50",
+    "underwater85143,13 event7 enter ->62,106",
+    "underwater85168,107 surface850",
+    "surface_walk85068,103",
+    "event85057 enter ->upper shore62,33",
+    "layer_walk85058,42 groundTrue",
+    "down:.12 wait3 triggers82 hardjump ->surf58,48",
+    "surface_walk85047,51 (lands54,51)"
+  ],
+  "warning": "eventq enter rejects hardjump82 because no transfer; direct normal down required from58,42. Keep Surf/Dive until island. Save after restoring Ray RockSlide1 Protect3."
+}

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>wall309_strength.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of wall309_strength.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Activate a named owned Strength user through the visible party menu.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+name=sys.argv[<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Swampert&#x27;</span>
+run(<span class="hljs-string">&#x27;party_open&#x27;</span>);run(<span class="hljs-string">&#x27;party_pick&#x27;</span>,name,<span class="hljs-string">&#x27;--single&#x27;</span>)
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;strength&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;summary&#x27;</span> <span class="hljs-keyword">in</span> t,t
+act(<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;strength is already being used&#x27;</span> <span class="hljs-keyword">in</span> read().lower():act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.4&#x27;</span>)
+<span class="hljs-keyword">else</span>:run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=8&#x27;</span>)
+run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+</code></pre>
+  </body>
+</html>

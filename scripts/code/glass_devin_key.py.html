@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_devin_key.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_devin_key.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed ladder/outer route to Devin and the Cage Key.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">737</span>,<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>)
+run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>,<span class="hljs-number">732</span>,<span class="hljs-number">35</span>,<span class="hljs-number">19</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;s=json.loads(p.read_text());s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;946&#x27;</span>]=<span class="hljs-literal">False</span>;s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;947&#x27;</span>]=<span class="hljs-literal">False</span>;p.write_text(json.dumps(s))
+run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>,<span class="hljs-number">732</span>,<span class="hljs-number">8</span>,<span class="hljs-number">48</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--hold-straights&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">732</span>,<span class="hljs-number">58</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">738</span>,<span class="hljs-number">13</span>,<span class="hljs-string">&#x27;MeteorAceM&#x27;</span>,<span class="hljs-string">&#x27;Devin&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_plan&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/glass-devin-plan.json&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/glass-devin-live.log&#x27;</span>,<span class="hljs-string">&#x27;--stop-after-battle&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">738</span>,<span class="hljs-number">13</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--past-battle&#x27;</span>,<span class="hljs-string">&#x27;--after-last-battle&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>,<span class="hljs-string">&#x27;--world-verified&#x27;</span>)
+s=json.loads(p.read_text());s.setdefault(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{})[<span class="hljs-string">&#x27;738,13,A&#x27;</span>]=<span class="hljs-literal">True</span>;p.write_text(json.dumps(s))
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">738</span>,<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;item&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Glass-Cage-Key&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CAGE KEY OBTAINED; REJOIN GLACEON AND FREE ESPEON&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>hunt_with_honey.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of hunt_with_honey.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Use bounded owned Honey encounters, fleeing visibly identified non-targets.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+wanted=sys.argv[<span class="hljs-number">1</span>].split(<span class="hljs-string">&#x27;,&#x27;</span>);limit=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> <span class="hljs-number">6</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=limit&lt;=<span class="hljs-number">16</span>
+<span class="hljs-keyword">for</span> used <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(limit+<span class="hljs-number">1</span>):
+ stop=ROOT/<span class="hljs-string">&#x27;work/stop-honey-hunt&#x27;</span>
+ <span class="hljs-keyword">if</span> stop.exists():stop.unlink();<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Honey hunt paused for route review&#x27;</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+ r=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> r).lower()
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> re.search(<span class="hljs-string">r&#x27;\b(?:bag|bae)\b&#x27;</span>,t),<span class="hljs-string">&#x27;Battle command required&#x27;</span>
+ enemy=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> r <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.37</span>).lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,n.lower(),w.strip(<span class="hljs-string">&#x27;.,!?&#x27;</span>)).ratio()&gt;=<span class="hljs-number">.83</span> <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> wanted <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> enemy.split()):
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TARGET FOUND&#x27;</span>,enemy,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> used==limit:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Honey search limit reached; stopped at command screen&#x27;</span>)
+ hp=re.search(<span class="hljs-string">r&#x27;(\d+)\s*/\s*(\d+)&#x27;</span>,t)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> hp <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> <span class="hljs-number">0</span>&lt;<span class="hljs-built_in">int</span>(hp[<span class="hljs-number">1</span>])&lt;=<span class="hljs-built_in">int</span>(hp[<span class="hljs-number">2</span>]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Public HP needs review before another escape&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">int</span>(hp[<span class="hljs-number">1</span>])&lt;<span class="hljs-built_in">min</span>(<span class="hljs-number">120</span>,<span class="hljs-built_in">int</span>(hp[<span class="hljs-number">2</span>])*<span class="hljs-number">.35</span>):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;HP reserve reached; stopped at command screen&#x27;</span>)
+ <span class="hljs-keyword">for</span> escape <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>):
+  result=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>)],capture_output=<span class="hljs-literal">True</span>,text=<span class="hljs-literal">True</span>)
+  <span class="hljs-built_in">print</span>(result.stdout,flush=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">if</span> result.returncode==<span class="hljs-number">0</span>:<span class="hljs-keyword">break</span>
+  message=result.stdout+result.stderr
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;prevents escaping&#x27;</span> <span class="hljs-keyword">in</span> message.lower() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;arena trap&#x27;</span> <span class="hljs-keyword">in</span> message.lower():<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Trapping ability visibly blocks escape; battle action required&#x27;</span>)
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;failed run acknowledged; next command ready&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> message:<span class="hljs-keyword">raise</span> SystemExit(result.stderr <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;Escape needs review&#x27;</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Three escape attempts failed; inspect HP before continuing&#x27;</span>)
+ act(<span class="hljs-string">&#x27;wait:.8&#x27;</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/use_field_item.py&#x27;</span>),<span class="hljs-string">&#x27;Honey&#x27;</span>],check=<span class="hljs-literal">True</span>)
+ act(<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+</code></pre>
+  </body>
+</html>

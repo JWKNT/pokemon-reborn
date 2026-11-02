@@ -1,0 +1,32 @@
+{
+  "epoch": 1791919527.660248,
+  "planned_team": [
+    "Meowstic",
+    "Magearna",
+    "Zapdos",
+    "Mawile",
+    "Volcanion",
+    "Heatran"
+  ],
+  "completed": [
+    "Four Heart Scales farmed normally",
+    "Volcanion EV Tuner moved252SpD to252SpA",
+    "Heatran withdrawn instead of Latias, level135, EarthPower/FlashCannon/Flamethrower/Protect",
+    "Wise Glasses recovered from boxed Darkrai",
+    "Heatran252HP252SpA training complete",
+    "MawileBrave and VolcanionQuiet applied",
+    "WiseGlasses held by Heatran"
+  ],
+  "remaining": [
+    "Ability Capsule178event25 then FlashFire",
+    "Full heal and lead reorder; fresh Helix entry checkpoint"
+  ],
+  "tactical_cautions": [
+    "Reshiram Fire typing cancels Dragon Fairy weakness; Mawile PlayRough is neutral. Brave improves prior near KO but do not assume guaranteed kill.",
+    "The foe Magearna has252HP252SpD and3IV each from installed trainer data. Quiet252SpA Volcanion improves Flamethrower but low rolls may still leave it alive.",
+    "Heatran is Fire-immune only after FlashFire capsule. The physical Victini can still hurt it badly with FusionBolt; preserve Intimidate/support and inspect public target choices.",
+    "Use normal full-chain resets only. No intermediate gauntlet saves.",
+    "Mawile loses Mega form on faint, so do not rely on revived Huge Power."
+  ],
+  "round1_efficiency_plan": "Keep verified first four turns. With familiar Ninetales/Banette turn5 use FlashCannon on Ninetales (avoid Banette DestinyBond). DG turns6\u20137 when safe. If turn8 resembles the previous attempt (Mimikyu/Raikou, MageHP180), use UltraPotion BEFORE TrickRoom expires rather than attacking at150HP into the fast Zekrom phase. Recast TrickRoom on turn9 only after observing survivable foes/HP; then sweep under refreshed speed order. Previous turn9\u201312 healing chain cost4potions because we let TrickRoom expire atlowHP. Inspect public state; do not hardcode damage or enemies."
+}

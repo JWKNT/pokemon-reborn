@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>input_owner.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of input_owner.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One process family owns normal game controls; inherited children share it.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> atexit
+<span class="hljs-keyword">import</span> fcntl
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> time
+<span class="hljs-keyword">import</span> uuid
+
+_handle = <span class="hljs-literal">None</span>
+_joined = <span class="hljs-literal">False</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">acquire</span>():
+    <span class="hljs-keyword">global</span> _handle, _joined
+    <span class="hljs-keyword">if</span> _handle <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> _joined:
+        <span class="hljs-keyword">return</span>
+    path = Path(__file__).resolve().parents[<span class="hljs-number">1</span>] / <span class="hljs-string">&#x27;work/active-input-owner.json&#x27;</span>
+    path.parent.mkdir(exist_ok=<span class="hljs-literal">True</span>)
+    handle = path.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a+&#x27;</span>)
+    <span class="hljs-keyword">try</span>:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    <span class="hljs-keyword">except</span> BlockingIOError:
+        handle.seek(<span class="hljs-number">0</span>)
+        <span class="hljs-keyword">try</span>:
+            owner = json.load(handle)
+        <span class="hljs-keyword">except</span> (ValueError, OSError):
+            owner = {}
+        handle.close()
+        <span class="hljs-keyword">if</span> owner.get(<span class="hljs-string">&#x27;token&#x27;</span>) <span class="hljs-keyword">and</span> owner[<span class="hljs-string">&#x27;token&#x27;</span>] == os.environ.get(<span class="hljs-string">&#x27;REBORN_INPUT_OWNER&#x27;</span>):
+            _joined = <span class="hljs-literal">True</span>
+            <span class="hljs-keyword">return</span>
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">f&quot;Another UI worker owns game controls: PID <span class="hljs-subst">{owner.get(<span class="hljs-string">&#x27;pid&#x27;</span>, <span class="hljs-string">&#x27;starting&#x27;</span>)}</span>&quot;</span>)
+    token = uuid.uuid4().<span class="hljs-built_in">hex</span>
+    handle.seek(<span class="hljs-number">0</span>)
+    handle.truncate()
+    json.dump({<span class="hljs-string">&#x27;pid&#x27;</span>: os.getpid(), <span class="hljs-string">&#x27;token&#x27;</span>: token, <span class="hljs-string">&#x27;started_epoch&#x27;</span>: time.time()}, handle)
+    handle.flush()
+    os.environ[<span class="hljs-string">&#x27;REBORN_INPUT_OWNER&#x27;</span>] = token
+    _handle = handle
+    atexit.register(release)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">release</span>():
+    <span class="hljs-keyword">global</span> _handle
+    <span class="hljs-keyword">if</span> _handle <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+        fcntl.flock(_handle, fcntl.LOCK_UN)
+        _handle.close()
+        _handle = <span class="hljs-literal">None</span>
+</code></pre>
+  </body>
+</html>

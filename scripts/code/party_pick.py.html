@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>party_pick.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of party_pick.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Select a named Pokemon after observing and verifying the party cursor.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib,re
+<span class="hljs-keyword">from</span> party_cursor <span class="hljs-keyword">import</span> selected_card,selection_path
+name=sys.argv[<span class="hljs-number">1</span>].lower();r=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>].lower() <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> r)
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (<span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;choose a pok&#x27;</span>,<span class="hljs-string">&#x27;chooce a pok&#x27;</span>,<span class="hljs-string">&#x27;choose pok&#x27;</span>,<span class="hljs-string">&#x27;on which&#x27;</span>,<span class="hljs-string">&#x27;teach which&#x27;</span>]) <span class="hljs-keyword">or</span> (<span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> (t.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span> <span class="hljs-keyword">or</span> t.count(<span class="hljs-string">&#x27;able&#x27;</span>)&gt;=<span class="hljs-number">2</span>))):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Party selection expected&#x27;</span>)
+<span class="hljs-keyword">for</span> observation <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>):
+ candidates=[]
+ <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> r:
+  word=re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,v[<span class="hljs-string">&#x27;text&#x27;</span>].lower());word={<span class="hljs-string">&#x27;hew&#x27;</span>:<span class="hljs-string">&#x27;mew&#x27;</span>,<span class="hljs-string">&#x27;monaros&#x27;</span>:<span class="hljs-string">&#x27;ampharos&#x27;</span>,<span class="hljs-string">&#x27;ampharoe&#x27;</span>:<span class="hljs-string">&#x27;ampharos&#x27;</span>,<span class="hljs-string">&#x27;arpharos&#x27;</span>:<span class="hljs-string">&#x27;ampharos&#x27;</span>,<span class="hljs-string">&#x27;auveon&#x27;</span>:<span class="hljs-string">&#x27;sylveon&#x27;</span>,<span class="hljs-string">&#x27;suveon&#x27;</span>:<span class="hljs-string">&#x27;sylveon&#x27;</span>,<span class="hljs-string">&#x27;auveor&#x27;</span>:<span class="hljs-string">&#x27;sylveon&#x27;</span>}.get(word,word);score=difflib.SequenceMatcher(<span class="hljs-literal">None</span>,name,word).ratio()
+  <span class="hljs-keyword">if</span> score&gt;=<span class="hljs-number">.78</span> <span class="hljs-keyword">and</span> <span class="hljs-number">.1</span>&lt;v[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.7</span>:candidates.append((score,v))
+ <span class="hljs-keyword">if</span> candidates:<span class="hljs-keyword">break</span>
+ r=snap()
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> candidates:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Pokemon name not found&#x27;</span>)
+v=<span class="hljs-built_in">max</span>(candidates,key=<span class="hljs-keyword">lambda</span> a:a[<span class="hljs-number">0</span>])[<span class="hljs-number">1</span>];col=<span class="hljs-built_in">int</span>(v[<span class="hljs-string">&#x27;x&#x27;</span>]&gt;<span class="hljs-number">.5</span>);row=<span class="hljs-built_in">round</span>((v[<span class="hljs-string">&#x27;y&#x27;</span>]-(<span class="hljs-number">.15</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> col <span class="hljs-keyword">else</span> <span class="hljs-number">.195</span>))/<span class="hljs-number">.21</span>)
+<span class="hljs-keyword">if</span> row <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>]:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Party row review&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PARTY PICK&#x27;</span>,v[<span class="hljs-string">&#x27;text&#x27;</span>],<span class="hljs-string">&#x27;slot&#x27;</span>,row*<span class="hljs-number">2</span>+col,flush=<span class="hljs-literal">True</span>)
+target=row*<span class="hljs-number">2</span>+col
+keys=selection_path(selected_card(STATE),target,multiselect=(<span class="hljs-string">&quot;confirm&quot;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&quot;entered&quot;</span> <span class="hljs-keyword">in</span> t))
+<span class="hljs-comment"># Allow each visible cursor step to settle; consecutive same-key fast taps</span>
+<span class="hljs-comment"># otherwise occasionally collapse into one input (session290 Fly recovery).</span>
+<span class="hljs-keyword">if</span> keys:act(*[v <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> keys <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> (key,<span class="hljs-string">&#x27;wait:.09&#x27;</span>)],<span class="hljs-string">&#x27;wait:0.3&#x27;</span>);snap()
+<span class="hljs-keyword">if</span> selected_card(STATE)!=target:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Party cursor mismatch; stopped before selection&#x27;</span>)
+act(<span class="hljs-string">&#x27;c:0.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.0&#x27;</span>)
+confirmed_switch=<span class="hljs-literal">False</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+ t=read();low=t.lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--single&#x27;</span> <span class="hljs-keyword">in</span> sys.argv:<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;(?:do|lo|o)\s*what\s*with&#x27;</span>,low):
+  m=re.search(<span class="hljs-string">r&#x27;(?:do|lo|o)\s*what\s*with\s+([a-z ]+)&#x27;</span>,low)
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> m <span class="hljs-keyword">or</span> difflib.SequenceMatcher(<span class="hljs-literal">None</span>,name,m.group(<span class="hljs-number">1</span>).replace(<span class="hljs-string">&#x27; &#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>)).ratio()&lt;<span class="hljs-number">.78</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Selected Pokemon mismatch; confirmation stopped&#x27;</span>)
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;sw(?:i|ui)tch\s*in&#x27;</span>,low):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Switch option review&#x27;</span>)
+  act(<span class="hljs-string">&#x27;c:0.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.5&#x27;</span>);confirmed_switch=<span class="hljs-literal">True</span>;<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> low.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>:
+  <span class="hljs-comment"># A double faint offers the next replacement immediately after the first.</span>
+  <span class="hljs-keyword">if</span> confirmed_switch:<span class="hljs-keyword">break</span>
+  act(<span class="hljs-string">&#x27;c:0.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.0&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">break</span>
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Party confirmation did not complete&#x27;</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--single&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

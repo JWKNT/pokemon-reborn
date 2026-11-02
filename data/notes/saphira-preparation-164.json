@@ -1,0 +1,22 @@
+{
+  "session": 164,
+  "status": "active",
+  "berry_resets": "complete, verified normal save",
+  "moves": "Cofagrigus Curse, Swampert IcePunch/RockSlide, Sylveon Moonblast PPMax complete",
+  "paired_training": "pilot exact32EV both; first additional Stunky KO then FullHeal Arcanine; remaining5 weight/lens encounters running",
+  "training_targets": [
+    "Noibat",
+    "Woobat"
+  ],
+  "railnet_route": [
+    "5199,60 west to53094,62",
+    "53094,13 east to5199,11",
+    "51929,11 east to5132,8",
+    "51315,8 east to51941,11",
+    "51958,11 east to6331,8",
+    "train around63310,8; avoid4,8 because hunt exits cave"
+  ],
+  "mint_correction": "28923,51 access is blocked by web328 and long log339; prior assumption of immediate pickup is false. Evaluate honey route or2HeartScales psychologist before committing.",
+  "archive163": "published verified through214155frames; consumed sources cleaned;164anchor refreshed",
+  "updated_epoch": 1791166739.220066
+}

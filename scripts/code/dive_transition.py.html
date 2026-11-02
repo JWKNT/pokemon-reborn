@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>dive_transition.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of dive_transition.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Activate reviewed Dive/Surfacing from a verified DeepWater coordinate.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+m,x,y,dest=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">5</span>]);<span class="hljs-keyword">assert</span> locate(m)==(m,x,y)
+<span class="hljs-comment"># Only the dark DeepWater terrain supports the action-button transition.</span>
+<span class="hljs-keyword">from</span> surface_readonly <span class="hljs-keyword">import</span> tag
+metadata=json.loads((ROOT/<span class="hljs-string">&#x27;work/fly-map-data.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;maps&#x27;</span>]
+surface=m <span class="hljs-keyword">if</span> metadata[<span class="hljs-built_in">str</span>(m)].get(<span class="hljs-string">&#x27;DiveMap&#x27;</span>)==dest <span class="hljs-keyword">else</span> dest
+<span class="hljs-keyword">assert</span> metadata[<span class="hljs-built_in">str</span>(surface)].get(<span class="hljs-string">&#x27;DiveMap&#x27;</span>)==(dest <span class="hljs-keyword">if</span> surface==m <span class="hljs-keyword">else</span> m), <span class="hljs-string">&#x27;Reviewed paired Dive maps required&#x27;</span>
+source=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(surface),<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],stderr=subprocess.DEVNULL))
+<span class="hljs-keyword">assert</span> tag(source,(x,y))==<span class="hljs-number">5</span>, <span class="hljs-string">&#x27;DeepWater tile required before Dive input&#x27;</span>
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+prompt=read().lower()
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,line) <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;tes&#x27;</span>,<span class="hljs-string">&#x27;ves&#x27;</span>] <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> prompt.splitlines()) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;no&#x27;</span> <span class="hljs-keyword">in</span> prompt, (<span class="hljs-string">&#x27;Dive confirmation not visible&#x27;</span>,prompt)
+run=[sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>];subprocess.run(run,check=<span class="hljs-literal">True</span>)
+<span class="hljs-comment"># Clear the ordinary used-Dive message, then permit the transfer animation.</span>
+t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;used dive&#x27;</span> <span class="hljs-keyword">in</span> t:act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:3&#x27;</span>)
+<span class="hljs-keyword">else</span>:act(<span class="hljs-string">&#x27;wait:3&#x27;</span>)
+actual=locate(dest)
+<span class="hljs-keyword">if</span> actual!=(dest,x,y):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Dive transfer mismatch &#x27;</span>+<span class="hljs-built_in">str</span>(actual))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DIVE TRANSFER VERIFIED&#x27;</span>,actual,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

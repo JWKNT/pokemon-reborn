@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g8_first_check.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g8_first_check.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">313</span>,<span class="hljs-number">43</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">313</span>,<span class="hljs-number">43</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;150&#x27;</span>]=<span class="hljs-number">30</span>;p.write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">313</span>,<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,<span class="hljs-string">&#x27;Drapion&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;sigilyph&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-number">.2</span>)
+</code></pre>
+  </body>
+</html>

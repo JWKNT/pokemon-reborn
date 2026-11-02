@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>wtc_waterfall_exit.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of wtc_waterfall_exit.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Use the installed WTC waterfall teleporter through its normal Yes/No UI.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+actual=locate(<span class="hljs-number">467</span>);<span class="hljs-keyword">assert</span> actual[<span class="hljs-number">0</span>]==<span class="hljs-number">467</span>
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;467&#x27;</span>,*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,actual[<span class="hljs-number">1</span>:])],stderr=subprocess.DEVNULL))
+cs=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-string">&#x27;5&#x27;</span>][<span class="hljs-string">&#x27;list&#x27;</span>]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(<span class="hljs-string">&#x27;Kernel.pbWaterfallDialogue&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>])<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs)
+<span class="hljs-keyword">assert</span> {<span class="hljs-built_in">tuple</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>:<span class="hljs-number">4</span>])<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span>}=={(<span class="hljs-number">466</span>,<span class="hljs-number">15</span>,<span class="hljs-number">37</span>)}
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/surface_walk.py&#x27;</span>),<span class="hljs-string">&#x27;467&#x27;</span>,<span class="hljs-string">&#x27;6&#x27;</span>,<span class="hljs-string">&#x27;9&#x27;</span>],check=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">assert</span> re.search(<span class="hljs-string">&#x27;[wh]aterfall&#x27;</span>,re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t.lower()))
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>],check=<span class="hljs-literal">True</span>)
+t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;used&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> re.search(<span class="hljs-string">&#x27;[wh]aterfall&#x27;</span>,re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t.lower()))
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:12&#x27;</span>)
+<span class="hljs-comment"># The installed waterfall dialogue completes the ascent during this action.</span>
+<span class="hljs-comment"># Event 201 names the intermediate map, but the observed final arrival is 359.</span>
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">359</span>)==(<span class="hljs-number">359</span>,<span class="hljs-number">26</span>,<span class="hljs-number">64</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;WTC WATERFALL ASCENT TO CASCADE VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

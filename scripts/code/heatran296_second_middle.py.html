@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>heatran296_second_middle.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of heatran296_second_middle.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Continue inspected second Core crystal sequence through normal UI.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CORE SECOND&#x27;</span>,n,*a,flush=<span class="hljs-literal">True</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">for</span> eid,name,choice <span class="hljs-keyword">in</span> [(<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;SecondCold2&#x27;</span>,<span class="hljs-literal">True</span>),(<span class="hljs-number">54</span>,<span class="hljs-string">&#x27;SecondBlue4&#x27;</span>,<span class="hljs-literal">False</span>),(<span class="hljs-number">55</span>,<span class="hljs-string">&#x27;SecondBlue5&#x27;</span>,<span class="hljs-literal">False</span>),(<span class="hljs-number">9</span>,<span class="hljs-string">&#x27;SecondHot3&#x27;</span>,<span class="hljs-literal">True</span>),(<span class="hljs-number">17</span>,<span class="hljs-string">&#x27;SecondRock6&#x27;</span>,<span class="hljs-literal">True</span>),(<span class="hljs-number">34</span>,<span class="hljs-string">&#x27;SecondRed7&#x27;</span>,<span class="hljs-literal">False</span>)]:
+ run(<span class="hljs-string">&#x27;surface_event&#x27;</span>,<span class="hljs-number">872</span>,eid,<span class="hljs-string">&#x27;talk&#x27;</span>)
+ run(<span class="hljs-string">&#x27;dialog&#x27;</span>,*([<span class="hljs-string">&#x27;--yes&#x27;</span>]<span class="hljs-keyword">if</span> choice <span class="hljs-keyword">else</span> []),<span class="hljs-string">&#x27;--limit&#x27;</span>,<span class="hljs-number">30</span>,<span class="hljs-string">&#x27;--story-burst&#x27;</span>)
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Heatran296-&#x27;</span>+name)
+</code></pre>
+  </body>
+</html>

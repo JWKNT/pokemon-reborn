@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_route4_scale_bridge.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_route4_scale_bridge.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure preflight/source guard tests: no control or screenshot imports.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">import</span> unittest
+<span class="hljs-keyword">from</span> route4_scale_bridge <span class="hljs-keyword">import</span> preflight,proposal,source_proof
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">status</span>():
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;party&#x27;</span>:[{<span class="hljs-string">&#x27;level&#x27;</span>:<span class="hljs-number">90</span>,<span class="hljs-string">&#x27;hp&#x27;</span>:<span class="hljs-number">300</span>,<span class="hljs-string">&#x27;totalhp&#x27;</span>:<span class="hljs-number">300</span>,<span class="hljs-string">&#x27;status&#x27;</span>:<span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;species&#x27;</span>:<span class="hljs-string">&#x27;ARCANINE&#x27;</span>,<span class="hljs-string">&#x27;moves&#x27;</span>:[]}]+[
+        {<span class="hljs-string">&#x27;species&#x27;</span>:<span class="hljs-string">&#x27;SWAMPERT&#x27;</span>,<span class="hljs-string">&#x27;moves&#x27;</span>:[{<span class="hljs-string">&#x27;move&#x27;</span>:<span class="hljs-string">&#x27;SURF&#x27;</span>}]}]+[{}]*<span class="hljs-number">4</span>,
+        <span class="hljs-string">&#x27;bag&#x27;</span>:{<span class="hljs-string">&#x27;contents&#x27;</span>:{<span class="hljs-string">&#x27;SUPERREPEL&#x27;</span>:<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;HEARTSCALE&#x27;</span>:<span class="hljs-number">0</span>}}}
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Guards</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_explicit_layer_never_assumes_surf_from_hop</span>(<span class="hljs-params">self</span>):
+        p=proposal(<span class="hljs-number">1</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;steps&#x27;</span>][<span class="hljs-number">0</span>],[<span class="hljs-string">&#x27;layer_walk&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">50</span>,<span class="hljs-number">23</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>])
+        <span class="hljs-variable language_">self</span>.assertIn(<span class="hljs-string">&#x27;715[50,24]&#x27;</span>,p[<span class="hljs-string">&#x27;steps&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;require&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;steps&#x27;</span>][<span class="hljs-number">4</span>],[<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">64</span>,<span class="hljs-string">&#x27;item&#x27;</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_source_unconditional_anchor_and_correct_new_item</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.assertEqual([r[<span class="hljs-string">&#x27;event&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> source_proof()],[<span class="hljs-number">97</span>,<span class="hljs-number">64</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_owned_scale_skips_duplicate_and_no_surf_is_rejected</span>(<span class="hljs-params">self</span>):
+        s=status();preflight(s)
+        s[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;HEARTSCALE&#x27;</span>]=<span class="hljs-number">1</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s)
+        s=status();s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;moves&#x27;</span>]=[]
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_weak_lead_or_no_repel_stops_before_route</span>(<span class="hljs-params">self</span>):
+        s=status();s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]=<span class="hljs-number">50</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s)
+        s=status();s[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;SUPERREPEL&#x27;</span>]=<span class="hljs-number">0</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s)
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:unittest.main()
+</code></pre>
+  </body>
+</html>

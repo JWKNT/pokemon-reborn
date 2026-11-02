@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>emerald212_boulder_lower.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of emerald212_boulder_lower.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Verified normal pushes across the lower Emerald floor.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">for</span> key,count,label <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;U1&#x27;</span>),(<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;R7&#x27;</span>),(<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;U2&#x27;</span>),(<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;R6East&#x27;</span>),(<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">8</span>,<span class="hljs-string">&#x27;U8&#x27;</span>)]:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/emerald212_boulder_fast.py&#x27;</span>),<span class="hljs-string">&#x27;43&#x27;</span>,key,<span class="hljs-built_in">str</span>(count),<span class="hljs-string">&#x27;Emerald212-B43-&#x27;</span>+label],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Hardy piano normal queue">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="hardy-piano-queue-helper-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/hardy-piano-queue-helper-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/hardy-piano-queue-helper-2026-10-03.md.html">
+    <title>hardy-piano-queue-helper-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">hardy-piano-queue-helper-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 4.1 KB · <a href="/pokemon-reborn/reasoning/18/">Task 18</a> · first used Oct 3 22:56</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Hardy piano normal queue</h2>
+<p><code>scripts/hardy_piano_queue.py</code> is a source-only dry run by default. Development
+read installed map/event/tileset assets and used synthetic rendered fixtures;
+no live UI, current save/native data, active battle/log or recording was read,
+and no game input was executed.</p>
+<p>After normally defeating all three hall trainers, root should take one fresh
+checkpoint in map739 with every tuner still at initial x14. Existing checkpoint
+produces the named status/navigation evidence and mirrors the actual saved event
+positions into planning notes. Then, from actual overworld with an active
+healthy recording, within120 seconds of the checkpoint:</p>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="sh example"><code class="hljs">python3 scripts/hardy_piano_queue.py --execute \
+  --frozen-status notes/Hardy-piano-ready-status.json \
+  --frozen-navigation notes/Hardy-piano-ready-navigation.json \
+  --journal work/hardy-piano-first-progress.json</code></pre>
+<p>The command above assumes root named the checkpoint <code>Hardy-piano-ready</code>.
+Explicit evidence must prove trainer739E22/E35/E36 self-A True, all eight actual
+initial positions, switch1022 False, an owned RockClimb move and a six-member
+party. The helper checks public overworld/coordinates and rejects still-active
+automatic trainers before queuing movement. It does not defeat trainers or
+prepare the Hardy battle party.</p>
+<p>Each tuner group walks to its west side, verifies the actual player facingRight
+and exact rendered installed tile604 at the adjacent square, then queues at most
+seven discrete C/push/right-step pairs. Source <code>pbPushThisObject</code> moves only the
+tuner; the right step follows into the vacated square. Final actual player
+coordinates and rendered tuner tile must both prove the group&#39;s exact result
+before the new event position and variable x−14 are mirrored into planner notes.
+Targets are x17,19,21,16,16,14,15,15; values441–448 are3,5,7,2,2,0,1,1. The sixth
+tuner is interacted with vertically, leaving x14 and explicitly refreshing0.
+No game/save event positions or variables are written by the script.</p>
+<p>The final ordinary climb is739[5,46] facingUp, through source event1. Only a
+visible <code>used Rock Climb</code> message receives an extra C; otherwise a clear world
+screen is required. After the bounded animation settle, actual739[5,8] must be
+observed. The helper walks to[11,5] and requires the rendered open-door tile573
+at[11,4] before mirroring source switch1022 into planning notes. The closed
+source map has tiles[479,573,594], so checking the underlying573 would be
+insufficient; its closed-bar overlay matches only25% of open573 pixels and the
+synthetic closed-door fixture is rejected. Finally normal door event31 must
+actually transfer to740[9,21]. The queue stops there, three tiles below Hardy&#39;s
+player-touch trigger at[9,18], without starting the gym battle or saving again.</p>
+<p>All inputs/helpers are receipted in a new journal, pending before dispatch.
+Recording health is required before/after each group; any recorder restart,
+unexpected dialogue/battle, uncertain player/facing/tile/coordinate, partial
+group or wrong landing stops. Do not replay a stopped journal or substitute a
+new name to bypass a partially changed puzzle. Root must inspect the real
+screen, take a normal checkpoint if useful, and manually review/replan a
+mid-puzzle state. The helper intentionally supports the safe initial case only.</p>
+<p>Default scale4 expects the previously calibrated2272×1816 native window capture
+and installed boy_walk/boy_run player sprites. Any geometry or sprite mismatch
+stops; no inferred tuner movement or estimated hidden variable is credited.</p>
+<p>Verification:</p>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="sh example"><code class="hljs">python3 scripts/hardy_piano_queue.py
+python3 scripts/test_hardy_piano_queue.py
+python3 -m py_compile scripts/hardy_piano_queue.py scripts/test_hardy_piano_queue.py
+ruby -c scripts/hardy_piano_source.rb</code></pre>
+<p>Five meaningful source/synthetic tests pass: installed event targets and climb,
+fresh initial-state rejection, all bounded push adjacency traces, actual
+player-relative tuner pixel proof and wrong-square rejection, and open/closed
+door pixel proof. The default proposal is saved at
+<code>work/hardy-piano-queue-source-proposal.json</code>. No runtime success is claimed.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

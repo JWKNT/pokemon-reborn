@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>sprite_sensor.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of sprite_sensor.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Locate visible character frames by opaque PNG pixels; reads screenshots only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image, ImageCms
+<span class="hljs-keyword">import</span> io
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+GAME=Path(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Graphics/Characters&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">detect</span>(<span class="hljs-params">path,character,scale=<span class="hljs-number">4</span>,head_only=<span class="hljs-literal">False</span>,tone=<span class="hljs-literal">None</span></span>):
+ native=Image.<span class="hljs-built_in">open</span>(path)
+ rgb=native.convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+ <span class="hljs-keyword">if</span> native.info.get(<span class="hljs-string">&#x27;icc_profile&#x27;</span>):
+  rgb=ImageCms.profileToProfile(rgb,ImageCms.ImageCmsProfile(io.BytesIO(native.info[<span class="hljs-string">&#x27;icc_profile&#x27;</span>])),ImageCms.createProfile(<span class="hljs-string">&#x27;sRGB&#x27;</span>),outputMode=<span class="hljs-string">&#x27;RGB&#x27;</span>)
+ im=np.array(rgb);hh,ww=im.shape[:<span class="hljs-number">2</span>]
+ encoded=(im[:,:,<span class="hljs-number">0</span>].astype(np.uint32)&lt;&lt;<span class="hljs-number">16</span>)|(im[:,:,<span class="hljs-number">1</span>].astype(np.uint32)&lt;&lt;<span class="hljs-number">8</span>)|im[:,:,<span class="hljs-number">2</span>]
+ vals,counts=np.unique(encoded,return_counts=<span class="hljs-literal">True</span>);hist=<span class="hljs-built_in">dict</span>(<span class="hljs-built_in">zip</span>(vals.tolist(),counts.tolist()))
+ sheet=Image.<span class="hljs-built_in">open</span>(GAME/(character+<span class="hljs-string">&#x27;.png&#x27;</span>)).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>);fw,fh=sheet.width//<span class="hljs-number">4</span>,sheet.height//<span class="hljs-number">4</span>;found=[]
+ <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  <span class="hljs-keyword">for</span> col <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+   t=np.array(sheet.crop((col*fw,row*fh,(col+<span class="hljs-number">1</span>)*fw,(row+<span class="hljs-number">1</span>)*fh)).resize((fw*scale,fh*scale),Image.Resampling.NEAREST));mask=t[:,:,<span class="hljs-number">3</span>]&gt;<span class="hljs-number">250</span>
+   <span class="hljs-keyword">if</span> tone <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+    <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(tone)==<span class="hljs-number">4</span> <span class="hljs-keyword">and</span> tone[<span class="hljs-number">3</span>]==<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;Only reviewed daytime RGB tint supported&#x27;</span>
+    t[:,:,:<span class="hljs-number">3</span>]=np.clip(np.rint(t[:,:,:<span class="hljs-number">3</span>].astype(<span class="hljs-built_in">float</span>)+np.rint(np.array(tone[:<span class="hljs-number">3</span>]))),<span class="hljs-number">0</span>,<span class="hljs-number">255</span>).astype(np.uint8)
+   <span class="hljs-keyword">if</span> head_only:mask[<span class="hljs-built_in">int</span>(fh*scale*<span class="hljs-number">.32</span>):,:]=<span class="hljs-literal">False</span>
+   ys,xs=np.where(mask);colors=(t[ys,xs,<span class="hljs-number">0</span>].astype(np.uint32)&lt;&lt;<span class="hljs-number">16</span>)|(t[ys,xs,<span class="hljs-number">1</span>].astype(np.uint32)&lt;&lt;<span class="hljs-number">8</span>)|t[ys,xs,<span class="hljs-number">2</span>]
+   available=[(hist.get(<span class="hljs-built_in">int</span>(color),<span class="hljs-number">0</span>),i)<span class="hljs-keyword">for</span> i,color <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(colors)<span class="hljs-keyword">if</span> <span class="hljs-number">0</span>&lt;hist.get(<span class="hljs-built_in">int</span>(color),<span class="hljs-number">0</span>)&lt;<span class="hljs-number">5000</span>]
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> available:<span class="hljs-keyword">continue</span>
+   _,pivot=<span class="hljs-built_in">min</span>(available);py,px=ys[pivot],xs[pivot];yy,xx=np.where(encoded==colors[pivot]);lx,ly=xx-px,yy-py
+   valid=(lx&gt;=<span class="hljs-number">0</span>)&amp;(ly&gt;=<span class="hljs-number">0</span>)&amp;(lx+t.shape[<span class="hljs-number">1</span>]&lt;=ww)&amp;(ly+t.shape[<span class="hljs-number">0</span>]&lt;=hh);lx,ly=lx[valid],ly[valid]
+   <span class="hljs-comment"># Quick distinctive anchors avoid comparing every opaque pixel per candidate.</span>
+   idx=np.linspace(<span class="hljs-number">0</span>,<span class="hljs-built_in">len</span>(xs)-<span class="hljs-number">1</span>,<span class="hljs-number">32</span>,dtype=<span class="hljs-built_in">int</span>)
+   <span class="hljs-keyword">for</span> sy,sx <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(ys[idx],xs[idx]):
+    good=np.<span class="hljs-built_in">max</span>(np.<span class="hljs-built_in">abs</span>(im[ly+sy,lx+sx].astype(np.int16)-t[sy,sx,:<span class="hljs-number">3</span>].astype(np.int16)),axis=<span class="hljs-number">1</span>)&lt;=<span class="hljs-number">3</span>
+    lx,ly=lx[good],ly[good]
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">len</span>(lx):<span class="hljs-keyword">break</span>
+   <span class="hljs-keyword">for</span> x,y <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(lx,ly):
+    score=<span class="hljs-built_in">float</span>(np.mean(np.<span class="hljs-built_in">max</span>(np.<span class="hljs-built_in">abs</span>(im[y+ys,x+xs].astype(np.int16)-t[ys,xs,:<span class="hljs-number">3</span>].astype(np.int16)),axis=<span class="hljs-number">1</span>)&lt;=<span class="hljs-number">3</span>))
+    <span class="hljs-keyword">if</span> score&gt;=<span class="hljs-number">.97</span>:found.append({<span class="hljs-string">&#x27;foot&#x27;</span>:[<span class="hljs-built_in">int</span>(x+fw*scale/<span class="hljs-number">2</span>),<span class="hljs-built_in">int</span>(y+fh*scale)],<span class="hljs-string">&#x27;score&#x27;</span>:score,<span class="hljs-string">&#x27;pose&#x27;</span>:[row,col]})
+ out=[]
+ <span class="hljs-keyword">for</span> f <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(found,key=<span class="hljs-keyword">lambda</span> z:-z[<span class="hljs-string">&#x27;score&#x27;</span>]):
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(<span class="hljs-built_in">abs</span>(f[<span class="hljs-string">&#x27;foot&#x27;</span>][<span class="hljs-number">0</span>]-p[<span class="hljs-string">&#x27;foot&#x27;</span>][<span class="hljs-number">0</span>])&lt;<span class="hljs-number">12</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">abs</span>(f[<span class="hljs-string">&#x27;foot&#x27;</span>][<span class="hljs-number">1</span>]-p[<span class="hljs-string">&#x27;foot&#x27;</span>][<span class="hljs-number">1</span>])&lt;<span class="hljs-number">12</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> out):out.append(f)
+ <span class="hljs-keyword">return</span> out
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ <span class="hljs-keyword">import</span> sys,json
+ <span class="hljs-built_in">print</span>(json.dumps(detect(sys.argv[<span class="hljs-number">1</span>],sys.argv[<span class="hljs-number">2</span>]),indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>charlotte_gym_trainers.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of charlotte_gym_trainers.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed puzzle/ordinary-trainer sequence; stops on any unmatched state.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+jobs=[(<span class="hljs-number">1</span>,(<span class="hljs-number">9</span>,<span class="hljs-number">55</span>),<span class="hljs-string">&#x27;EXPERT_Male&#x27;</span>,<span class="hljs-string">&#x27;Iroh&#x27;</span>,<span class="hljs-string">&#x27;Simisear&#x27;</span>,<span class="hljs-number">1</span>),(<span class="hljs-number">2</span>,(<span class="hljs-number">9</span>,<span class="hljs-number">44</span>),<span class="hljs-string">&#x27;AceTrainerM&#x27;</span>,<span class="hljs-string">&#x27;Karus&#x27;</span>,<span class="hljs-string">&#x27;Flareon&#x27;</span>,<span class="hljs-number">2</span>),(<span class="hljs-number">3</span>,(<span class="hljs-number">9</span>,<span class="hljs-number">32</span>),<span class="hljs-string">&#x27;AceTrainerF&#x27;</span>,<span class="hljs-string">&#x27;Nova&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-number">3</span>)]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/script),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> read().lower()
+first=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+<span class="hljs-keyword">if</span> first==<span class="hljs-number">1</span>:run(<span class="hljs-string">&#x27;party_lead.py&#x27;</span>,<span class="hljs-number">3</span>) <span class="hljs-comment"># Swampert, from the verified post-Circus order.</span>
+<span class="hljs-keyword">for</span> n,(x,y),cls,name,foe,eid <span class="hljs-keyword">in</span> jobs:
+ <span class="hljs-keyword">if</span> n&lt;first:<span class="hljs-keyword">continue</span>
+ run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">f&#x27;419,<span class="hljs-subst">{x}</span>,<span class="hljs-subst">{y}</span>&#x27;</span>);run(<span class="hljs-string">&#x27;charlotte_puzzle.py&#x27;</span>,n)
+ run(<span class="hljs-string">&#x27;trainer_music.py&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,cls,name)
+ act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+ t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ log=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">f&#x27;charlotte-gym-<span class="hljs-subst">{name.lower()}</span>.log&#x27;</span>
+ <span class="hljs-keyword">with</span> log.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>)<span class="hljs-keyword">as</span> out:
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_batch.py&#x27;</span>),<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,foe,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-string">&#x27;6&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--stay&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.32&#x27;</span>,<span class="hljs-string">&#x27;--stop-after-battle&#x27;</span>],check=<span class="hljs-literal">True</span>,stdout=out,stderr=subprocess.STDOUT)
+ run(<span class="hljs-string">&#x27;trainer_music.py&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>);run(<span class="hljs-string">&#x27;mark_event.py&#x27;</span>,<span class="hljs-number">419</span>,eid,<span class="hljs-string">&#x27;A&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;GYM TRAINER COMPLETE&#x27;</span>,name,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ALL CHARLOTTE GYM TRAINERS COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

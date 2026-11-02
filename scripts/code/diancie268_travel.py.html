@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>diancie268_travel.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of diancie268_travel.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal UI travel to the inspected Diancie lead and Aegir entrance.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,subprocess,sys,pathlib,json
+R=pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DIANCIE ROUTE&#x27;</span>,n,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">519</span>);run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">527</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Altaria&#x27;</span>)
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">527</span>,<span class="hljs-number">826</span>);run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">826</span>,<span class="hljs-number">827</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">827</span>,<span class="hljs-number">82</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">827</span>,<span class="hljs-number">82</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;--until-choice&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">827</span>,<span class="hljs-number">82</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;--after-last-choice&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Diancie268-Quest&#x27;</span>)
+s=json.loads((R/<span class="hljs-string">&#x27;notes/Diancie268-Quest-navigation.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;626&#x27;</span>]==<span class="hljs-number">1</span>
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">827</span>,<span class="hljs-number">826</span>);run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">826</span>,<span class="hljs-number">527</span>)
+run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">781</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Altaria&#x27;</span>)
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">781</span>,<span class="hljs-number">783</span>);run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">783</span>,<span class="hljs-number">812</span>);run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">812</span>,<span class="hljs-number">785</span>)
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">785</span>,<span class="hljs-number">852</span>);run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">852</span>,<span class="hljs-number">849</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Diancie268-Aegir&#x27;</span>)
+</code></pre>
+  </body>
+</html>

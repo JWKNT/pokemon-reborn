@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>chest_magneton_reload169.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of chest_magneton_reload169.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reload the normal Frey victory checkpoint and take its reviewed route promptly.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+rows=snap();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;continue&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> rows).lower()
+path=json.loads((ROOT/<span class="hljs-string">&#x27;work/169-magneton-route.json&#x27;</span>).read_text())
+act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:3&#x27;</span>)
+seq=[]
+<span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> path:
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> step[<span class="hljs-string">&#x27;action&#x27;</span>]
+ jump=step[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>);key=step[<span class="hljs-string">&#x27;key&#x27;</span>].removeprefix(<span class="hljs-string">&#x27;jump:&#x27;</span>)
+ seq += [key+<span class="hljs-string">&#x27;:.08&#x27;</span>,<span class="hljs-string">&#x27;wait:.35&#x27;</span> <span class="hljs-keyword">if</span> jump <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;wait:.075&#x27;</span>]
+act(*seq,<span class="hljs-string">&#x27;right:.08&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+<span class="hljs-comment"># Leave any battle/dialogue untouched. Otherwise freeze a real menu promptly.</span>
+rows=snap()
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(x[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(x[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">10</span> <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> rows):
+ <span class="hljs-keyword">from</span> chest_safe_pause <span class="hljs-keyword">import</span> finish_bag_entry
+ act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>,<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>);finish_bag_entry();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BAG PAUSED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

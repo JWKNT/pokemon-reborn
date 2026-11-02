@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>hardy_battle_calculation.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of hardy_battle_calculation.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Static Hardy19.5.43 damage review. No UI, gameplay or native-save import.
+
+CF&#x27;s Hex/EV/mint build is hypothetical, not asserted installed in the party.
+Critical rows bypass positive Defense; no AI/targeting/partner prediction.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> math
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+<span class="hljs-keyword">from</span> agate_chain_calculation <span class="hljs-keyword">import</span> BASE, trainer_stats
+<span class="hljs-keyword">from</span> glass_damage_review <span class="hljs-keyword">import</span> damage
+
+ROOT = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+TYPES = {
+    <span class="hljs-string">&quot;COFAGRIGUS&quot;</span>: (<span class="hljs-string">&quot;GHOST&quot;</span>,), <span class="hljs-string">&quot;SWAMPERT&quot;</span>: (<span class="hljs-string">&quot;WATER&quot;</span>, <span class="hljs-string">&quot;GROUND&quot;</span>),
+    <span class="hljs-string">&quot;MIENSHAO&quot;</span>: (<span class="hljs-string">&quot;FIGHTING&quot;</span>,), <span class="hljs-string">&quot;EXCADRILL&quot;</span>: (<span class="hljs-string">&quot;GROUND&quot;</span>, <span class="hljs-string">&quot;STEEL&quot;</span>),
+    <span class="hljs-string">&quot;KLINKLANG&quot;</span>: (<span class="hljs-string">&quot;STEEL&quot;</span>,), <span class="hljs-string">&quot;LUDICOLO&quot;</span>: (<span class="hljs-string">&quot;WATER&quot;</span>, <span class="hljs-string">&quot;GRASS&quot;</span>),
+    <span class="hljs-string">&quot;ARCANINE&quot;</span>: (<span class="hljs-string">&quot;FIRE&quot;</span>,),
+}
+CHART = {
+    <span class="hljs-string">&quot;ROCK&quot;</span>: {<span class="hljs-string">&quot;GROUND&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;STEEL&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;FIGHTING&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;FIRE&quot;</span>: <span class="hljs-number">2</span>,
+             <span class="hljs-string">&quot;FLYING&quot;</span>: <span class="hljs-number">2</span>, <span class="hljs-string">&quot;ROCK&quot;</span>: <span class="hljs-number">1</span>},
+    <span class="hljs-string">&quot;GROUND&quot;</span>: {<span class="hljs-string">&quot;GROUND&quot;</span>: <span class="hljs-number">1</span>, <span class="hljs-string">&quot;STEEL&quot;</span>: <span class="hljs-number">2</span>, <span class="hljs-string">&quot;FIRE&quot;</span>: <span class="hljs-number">2</span>, <span class="hljs-string">&quot;GRASS&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;FLYING&quot;</span>: <span class="hljs-number">0</span>, <span class="hljs-string">&quot;ROCK&quot;</span>: <span class="hljs-number">2</span>},
+    <span class="hljs-string">&quot;FIGHTING&quot;</span>: {<span class="hljs-string">&quot;GHOST&quot;</span>: <span class="hljs-number">0</span>, <span class="hljs-string">&quot;STEEL&quot;</span>: <span class="hljs-number">2</span>, <span class="hljs-string">&quot;FLYING&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;ROCK&quot;</span>: <span class="hljs-number">2</span>},
+    <span class="hljs-string">&quot;DARK&quot;</span>: {<span class="hljs-string">&quot;GHOST&quot;</span>: <span class="hljs-number">2</span>, <span class="hljs-string">&quot;FIGHTING&quot;</span>: <span class="hljs-number">.5</span>},
+    <span class="hljs-string">&quot;WATER&quot;</span>: {<span class="hljs-string">&quot;WATER&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;GRASS&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;FIRE&quot;</span>: <span class="hljs-number">2</span>, <span class="hljs-string">&quot;GROUND&quot;</span>: <span class="hljs-number">2</span>, <span class="hljs-string">&quot;ROCK&quot;</span>: <span class="hljs-number">2</span>},
+    <span class="hljs-string">&quot;FLYING&quot;</span>: {<span class="hljs-string">&quot;FIGHTING&quot;</span>: <span class="hljs-number">2</span>, <span class="hljs-string">&quot;GRASS&quot;</span>: <span class="hljs-number">2</span>, <span class="hljs-string">&quot;STEEL&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;ROCK&quot;</span>: <span class="hljs-number">.5</span>},
+    <span class="hljs-string">&quot;PSYCHIC&quot;</span>: {<span class="hljs-string">&quot;FIGHTING&quot;</span>: <span class="hljs-number">2</span>, <span class="hljs-string">&quot;STEEL&quot;</span>: <span class="hljs-number">.5</span>},
+    <span class="hljs-string">&quot;STEEL&quot;</span>: {<span class="hljs-string">&quot;STEEL&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;WATER&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;FIRE&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;ROCK&quot;</span>: <span class="hljs-number">2</span>},
+    <span class="hljs-string">&quot;FIRE&quot;</span>: {<span class="hljs-string">&quot;FIRE&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;WATER&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;STEEL&quot;</span>: <span class="hljs-number">2</span>, <span class="hljs-string">&quot;GRASS&quot;</span>: <span class="hljs-number">2</span>, <span class="hljs-string">&quot;ROCK&quot;</span>: <span class="hljs-number">.5</span>},
+    <span class="hljs-string">&quot;NORMAL&quot;</span>: {<span class="hljs-string">&quot;GHOST&quot;</span>: <span class="hljs-number">0</span>, <span class="hljs-string">&quot;STEEL&quot;</span>: <span class="hljs-number">.5</span>, <span class="hljs-string">&quot;ROCK&quot;</span>: <span class="hljs-number">.5</span>},
+    <span class="hljs-string">&quot;GHOST&quot;</span>: {},
+}
+MOVES = {
+    <span class="hljs-string">&quot;ROCKSLIDE&quot;</span>: (<span class="hljs-number">75</span>, <span class="hljs-string">&quot;ROCK&quot;</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">True</span>),
+    <span class="hljs-string">&quot;STOMPINGTANTRUM&quot;</span>: (<span class="hljs-number">75</span>, <span class="hljs-string">&quot;GROUND&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">False</span>),
+    <span class="hljs-string">&quot;ROCKSMASH&quot;</span>: (<span class="hljs-number">40</span>, <span class="hljs-string">&quot;FIGHTING&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">True</span>),
+    <span class="hljs-string">&quot;THROATCHOP&quot;</span>: (<span class="hljs-number">80</span>, <span class="hljs-string">&quot;DARK&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">False</span>),
+    <span class="hljs-string">&quot;AQUATAIL&quot;</span>: (<span class="hljs-number">90</span>, <span class="hljs-string">&quot;WATER&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">False</span>),
+    <span class="hljs-string">&quot;AERIALACE&quot;</span>: (<span class="hljs-number">60</span>, <span class="hljs-string">&quot;FLYING&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">False</span>),
+    <span class="hljs-string">&quot;DRILLRUN&quot;</span>: (<span class="hljs-number">80</span>, <span class="hljs-string">&quot;GROUND&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">False</span>),
+    <span class="hljs-string">&quot;BRICKBREAK&quot;</span>: (<span class="hljs-number">75</span>, <span class="hljs-string">&quot;FIGHTING&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">False</span>),
+    <span class="hljs-string">&quot;ZENHEADBUTT&quot;</span>: (<span class="hljs-number">80</span>, <span class="hljs-string">&quot;PSYCHIC&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">True</span>),
+    <span class="hljs-string">&quot;ACROBATICS&quot;</span>: (<span class="hljs-number">110</span>, <span class="hljs-string">&quot;FLYING&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">False</span>),
+    <span class="hljs-string">&quot;IRONHEAD&quot;</span>: (<span class="hljs-number">80</span>, <span class="hljs-string">&quot;STEEL&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">True</span>),
+    <span class="hljs-string">&quot;FIREPUNCH&quot;</span>: (<span class="hljs-number">75</span>, <span class="hljs-string">&quot;FIRE&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">True</span>),
+    <span class="hljs-string">&quot;ACCELEROCK&quot;</span>: (<span class="hljs-number">40</span>, <span class="hljs-string">&quot;ROCK&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">False</span>),
+}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">type_effect</span>(<span class="hljs-params">move_type, defending</span>):
+    <span class="hljs-keyword">return</span> math.prod(CHART.get(move_type, {}).get(t, <span class="hljs-number">1</span>) <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> defending)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    mons = json.loads((ROOT / <span class="hljs-string">&quot;work/postglass-hardy-installed.json&quot;</span>).read_text())[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]
+    foes = []
+    <span class="hljs-keyword">for</span> mon <span class="hljs-keyword">in</span> mons:
+        form = <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> mon[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;AERODACTYL&quot;</span> <span class="hljs-keyword">else</span> mon.get(<span class="hljs-string">&quot;form&quot;</span>, <span class="hljs-number">0</span>)
+        data = <span class="hljs-built_in">dict</span>(BASE[mon[<span class="hljs-string">&quot;species&quot;</span>]][<span class="hljs-number">0</span>]); data.update(BASE[mon[<span class="hljs-string">&quot;species&quot;</span>]][form])
+        types = <span class="hljs-built_in">tuple</span>(data[k] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;Type1&quot;</span>, <span class="hljs-string">&quot;Type2&quot;</span>) <span class="hljs-keyword">if</span> k <span class="hljs-keyword">in</span> data)
+        foes.append(<span class="hljs-built_in">dict</span>(mon, form=form, label=(<span class="hljs-string">&quot;MEGAAERODACTYL&quot;</span> <span class="hljs-keyword">if</span> mon[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;AERODACTYL&quot;</span>
+                                               <span class="hljs-keyword">else</span> <span class="hljs-string">f&quot;LYCANROC_FORM<span class="hljs-subst">{form}</span>&quot;</span> <span class="hljs-keyword">if</span> mon[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;LYCANROC&quot;</span>
+                                               <span class="hljs-keyword">else</span> mon[<span class="hljs-string">&quot;species&quot;</span>]),
+                         ability=<span class="hljs-string">&quot;TOUGHCLAWS&quot;</span> <span class="hljs-keyword">if</span> mon[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;AERODACTYL&quot;</span> <span class="hljs-keyword">else</span> mon[<span class="hljs-string">&quot;ability&quot;</span>],
+                         stats=trainer_stats(mon, form), types=types))
+    saved = json.loads((ROOT / <span class="hljs-string">&quot;notes/Glass-restocked-fixed-six-status.json&quot;</span>).read_text())
+    own = {m[<span class="hljs-string">&quot;species&quot;</span>]: <span class="hljs-built_in">dict</span>(hp=m[<span class="hljs-string">&quot;totalhp&quot;</span>], atk=m[<span class="hljs-string">&quot;attack&quot;</span>], de=m[<span class="hljs-string">&quot;defense&quot;</span>],
+                              spa=m[<span class="hljs-string">&quot;spatk&quot;</span>], spd=m[<span class="hljs-string">&quot;spdef&quot;</span>], spe=m[<span class="hljs-string">&quot;speed&quot;</span>], item=m[<span class="hljs-string">&quot;item&quot;</span>])
+           <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> saved[<span class="hljs-string">&quot;party&quot;</span>]}
+    own[<span class="hljs-string">&quot;COFAGRIGUS&quot;</span>] = <span class="hljs-built_in">dict</span>(hp=<span class="hljs-number">252</span>, atk=<span class="hljs-number">93</span>, de=<span class="hljs-number">333</span>, spa=<span class="hljs-number">210</span>, spd=<span class="hljs-number">218</span>, spe=<span class="hljs-number">68</span>, item=<span class="hljs-literal">None</span>)
+    own[<span class="hljs-string">&quot;LUDICOLO&quot;</span>] = <span class="hljs-built_in">dict</span>(hp=<span class="hljs-number">285</span>, atk=<span class="hljs-number">140</span>, de=<span class="hljs-number">153</span>, spa=<span class="hljs-number">194</span>, spd=<span class="hljs-number">208</span>, spe=<span class="hljs-number">142</span>, item=<span class="hljs-string">&quot;WISEGLASSES&quot;</span>)
+    incoming, outgoing = [], []
+    <span class="hljs-keyword">for</span> mon <span class="hljs-keyword">in</span> foes:
+        <span class="hljs-keyword">for</span> move <span class="hljs-keyword">in</span> mon[<span class="hljs-string">&quot;moves&quot;</span>]:
+            <span class="hljs-keyword">if</span> move == <span class="hljs-string">&quot;ENDEAVOR&quot;</span>:
+                <span class="hljs-keyword">continue</span>
+            power, typ, contact, spread, secondary = MOVES[move]
+            base = (<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> move == <span class="hljs-string">&quot;ROCKSMASH&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1.5</span> <span class="hljs-keyword">if</span> move == <span class="hljs-string">&quot;ACCELEROCK&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)
+            <span class="hljs-keyword">if</span> mon[<span class="hljs-string">&quot;ability&quot;</span>] == <span class="hljs-string">&quot;TOUGHCLAWS&quot;</span> <span class="hljs-keyword">and</span> contact:
+                base *= <span class="hljs-number">1.3</span>
+            <span class="hljs-keyword">if</span> mon[<span class="hljs-string">&quot;ability&quot;</span>] == <span class="hljs-string">&quot;SHEERFORCE&quot;</span> <span class="hljs-keyword">and</span> secondary:
+                base *= <span class="hljs-number">1.3</span>
+            <span class="hljs-keyword">if</span> move == <span class="hljs-string">&quot;ACROBATICS&quot;</span>:
+                base *= <span class="hljs-number">1.3</span>  <span class="hljs-comment"># First FlyingGem attack: installed base doubles with gem.</span>
+            atk = mon[<span class="hljs-string">&quot;stats&quot;</span>][<span class="hljs-string">&quot;atk&quot;</span>] * (<span class="hljs-number">1.5</span> <span class="hljs-keyword">if</span> mon.get(<span class="hljs-string">&quot;item&quot;</span>) == <span class="hljs-string">&quot;CHOICEBAND&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)
+            generic = (<span class="hljs-number">1.5</span> <span class="hljs-keyword">if</span> typ <span class="hljs-keyword">in</span> mon[<span class="hljs-string">&quot;types&quot;</span>] <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>) * (<span class="hljs-number">1.5</span> <span class="hljs-keyword">if</span> typ == <span class="hljs-string">&quot;ROCK&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)
+            generic *= <span class="hljs-number">.75</span> <span class="hljs-keyword">if</span> spread <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+            <span class="hljs-keyword">for</span> who, ours <span class="hljs-keyword">in</span> own.items():
+                eff = type_effect(typ, TYPES[who])
+                <span class="hljs-keyword">for</span> stage, defense_mul <span class="hljs-keyword">in</span> ((<span class="hljs-number">0</span>, <span class="hljs-number">1</span>), (<span class="hljs-number">1</span>, <span class="hljs-number">1.5</span>), (<span class="hljs-number">2</span>, <span class="hljs-number">2</span>)):
+                    <span class="hljs-keyword">for</span> critical <span class="hljs-keyword">in</span> (<span class="hljs-literal">False</span>, <span class="hljs-literal">True</span>):
+                        defender = ours[<span class="hljs-string">&quot;de&quot;</span>] <span class="hljs-keyword">if</span> critical <span class="hljs-keyword">else</span> math.floor(ours[<span class="hljs-string">&quot;de&quot;</span>] * defense_mul)
+                        values = ([<span class="hljs-number">0</span>, <span class="hljs-number">0</span>] <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> eff <span class="hljs-keyword">else</span> damage(mon[<span class="hljs-string">&quot;level&quot;</span>], power, atk, defender,
+                                  base_modifier=base,
+                                  modifier=generic * eff * (<span class="hljs-number">1.5</span> <span class="hljs-keyword">if</span> critical <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)))
+                        incoming.append(<span class="hljs-built_in">dict</span>(enemy=mon[<span class="hljs-string">&quot;label&quot;</span>], move=move, target=who,
+                                             def_stage=stage, critical=critical, <span class="hljs-built_in">range</span>=values,
+                                             target_hp=ours[<span class="hljs-string">&quot;hp&quot;</span>], note=<span class="hljs-string">&quot;First Acrobatics includes gem; later unboosted is /1.3&quot;</span> <span class="hljs-keyword">if</span> move==<span class="hljs-string">&quot;ACROBATICS&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;&quot;</span>))
+        defense = mon[<span class="hljs-string">&quot;stats&quot;</span>][<span class="hljs-string">&quot;def&quot;</span>]
+        <span class="hljs-keyword">if</span> mon[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;LYCANROC&quot;</span> <span class="hljs-keyword">and</span> mon.get(<span class="hljs-string">&quot;form&quot;</span>) == <span class="hljs-number">2</span>:
+            defense = math.floor(defense * <span class="hljs-number">1.5</span>)  <span class="hljs-comment"># TelluricSeed.</span>
+        spdef_sand = math.floor(mon[<span class="hljs-string">&quot;stats&quot;</span>][<span class="hljs-string">&quot;spd&quot;</span>] * <span class="hljs-number">1.5</span> + <span class="hljs-number">.5</span>)
+        <span class="hljs-keyword">for</span> multiplier <span class="hljs-keyword">in</span> (<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>):
+            outgoing.append(<span class="hljs-built_in">dict</span>(move=<span class="hljs-string">f&quot;Swamp Waterfall Atk x<span class="hljs-subst">{multiplier}</span>&quot;</span>, target=mon[<span class="hljs-string">&quot;label&quot;</span>],
+                                 <span class="hljs-built_in">range</span>=damage(<span class="hljs-number">90</span>,<span class="hljs-number">80</span>,own[<span class="hljs-string">&quot;SWAMPERT&quot;</span>][<span class="hljs-string">&quot;atk&quot;</span>]*multiplier,defense,
+                                              base_modifier=<span class="hljs-number">1.2</span>,modifier=<span class="hljs-number">1.5</span>*<span class="hljs-number">2</span>), hp=mon[<span class="hljs-string">&quot;stats&quot;</span>][<span class="hljs-string">&quot;hp&quot;</span>]))
+            outgoing.append(<span class="hljs-built_in">dict</span>(move=<span class="hljs-string">f&quot;Ludi WiseGlasses Scald SpA x<span class="hljs-subst">{multiplier}</span>, sand&quot;</span>, target=mon[<span class="hljs-string">&quot;label&quot;</span>],
+                                 <span class="hljs-built_in">range</span>=damage(<span class="hljs-number">90</span>,<span class="hljs-number">80</span>,<span class="hljs-number">194</span>*multiplier,spdef_sand,
+                                              base_modifier=<span class="hljs-number">1.1</span>,modifier=<span class="hljs-number">1.5</span>*<span class="hljs-number">2</span>), hp=mon[<span class="hljs-string">&quot;stats&quot;</span>][<span class="hljs-string">&quot;hp&quot;</span>]))
+            outgoing.append(<span class="hljs-built_in">dict</span>(move=<span class="hljs-string">f&quot;KG GearGrind Atk x<span class="hljs-subst">{multiplier}</span>, two hits&quot;</span>, target=mon[<span class="hljs-string">&quot;label&quot;</span>],
+                                 <span class="hljs-built_in">range</span>=[<span class="hljs-number">2</span>*v <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> damage(<span class="hljs-number">90</span>,<span class="hljs-number">50</span>,own[<span class="hljs-string">&quot;KLINKLANG&quot;</span>][<span class="hljs-string">&quot;atk&quot;</span>]*multiplier,defense,modifier=<span class="hljs-number">1.5</span>*<span class="hljs-number">2</span>)],
+                                 hp=mon[<span class="hljs-string">&quot;stats&quot;</span>][<span class="hljs-string">&quot;hp&quot;</span>]))
+        outgoing.append(<span class="hljs-built_in">dict</span>(move=<span class="hljs-string">&quot;CF unboosted Hex into burn, sand&quot;</span>, target=mon[<span class="hljs-string">&quot;label&quot;</span>],
+                             <span class="hljs-built_in">range</span>=damage(<span class="hljs-number">90</span>,<span class="hljs-number">130</span>,<span class="hljs-number">210</span>,spdef_sand,modifier=<span class="hljs-number">1.5</span>), hp=mon[<span class="hljs-string">&quot;stats&quot;</span>][<span class="hljs-string">&quot;hp&quot;</span>]))
+        outgoing.append(<span class="hljs-built_in">dict</span>(move=<span class="hljs-string">&quot;Mien Reckless HighJumpKick&quot;</span>, target=mon[<span class="hljs-string">&quot;label&quot;</span>],
+                             <span class="hljs-built_in">range</span>=damage(<span class="hljs-number">90</span>,<span class="hljs-number">130</span>,own[<span class="hljs-string">&quot;MIENSHAO&quot;</span>][<span class="hljs-string">&quot;atk&quot;</span>],defense,
+                                          base_modifier=<span class="hljs-number">1.2</span>,modifier=<span class="hljs-number">1.5</span>*type_effect(<span class="hljs-string">&quot;FIGHTING&quot;</span>,mon[<span class="hljs-string">&quot;types&quot;</span>])),hp=mon[<span class="hljs-string">&quot;stats&quot;</span>][<span class="hljs-string">&quot;hp&quot;</span>]))
+        <span class="hljs-comment"># Rocky Earthquake adds Rock effectiveness but keeps Ground STAB/type.</span>
+        eff = type_effect(<span class="hljs-string">&quot;GROUND&quot;</span>, mon[<span class="hljs-string">&quot;types&quot;</span>]) * type_effect(<span class="hljs-string">&quot;ROCK&quot;</span>, mon[<span class="hljs-string">&quot;types&quot;</span>])
+        outgoing.append(<span class="hljs-built_in">dict</span>(move=<span class="hljs-string">&quot;Exc Earthquake Rocky, spread&quot;</span>, target=mon[<span class="hljs-string">&quot;label&quot;</span>],
+                             <span class="hljs-built_in">range</span>=[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>] <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> eff <span class="hljs-keyword">else</span> damage(<span class="hljs-number">90</span>,<span class="hljs-number">100</span>,own[<span class="hljs-string">&quot;EXCADRILL&quot;</span>][<span class="hljs-string">&quot;atk&quot;</span>],defense,
+                                          base_modifier=<span class="hljs-number">1.5</span>,modifier=<span class="hljs-number">1.5</span>*<span class="hljs-number">.75</span>*eff),hp=mon[<span class="hljs-string">&quot;stats&quot;</span>][<span class="hljs-string">&quot;hp&quot;</span>]))
+    <span class="hljs-built_in">print</span>(json.dumps(<span class="hljs-built_in">dict</span>(assumptions=<span class="hljs-string">&quot;Hypothetical CF252/210/68 after legal Agate prep; other six stats from archived restock checkpoint/owned Ludi. Rocky, first Mega stats, active sand; no target choices or Mummy/Defeatist procs assumed. Enemy moves into DEF+2 use no preceding RockSmash drop; see DEF+1/0 rows after drops. Crits bypass boost. Initial StompingTantrum75; double listed result approximately if later Tantrum flag. RockSlide .75 assumes &gt;1 target.&quot;</span>,
+                          own=own, opponents=foes, incoming=incoming, outgoing=outgoing),indent=<span class="hljs-number">2</span>))
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    main()
+</code></pre>
+  </body>
+</html>

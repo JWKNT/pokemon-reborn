@@ -1,0 +1,30 @@
+{
+  "status": "Planning only; all moves/items must be verified after preparation",
+  "party": [
+    "Heatran",
+    "Cresselia",
+    "Magearna",
+    "Mienshao",
+    "Rayquaza",
+    "Amoonguss"
+  ],
+  "ray_build": "Prepared HP252 Attack252, Rash. Final Dragon Ascent / Rock Slide / V-create / Protect with Wide Lens; retain Fly until arrival.",
+  "round1": "Heatran Protect + Cresselia Trick Room, then Earth Power Jolteon + Light Screen. Rotate Cresselia->Mienshao under Heatran Protect, then Heatran->Magearna under Wide Guard. Calm Mind/Dazzling Gleam with Wide Guard. Adapt immediately to Perish Song, Roar, single-target attacks, new opponents. Preserve all six for survivor-only partial heal.",
+  "round1_warnings": [
+    "Gengar and Primarina and Lapras have Perish Song; track public countdown and switch before0.",
+    "Victini has Zen Headbutt threatening Mienshao and Bolt Strike; focus promptly, not blind indefinite Wide Guard.",
+    "Quagsire Unaware ignores offensive boosts; neutral fairy attacks still work."
+  ],
+  "round2": "Fixed original leads Heatran/Cresselia. Both Chesto. Turn1 Flamethrower Venusaur + Trick Room; then eliminate Shaymin/Pheromosa/Xurkitree with Flamethrower while Cresselia heals/screens. Keep Ninetales alive as manageable second foe. Blaziken needs Earth Power plus Psychic or Protect into HJK recoil; renew TR before it expires. Primal Groudon spreads blocked by Wide Guard. MegaRay physical Rock Slide for Ho-Oh/Reshiram.",
+  "capture": "Bring specially bulky Amoonguss instead of Mawile: avoids unsafe False Swipe switching into sun Fire Blast. Cresselia Light Screen/Psychic weakening/Trick Room, then Amoonguss Spore/Synthesis. Buy Heavy Balls at Obsidia map369E1: installed >=300kg adds30 to catch rate, far stronger than Dusk on Groudon. Mega weather does not reliably persist after Rayquaza withdraws, so do not base capture on that.",
+  "source": "Installed850E130, work/aegir367-rosters-static.json, work/342-rayquaza-chain-source.json",
+  "revision_missing_machines": "TM16 absent; collect installed map553 event14 via ordinary Surf/Dive. TM26 gated behind21 starter eggs; replace planned Ray Earthquake with relearned V-create (second Heart Scale). Ray final DragonAscent/RockSlide/VCreate/Protect; retainFly until Aegirarrival.",
+  "light_screen_route_note": "Collected TM16 normally at553E14. Surface567 and536 are Outdoor with MapPosition and no MapSize: future return may Fly directly after surfacing instead of retracing Coral.",
+  "story_controls": {
+    "intro": "Begin continuity from full verified850 save, normal party proof; present Rayquaza and decline PC with aegir370_present_rayquaza.py, then major_enter --active-dialogue with fresh proof.",
+    "between_rounds": "After publicly observing R1 victory, close trainer music/attempt and record ledger. linear_dialog.py850130 --source-page2 --command-range146547 --past-battle --burst --log-scripted-bgm stops at last shout beforeR2, logs InnerChaos andsilence. Then fresh unchanged party proof; major_enter217 --active-dialogue.",
+    "capture_intro": "After publicly observing R2 victory close music/attempt/result; linear_dialog command-range553606 stops at Titania dealwiththat. Start wild Legendary music before advancing intoGroudon; no native logs whilewild active.",
+    "no_save": "No saves anywhere in this chain; only surviving party heals between trainers."
+  },
+  "between_round_heal": "Installed Utilities.rb2501 pbPartialHeal restores surviving HP and status ONLY, not PP. Conserve Cresselia Trick Room/Moonlight and Heatran Flamethrower; do not assume restored PP."
+}

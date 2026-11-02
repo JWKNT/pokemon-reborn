@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>battle_named_move.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of battle_named_move.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Resolve an actor&#x27;s named move from the unchanged saved build, then use normal UI.
+
+For unsaved move learning/replacement, take a new normal checkpoint before using
+this helper. It never reads live AI, RNG or game memory, and never edits game data.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+actor,move=sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>];target=sys.argv[<span class="hljs-number">3</span>:<span class="hljs-number">4</span>]
+rows=snap();prompt=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span> <span class="hljs-keyword">and</span> v[<span class="hljs-string">&#x27;x&#x27;</span>]&lt;<span class="hljs-number">.5</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,actor.lower(),w.lower().strip(<span class="hljs-string">&#x27;.,?&#x27;</span>)).ratio()&gt;<span class="hljs-number">.72</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> prompt.split()),<span class="hljs-string">&#x27;Named actor must match fresh battle prompt&#x27;</span>
+s=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/status_full.rb&#x27;</span>)],stderr=subprocess.DEVNULL))
+mon=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;name&#x27;</span>]==actor)
+slots=[i <span class="hljs-keyword">for</span> i,m <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(mon[<span class="hljs-string">&#x27;moves&#x27;</span>]) <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;move&#x27;</span>]==move.upper()]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(slots)==<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Named move not in verified saved build&#x27;</span>
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NAMED MOVE&#x27;</span>,actor,move.upper(),<span class="hljs-string">&#x27;slot&#x27;</span>,slots[<span class="hljs-number">0</span>],flush=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_move.py&#x27;</span>),<span class="hljs-built_in">str</span>(slots[<span class="hljs-number">0</span>]),*target,<span class="hljs-string">&#x27;--watch&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

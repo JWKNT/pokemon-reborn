@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glitch382_round1.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glitch382_round1.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed first Glitch team only; bounded normal UI and public HUD guards.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,subprocess,sys
+os.environ[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">*args</span>):subprocess.run([sys.executable,<span class="hljs-string">&#x27;scripts/&#x27;</span>+args[<span class="hljs-number">0</span>]+<span class="hljs-string">&#x27;.py&#x27;</span>,*args[<span class="hljs-number">1</span>:]],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,<span class="hljs-string">&#x27;Mewtwo&#x27;</span>,<span class="hljs-string">&#x27;3&#x27;</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Roserade&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-string">&#x27;3&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.40&#x27;</span>,<span class="hljs-string">&#x27;--status-move&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STOP: review three public Amnesia turns and HP before attacking.&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

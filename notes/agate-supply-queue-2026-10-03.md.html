@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Normal Agate/Hardy shopping queue">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="agate-supply-queue-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/agate-supply-queue-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/agate-supply-queue-2026-10-03.md.html">
+    <title>agate-supply-queue-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">agate-supply-queue-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 3.2 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · committed Oct 3 17:56</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Normal Agate/Hardy shopping queue</h2>
+<p>scripts/agate_supply_queue.py is a source-only planner unless --execute is
+explicit. The reviewed entry is the new ordinary checkpoint
+Agate-Cofa-EVs-complete on map519, with the named Fly carrier Tranquill still
+in the six and Cofagrigus90 Timid holding Power Lens after exactly80 SpA EVs.
+The helper leaves that Lens equipped; use agate_prep_phase.py finish-lens
+after returning to Circus.</p>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="Code example"><code class="hljs">python3 scripts/agate_supply_queue.py --status notes/Agate-Cofa-EVs-complete-status.json
+python3 scripts/agate_supply_queue.py --status notes/Agate-Cofa-EVs-complete-status.json --execute</code></pre>
+<p>The full frozen navigation sibling is loaded automatically. Execution requires
+the checkpoint be at most300 seconds old, actual ordinary overworld/map guards,
+explicit719=False for herb page0, membership counter175≥7, Membership Card, and
+the exact completed Cofa build. Source reads recheck installed vendor scripts,
+stocks and prices. Each named purchase delegates to shop_buy.py, which checks
+the selected label, quantity, total price and Yes/No before payment, then verifies
+its receipt. No checkpoint is made between purchases.</p>
+<p>The four phases are:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Normal route</th>
+<th>Target bag quantities</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>dept</td>
+<td>Fly520;520E101→112E6→113E1, visible8F menu→4E4; return floor1→520</td>
+<td>12X Sp. Atk,7X Speed,9X Defend,4X Attack</td>
+</tr>
+<tr>
+<td>herbs</td>
+<td>520→611;611E2 page0; return520</td>
+<td>2Revival Herb</td>
+</tr>
+<tr>
+<td>ultra</td>
+<td>Fly519;519E116→38E5;38E6→519</td>
+<td>40Ultra Potion</td>
+</tr>
+<tr>
+<td>return-circus</td>
+<td>Fly355; single checkpoint Circus-restocked129</td>
+<td>Final bag/money/party reconciliation</td>
+</tr>
+</tbody></table></div>
+<p>Only deficits from the actual frozen bag are bought. The actual frozen money
+must cover the cart. The17,000 berry/Lens expense has already occurred by this
+entry checkpoint, so it is not reserved again. The hypothetical pre-training
+baseline yields23,050 shopping cost and34,130 remaining after that build;
+training medicine use or income changes the actual cart/money result.</p>
+<p>The new default work/agate-shopping-129-journal.json records each phase and each
+step as pending before execution. A failure keeps that pending boundary and any
+already verified receipts. An existing journal is never replayed. Recovery needs
+ordinary manual menu exit/travel to one of the reviewed entrances, then a fresh
+named checkpoint and a <strong>new journal</strong>, for example:</p>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="Code example"><code class="hljs">python3 scripts/agate_supply_queue.py --status notes/Agate-shopping-recovered-status.json --from-phase herbs --journal work/agate-shopping-129-recovery1.json --execute</code></pre>
+<p>Allowed fresh entrance maps are dept519, herbs520, ultra520, return-circus519.
+Every skipped earlier vendor&#39;s quantities must already meet its targets; the
+cart is recomputed from the fresh checkpoint. Do not resume at a purchase menu.
+If the final Circus checkpoint exists but verification stopped, inspect that
+existing evidence rather than overwrite it. The final gate requires all target
+quantities, exact source-priced money expenditure, and unchanged party build,
+held items, HP/status and move PP.</p>
+<p>Validation: Python syntax checks and eight pure fixture/source tests passed.
+Fixtures modify only copies of closed Hypno128 evidence and do not claim the
+future training/shopping was performed. No UI, input, game/save mutation or
+actual shopping was executed during development.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

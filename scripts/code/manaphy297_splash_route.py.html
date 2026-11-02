@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>manaphy297_splash_route.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of manaphy297_splash_route.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Follow inspected Splash Grounds doors and collect their three gems through UI.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_STEP_PAUSE=<span class="hljs-string">&#x27;0.10&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SPLASH&#x27;</span>,n,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">event</span>(<span class="hljs-params">e,kind=<span class="hljs-string">&#x27;enter&#x27;</span></span>):run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">862</span>,e,kind)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">door</span>(<span class="hljs-params">e,label</span>):
+ event(e,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--yes&#x27;</span>,<span class="hljs-string">&#x27;--limit&#x27;</span>,<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;--story-burst&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label);event(e)
+event(<span class="hljs-number">66</span>);event(<span class="hljs-number">159</span>,<span class="hljs-string">&#x27;item&#x27;</span>);event(<span class="hljs-number">6</span>)
+<span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> [<span class="hljs-number">118</span>,<span class="hljs-number">119</span>,<span class="hljs-number">117</span>]:event(e,<span class="hljs-string">&#x27;item&#x27;</span>)
+door(<span class="hljs-number">123</span>,<span class="hljs-string">&#x27;Manaphy297-Gate1&#x27;</span>)
+<span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> [<span class="hljs-number">38</span>,<span class="hljs-number">48</span>,<span class="hljs-number">100</span>]:event(e)
+event(<span class="hljs-number">155</span>,<span class="hljs-string">&#x27;item&#x27;</span>);door(<span class="hljs-number">76</span>,<span class="hljs-string">&#x27;Manaphy297-Gate2&#x27;</span>)
+event(<span class="hljs-number">72</span>);event(<span class="hljs-number">166</span>,<span class="hljs-string">&#x27;item&#x27;</span>);door(<span class="hljs-number">70</span>,<span class="hljs-string">&#x27;Manaphy297-Gate3&#x27;</span>)
+event(<span class="hljs-number">151</span>,<span class="hljs-string">&#x27;item&#x27;</span>);run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;862,13,10&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Manaphy297-Approach&#x27;</span>)
+</code></pre>
+  </body>
+</html>

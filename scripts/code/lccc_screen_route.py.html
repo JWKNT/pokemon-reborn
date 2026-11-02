@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>lccc_screen_route.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of lccc_screen_route.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed normal walks through the Labradorra screen corridor, stages 10–20.
+Only mirror a static single variable assignment after the game coordinate proves
+that its player-touch tile was reached. No save, memory or battle-log reads.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+steps=[(<span class="hljs-number">33</span>,<span class="hljs-number">28</span>,<span class="hljs-number">61</span>,<span class="hljs-number">11</span>),(<span class="hljs-number">35</span>,<span class="hljs-number">29</span>,<span class="hljs-number">60</span>,<span class="hljs-number">12</span>),(<span class="hljs-number">37</span>,<span class="hljs-number">31</span>,<span class="hljs-number">60</span>,<span class="hljs-number">13</span>),(<span class="hljs-number">39</span>,<span class="hljs-number">33</span>,<span class="hljs-number">60</span>,<span class="hljs-number">14</span>),(<span class="hljs-number">56</span>,<span class="hljs-number">32</span>,<span class="hljs-number">50</span>,<span class="hljs-number">15</span>),(<span class="hljs-number">58</span>,<span class="hljs-number">28</span>,<span class="hljs-number">50</span>,<span class="hljs-number">16</span>),(<span class="hljs-number">59</span>,<span class="hljs-number">24</span>,<span class="hljs-number">49</span>,<span class="hljs-number">17</span>),(<span class="hljs-number">61</span>,<span class="hljs-number">20</span>,<span class="hljs-number">50</span>,<span class="hljs-number">18</span>),(<span class="hljs-number">62</span>,<span class="hljs-number">16</span>,<span class="hljs-number">50</span>,<span class="hljs-number">19</span>),(<span class="hljs-number">63</span>,<span class="hljs-number">12</span>,<span class="hljs-number">50</span>,<span class="hljs-number">20</span>)]
+statefile=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>
+<span class="hljs-keyword">for</span> eid,x,y,stage <span class="hljs-keyword">in</span> steps:
+ e=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/event_dump.rb&#x27;</span>),<span class="hljs-string">&#x27;774&#x27;</span>,<span class="hljs-built_in">str</span>(eid)],stderr=subprocess.DEVNULL))
+ p=e[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>];cs=[c <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> p[<span class="hljs-string">&#x27;list&#x27;</span>]<span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]<span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">108</span>,<span class="hljs-number">408</span>]]
+ <span class="hljs-keyword">assert</span> p[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> (e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])==(x,y)
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]<span class="hljs-keyword">in</span>[<span class="hljs-number">250</span>,<span class="hljs-number">122</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs) <span class="hljs-keyword">and</span> [c[<span class="hljs-string">&#x27;parameters&#x27;</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">122</span>]==[[<span class="hljs-number">475</span>,<span class="hljs-number">475</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,stage]]
+ state=json.loads(statefile.read_text());actual=state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;475&#x27;</span>]
+ <span class="hljs-keyword">if</span> actual&gt;=stage:<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">assert</span> actual==stage-<span class="hljs-number">1</span>,(actual,stage)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">f&#x27;774,<span class="hljs-subst">{x}</span>,<span class="hljs-subst">{y}</span>&#x27;</span>],check=<span class="hljs-literal">True</span>)
+ public=json.loads((ROOT/<span class="hljs-string">&#x27;work/last-native-position.json&#x27;</span>).read_text())
+ <span class="hljs-keyword">assert</span> public[<span class="hljs-string">&#x27;position&#x27;</span>]==[<span class="hljs-number">774</span>,x,y]
+ state=json.loads(statefile.read_text());state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;475&#x27;</span>]=stage;statefile.write_text(json.dumps(state))
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NORMAL TOUCH VERIFIED; SOURCE ROUTE MIRROR&#x27;</span>,eid,stage,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

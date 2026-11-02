@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ray368_after_search.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ray368_after_search.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Continue a completed public-marker search; guarded ordinary capture controls only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,time,sys,subprocess,json,re
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+pid=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);log=R/sys.argv[<span class="hljs-number">2</span>]
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1000</span>):
+ <span class="hljs-keyword">try</span>:os.kill(pid,<span class="hljs-number">0</span>)
+ <span class="hljs-keyword">except</span> ProcessLookupError:<span class="hljs-keyword">break</span>
+ time.sleep(<span class="hljs-number">1</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Search completion timeout; no input sent&#x27;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;CONNECTED BERYL MARKER&#x27;</span> <span class="hljs-keyword">in</span> log.read_text(),<span class="hljs-string">&#x27;Search did not find connected marker&#x27;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read,act
+<span class="hljs-keyword">from</span> ray368_marker <span class="hljs-keyword">import</span> marker
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Reborn Region&#x27;</span> <span class="hljs-keyword">in</span> read()
+<span class="hljs-keyword">assert</span> marker()[<span class="hljs-string">&#x27;grid&#x27;</span>]==[<span class="hljs-number">1</span>,<span class="hljs-number">8</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CAPTURE FOLLOWUP&#x27;</span>,s,*args,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;ray368_grass&#x27;</span>,<span class="hljs-string">&#x27;--save&#x27;</span>,<span class="hljs-string">&#x27;Rayquaza368-ThreeMeetings&#x27;</span>)
+t=read().lower()
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;rayquaza&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;mawile&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;mamile&#x27;</span> <span class="hljs-keyword">in</span> t),t
+run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+run(<span class="hljs-string">&#x27;capture_bounded&#x27;</span>,<span class="hljs-string">&#x27;Mawile&#x27;</span>,<span class="hljs-string">&#x27;Rayquaza&#x27;</span>,<span class="hljs-string">&#x27;--ball&#x27;</span>,<span class="hljs-string">&#x27;Premier Ball&#x27;</span>,<span class="hljs-string">&#x27;--throws&#x27;</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;--total-hp&#x27;</span>,<span class="hljs-number">404</span>,<span class="hljs-string">&#x27;--heal-below&#x27;</span>,<span class="hljs-number">170</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CAPTURE RESULT: inspect before further input&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

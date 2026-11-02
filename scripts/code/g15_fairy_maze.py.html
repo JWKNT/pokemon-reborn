@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g15_fairy_maze.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g15_fairy_maze.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Repeat the installed non-backtracking maze exits via native controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">r</span>(<span class="hljs-params">s,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;s=json.loads(p.read_text())
+<span class="hljs-comment"># First east loop was observed from31,23 to11,28; initial saved361=0.</span>
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">696</span>)==(<span class="hljs-number">696</span>,<span class="hljs-number">11</span>,<span class="hljs-number">28</span>)
+s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;380&#x27;</span>]=<span class="hljs-number">1</span>;s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;361&#x27;</span>]=<span class="hljs-number">4</span>;p.write_text(json.dumps(s))
+<span class="hljs-keyword">for</span> count <span class="hljs-keyword">in</span> [<span class="hljs-number">2</span>,<span class="hljs-number">3</span>]:
+ r(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">696</span>,<span class="hljs-number">17</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);r(<span class="hljs-string">&#x27;settle_arrival&#x27;</span>,<span class="hljs-number">696</span>)
+ <span class="hljs-keyword">assert</span> locate(<span class="hljs-number">696</span>)==(<span class="hljs-number">696</span>,<span class="hljs-number">11</span>,<span class="hljs-number">28</span>)
+ s=json.loads(p.read_text());s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;380&#x27;</span>]=count;s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;361&#x27;</span>]=<span class="hljs-number">4</span>;p.write_text(json.dumps(s))
+r(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">696</span>,<span class="hljs-number">100</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);r(<span class="hljs-string">&#x27;settle_arrival&#x27;</span>,<span class="hljs-number">697</span>)
+s=json.loads(p.read_text());s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;874&#x27;</span>]=<span class="hljs-literal">True</span>;p.write_text(json.dumps(s))
+r(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">697</span>,<span class="hljs-number">24</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);r(<span class="hljs-string">&#x27;settle_arrival&#x27;</span>,<span class="hljs-number">698</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CASTLE ENTRY COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

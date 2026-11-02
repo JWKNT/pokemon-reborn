@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Attempt1 reset after Tapu Bulu defeated but Celesteela swept Magearna/Amoonguss/Swampert. Both lead seeds activated on Water Surface…">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="session342-amaria-retry-plan.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/session342-amaria-retry-plan.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/session342-amaria-retry-plan.md.html">
+    <title>session342-amaria-retry-plan.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">session342-amaria-retry-plan.md</h1>
+        <p class="task-meta">Markdown · 2 KB · <a href="/pokemon-reborn/reasoning/29/">Task 29</a> · first used Oct 13 08:03</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><p>Attempt1 reset after Tapu Bulu defeated but Celesteela swept Magearna/Amoonguss/Swampert. Both lead seeds activated on Water Surface BEFORE Grassy Surge, raising SpDef, not Defense. Celesteela remained airborne. Retry uses trained135 Latias with Latiasite, Surf/Psychic/Recover/Calm Mind alongside Charcoal Volcanion. Focus Bulu with Psychic + Flamethrower first; Mega Latias resists Celesteela Flamethrower/Giga Drain and Surf can heal Volcanion via Water Absorb. Reserve Magearna for later dragons after Fire threats removed. Normal save before independent Amaria and Titania fights. Later Rayquaza chain requires separate complete plan.</p>
+<p>Opening adjustment: installed Battle_Scene3359 binds X items to acting battler, so Latias cannot X Defend Volcanion. Volcanion will use X Defend itself (+2Defense per ItemEffects3279) while Mega Latias uses Psychic on Bulu. Follow with Volcanion Flamethrower on Bulu and Latias Ultra Potion on Volcanion if public HP requires; this prevents combined Wood Hammer/Giga Drain KO.</p>
+<p>Attempt2 reset after defeating Bulu, Volcarona, Celesteela, Palkia; final Kyogre+Volcanion overwhelmed lone boosted Magearna. Complete pre-reset log copied, read only after observed Continue screen. Magearna owned Q showed1956SpAtk1428SpDef and159Speed (Water Surface), but Origin Pulse138 + rain Steam Eruption138 + Seed60 + Burn30≈366/turn. Need Wide Guard, Light Screen, Safeguard rather than potion attrition. Mienshao already130 box2slot14(onebased), WideGuard/FakeOut/HJK/Strength; train135, replaceStrength with ownedTM62Acrobatics, removeProtectivePads. Meowstic135PranksterLightClaybox3slot3 alreadyLightScreen/Safeguard. ReplaceLatias/Mawile with them; preserveZapdos forKyogre andSwampertfieldWaterfall.
+Native Q inspector returns -1 (Battle_Scene3038), Battle.rb4092 resets entire command phase and refunds the first queued item. Thus using own Q on the second actor CANCELED the queued Revive Zapdos in attempt2. Only inspect at a fresh turn before ANY action selections; then explicitly reselect all actions. Do not infer revived Pokemon from a queued choice.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

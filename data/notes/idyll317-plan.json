@@ -1,0 +1,40 @@
+{
+  "choice": "No: stop Eve, agree with Lumi. Source878E118page2.",
+  "entry_trigger": [
+    878,
+    115,
+    82,
+    85
+  ],
+  "save_before_at": [
+    82,
+    86
+  ],
+  "team": "Mawile/Magearna/Volcanion/Zapdos/Zeraora/Amoonguss; trained130 reserves replace Swampert and Meowstic. Wasteland severely weakens Earthquake.",
+  "opening": "Mega Mawile Sucker Punch into attacking Alakazam; assess setup if Sucker fails. Magearna handles Porygon-Z/Sigilyph, Volcanion handles Metagross. Actual public moves/HP guide subsequent turns.",
+  "anomaly_source": [
+    878,
+    196,
+    2
+  ],
+  "anomaly_keys": [
+    [
+      "SHAYMIN1",
+      "Shaymin",
+      0
+    ],
+    [
+      "SHAYMIN2",
+      "Friends",
+      0
+    ]
+  ],
+  "anomaly_partner": [
+    "EVE",
+    "Eve",
+    1
+  ],
+  "capture_note": "Future Grass types are immune to Spore; keep Zapdos Thunder Wave and Zeraora False Swipe available. Amoonguss supports other captures.",
+  "actual_result": "Fought Lumi1 after default Yes was accepted by intro OCR; first-attempt victory, no player bag items, no allied faint. Saved Idyll317-LumiVictory,641=5.",
+  "entry_fix": "major_enter now delegates reviewed intro choices to native-crop-aware choose_dialog before general text advance."
+}

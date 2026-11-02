@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>circus_to_training_grass.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of circus_to_training_grass.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed Route2 elevator to a previously verified grass strip.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;355,13,34,left:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,8,33,up:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,8,48,up:.03,c,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Agate Circus|Route 2&#x27;</span>,<span class="hljs-string">&#x27;Route 2&#x27;</span>);act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;s=json.loads(p.read_text());s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;74&#x27;</span>]=<span class="hljs-number">1</span>;p.write_text(json.dumps(s))
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;365,9,51,down:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,4,63,left:.12,wait:2&#x27;</span>)
+ground=<span class="hljs-built_in">int</span>(json.loads(p.read_text()).get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;410&#x27;</span>,<span class="hljs-literal">False</span>))
+run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>,<span class="hljs-number">358</span>,<span class="hljs-number">50</span>,<span class="hljs-number">59</span>,ground,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--hold-straights&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">358</span>)==(<span class="hljs-number">358</span>,<span class="hljs-number">50</span>,<span class="hljs-number">59</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TRAINING GRASS REACHED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

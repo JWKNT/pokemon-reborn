@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>plan_ametrine_dive.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of plan_ametrine_dive.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only Dijkstra across surface walking/surf/ice and underwater Dive edges.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> surface_plan <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> copy
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;390&#x27;</span>,<span class="hljs-string">&#x27;96&#x27;</span>,<span class="hljs-string">&#x27;20&#x27;</span>],stderr=subprocess.DEVNULL));u=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;392&#x27;</span>,<span class="hljs-string">&#x27;40&#x27;</span>,<span class="hljs-string">&#x27;12&#x27;</span>],stderr=subprocess.DEVNULL))
+g0=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);sv=copy.deepcopy(v)
+<span class="hljs-keyword">for</span> i,t <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(v[<span class="hljs-string">&#x27;terrain&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>]):
+ <span class="hljs-keyword">if</span> t <span class="hljs-keyword">in</span> WATER:sv[<span class="hljs-string">&#x27;passages&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][i]=<span class="hljs-number">0</span>;sv[<span class="hljs-string">&#x27;priorities&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][i]=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> i,t <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(u[<span class="hljs-string">&#x27;terrain&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>]):
+ <span class="hljs-keyword">if</span> t <span class="hljs-keyword">in</span> WATER:u[<span class="hljs-string">&#x27;passages&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][i]=<span class="hljs-number">0</span>;u[<span class="hljs-string">&#x27;priorities&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][i]=<span class="hljs-number">0</span>
+g1=route(sv,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);ug=route(u,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+start=(<span class="hljs-number">0</span>,<span class="hljs-number">96</span>,<span class="hljs-number">20</span>,<span class="hljs-literal">False</span>);goal=(<span class="hljs-number">1</span>,<span class="hljs-number">19</span>,<span class="hljs-number">46</span>,<span class="hljs-literal">True</span>);q=[(<span class="hljs-number">0</span>,start)];dist={start:<span class="hljs-number">0</span>};prev={start:<span class="hljs-literal">None</span>}
+<span class="hljs-keyword">while</span> q:
+ cost,p=heapq.heappop(q)
+ <span class="hljs-keyword">if</span> cost!=dist[p]:<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> p==goal:<span class="hljs-keyword">break</span>
+ layer,x,y,surf=p;pos=(x,y);choices=[]
+ <span class="hljs-keyword">if</span> layer:
+  choices=[((<span class="hljs-number">1</span>,*n,<span class="hljs-literal">True</span>),k,<span class="hljs-number">1</span>)<span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> ug.get(pos,[])]
+  <span class="hljs-keyword">if</span> tag(v,pos)==<span class="hljs-number">5</span>:choices.append(((<span class="hljs-number">0</span>,x,y,<span class="hljs-literal">True</span>),<span class="hljs-string">&#x27;surface&#x27;</span>,<span class="hljs-number">8</span>))
+ <span class="hljs-keyword">else</span>:
+  c=<span class="hljs-built_in">list</span>((g1 <span class="hljs-keyword">if</span> surf <span class="hljs-keyword">else</span> g0).get(pos,[]))
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> surf:c.extend((k,n)<span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> g1.get(pos,[])<span class="hljs-keyword">if</span> tag(v,n)<span class="hljs-keyword">in</span> WATER <span class="hljs-keyword">and</span> tag(v,pos)<span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> WATER)
+  <span class="hljs-keyword">for</span> key,n <span class="hljs-keyword">in</span> c:
+   mode=tag(v,n)<span class="hljs-keyword">in</span> WATER;extra=<span class="hljs-number">1</span>
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> surf <span class="hljs-keyword">and</span> mode:key=<span class="hljs-string">&#x27;surf:&#x27;</span>+key;extra=<span class="hljs-number">8</span>
+   <span class="hljs-keyword">elif</span> surf <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> mode:key=<span class="hljs-string">&#x27;land:&#x27;</span>+key
+   <span class="hljs-keyword">elif</span> <span class="hljs-keyword">not</span> mode <span class="hljs-keyword">and</span> tag(v,n)==<span class="hljs-number">12</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> key.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):
+    direction=key
+    <span class="hljs-keyword">while</span> tag(v,n)==<span class="hljs-number">12</span>:
+     farther=<span class="hljs-built_in">next</span>((nn <span class="hljs-keyword">for</span> kk,nn <span class="hljs-keyword">in</span> g0.get(n,[])<span class="hljs-keyword">if</span> kk==direction),<span class="hljs-literal">None</span>)
+     <span class="hljs-keyword">if</span> farther <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<span class="hljs-keyword">break</span>
+     n=farther;extra+=<span class="hljs-number">1</span>
+    key=<span class="hljs-string">&#x27;slide:&#x27;</span>+direction
+   choices.append(((<span class="hljs-number">0</span>,*n,mode),key,extra))
+  <span class="hljs-keyword">if</span> surf <span class="hljs-keyword">and</span> tag(v,pos)==<span class="hljs-number">5</span>:choices.append(((<span class="hljs-number">1</span>,x,y,<span class="hljs-literal">True</span>),<span class="hljs-string">&#x27;dive&#x27;</span>,<span class="hljs-number">8</span>))
+ <span class="hljs-keyword">for</span> np,k,e <span class="hljs-keyword">in</span> choices:
+  nc=cost+e
+  <span class="hljs-keyword">if</span> nc&lt;dist.get(np,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):dist[np]=nc;prev[np]=(p,k);heapq.heappush(q,(nc,np))
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No multilayer route&#x27;</span>)
+steps=[];p=goal
+<span class="hljs-keyword">while</span> prev[p]:
+ old,k=prev[p];steps.append({<span class="hljs-string">&#x27;from&#x27;</span>:old,<span class="hljs-string">&#x27;to&#x27;</span>:p,<span class="hljs-string">&#x27;key&#x27;</span>:k});p=old
+steps.reverse();(ROOT/<span class="hljs-string">&#x27;work/ametrine-dive-route.json&#x27;</span>).write_text(json.dumps(steps,indent=<span class="hljs-number">2</span>))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PLAN&#x27;</span>,<span class="hljs-built_in">len</span>(steps),<span class="hljs-string">&#x27;edges cost&#x27;</span>,dist[goal])
+<span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> steps:
+ <span class="hljs-keyword">if</span> s[<span class="hljs-string">&#x27;key&#x27;</span>]<span class="hljs-keyword">in</span>[<span class="hljs-string">&#x27;dive&#x27;</span>,<span class="hljs-string">&#x27;surface&#x27;</span>]:<span class="hljs-built_in">print</span>(s)
+</code></pre>
+  </body>
+</html>

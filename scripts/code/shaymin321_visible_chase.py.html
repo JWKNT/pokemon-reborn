@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>shaymin321_visible_chase.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of shaymin321_visible_chase.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded normal-UI interaction with wandering gift Shaymin, using rendered pixels only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">import</span> cv2,numpy <span class="hljs-keyword">as</span> np
+sprite=Image.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Graphics/Characters/pkmn_shaymin.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>)
+templates=[]
+<span class="hljs-keyword">for</span> yy <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+ <span class="hljs-keyword">for</span> xx <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  a=sprite.crop((xx*<span class="hljs-number">34</span>,yy*<span class="hljs-number">30</span>,(xx+<span class="hljs-number">1</span>)*<span class="hljs-number">34</span>,(yy+<span class="hljs-number">1</span>)*<span class="hljs-number">30</span>)).resize((<span class="hljs-number">57</span>,<span class="hljs-number">50</span>),Image.Resampling.NEAREST)
+  a=np.array(a);templates.append((cv2.cvtColor(a[:,:,:<span class="hljs-number">3</span>],cv2.COLOR_RGB2BGR),a[:,:,<span class="hljs-number">3</span>]))
+<span class="hljs-keyword">for</span> turn <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">90</span>):
+ t=read();low=t.lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;shaymin:&#x27;</span>,<span class="hljs-string">&#x27;mimi&#x27;</span>,<span class="hljs-string">&#x27;take shaymin&#x27;</span>,<span class="hljs-string">&#x27;wandering around&#x27;</span>,<span class="hljs-string">&#x27;obtained shaymin&#x27;</span>,<span class="hljs-string">&#x27;nickname&#x27;</span>]):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;GIFT DIALOGUE&#x27;</span>,t,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ scene=cv2.imread(<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>));best=<span class="hljs-literal">None</span>
+ <span class="hljs-keyword">if</span> np.mean(np.<span class="hljs-built_in">min</span>(scene[<span class="hljs-number">490</span>:<span class="hljs-number">620</span>,<span class="hljs-number">20</span>:<span class="hljs-number">800</span>],axis=<span class="hljs-number">2</span>)&gt;<span class="hljs-number">235</span>)&gt;<span class="hljs-number">.45</span>:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUBLIC TEXTBOX STOP&#x27;</span>,t,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">for</span> template,mask <span class="hljs-keyword">in</span> templates:
+  scores=cv2.matchTemplate(scene[:<span class="hljs-number">490</span>],template,cv2.TM_SQDIFF_NORMED,mask=mask)
+  scores=np.nan_to_num(scores,nan=<span class="hljs-number">10</span>,posinf=<span class="hljs-number">10</span>,neginf=<span class="hljs-number">10</span>);_,_,_,_=cv2.minMaxLoc(scores)
+  score,_,pos,_=cv2.minMaxLoc(scores)
+  <span class="hljs-keyword">if</span> best <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> score&lt;best[<span class="hljs-number">0</span>]:best=(score,pos)
+ score,(x,y)=best
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MATCH&#x27;</span>,score,(x,y),flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">assert</span> score&lt;<span class="hljs-number">.28</span>,(<span class="hljs-string">&#x27;Visible Shaymin template unclear&#x27;</span>,score)
+ dx=<span class="hljs-built_in">round</span>((x+<span class="hljs-number">28.5</span>-<span class="hljs-number">426</span>)/<span class="hljs-number">53.25</span>);dy=<span class="hljs-built_in">round</span>((y+<span class="hljs-number">25</span>-<span class="hljs-number">314</span>)/<span class="hljs-number">53.33</span>)
+ <span class="hljs-built_in">print</span>(turn,score,(x,y),(dx,dy),flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(dx)+<span class="hljs-built_in">abs</span>(dy)&lt;=<span class="hljs-number">1</span>:
+  k=(<span class="hljs-string">&#x27;right&#x27;</span> <span class="hljs-keyword">if</span> dx&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;left&#x27;</span>) <span class="hljs-keyword">if</span> dx <span class="hljs-keyword">else</span> (<span class="hljs-string">&#x27;down&#x27;</span> <span class="hljs-keyword">if</span> dy&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;up&#x27;</span>)
+  act(k+<span class="hljs-string">&#x27;:.025&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.25&#x27;</span>)
+ <span class="hljs-keyword">else</span>:
+  k=(<span class="hljs-string">&#x27;right&#x27;</span> <span class="hljs-keyword">if</span> dx&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;left&#x27;</span>) <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(dx)&gt;=<span class="hljs-built_in">abs</span>(dy) <span class="hljs-keyword">else</span> (<span class="hljs-string">&#x27;down&#x27;</span> <span class="hljs-keyword">if</span> dy&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;up&#x27;</span>)
+  act(k+<span class="hljs-string">&#x27;:.07&#x27;</span>,<span class="hljs-string">&#x27;wait:.18&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Visible chase limit; no unseen state consumed&#x27;</span>)
+</code></pre>
+  </body>
+</html>

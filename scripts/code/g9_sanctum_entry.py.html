@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g9_sanctum_entry.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g9_sanctum_entry.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> nav
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/a[<span class="hljs-number">0</span>]),*a[<span class="hljs-number">1</span>:]],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">state</span>(<span class="hljs-params">var=<span class="hljs-literal">None</span>,sw=<span class="hljs-literal">None</span></span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>].update(var <span class="hljs-keyword">or</span> {});v[<span class="hljs-string">&#x27;switches&#x27;</span>].update(sw <span class="hljs-keyword">or</span> {});p.write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;325,13,19,down,wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-string">&#x27;324&#x27;</span>,<span class="hljs-string">&#x27;53&#x27;</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-string">&#x27;328&#x27;</span>,<span class="hljs-string">&#x27;22&#x27;</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;329,25,19,down,wait:1&#x27;</span>)
+state({<span class="hljs-string">&#x27;159&#x27;</span>:<span class="hljs-number">12</span>});run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-string">&#x27;329&#x27;</span>,<span class="hljs-string">&#x27;15&#x27;</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-string">&#x27;331&#x27;</span>,<span class="hljs-string">&#x27;9&#x27;</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;choose_dialog.py&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-string">&#x27;331&#x27;</span>,<span class="hljs-string">&#x27;9&#x27;</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+state({<span class="hljs-string">&#x27;159&#x27;</span>:<span class="hljs-number">14</span>},{<span class="hljs-string">&#x27;432&#x27;</span>:<span class="hljs-literal">True</span>});nav.save();<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-string">&#x27;331&#x27;</span>,<span class="hljs-string">&#x27;2&#x27;</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;330,24,36&#x27;</span>,<span class="hljs-string">&#x27;330,38,36&#x27;</span>,<span class="hljs-string">&#x27;330,38,32&#x27;</span>,<span class="hljs-string">&#x27;330,42,32&#x27;</span>,<span class="hljs-string">&#x27;330,42,25&#x27;</span>,<span class="hljs-string">&#x27;330,46,25&#x27;</span>,<span class="hljs-string">&#x27;330,46,20&#x27;</span>,<span class="hljs-string">&#x27;330,48,20,right,wait:2&#x27;</span>)
+</code></pre>
+  </body>
+</html>

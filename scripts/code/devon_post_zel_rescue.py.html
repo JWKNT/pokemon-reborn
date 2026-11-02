@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>devon_post_zel_rescue.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of devon_post_zel_rescue.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed post-ZEL rescue via ordinary controls; no game data writes.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,act
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> json,subprocess,sys
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/name),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">phase</span>(<span class="hljs-params">value</span>):
+ <span class="hljs-comment"># Observed linear source completion updates the planner only.</span>
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;d=json.loads(p.read_text())
+ d[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;339&#x27;</span>]=value;p.write_text(json.dumps(d))
+
+<span class="hljs-keyword">assert</span> json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;339&#x27;</span>]==<span class="hljs-number">39</span>
+<span class="hljs-keyword">assert</span> locate()[<span class="hljs-number">0</span>]==<span class="hljs-number">632</span>
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">632</span>,<span class="hljs-number">8</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">632</span>,<span class="hljs-number">8</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+phase(<span class="hljs-number">40</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">632</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;devon_spinners.py&#x27;</span>,<span class="hljs-string">&#x27;--map&#x27;</span>,<span class="hljs-number">631</span>,<span class="hljs-string">&#x27;--monitor&#x27;</span>,<span class="hljs-number">124</span>,<span class="hljs-string">&#x27;--activate&#x27;</span>,<span class="hljs-string">&#x27;--go&#x27;</span>)
+run(<span class="hljs-string">&#x27;devon_spinners.py&#x27;</span>,<span class="hljs-string">&#x27;--map&#x27;</span>,<span class="hljs-number">631</span>,<span class="hljs-string">&#x27;--goal&#x27;</span>,<span class="hljs-number">2</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;--go&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">631</span>,<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">628</span>,<span class="hljs-number">66</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">628</span>,<span class="hljs-number">66</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--log-scripted-bgm&#x27;</span>)
+phase(<span class="hljs-number">44</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">628</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Devon-allies-rescued&#x27;</span>)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Devon-allies-rescued-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">527</span>
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DEVON RESCUE AND RETURN TO CITY VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>tapu304_boss_entry.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of tapu304_boss_entry.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Verified normal checkpoint and curated first Lele attempt entry.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,sys,json,subprocess
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;112&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;LELE ENTRY&#x27;</span>,n,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Magearna&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Fini304-Ready&#x27;</span>)
+(R/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>).write_text(json.dumps({<span class="hljs-string">&#x27;stop&#x27;</span>:<span class="hljs-literal">False</span>,<span class="hljs-string">&#x27;expected_foes&#x27;</span>:[<span class="hljs-string">&#x27;Ribombee&#x27;</span>,<span class="hljs-string">&#x27;Azumarill&#x27;</span>,<span class="hljs-string">&#x27;Milotic&#x27;</span>,<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-string">&#x27;Magearna&#x27;</span>,<span class="hljs-string">&#x27;Fini&#x27;</span>]},indent=<span class="hljs-number">2</span>))
+run(<span class="hljs-string">&#x27;major_attempt&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,R/<span class="hljs-string">&#x27;work/major-180.json&#x27;</span>,<span class="hljs-number">304</span>,<span class="hljs-string">&#x27;--status&#x27;</span>,R/<span class="hljs-string">&#x27;notes/Fini304-Ready-status.json&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">855</span>,<span class="hljs-number">19</span>,<span class="hljs-string">&#x27;TAPUFINI&#x27;</span>,<span class="hljs-string">&#x27;Tapu-Fini&#x27;</span>)
+</code></pre>
+  </body>
+</html>

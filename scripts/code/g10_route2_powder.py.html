@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g10_route2_powder.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g10_route2_powder.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Known Route 2 approach; input only, stops on unexpected route/dialog.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">&#x27;358,25,41,left,c,wait:.8&#x27;</span>],check=<span class="hljs-literal">True</span>)
+t=read().lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;spores drip&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Powder tree interaction review&#x27;</span>)
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">6</span>):
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>);t=read().lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;sleep powder obtained&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;sleep pouder obtained&#x27;</span> <span class="hljs-keyword">in</span> t:
+  act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+  p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;x=json.loads(p.read_text());x.setdefault(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).update({<span class="hljs-string">&#x27;410&#x27;</span>:<span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;464&#x27;</span>:<span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;463&#x27;</span>:<span class="hljs-literal">False</span>});p.write_text(json.dumps(x));<span class="hljs-keyword">break</span>
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Powder acquisition review&#x27;</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ending394_common77.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ending394_common77.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Advance only the installed Common77 farewell text using normal confirm presses.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+src=json.loads((ROOT/<span class="hljs-string">&#x27;work/394-common77.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;list&#x27;</span>];blocks=[]
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">102</span>,<span class="hljs-number">103</span>,<span class="hljs-number">104</span>,<span class="hljs-number">301</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> src)
+<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> src:
+ <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">101</span>:blocks.append(<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]))
+ <span class="hljs-keyword">elif</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">401</span> <span class="hljs-keyword">and</span> blocks:blocks[-<span class="hljs-number">1</span>]+=<span class="hljs-string">&#x27; &#x27;</span>+<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>])
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">norm</span>(<span class="hljs-params">s</span>):<span class="hljs-keyword">return</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,s.lower().replace(<span class="hljs-string">&#x27;pokemon reborn&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>))
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">20</span>):
+ t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ score=<span class="hljs-built_in">max</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,norm(t),norm(b)).ratio()<span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> blocks)
+ <span class="hljs-keyword">if</span> score&lt;<span class="hljs-number">.62</span>:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FAREWELL BOUNDARY&#x27;</span>,score,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+</code></pre>
+  </body>
+</html>

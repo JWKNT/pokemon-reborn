@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>finish_rock_climb.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of finish_rock_climb.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finish an already accepted ordinary Rock Climb and verify its reviewed landing.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+mid,x,y=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">4</span>])
+t=read();compact=re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t.lower());<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;usedrockclimb&#x27;</span> <span class="hljs-keyword">in</span> compact:
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:5&#x27;</span>)
+<span class="hljs-keyword">else</span>:
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;nastyplot&#x27;</span>,<span class="hljs-string">&#x27;wouldyou&#x27;</span>,<span class="hljs-string">&#x27;chooseapok&#x27;</span>]), <span class="hljs-string">&#x27;Unexpected climb prompt: &#x27;</span>+t
+actual=locate(mid);<span class="hljs-keyword">assert</span> actual==(mid,x,y),(actual,(mid,x,y))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ROCK CLIMB LANDING VERIFIED&#x27;</span>,actual,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

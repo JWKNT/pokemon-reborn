@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ray368_beryl_search.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ray368_beryl_search.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Beryl PC loop; catch eligibility extends into adjacent connected map544.
+
+Unlike Opal, Ray can enter544 while player history is525/159. All positions
+below are visible marker pixels or normal coordinates, never hidden roamer data.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> ray368_marker <span class="hljs-keyword">import</span> marker
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">24</span>):
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Reborn Region&#x27;</span> <span class="hljs-keyword">in</span> read(),<span class="hljs-string">&#x27;Map expected&#x27;</span>
+ <span class="hljs-comment"># Move the visible selection box off Beryl; it otherwise covers Ray&#x27;s head.</span>
+ act(<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>);read()
+ m=marker();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUBLIC MARKER&#x27;</span>,m,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">tuple</span>(m[<span class="hljs-string">&#x27;grid&#x27;</span>]) == (<span class="hljs-number">1</span>,<span class="hljs-number">8</span>):
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CONNECTED BERYL MARKER: stop for grass route&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> (ROOT/<span class="hljs-string">&#x27;work/stop-ray-search&#x27;</span>).exists():
+  (ROOT/<span class="hljs-string">&#x27;work/stop-ray-search&#x27;</span>).unlink();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STOP ON MAP&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>):
+  act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>);t=read()
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Reborn Region&#x27;</span>,<span class="hljs-string">&#x27;Field Notes&#x27;</span>,<span class="hljs-string">&#x27;Quit Game&#x27;</span>]):<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Map close review&#x27;</span>)
+ p=locate();<span class="hljs-keyword">assert</span> p==(<span class="hljs-number">525</span>,<span class="hljs-number">21</span>,<span class="hljs-number">23</span>),p
+ act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>);<span class="hljs-keyword">assert</span> locate()==(<span class="hljs-number">159</span>,<span class="hljs-number">10</span>,<span class="hljs-number">10</span>)
+ act(<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>);<span class="hljs-keyword">assert</span> locate()==(<span class="hljs-number">525</span>,<span class="hljs-number">21</span>,<span class="hljs-number">23</span>)
+ act(<span class="hljs-string">&#x27;wait:.8&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>)
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Field Notes&#x27;</span> <span class="hljs-keyword">in</span> read()
+ act(<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;wait:.15&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;wait:.15&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;wait:.15&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Bounded search finished; map remains open&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

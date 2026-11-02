@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>bag_select.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of bag_select.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Select, but never use, a named visible bag item; abort outside the bag.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-comment"># Let each list animation settle before another fast-driver arrow.</span>
+_play_act=act
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">act</span>(<span class="hljs-params">*keys</span>):
+ _play_act(*[v <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> keys <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> ((k,<span class="hljs-string">&#x27;wait:.09&#x27;</span>) <span class="hljs-keyword">if</span> k.startswith((<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>)) <span class="hljs-keyword">else</span> (k,))])
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">import</span> re,unicodedata,difflib
+<span class="hljs-keyword">from</span> bag_scan_policy <span class="hljs-keyword">import</span> installed_stride_supported,viewport,transition,STRIDE
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">ascii_name</span>(<span class="hljs-params">s</span>):<span class="hljs-keyword">return</span> unicodedata.normalize(<span class="hljs-string">&#x27;NFKD&#x27;</span>,s).encode(<span class="hljs-string">&#x27;ascii&#x27;</span>,<span class="hljs-string">&#x27;ignore&#x27;</span>).decode().lower()
+wanted=re.sub(<span class="hljs-string">&#x27;[^a-z0-9]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,ascii_name(sys.argv[<span class="hljs-number">1</span>]))
+<span class="hljs-comment"># Native save IDs use HMxx; Reborn displays these reusable machines as TMXn.</span>
+<span class="hljs-keyword">if</span> re.fullmatch(<span class="hljs-string">r&#x27;hm0?\d+&#x27;</span>,wanted):wanted=<span class="hljs-string">&#x27;tmx&#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">int</span>(wanted[<span class="hljs-number">2</span>:]))
+seen=<span class="hljs-built_in">set</span>()
+single_step=<span class="hljs-string">&#x27;--single-step&#x27;</span> <span class="hljs-keyword">in</span> sys.argv
+stride_supported=installed_stride_supported() <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> single_step
+previous_stride=<span class="hljs-literal">None</span>
+backfill_pending=<span class="hljs-literal">False</span>
+memory_route_used=<span class="hljs-literal">False</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">100</span>):
+ r=snap();txt=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> r).lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> txt <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;sort&#x27;</span>,<span class="hljs-string">&#x27;medicine&#x27;</span>,<span class="hljs-string">&#x27;items&#x27;</span>,<span class="hljs-string">&#x27;close&#x27;</span>,<span class="hljs-string">&#x27;candy&#x27;</span>,<span class="hljs-string">&#x27;repel&#x27;</span>,<span class="hljs-string">&#x27;tmx&#x27;</span>,<span class="hljs-string">&#x27;charge beam&#x27;</span>,<span class="hljs-string">&#x27;rock smash&#x27;</span>]) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\bt[mh][a-z0-9]&#x27;</span>,txt):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Bag screen review&#x27;</span>)
+ im=Image.<span class="hljs-built_in">open</span>(STATE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=im.size
+ ys=[]
+ <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.11</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.66</span>)):
+  n=<span class="hljs-built_in">sum</span>(rr&gt;<span class="hljs-number">170</span> <span class="hljs-keyword">and</span> gg&lt;<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> bb&lt;<span class="hljs-number">110</span> <span class="hljs-keyword">for</span> rr,gg,bb <span class="hljs-keyword">in</span> [im.getpixel((x,y)) <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.43</span>),<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.83</span>),<span class="hljs-number">3</span>)])
+  <span class="hljs-keyword">if</span> n&gt;<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.40</span>/<span class="hljs-number">3</span>)*<span class="hljs-number">.6</span>:ys.append(y/h)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> ys:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Bag cursor review&#x27;</span>)
+ center=(<span class="hljs-built_in">min</span>(ys)+<span class="hljs-built_in">max</span>(ys))/<span class="hljs-number">2</span>
+ names=[v <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> r <span class="hljs-keyword">if</span> <span class="hljs-number">.36</span>&lt;v[<span class="hljs-string">&#x27;x&#x27;</span>]&lt;<span class="hljs-number">.75</span> <span class="hljs-keyword">and</span> <span class="hljs-number">.055</span>&lt;v[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.66</span>
+        <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> re.fullmatch(<span class="hljs-string">r&#x27;(?:[x×]\s*[0-9Il|]+|\d+)&#x27;</span>,v[<span class="hljs-string">&#x27;text&#x27;</span>].strip(),re.I)]
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> names:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Bag visible name rows missing&#x27;</span>)
+ current=<span class="hljs-built_in">min</span>(names,key=<span class="hljs-keyword">lambda</span> v:<span class="hljs-built_in">abs</span>(v[<span class="hljs-string">&#x27;y&#x27;</span>]+v[<span class="hljs-string">&#x27;h&#x27;</span>]/<span class="hljs-number">2</span>-center))
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(current[<span class="hljs-string">&#x27;y&#x27;</span>]+current[<span class="hljs-string">&#x27;h&#x27;</span>]/<span class="hljs-number">2</span>-center)&gt;<span class="hljs-number">.0355</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Bag selected-name/cursor alignment review&#x27;</span>)
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">norm</span>(<span class="hljs-params">s</span>):
+  value=re.sub(<span class="hljs-string">&#x27;[^a-z0-9]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,ascii_name(s)).replace(<span class="hljs-string">&#x27;hwakening&#x27;</span>,<span class="hljs-string">&#x27;awakening&#x27;</span>).replace(<span class="hljs-string">&#x27;antidate&#x27;</span>,<span class="hljs-string">&#x27;antidote&#x27;</span>).replace(<span class="hljs-string">&#x27;lemanade&#x27;</span>,<span class="hljs-string">&#x27;lemonade&#x27;</span>).replace(<span class="hljs-string">&#x27;buickball&#x27;</span>,<span class="hljs-string">&#x27;quickball&#x27;</span>).replace(<span class="hljs-string">&#x27;expcandu&#x27;</span>,<span class="hljs-string">&#x27;expcandy&#x27;</span>).replace(<span class="hljs-string">&#x27;incenze&#x27;</span>,<span class="hljs-string">&#x27;incense&#x27;</span>).replace(<span class="hljs-string">&#x27;tellurie&#x27;</span>,<span class="hljs-string">&#x27;telluric&#x27;</span>).replace(<span class="hljs-string">&#x27;kelpey&#x27;</span>,<span class="hljs-string">&#x27;kelpsy&#x27;</span>).replace(<span class="hljs-string">&#x27;pouer&#x27;</span>,<span class="hljs-string">&#x27;power&#x27;</span>).replace(<span class="hljs-string">&#x27;powerkeight&#x27;</span>,<span class="hljs-string">&#x27;powerweight&#x27;</span>)
+  <span class="hljs-comment"># Session370 native frames: TM80 Rock Slide repeatedly OCRs as THOU ROCKSIDE.</span>
+  <span class="hljs-comment"># Require the distinctive move label as well as a machine-like prefix.</span>
+  <span class="hljs-keyword">if</span> wanted==<span class="hljs-string">&#x27;tm80&#x27;</span> <span class="hljs-keyword">and</span> re.fullmatch(<span class="hljs-string">r&#x27;t[mhn][a-z0-9]*(?:rockslide|rockside)&#x27;</span>,value):<span class="hljs-keyword">return</span> wanted
+  <span class="hljs-keyword">if</span> wanted==<span class="hljs-string">&#x27;zinc&#x27;</span> <span class="hljs-keyword">and</span> value==<span class="hljs-string">&#x27;zine&#x27;</span>:<span class="hljs-keyword">return</span> wanted <span class="hljs-comment"># Visually reviewed session278.</span>
+  <span class="hljs-keyword">if</span> wanted==<span class="hljs-string">&#x27;evtuner&#x27;</span> <span class="hljs-keyword">and</span> value==<span class="hljs-string">&#x27;eytuner&#x27;</span>:<span class="hljs-keyword">return</span> wanted
+  <span class="hljs-keyword">if</span> wanted==<span class="hljs-string">&#x27;expcandyxl&#x27;</span> <span class="hljs-keyword">and</span> re.fullmatch(<span class="hljs-string">r&#x27;expcandy[a-z]l&#x27;</span>,value):<span class="hljs-keyword">return</span> wanted
+  <span class="hljs-keyword">if</span> wanted <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;tmx5&#x27;</span>,<span class="hljs-string">&#x27;tmx5waterfall&#x27;</span>) <span class="hljs-keyword">and</span> re.fullmatch(<span class="hljs-string">r&#x27;t[mhn][a-z0-9]+waterfall&#x27;</span>,value):<span class="hljs-keyword">return</span> wanted
+  <span class="hljs-keyword">if</span> wanted==<span class="hljs-string">&#x27;tmx6dive&#x27;</span> <span class="hljs-keyword">and</span> value.startswith(<span class="hljs-string">&#x27;t&#x27;</span>) <span class="hljs-keyword">and</span> value.endswith(<span class="hljs-string">&#x27;dive&#x27;</span>):<span class="hljs-keyword">return</span> wanted
+  <span class="hljs-keyword">if</span> wanted <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;hm02&#x27;</span>,<span class="hljs-string">&#x27;tmx2fly&#x27;</span>) <span class="hljs-keyword">and</span> re.fullmatch(<span class="hljs-string">r&#x27;t[mhn][a-z0-9]+fly&#x27;</span>,value):<span class="hljs-keyword">return</span> wanted
+  <span class="hljs-keyword">if</span> value.startswith(<span class="hljs-string">&#x27;th&#x27;</span>):value=<span class="hljs-string">&#x27;tm&#x27;</span>+value[<span class="hljs-number">2</span>:]
+  <span class="hljs-keyword">if</span> value.startswith((<span class="hljs-string">&#x27;tmn&#x27;</span>,<span class="hljs-string">&#x27;tma&#x27;</span>)):value=<span class="hljs-string">&#x27;tmx&#x27;</span>+value[<span class="hljs-number">3</span>:]
+  <span class="hljs-keyword">if</span> wanted==<span class="hljs-string">&#x27;xaccuracy&#x27;</span> <span class="hljs-keyword">and</span> value <span class="hljs-keyword">in</span> {<span class="hljs-string">&#x27;accuracy&#x27;</span>,<span class="hljs-string">&#x27;xaccuracy&#x27;</span>,<span class="hljs-string">&#x27;kaccuracy&#x27;</span>,<span class="hljs-string">&#x27;naccuracy&#x27;</span>,<span class="hljs-string">&#x27;aaccuracy&#x27;</span>,<span class="hljs-string">&#x27;arccuracy&#x27;</span>,<span class="hljs-string">&#x27;xarccuracy&#x27;</span>,<span class="hljs-string">&#x27;ahccuracu&#x27;</span>,<span class="hljs-string">&#x27;arecuracy&#x27;</span>,<span class="hljs-string">&#x27;arccuracu&#x27;</span>}:<span class="hljs-keyword">return</span> wanted
+  <span class="hljs-keyword">if</span> wanted==<span class="hljs-string">&#x27;xspatk&#x27;</span> <span class="hljs-keyword">and</span> re.fullmatch(<span class="hljs-string">r&#x27;[akmnx]?sp[ah]tk&#x27;</span>,value):<span class="hljs-keyword">return</span> wanted
+  <span class="hljs-keyword">if</span> wanted==<span class="hljs-string">&#x27;xspdef&#x27;</span> <span class="hljs-keyword">and</span> re.fullmatch(<span class="hljs-string">r&#x27;[akmnx]?spd(?:e|er)f&#x27;</span>,value):<span class="hljs-keyword">return</span> wanted
+  <span class="hljs-keyword">if</span> wanted==<span class="hljs-string">&#x27;xspeed&#x27;</span> <span class="hljs-keyword">and</span> re.fullmatch(<span class="hljs-string">r&#x27;[akmnx]?speed&#x27;</span>,value):<span class="hljs-keyword">return</span> wanted
+  <span class="hljs-keyword">if</span> wanted==<span class="hljs-string">&#x27;xdefend&#x27;</span> <span class="hljs-keyword">and</span> re.fullmatch(<span class="hljs-string">r&#x27;[ahkmnx]?defend&#x27;</span>,value):<span class="hljs-keyword">return</span> wanted
+  <span class="hljs-keyword">if</span> wanted==<span class="hljs-string">&#x27;xattack&#x27;</span> <span class="hljs-keyword">and</span> re.fullmatch(<span class="hljs-string">r&#x27;[akmnx]?attack&#x27;</span>,value):<span class="hljs-keyword">return</span> wanted
+  <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;defend&#x27;</span>:<span class="hljs-string">&#x27;xdefend&#x27;</span>,<span class="hljs-string">&#x27;kdefend&#x27;</span>:<span class="hljs-string">&#x27;xdefend&#x27;</span>,<span class="hljs-string">&#x27;ndefend&#x27;</span>:<span class="hljs-string">&#x27;xdefend&#x27;</span>,<span class="hljs-string">&#x27;kspdef&#x27;</span>:<span class="hljs-string">&#x27;xspdef&#x27;</span>}.get(value,value)
+ <span class="hljs-comment"># Reuse only previously rendered medicine row adjacency to choose a shorter</span>
+ <span class="hljs-comment"># direction. Every move is reobserved; actual selection still requires the</span>
+ <span class="hljs-comment"># existing exact rendered-name check. Stale adjacency can only move a cursor.</span>
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">memo_norm</span>(<span class="hljs-params">label</span>):
+  label=norm(label)
+  <span class="hljs-keyword">if</span> re.fullmatch(<span class="hljs-string">r&#x27;tmx?\d+&#x27;</span>,wanted):
+   <span class="hljs-keyword">if</span> label==<span class="hljs-string">&#x27;closebag&#x27;</span>:<span class="hljs-keyword">return</span> label
+   machine=re.<span class="hljs-keyword">match</span>(<span class="hljs-string">r&#x27;tmx?\d+&#x27;</span>,label)
+   <span class="hljs-keyword">return</span> machine.group() <span class="hljs-keyword">if</span> machine <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+  label={<span class="hljs-string">&#x27;zine&#x27;</span>:<span class="hljs-string">&#x27;zinc&#x27;</span>,<span class="hljs-string">&#x27;pplp&#x27;</span>:<span class="hljs-string">&#x27;ppup&#x27;</span>}.get(label,label)
+  known=[<span class="hljs-string">&#x27;burnheal&#x27;</span>,<span class="hljs-string">&#x27;antidote&#x27;</span>,<span class="hljs-string">&#x27;paralyzeheal&#x27;</span>,<span class="hljs-string">&#x27;awakening&#x27;</span>,<span class="hljs-string">&#x27;poprocks&#x27;</span>,<span class="hljs-string">&#x27;fullheal&#x27;</span>,<span class="hljs-string">&#x27;xaccuracy&#x27;</span>,<span class="hljs-string">&#x27;xattack&#x27;</span>,<span class="hljs-string">&#x27;xspdef&#x27;</span>,<span class="hljs-string">&#x27;revive&#x27;</span>,<span class="hljs-string">&#x27;ppup&#x27;</span>,<span class="hljs-string">&#x27;zinc&#x27;</span>,<span class="hljs-string">&#x27;swiftwing&#x27;</span>,<span class="hljs-string">&#x27;maxelixir&#x27;</span>,<span class="hljs-string">&#x27;maxether&#x27;</span>,<span class="hljs-string">&#x27;protein&#x27;</span>,<span class="hljs-string">&#x27;fullrestore&#x27;</span>,<span class="hljs-string">&#x27;expcandyxl&#x27;</span>,<span class="hljs-string">&#x27;xdefend&#x27;</span>,<span class="hljs-string">&#x27;xspatk&#x27;</span>,<span class="hljs-string">&#x27;xspeed&#x27;</span>,<span class="hljs-string">&#x27;ultrapotion&#x27;</span>,<span class="hljs-string">&#x27;maxpotion&#x27;</span>,<span class="hljs-string">&#x27;bubbletea&#x27;</span>,<span class="hljs-string">&#x27;evtuner&#x27;</span>,<span class="hljs-string">&#x27;closebag&#x27;</span>]
+  <span class="hljs-keyword">if</span> label <span class="hljs-keyword">in</span> known:<span class="hljs-keyword">return</span> label
+  <span class="hljs-keyword">match</span>=difflib.get_close_matches(label,known,n=<span class="hljs-number">1</span>,cutoff=<span class="hljs-number">.78</span>)
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">match</span>[<span class="hljs-number">0</span>] <span class="hljs-keyword">if</span> <span class="hljs-keyword">match</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+ machine_pocket=<span class="hljs-built_in">bool</span>(re.fullmatch(<span class="hljs-string">r&#x27;tmx?\d+&#x27;</span>,wanted))
+ memory_path=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/(<span class="hljs-string">&#x27;bag-visible-machine-adjacency.json&#x27;</span> <span class="hljs-keyword">if</span> machine_pocket <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;bag-visible-adjacency-v2.json&#x27;</span>)
+ memory={}
+ <span class="hljs-keyword">if</span> machine_pocket <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> txt <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;medicine&#x27;</span>,<span class="hljs-string">&#x27;medieine&#x27;</span>,<span class="hljs-string">&#x27;nedicine&#x27;</span>]):
+  <span class="hljs-keyword">try</span>:memory=json.loads(memory_path.read_text())
+  <span class="hljs-keyword">except</span> (OSError,ValueError):<span class="hljs-keyword">pass</span>
+  ordered=<span class="hljs-built_in">sorted</span>(names,key=<span class="hljs-keyword">lambda</span> z:z[<span class="hljs-string">&#x27;y&#x27;</span>])
+  <span class="hljs-keyword">for</span> first,second <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(ordered,ordered[<span class="hljs-number">1</span>:]):
+   <span class="hljs-keyword">if</span> <span class="hljs-number">.055</span> &lt; second[<span class="hljs-string">&#x27;y&#x27;</span>]-first[<span class="hljs-string">&#x27;y&#x27;</span>] &lt; <span class="hljs-number">.087</span>:
+    one,two=memo_norm(first[<span class="hljs-string">&#x27;text&#x27;</span>]),memo_norm(second[<span class="hljs-string">&#x27;text&#x27;</span>])
+    <span class="hljs-keyword">if</span> one <span class="hljs-keyword">and</span> two <span class="hljs-keyword">and</span> one!=two:
+     memory.setdefault(one,{})[<span class="hljs-string">&#x27;down&#x27;</span>]=two
+     memory.setdefault(two,{})[<span class="hljs-string">&#x27;up&#x27;</span>]=one
+  memory_path.write_text(json.dumps(memory))
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SELECTED&#x27;</span>,current[<span class="hljs-string">&#x27;text&#x27;</span>],flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">matches</span>(<span class="hljs-params">s</span>):
+  n=norm(s)
+  <span class="hljs-comment"># X/Y Mega Stones differ by a meaningful final letter; fuzzy OCR must</span>
+  <span class="hljs-comment"># never select the other form even when the rest of the name matches.</span>
+  <span class="hljs-keyword">if</span> wanted <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;mewtwonitex&#x27;</span>,<span class="hljs-string">&#x27;mewtwonitey&#x27;</span>,<span class="hljs-string">&#x27;charizarditex&#x27;</span>,<span class="hljs-string">&#x27;charizarditey&#x27;</span>):
+   <span class="hljs-keyword">return</span> n.endswith(wanted[-<span class="hljs-number">1</span>]) <span class="hljs-keyword">and</span> difflib.SequenceMatcher(<span class="hljs-literal">None</span>,n[:-<span class="hljs-number">1</span>],wanted[:-<span class="hljs-number">1</span>]).ratio()&gt;=<span class="hljs-number">.85</span>
+  <span class="hljs-comment"># The visible machine row includes its move name (TM20 Safeguard).</span>
+  <span class="hljs-comment"># Compare the complete numeric identifier so TM2 cannot match TM20.</span>
+  <span class="hljs-keyword">if</span> re.fullmatch(<span class="hljs-string">r&#x27;tmx?\d+&#x27;</span>,wanted):
+   identifier=re.<span class="hljs-keyword">match</span>(<span class="hljs-string">r&#x27;tmx?\d+&#x27;</span>,n)
+   <span class="hljs-keyword">if</span> identifier <span class="hljs-keyword">and</span> identifier.group()==wanted:<span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+  <span class="hljs-keyword">return</span> n==wanted <span class="hljs-keyword">or</span> (<span class="hljs-built_in">len</span>(wanted)&gt;=<span class="hljs-number">9</span> <span class="hljs-keyword">and</span> difflib.SequenceMatcher(<span class="hljs-literal">None</span>,n,wanted).ratio()&gt;=<span class="hljs-number">.9</span>)
+ <span class="hljs-keyword">if</span> matches(current[<span class="hljs-string">&#x27;text&#x27;</span>]):<span class="hljs-keyword">break</span>
+ target=<span class="hljs-built_in">next</span>((v <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> names <span class="hljs-keyword">if</span> matches(v[<span class="hljs-string">&#x27;text&#x27;</span>])),<span class="hljs-literal">None</span>)
+ <span class="hljs-keyword">if</span> target:
+  n=<span class="hljs-built_in">round</span>((target[<span class="hljs-string">&#x27;y&#x27;</span>]-current[<span class="hljs-string">&#x27;y&#x27;</span>])/(h <span class="hljs-keyword">and</span> <span class="hljs-number">.071</span>));n=<span class="hljs-built_in">max</span>(-<span class="hljs-number">7</span>,<span class="hljs-built_in">min</span>(<span class="hljs-number">7</span>,n))
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> n:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Bag target alignment review&#x27;</span>)
+  act(*([(<span class="hljs-string">&#x27;down:.18&#x27;</span> <span class="hljs-keyword">if</span> n&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;up:.18&#x27;</span>) <span class="hljs-keyword">if</span> single_step <span class="hljs-keyword">else</span> (<span class="hljs-string">&#x27;down&#x27;</span> <span class="hljs-keyword">if</span> n&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;up&#x27;</span>)]*<span class="hljs-built_in">abs</span>(n)),<span class="hljs-string">&#x27;wait:0.3&#x27;</span>)
+ <span class="hljs-keyword">else</span>:
+  <span class="hljs-comment"># Search the observed adjacency graph; never invent hidden row indices.</span>
+  frontier=[(memo_norm(current[<span class="hljs-string">&#x27;text&#x27;</span>]),[])];visited=<span class="hljs-built_in">set</span>();route=<span class="hljs-literal">None</span>
+  <span class="hljs-keyword">while</span> frontier:
+   node,path=frontier.pop(<span class="hljs-number">0</span>)
+   <span class="hljs-keyword">if</span> node==wanted:route=path;<span class="hljs-keyword">break</span>
+   <span class="hljs-keyword">if</span> node <span class="hljs-keyword">in</span> visited <span class="hljs-keyword">or</span> <span class="hljs-built_in">len</span>(path)&gt;=<span class="hljs-number">40</span>:<span class="hljs-keyword">continue</span>
+   visited.add(node)
+   <span class="hljs-keyword">for</span> direction,nxt <span class="hljs-keyword">in</span> memory.get(node,{}).items():
+    frontier.append((nxt,path+[direction]))
+  memory_signature=(norm(current[<span class="hljs-string">&#x27;text&#x27;</span>]),<span class="hljs-built_in">tuple</span>(norm(v[<span class="hljs-string">&#x27;text&#x27;</span>]) <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> names),<span class="hljs-string">&#x27;memory&#x27;</span>)
+  <span class="hljs-keyword">if</span> route <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> memory_route_used <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(route))==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> memory_signature <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> seen <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;--no-memory&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">and</span> os.environ.get(<span class="hljs-string">&#x27;REBORN_BAG_NO_MEMORY&#x27;</span>)!=<span class="hljs-string">&#x27;1&#x27;</span>:
+   memory_route_used=<span class="hljs-literal">True</span>
+   seen.add(memory_signature)
+   bounded=route[:<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> single_step <span class="hljs-keyword">else</span> <span class="hljs-number">4</span>]
+   <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OBSERVED BAG ROUTE&#x27;</span>,bounded,flush=<span class="hljs-literal">True</span>)
+   act(*[v+<span class="hljs-string">&#x27;:.12&#x27;</span> <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> bounded],<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+   previous_stride=<span class="hljs-literal">None</span>;backfill_pending=<span class="hljs-literal">False</span>
+   <span class="hljs-keyword">continue</span>
+  view=viewport(names,current,norm)
+  <span class="hljs-keyword">if</span> backfill_pending:
+   <span class="hljs-keyword">if</span> view <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> view[<span class="hljs-string">&#x27;tail_visible&#x27;</span>]:
+    <span class="hljs-comment"># Current selection is still visually verified. Restart a complete</span>
+    <span class="hljs-comment"># one-row scan instead of assuming the uncertain stride covered rows.</span>
+    stride_supported=<span class="hljs-literal">False</span>;single_step=<span class="hljs-literal">True</span>;seen.clear();previous_stride=<span class="hljs-literal">None</span>
+    backfill_pending=<span class="hljs-literal">False</span>
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BAG WRAP OCR UNCERTAIN; restarting verified one-row scan&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+   <span class="hljs-keyword">else</span>:
+    backfill_pending=<span class="hljs-literal">False</span>
+    previous_stride=view
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BAG WRAP TAIL VERIFIED; returning to first page&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+    act(*([<span class="hljs-string">&#x27;down:.12&#x27;</span>]*STRIDE),<span class="hljs-string">&#x27;wait:0.3&#x27;</span>);<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">if</span> previous_stride <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+   state=transition(previous_stride,view)
+   previous_stride=<span class="hljs-literal">None</span>
+   <span class="hljs-keyword">if</span> state==<span class="hljs-string">&#x27;uncertain&#x27;</span>:
+    stride_supported=<span class="hljs-literal">False</span>;single_step=<span class="hljs-literal">True</span>;seen.clear()
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BAG STRIDE OCR UNCERTAIN; restarting verified one-row scan&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+   <span class="hljs-keyword">if</span> state==<span class="hljs-string">&#x27;backfill-tail&#x27;</span>:
+    <span class="hljs-comment"># Four separate normal taps can wrap past unseen final rows. Reverse the</span>
+    <span class="hljs-comment"># bounded stride; source scrolling leaves the last seven rows visible.</span>
+    <span class="hljs-comment"># The next capture must show CLOSE BAG, never guessed hidden item data.</span>
+    backfill_pending=<span class="hljs-literal">True</span>
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BAG POSSIBLE WRAP; inspecting skipped tail before continuing&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+    act(*([<span class="hljs-string">&#x27;up:.12&#x27;</span>]*STRIDE),<span class="hljs-string">&#x27;wait:0.3&#x27;</span>);<span class="hljs-keyword">continue</span>
+  signature=(current[<span class="hljs-string">&#x27;text&#x27;</span>],<span class="hljs-built_in">tuple</span>(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> names))
+  <span class="hljs-keyword">if</span> signature <span class="hljs-keyword">in</span> seen:
+   <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Complete visible bag cycle: item not found&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+   <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-number">4</span>)
+  seen.add(signature)
+  step=STRIDE <span class="hljs-keyword">if</span> stride_supported <span class="hljs-keyword">and</span> view <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+  previous_stride=view <span class="hljs-keyword">if</span> step==STRIDE <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BAG VISIBLE-ONLY SCAN&#x27;</span>,step,<span class="hljs-string">&#x27;rows&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+  act(*([<span class="hljs-string">&#x27;down:.12&#x27;</span>]*step) <span class="hljs-keyword">if</span> step==STRIDE <span class="hljs-keyword">else</span> [<span class="hljs-string">&#x27;down:.18&#x27;</span> <span class="hljs-keyword">if</span> single_step <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;down&#x27;</span>],<span class="hljs-string">&#x27;wait:0.3&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Bag scan limit&#x27;</span>)
+</code></pre>
+  </body>
+</html>

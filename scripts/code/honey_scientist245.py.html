@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>honey_scientist245.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of honey_scientist245.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded ordinary interaction with the visually tracked Nature Center scientist.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> find_visible_sprite <span class="hljs-keyword">import</span> find
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">12</span>):
+ mid,x,y=locate(<span class="hljs-number">294</span>)
+ <span class="hljs-keyword">if</span> mid!=<span class="hljs-number">294</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Wrong map&#x27;</span>)
+ t=read()
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(t.splitlines())&gt;<span class="hljs-number">1</span>:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DIALOGUE REVIEW&#x27;</span>,t);<span class="hljs-keyword">break</span>
+ r=find(<span class="hljs-string">&#x27;trchar008&#x27;</span>);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VISIBLE&#x27;</span>,r,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> r <span class="hljs-keyword">or</span> r[<span class="hljs-number">0</span>]&gt;<span class="hljs-number">.08</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Sprite match uncertain&#x27;</span>)
+ ex=x+<span class="hljs-built_in">round</span>((r[<span class="hljs-number">1</span>]-<span class="hljs-number">256</span>)/<span class="hljs-number">32</span>);ey=y+<span class="hljs-built_in">round</span>((r[<span class="hljs-number">2</span>]-<span class="hljs-number">208</span>)/<span class="hljs-number">32</span>)
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;294&#x27;</span>,<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],stderr=subprocess.DEVNULL))
+ v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-string">&#x27;29&#x27;</span>].update(x=ex,y=ey)
+ choices=[]
+ <span class="hljs-keyword">for</span> dx,dy,key <span class="hljs-keyword">in</span> [(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;up&#x27;</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;down&#x27;</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;left&#x27;</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;right&#x27;</span>)]:
+  <span class="hljs-keyword">try</span>:p=route(v,(ex+dx,ey+dy));choices.append((<span class="hljs-built_in">len</span>(p),p,key))
+  <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">pass</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> choices:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No accessible side&#x27;</span>)
+ n,p,key=<span class="hljs-built_in">min</span>(choices)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(k.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> p):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected jump&#x27;</span>)
+ act(*p[:<span class="hljs-number">3</span>])
+ <span class="hljs-keyword">if</span> n&lt;=<span class="hljs-number">3</span>:
+  act(key,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(t.splitlines())&gt;<span class="hljs-number">1</span>:<span class="hljs-keyword">break</span>
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Bounded pursuit exhausted&#x27;</span>)
+</code></pre>
+  </body>
+</html>

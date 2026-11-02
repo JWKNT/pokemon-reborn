@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>helix_gem.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of helix_gem.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Toggle one Helix gem through normal controls and record its observed action.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json, subprocess, sys, time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT, act, read
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+
+eid = <span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>])
+<span class="hljs-keyword">assert</span> <span class="hljs-number">173</span> &lt;= eid &lt;= <span class="hljs-number">190</span>
+path = ROOT / <span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>
+state = json.loads(path.read_text())
+<span class="hljs-keyword">assert</span> state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;664&#x27;</span>] == <span class="hljs-number">3</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">bool</span>(state[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1808&#x27;</span>]) == (eid &gt;= <span class="hljs-number">182</span>), <span class="hljs-string">&#x27;Wrong character/grid&#x27;</span>
+source = json.loads((ROOT/<span class="hljs-string">&#x27;work/345-helix-static.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)]
+commands = source[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>]
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">101</span>, <span class="hljs-number">102</span>, <span class="hljs-number">301</span>, <span class="hljs-number">355</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> commands)
+toggles = {c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> commands <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>] == <span class="hljs-number">111</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>] == <span class="hljs-number">0</span>}
+<span class="hljs-keyword">assert</span> toggles <span class="hljs-keyword">and</span> toggles &lt;= <span class="hljs-built_in">set</span>(<span class="hljs-built_in">range</span>(<span class="hljs-number">1832</span>, <span class="hljs-number">1850</span>))
+subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>), <span class="hljs-string">&#x27;887&#x27;</span>, <span class="hljs-built_in">str</span>(eid), <span class="hljs-string">&#x27;talk&#x27;</span>], check=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+<span class="hljs-built_in">print</span>(read(), flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">for</span> switch <span class="hljs-keyword">in</span> toggles:
+    state[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(switch)] = <span class="hljs-keyword">not</span> state[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(switch)]
+complete = <span class="hljs-built_in">all</span>(state[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(s)] <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1832</span>, <span class="hljs-number">1850</span>))
+<span class="hljs-keyword">if</span> complete:
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/linear_dialog.py&#x27;</span>), <span class="hljs-string">&#x27;887&#x27;</span>, <span class="hljs-string">&#x27;193&#x27;</span>, <span class="hljs-string">&#x27;--source-page&#x27;</span>, <span class="hljs-string">&#x27;1&#x27;</span>, <span class="hljs-string">&#x27;--burst&#x27;</span>, <span class="hljs-string">&#x27;--world-settle&#x27;</span>, <span class="hljs-string">&#x27;12&#x27;</span>], check=<span class="hljs-literal">True</span>)
+    state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;664&#x27;</span>] = <span class="hljs-number">5</span>
+    state[<span class="hljs-string">&#x27;switches&#x27;</span>].update({<span class="hljs-string">&#x27;1808&#x27;</span>: <span class="hljs-literal">False</span>, <span class="hljs-string">&#x27;779&#x27;</span>: <span class="hljs-literal">False</span>, <span class="hljs-string">&#x27;1827&#x27;</span>: <span class="hljs-literal">True</span>})
+    state[<span class="hljs-string">&#x27;self_switches&#x27;</span>][<span class="hljs-string">&#x27;887,193,C&#x27;</span>] = <span class="hljs-literal">True</span>
+after = locate(<span class="hljs-number">887</span>)
+<span class="hljs-keyword">assert</span> after[<span class="hljs-number">0</span>] == <span class="hljs-number">887</span>
+state[<span class="hljs-string">&#x27;helix_observation&#x27;</span>] = {<span class="hljs-string">&#x27;epoch&#x27;</span>: time.time(), <span class="hljs-string">&#x27;evidence&#x27;</span>: <span class="hljs-string">f&#x27;Normal gem interaction <span class="hljs-subst">{eid}</span>; toggles <span class="hljs-subst">{<span class="hljs-built_in">sorted</span>(toggles)}</span>; overworld <span class="hljs-subst">{after}</span>; completion dialogue <span class="hljs-subst">{complete}</span>&#x27;</span>}
+path.write_text(json.dumps(state, indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;GEM VERIFIED&#x27;</span>, eid, <span class="hljs-string">&#x27;COMPLETE&#x27;</span>, complete, flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

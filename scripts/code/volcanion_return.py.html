@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>volcanion_return.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of volcanion_return.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Return through the reviewed spring route; verify boulders from fresh normal saves.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+label=sys.argv[<span class="hljs-number">1</span>]
+E=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VOLCANION RETURN&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],env=E,check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">519</span>);run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">271</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">271</span>,<span class="hljs-number">12</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">234</span>,<span class="hljs-number">256</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label+<span class="hljs-string">&#x27;-Entry&#x27;</span>)
+run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">238</span>,<span class="hljs-number">33</span>,<span class="hljs-number">39</span>)
+nav=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());p=nav[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;238&#x27;</span>]
+<span class="hljs-keyword">if</span> p.get(<span class="hljs-string">&#x27;14&#x27;</span>,[<span class="hljs-number">33</span>,<span class="hljs-number">38</span>])==[<span class="hljs-number">33</span>,<span class="hljs-number">38</span>]:
+ run(<span class="hljs-string">&#x27;play&#x27;</span>,<span class="hljs-string">&#x27;up:.03&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>);run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--yes&#x27;</span>,<span class="hljs-string">&#x27;--limit=12&#x27;</span>)
+ run(<span class="hljs-string">&#x27;springs_boulder_push&#x27;</span>,<span class="hljs-number">14</span>,label+<span class="hljs-string">&#x27;-Boulder14&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">assert</span> p[<span class="hljs-string">&#x27;14&#x27;</span>]==[<span class="hljs-number">33</span>,<span class="hljs-number">36</span>],p[<span class="hljs-string">&#x27;14&#x27;</span>]
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;238,35,26&#x27;</span>)
+nav=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());p=nav[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;238&#x27;</span>]
+<span class="hljs-keyword">if</span> p.get(<span class="hljs-string">&#x27;6&#x27;</span>,[<span class="hljs-number">35</span>,<span class="hljs-number">25</span>])==[<span class="hljs-number">35</span>,<span class="hljs-number">25</span>]:
+ run(<span class="hljs-string">&#x27;play&#x27;</span>,<span class="hljs-string">&#x27;up:.03&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>);run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--yes&#x27;</span>,<span class="hljs-string">&#x27;--limit=12&#x27;</span>)
+ run(<span class="hljs-string">&#x27;springs_boulder_push&#x27;</span>,<span class="hljs-number">6</span>,label+<span class="hljs-string">&#x27;-Boulder6&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">assert</span> p[<span class="hljs-string">&#x27;6&#x27;</span>]==[<span class="hljs-number">35</span>,<span class="hljs-number">24</span>],p[<span class="hljs-string">&#x27;6&#x27;</span>]
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">238</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;545,30,19&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label+<span class="hljs-string">&#x27;-BeforeVolcanion&#x27;</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>party_cursor.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of party_cursor.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Observe the party selection border before navigating the six-card grid.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">selected_card</span>(<span class="hljs-params">path</span>):
+    im=Image.<span class="hljs-built_in">open</span>(path).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=im.size;scores=[]
+    <span class="hljs-comment"># Sample the straight vertical outline, avoiding the previous card&#x27;s bottom</span>
+    <span class="hljs-comment"># edge. The broad x search tolerates native window-shadow/title-bar variants.</span>
+    <span class="hljs-keyword">for</span> slot <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">6</span>):
+        col=slot%<span class="hljs-number">2</span>;row=slot//<span class="hljs-number">2</span>
+        left,right=(<span class="hljs-number">.025</span>,<span class="hljs-number">.080</span>) <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> col <span class="hljs-keyword">else</span> (<span class="hljs-number">.505</span>,<span class="hljs-number">.550</span>)
+        top=(<span class="hljs-number">.145</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> col <span class="hljs-keyword">else</span> <span class="hljs-number">.180</span>)+<span class="hljs-number">.211</span>*row
+        xs=<span class="hljs-built_in">range</span>(<span class="hljs-built_in">int</span>(w*left),<span class="hljs-built_in">int</span>(w*right));ys=<span class="hljs-built_in">range</span>(<span class="hljs-built_in">int</span>(h*top),<span class="hljs-built_in">int</span>(h*(top+<span class="hljs-number">.080</span>)))
+        score=<span class="hljs-built_in">max</span>(<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">min</span>(im.getpixel((x,y)))&gt;<span class="hljs-number">210</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">max</span>(im.getpixel((x,y)))-<span class="hljs-built_in">min</span>(im.getpixel((x,y)))&lt;<span class="hljs-number">20</span> <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> ys)/<span class="hljs-built_in">len</span>(ys) <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> xs)
+        scores.append(score)
+    ranked=<span class="hljs-built_in">sorted</span>(<span class="hljs-built_in">range</span>(<span class="hljs-number">6</span>),key=<span class="hljs-keyword">lambda</span> x:scores[x],reverse=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">if</span> scores[ranked[<span class="hljs-number">0</span>]]&lt;<span class="hljs-number">.75</span> <span class="hljs-keyword">or</span> scores[ranked[<span class="hljs-number">0</span>]]-scores[ranked[<span class="hljs-number">1</span>]]&lt;<span class="hljs-number">.3</span>:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">f&#x27;Party selection border review: <span class="hljs-subst">{scores}</span>&#x27;</span>)
+    <span class="hljs-keyword">return</span> ranked[<span class="hljs-number">0</span>]
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">selection_path</span>(<span class="hljs-params">start,target,multiselect=<span class="hljs-literal">False</span></span>):
+    <span class="hljs-comment"># Installed Party.rb: horizontal navigation is linear and wraps via Cancel.</span>
+    count=<span class="hljs-number">8</span> <span class="hljs-keyword">if</span> multiselect <span class="hljs-keyword">else</span> <span class="hljs-number">7</span>
+    q=deque([(start,[])]);seen={start}
+    <span class="hljs-keyword">while</span> q:
+        slot,keys=q.popleft()
+        <span class="hljs-keyword">if</span> slot==target:<span class="hljs-keyword">return</span> keys
+        up=count-<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> slot&lt;<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> (slot-<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> slot&lt;<span class="hljs-number">6</span> <span class="hljs-keyword">else</span> slot-<span class="hljs-number">1</span>)
+        <span class="hljs-keyword">for</span> key,nxt <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;right&#x27;</span>,(slot+<span class="hljs-number">1</span>)%count),(<span class="hljs-string">&#x27;left&#x27;</span>,(slot-<span class="hljs-number">1</span>)%count),(<span class="hljs-string">&#x27;up&#x27;</span>,up),(<span class="hljs-string">&#x27;down&#x27;</span>,slot+<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> slot&lt;<span class="hljs-number">5</span> <span class="hljs-keyword">else</span> (slot+<span class="hljs-number">1</span>)%count)]:
+            <span class="hljs-keyword">if</span> nxt <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> seen:seen.add(nxt);q.append((nxt,keys+[key+<span class="hljs-string">&#x27;:0.12&#x27;</span>]))
+    <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Party navigation route unavailable&#x27;</span>)
+</code></pre>
+  </body>
+</html>

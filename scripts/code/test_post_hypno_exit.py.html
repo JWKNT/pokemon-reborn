@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_post_hypno_exit.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_post_hypno_exit.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure guard tests; no UI, controls, native reads/writes or ongoing logs.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> hashlib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> pathlib
+<span class="hljs-keyword">import</span> tempfile
+<span class="hljs-keyword">import</span> unittest
+
+<span class="hljs-keyword">from</span> post_hypno_exit <span class="hljs-keyword">import</span> ROOT, frozen_post_gate, no_battle_or_choice, prefix_at_first_touch
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">event</span>(<span class="hljs-params">eid, xy, command=<span class="hljs-number">101</span></span>):
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">str</span>(eid), {<span class="hljs-string">&quot;x&quot;</span>: xy[<span class="hljs-number">0</span>], <span class="hljs-string">&quot;y&quot;</span>: xy[<span class="hljs-number">1</span>], <span class="hljs-string">&quot;trigger&quot;</span>: <span class="hljs-number">1</span>,
+                      <span class="hljs-string">&quot;list&quot;</span>: [{<span class="hljs-string">&quot;code&quot;</span>: command, <span class="hljs-string">&quot;parameters&quot;</span>: [<span class="hljs-string">&quot;source&quot;</span>], <span class="hljs-string">&quot;indent&quot;</span>: <span class="hljs-number">0</span>}]}
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ExitGuards</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_first_meaningful_touch_truncates_before_later_inputs</span>(<span class="hljs-params">self</span>):
+        value = {<span class="hljs-string">&quot;map&quot;</span>: <span class="hljs-number">758</span>, <span class="hljs-string">&quot;events&quot;</span>: <span class="hljs-built_in">dict</span>([event(<span class="hljs-number">62</span>, (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>)), event(<span class="hljs-number">89</span>, (<span class="hljs-number">3</span>, <span class="hljs-number">0</span>))])}
+        keys, nodes, stop = prefix_at_first_touch(value, [(x, <span class="hljs-number">0</span>) <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>)], [<span class="hljs-string">&quot;right&quot;</span>] * <span class="hljs-number">4</span>, <span class="hljs-number">56</span>, <span class="hljs-string">&quot;zel&quot;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual((keys, nodes, stop[<span class="hljs-number">0</span>]), ([<span class="hljs-string">&quot;right&quot;</span>], [(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>)], <span class="hljs-number">62</span>))
+        value[<span class="hljs-string">&quot;events&quot;</span>] = <span class="hljs-built_in">dict</span>([event(<span class="hljs-number">999</span>, (<span class="hljs-number">2</span>, <span class="hljs-number">0</span>))])
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            prefix_at_first_touch(value, [(x, <span class="hljs-number">0</span>) <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>)], [<span class="hljs-string">&quot;right&quot;</span>] * <span class="hljs-number">4</span>, <span class="hljs-number">56</span>, <span class="hljs-string">&quot;zel&quot;</span>)
+        value[<span class="hljs-string">&quot;events&quot;</span>] = <span class="hljs-built_in">dict</span>([event(<span class="hljs-number">35</span>, (<span class="hljs-number">2</span>, <span class="hljs-number">0</span>))])
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            prefix_at_first_touch(value, [(x, <span class="hljs-number">0</span>) <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>)], [<span class="hljs-string">&quot;right&quot;</span>] * <span class="hljs-number">4</span>, <span class="hljs-number">56</span>, <span class="hljs-string">&quot;shade&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_only_inspected_anna_choice_and_no_future_battle</span>(<span class="hljs-params">self</span>):
+        anna = [{<span class="hljs-string">&quot;code&quot;</span>: <span class="hljs-number">102</span>, <span class="hljs-string">&quot;parameters&quot;</span>: [[<span class="hljs-string">&quot;Yes&quot;</span>, <span class="hljs-string">&quot;No&quot;</span>], <span class="hljs-number">2</span>], <span class="hljs-string">&quot;indent&quot;</span>: <span class="hljs-number">0</span>}]
+        no_battle_or_choice(anna, anna_choice=<span class="hljs-literal">True</span>)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            no_battle_or_choice(anna)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            no_battle_or_choice([{<span class="hljs-string">&quot;code&quot;</span>: <span class="hljs-number">111</span>, <span class="hljs-string">&quot;parameters&quot;</span>: [<span class="hljs-number">12</span>, <span class="hljs-string">&quot;pbTrainerBattle(:Solaris)&quot;</span>]}])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_frozen_postbag_is_required_and_bound</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">with</span> tempfile.TemporaryDirectory(prefix=<span class="hljs-string">&quot;post-hypno-proof-&quot;</span>, <span class="hljs-built_in">dir</span>=ROOT / <span class="hljs-string">&quot;work&quot;</span>) <span class="hljs-keyword">as</span> directory:
+            directory = pathlib.Path(directory)
+            status_path, report_path = directory / <span class="hljs-string">&quot;status.json&quot;</span>, directory / <span class="hljs-string">&quot;report.json&quot;</span>
+            <span class="hljs-comment"># Match status_full.rb&#x27;s actual schema:1874 is deliberately absent</span>
+            <span class="hljs-comment"># here; execute() separately checks the full navigation snapshot.</span>
+            status_path.write_text(json.dumps({<span class="hljs-string">&quot;map&quot;</span>: <span class="hljs-number">758</span>, <span class="hljs-string">&quot;switches&quot;</span>: {<span class="hljs-string">&quot;183&quot;</span>: <span class="hljs-literal">True</span>},
+                                               <span class="hljs-string">&quot;bag&quot;</span>: {<span class="hljs-string">&quot;type&quot;</span>: <span class="hljs-string">&quot;PokemonBag&quot;</span>, <span class="hljs-string">&quot;contents&quot;</span>: {<span class="hljs-string">&quot;ULTRAPOTION&quot;</span>: <span class="hljs-number">3</span>}}}))
+            report = {<span class="hljs-string">&quot;status&quot;</span>: <span class="hljs-string">&quot;verified_counts&quot;</span>, <span class="hljs-string">&quot;errors&quot;</span>: [], <span class="hljs-string">&quot;native_save_inventories_verified&quot;</span>: <span class="hljs-literal">True</span>,
+                      <span class="hljs-string">&quot;per_round&quot;</span>: [{<span class="hljs-string">&quot;major_id&quot;</span>: <span class="hljs-number">125</span>}], <span class="hljs-string">&quot;evidence&quot;</span>: {<span class="hljs-string">&quot;after&quot;</span>: {<span class="hljs-string">&quot;sha256&quot;</span>: hashlib.sha256(status_path.read_bytes()).hexdigest()}}}
+            report_path.write_text(json.dumps(report))
+            <span class="hljs-variable language_">self</span>.assertEqual(frozen_post_gate(status_path, report_path)[<span class="hljs-string">&quot;map&quot;</span>], <span class="hljs-number">758</span>)
+            status_path.write_text(status_path.read_text() + <span class="hljs-string">&quot;\n&quot;</span>)
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+                frozen_post_gate(status_path, report_path)
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    unittest.main()
+</code></pre>
+  </body>
+</html>

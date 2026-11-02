@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>agate_street_review.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of agate_street_review.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure installed-source ordinary Agate damage review; no runtime/game reads.
+
+Trainer IV/EV/nature defaults are those of the installed trainer loader. Player
+stats below are the parent&#x27;s reviewed/frozen level90 build, not live evidence.
+No AI choice or random future outcome is assumed.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> fractions <span class="hljs-keyword">import</span> Fraction <span class="hljs-keyword">as</span> F
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> nonmega_saphira_review <span class="hljs-keyword">import</span> calc
+<span class="hljs-keyword">from</span> saphira_damage_review <span class="hljs-keyword">import</span> stats
+
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+CF=[<span class="hljs-number">252</span>,<span class="hljs-number">93</span>,<span class="hljs-number">333</span>,<span class="hljs-number">210</span>,<span class="hljs-number">218</span>,<span class="hljs-number">68</span>]
+CRYO=[<span class="hljs-number">320</span>,<span class="hljs-number">114</span>,<span class="hljs-number">132</span>,<span class="hljs-number">205</span>,<span class="hljs-number">260</span>,<span class="hljs-number">207</span>]
+MIEN=[<span class="hljs-number">228</span>,<span class="hljs-number">251</span>,<span class="hljs-number">130</span>,<span class="hljs-number">195</span>,<span class="hljs-number">145</span>,<span class="hljs-number">217</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">report</span>():
+    species=json.loads((ROOT/<span class="hljs-string">&#x27;work/agate-street-species-static.json&#x27;</span>).read_text())
+    teams={name:json.loads((ROOT/<span class="hljs-string">f&#x27;work/agate-<span class="hljs-subst">{name}</span>1-static-roster.json&#x27;</span>).read_text())[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]
+           <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;antoine&#x27;</span>,<span class="hljs-string">&#x27;lyla&#x27;</span>,<span class="hljs-string">&#x27;ezra&#x27;</span>]}
+    foes={m[<span class="hljs-string">&#x27;species&#x27;</span>]:stats(m,species) <span class="hljs-keyword">for</span> team <span class="hljs-keyword">in</span> teams.values() <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> team}
+    mamo=foes[<span class="hljs-string">&#x27;MAMOSWINE&#x27;</span>]
+    incoming={}
+    <span class="hljs-keyword">for</span> move,power,stab <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;EARTHQUAKE&#x27;</span>,<span class="hljs-number">100</span>,F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>)),(<span class="hljs-string">&#x27;ICICLECRASH&#x27;</span>,<span class="hljs-number">85</span>,F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>)),
+                             (<span class="hljs-string">&#x27;ICESHARD&#x27;</span>,<span class="hljs-number">40</span>,F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>)),(<span class="hljs-string">&#x27;ROCKSLIDE&#x27;</span>,<span class="hljs-number">75</span>,<span class="hljs-number">1</span>)]:
+        incoming[move]={
+            <span class="hljs-string">&#x27;ordinary&#x27;</span>:calc(<span class="hljs-number">86</span>,power,mamo[<span class="hljs-number">1</span>],CF[<span class="hljs-number">2</span>],stab=stab),
+            <span class="hljs-string">&#x27;critical&#x27;</span>:calc(<span class="hljs-number">86</span>,power,mamo[<span class="hljs-number">1</span>],CF[<span class="hljs-number">2</span>],stab=stab,critical=<span class="hljs-literal">True</span>),
+            <span class="hljs-string">&#x27;ordinary_at_plus2_def&#x27;</span>:calc(<span class="hljs-number">86</span>,power,mamo[<span class="hljs-number">1</span>],CF[<span class="hljs-number">2</span>],stab=stab,defense_stage=<span class="hljs-number">2</span>),
+            <span class="hljs-string">&#x27;burned_critical&#x27;</span>:calc(<span class="hljs-number">86</span>,power,mamo[<span class="hljs-number">1</span>],CF[<span class="hljs-number">2</span>],stab=stab,critical=<span class="hljs-literal">True</span>,final_multiplier=F(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>))}
+    ant_out={}
+    <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> teams[<span class="hljs-string">&#x27;antoine&#x27;</span>]:
+        name=m[<span class="hljs-string">&#x27;species&#x27;</span>];st=foes[name]
+        ant_out[name]={
+            <span class="hljs-string">&#x27;hp&#x27;</span>:st[<span class="hljs-number">0</span>],
+            <span class="hljs-string">&#x27;plus6_unstatused_hex&#x27;</span>:calc(<span class="hljs-number">90</span>,<span class="hljs-number">65</span>,CF[<span class="hljs-number">3</span>],st[<span class="hljs-number">4</span>],attack_stage=<span class="hljs-number">6</span>,stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),
+                effectiveness=F(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> name <span class="hljs-keyword">in</span> {<span class="hljs-string">&#x27;LIEPARD&#x27;</span>,<span class="hljs-string">&#x27;MIGHTYENA&#x27;</span>,<span class="hljs-string">&#x27;TYRANITAR&#x27;</span>} <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>,
+                defense_multiplier=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> name==<span class="hljs-string">&#x27;TYRANITAR&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>),
+            <span class="hljs-string">&#x27;plus6_status_hex&#x27;</span>:calc(<span class="hljs-number">90</span>,<span class="hljs-number">130</span>,CF[<span class="hljs-number">3</span>],st[<span class="hljs-number">4</span>],attack_stage=<span class="hljs-number">6</span>,stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),
+                effectiveness=F(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> name <span class="hljs-keyword">in</span> {<span class="hljs-string">&#x27;LIEPARD&#x27;</span>,<span class="hljs-string">&#x27;MIGHTYENA&#x27;</span>,<span class="hljs-string">&#x27;TYRANITAR&#x27;</span>} <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>,
+                defense_multiplier=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> name==<span class="hljs-string">&#x27;TYRANITAR&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)}
+    ice={}
+    <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> teams[<span class="hljs-string">&#x27;lyla&#x27;</span>]+teams[<span class="hljs-string">&#x27;ezra&#x27;</span>]:
+        name=m[<span class="hljs-string">&#x27;species&#x27;</span>];st=foes[name]
+        <span class="hljs-keyword">if</span> name==<span class="hljs-string">&#x27;DITTO&#x27;</span>:<span class="hljs-keyword">continue</span>
+        eff=<span class="hljs-number">4</span> <span class="hljs-keyword">if</span> name==<span class="hljs-string">&#x27;NOIVERN&#x27;</span> <span class="hljs-keyword">else</span> (<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> name <span class="hljs-keyword">in</span> {<span class="hljs-string">&#x27;WHIMSICOTT&#x27;</span>,<span class="hljs-string">&#x27;HAXORUS&#x27;</span>,<span class="hljs-string">&#x27;BELLOSSOM&#x27;</span>,<span class="hljs-string">&#x27;KOMMOO&#x27;</span>} <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)
+        ice[name]={<span class="hljs-string">&#x27;hp&#x27;</span>:st[<span class="hljs-number">0</span>],<span class="hljs-string">&#x27;speed&#x27;</span>:st[<span class="hljs-number">5</span>],
+                   <span class="hljs-string">&#x27;icebeam0&#x27;</span>:calc(<span class="hljs-number">90</span>,<span class="hljs-number">90</span>,CRYO[<span class="hljs-number">3</span>],st[<span class="hljs-number">4</span>],stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),effectiveness=eff),
+                   <span class="hljs-string">&#x27;icebeam_plus2&#x27;</span>:calc(<span class="hljs-number">90</span>,<span class="hljs-number">90</span>,CRYO[<span class="hljs-number">3</span>],st[<span class="hljs-number">4</span>],stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),effectiveness=eff,attack_stage=<span class="hljs-number">2</span>),
+                   <span class="hljs-string">&#x27;icebeam_plus2_lightscreen&#x27;</span>:calc(<span class="hljs-number">90</span>,<span class="hljs-number">90</span>,CRYO[<span class="hljs-number">3</span>],st[<span class="hljs-number">4</span>],stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),
+                         effectiveness=eff,attack_stage=<span class="hljs-number">2</span>,final_multiplier=F(<span class="hljs-number">2</span>,<span class="hljs-number">3</span>))}
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;scope&#x27;</span>:<span class="hljs-string">&#x27;Read-only static source planning; not actual battle outcomes&#x27;</span>,
+        <span class="hljs-string">&#x27;stat_order&#x27;</span>:[<span class="hljs-string">&#x27;HP&#x27;</span>,<span class="hljs-string">&#x27;Atk&#x27;</span>,<span class="hljs-string">&#x27;Def&#x27;</span>,<span class="hljs-string">&#x27;SpA&#x27;</span>,<span class="hljs-string">&#x27;SpD&#x27;</span>,<span class="hljs-string">&#x27;Spe&#x27;</span>],
+        <span class="hljs-string">&#x27;players&#x27;</span>:{<span class="hljs-string">&#x27;CF&#x27;</span>:CF,<span class="hljs-string">&#x27;Cryo&#x27;</span>:CRYO,<span class="hljs-string">&#x27;Mien&#x27;</span>:MIEN},<span class="hljs-string">&#x27;foes&#x27;</span>:foes,
+        <span class="hljs-string">&#x27;mamo_into_cf&#x27;</span>:incoming,<span class="hljs-string">&#x27;cf_hail_chip&#x27;</span>:<span class="hljs-number">15</span>,<span class="hljs-string">&#x27;mamo_safe_min_hp_preburn&#x27;</span>:<span class="hljs-number">144</span>,
+        <span class="hljs-string">&#x27;mamo_safe_min_hp_burned&#x27;</span>:<span class="hljs-number">80</span>,<span class="hljs-string">&#x27;antoine_outgoing&#x27;</span>:ant_out,
+        <span class="hljs-string">&#x27;liepard_foul_play_crit_by_cf_attack_stage&#x27;</span>:{
+            <span class="hljs-built_in">str</span>(s):calc(<span class="hljs-number">87</span>,<span class="hljs-number">95</span>,CF[<span class="hljs-number">1</span>],CF[<span class="hljs-number">2</span>],attack_stage=s,defense_stage=<span class="hljs-number">2</span>,
+                        stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),effectiveness=<span class="hljs-number">2</span>,critical=<span class="hljs-literal">True</span>) <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>,<span class="hljs-number">6</span>]},
+        <span class="hljs-string">&#x27;cryo_icebeam&#x27;</span>:ice,
+        <span class="hljs-string">&#x27;noivern_hurricane_crit_cf&#x27;</span>:calc(<span class="hljs-number">87</span>,<span class="hljs-number">110</span>,<span class="hljs-number">200</span>,CF[<span class="hljs-number">4</span>],stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),critical=<span class="hljs-literal">True</span>),
+        <span class="hljs-string">&#x27;copied_cf_ditto_hex_crit_cf&#x27;</span>:calc(<span class="hljs-number">87</span>,<span class="hljs-number">65</span>,CF[<span class="hljs-number">3</span>],CF[<span class="hljs-number">4</span>],stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),effectiveness=<span class="hljs-number">2</span>,critical=<span class="hljs-literal">True</span>),
+        <span class="hljs-string">&#x27;noivern_hurricane_crit_cryo&#x27;</span>:calc(<span class="hljs-number">87</span>,<span class="hljs-number">110</span>,<span class="hljs-number">200</span>,CRYO[<span class="hljs-number">4</span>],stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),critical=<span class="hljs-literal">True</span>),
+        <span class="hljs-string">&#x27;noivern_heatwave_crit_cryo&#x27;</span>:calc(<span class="hljs-number">87</span>,<span class="hljs-number">95</span>,<span class="hljs-number">200</span>,CRYO[<span class="hljs-number">4</span>],effectiveness=<span class="hljs-number">2</span>,
+                                             critical=<span class="hljs-literal">True</span>,final_multiplier=F(<span class="hljs-number">3</span>,<span class="hljs-number">4</span>)),
+        <span class="hljs-string">&#x27;mien_brickbreak_copied_cryo_ditto&#x27;</span>:calc(<span class="hljs-number">90</span>,<span class="hljs-number">75</span>,MIEN[<span class="hljs-number">1</span>],CRYO[<span class="hljs-number">2</span>],stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),effectiveness=<span class="hljs-number">2</span>),
+        <span class="hljs-string">&#x27;whimsicott_dazzle_crit_mien&#x27;</span>:calc(<span class="hljs-number">87</span>,<span class="hljs-number">80</span>,<span class="hljs-number">165</span>,MIEN[<span class="hljs-number">4</span>],stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),effectiveness=<span class="hljs-number">2</span>,
+                                               critical=<span class="hljs-literal">True</span>,final_multiplier=F(<span class="hljs-number">3</span>,<span class="hljs-number">4</span>)),
+        <span class="hljs-string">&#x27;cryo_plus2_freezedry_mantine&#x27;</span>:calc(<span class="hljs-number">90</span>,<span class="hljs-number">70</span>,CRYO[<span class="hljs-number">3</span>],<span class="hljs-number">275</span>,stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),effectiveness=<span class="hljs-number">4</span>,attack_stage=<span class="hljs-number">2</span>)}
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:<span class="hljs-built_in">print</span>(json.dumps(report(),indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>neoteric378_mint_trip.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of neoteric378_mint_trip.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal travel to the Nightclub&#x27;s one-BP nature mints.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;56&#x27;</span>,REBORN_ROUTE_STEP_PAUSE=<span class="hljs-string">&#x27;.10&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">233</span>,<span class="hljs-number">13</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">233</span>,<span class="hljs-number">232</span>)
+run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">527</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Rayquaza&#x27;</span>)
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">527</span>,<span class="hljs-number">826</span>);run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">826</span>,<span class="hljs-number">827</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">827</span>,<span class="hljs-number">93</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;bp_store_buy&#x27;</span>,<span class="hljs-number">15</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;Quiet Mint&#x27;</span>)
+run(<span class="hljs-string">&#x27;bp_store_buy&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Brave Mint&#x27;</span>)
+run(<span class="hljs-string">&#x27;bp_store_buy&#x27;</span>,<span class="hljs-number">5</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Relaxed Mint&#x27;</span>)
+run(<span class="hljs-string">&#x27;bp_store_exit&#x27;</span>);run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Neoteric378-Mints-purchased&#x27;</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>observe_words.swift</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of observe_words.swift"><code class="hljs language-swift"><span class="hljs-comment">// OCR an explicitly supplied public image. No app/window inspection or inputs.</span>
+<span class="hljs-keyword">import</span> Foundation
+<span class="hljs-keyword">import</span> Vision
+<span class="hljs-keyword">guard</span> <span class="hljs-type">CommandLine</span>.arguments.count <span class="hljs-operator">==</span> <span class="hljs-number">2</span> <span class="hljs-keyword">else</span> {
+    fputs(<span class="hljs-string">&quot;Usage: observe_words IMAGE<span class="hljs-subst">\n</span>&quot;</span>, stderr)
+    exit(<span class="hljs-number">2</span>)
+}
+<span class="hljs-keyword">let</span> url <span class="hljs-operator">=</span> <span class="hljs-type">URL</span>(fileURLWithPath: <span class="hljs-type">CommandLine</span>.arguments[<span class="hljs-number">1</span>])
+<span class="hljs-keyword">let</span> request <span class="hljs-operator">=</span> <span class="hljs-type">VNRecognizeTextRequest</span>()
+request.recognitionLevel <span class="hljs-operator">=</span> .accurate
+request.usesLanguageCorrection <span class="hljs-operator">=</span> <span class="hljs-literal">false</span>
+<span class="hljs-keyword">try</span> <span class="hljs-type">VNImageRequestHandler</span>(url: url).perform([request])
+<span class="hljs-keyword">let</span> pattern <span class="hljs-operator">=</span> <span class="hljs-keyword">try</span> <span class="hljs-type">NSRegularExpression</span>(pattern: <span class="hljs-string">&quot;<span class="hljs-subst">\\</span>S+&quot;</span>)
+<span class="hljs-keyword">func</span> <span class="hljs-title function_">box</span>(<span class="hljs-keyword">_</span> <span class="hljs-params">rect</span>: <span class="hljs-type">CGRect</span>, <span class="hljs-keyword">_</span> <span class="hljs-params">text</span>: <span class="hljs-type">String</span>) -&gt; [<span class="hljs-type">String</span>: <span class="hljs-keyword">Any</span>] {
+    <span class="hljs-keyword">return</span> [<span class="hljs-string">&quot;text&quot;</span>: text, <span class="hljs-string">&quot;x&quot;</span>: rect.minX, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">1</span> <span class="hljs-operator">-</span> rect.maxY,
+            <span class="hljs-string">&quot;w&quot;</span>: rect.width, <span class="hljs-string">&quot;h&quot;</span>: rect.height]
+}
+<span class="hljs-keyword">let</span> rows <span class="hljs-operator">=</span> (request.results <span class="hljs-operator">??</span> []).compactMap { result -&gt; [<span class="hljs-type">String</span>: <span class="hljs-keyword">Any</span>]<span class="hljs-operator">?</span> <span class="hljs-keyword">in</span>
+    <span class="hljs-keyword">guard</span> <span class="hljs-keyword">let</span> best <span class="hljs-operator">=</span> result.topCandidates(<span class="hljs-number">1</span>).first <span class="hljs-keyword">else</span> { <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span> }
+    <span class="hljs-keyword">var</span> row <span class="hljs-operator">=</span> box(result.boundingBox, best.string)
+    row[<span class="hljs-string">&quot;words&quot;</span>] <span class="hljs-operator">=</span> pattern.matches(in: best.string,
+        range: <span class="hljs-type">NSRange</span>(best.string.startIndex<span class="hljs-operator">...</span>, in: best.string)).compactMap { match -&gt; [<span class="hljs-type">String</span>: <span class="hljs-keyword">Any</span>]<span class="hljs-operator">?</span> <span class="hljs-keyword">in</span>
+        <span class="hljs-keyword">guard</span> <span class="hljs-keyword">let</span> range <span class="hljs-operator">=</span> <span class="hljs-type">Range</span>(match.range, in: best.string),
+              <span class="hljs-keyword">let</span> bounds <span class="hljs-operator">=</span> <span class="hljs-keyword">try?</span> best.boundingBox(for: range) <span class="hljs-keyword">else</span> { <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span> }
+        <span class="hljs-keyword">return</span> box(bounds.boundingBox, <span class="hljs-type">String</span>(best.string[range]))
+    }
+    <span class="hljs-keyword">return</span> row
+}
+<span class="hljs-keyword">let</span> data <span class="hljs-operator">=</span> <span class="hljs-keyword">try</span> <span class="hljs-type">JSONSerialization</span>.data(withJSONObject: rows, options: [.sortedKeys])
+<span class="hljs-built_in">print</span>(<span class="hljs-type">String</span>(data: data, encoding: .utf8)<span class="hljs-operator">!</span>)
+</code></pre>
+  </body>
+</html>

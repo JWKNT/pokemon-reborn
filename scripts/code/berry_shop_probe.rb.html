@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>berry_shop_probe.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of berry_shop_probe.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Installed map declarations only; no saves, runtime or game mutations.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+hits=[]
+<span class="hljs-title class_">Dir</span>[<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data/Map[0-9]*.rxdata&#x27;</span>].each <span class="hljs-keyword">do</span> |<span class="hljs-params">f</span>|
+ m=load_rgss(f); events=m.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>);<span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> events
+ events.each <span class="hljs-keyword">do</span> |<span class="hljs-params">id,e</span>|
+  e.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@pages</span>).each_with_index <span class="hljs-keyword">do</span> |<span class="hljs-params">p,i</span>|
+   cs=plain(p.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@list</span>)); s=cs.to_s
+   <span class="hljs-keyword">if</span> s.<span class="hljs-keyword">include</span>?(<span class="hljs-string">&#x27;LUMBERRY&#x27;</span>) |<span class="hljs-params"></span>| s.<span class="hljs-keyword">include</span>?(<span class="hljs-string">&#x27;PERSIMBERRY&#x27;</span>)
+    hits &lt;&lt; {<span class="hljs-symbol">map:</span><span class="hljs-title class_">File</span>.basename(f)[<span class="hljs-regexp">/\d+/</span>].to_i,<span class="hljs-symbol">event:</span>id,<span class="hljs-symbol">x:</span>e.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@x</span>),<span class="hljs-symbol">y:</span>e.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@y</span>),<span class="hljs-symbol">page:</span>i,<span class="hljs-symbol">commands:</span>cs.select{|<span class="hljs-params">c</span>|[<span class="hljs-number">101</span>,<span class="hljs-number">401</span>,<span class="hljs-number">111</span>,<span class="hljs-number">355</span>,<span class="hljs-number">655</span>].<span class="hljs-keyword">include</span>?(c[<span class="hljs-string">&#x27;code&#x27;</span>])}}
+   <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">end</span>
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(hits)
+</code></pre>
+  </body>
+</html>

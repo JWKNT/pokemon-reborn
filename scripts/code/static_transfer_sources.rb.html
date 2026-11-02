@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>static_transfer_sources.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of static_transfer_sources.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Find literal installed-map transfers; never reads saves or runtime state.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+targets=<span class="hljs-variable constant_">ARGV</span>.map { |<span class="hljs-params">n</span>| <span class="hljs-title class_">Integer</span>(n) }
+<span class="hljs-keyword">raise</span> <span class="hljs-string">&#x27;Specify destination map IDs&#x27;</span> <span class="hljs-keyword">if</span> targets.empty?
+rows=[]
+<span class="hljs-title class_">Dir</span>.glob(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data/Map[0-9][0-9][0-9].rxdata&#x27;</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">path</span>|
+  map=load_rgss(path)
+  map.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">id,event</span>|
+    event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@pages</span>).each_with_index <span class="hljs-keyword">do</span> |<span class="hljs-params">page,pi</span>|
+      page.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@list</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">command</span>|
+        args=command.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@parameters</span>)
+        <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> command.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@code</span>)==<span class="hljs-number">201</span> &amp;&amp; args[<span class="hljs-number">0</span>]==<span class="hljs-number">0</span> &amp;&amp; targets.<span class="hljs-keyword">include</span>?(args[<span class="hljs-number">1</span>])
+        rows &lt;&lt; {<span class="hljs-symbol">map:</span><span class="hljs-title class_">File</span>.basename(path)[<span class="hljs-number">3</span>,<span class="hljs-number">3</span>].to_i,<span class="hljs-symbol">event:</span>id,<span class="hljs-symbol">page:</span>pi,
+                 <span class="hljs-symbol">position:</span>[event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@x</span>),event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@y</span>)],<span class="hljs-symbol">transfer:</span>args}
+      <span class="hljs-keyword">end</span>
+    <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(rows)
+</code></pre>
+  </body>
+</html>

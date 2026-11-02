@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>forest_tail245.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of forest_tail245.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Advance only reviewed forest obstacle dialogue, then require stable overworld.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+clear=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">16</span>):
+ rows=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows).lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;\b(fight|hp|yes|no)\b|pp:|attacked&#x27;</span>,t):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected battle/choice&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(x <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;heracross&#x27;</span>,<span class="hljs-string">&#x27;pinsir&#x27;</span>,<span class="hljs-string">&#x27;bouffalant&#x27;</span>,<span class="hljs-string">&#x27;tauros&#x27;</span>]):
+  act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>);clear=<span class="hljs-number">0</span>
+ <span class="hljs-keyword">elif</span> <span class="hljs-built_in">any</span>(v[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.73</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(v[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">18</span> <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unknown dialogue&#x27;</span>)
+ <span class="hljs-keyword">else</span>:
+  clear+=<span class="hljs-number">1</span>
+  <span class="hljs-keyword">if</span> clear&gt;=<span class="hljs-number">3</span>:<span class="hljs-keyword">break</span>
+  act(<span class="hljs-string">&#x27;wait:.8&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Forest tail timeout&#x27;</span>)
+</code></pre>
+  </body>
+</html>

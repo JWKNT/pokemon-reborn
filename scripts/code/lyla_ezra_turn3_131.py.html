@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>lyla_ezra_turn3_131.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of lyla_ezra_turn3_131.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finite root-reviewed turn3: Whimsicott/Kommo-o, Cryo Ice +Mien WideGuard.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,re
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,read
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;hexan&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;fight&#x27;</span><span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;kommo&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;himsicott&#x27;</span><span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;whimsicott&#x27;</span><span class="hljs-keyword">in</span> t)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_move.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--foe-names&#x27;</span>,<span class="hljs-string">&#x27;Whimsicott,Kommo-o&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;mienshao&#x27;</span><span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;what will&#x27;</span><span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;fight&#x27;</span><span class="hljs-keyword">in</span> t
+run(<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+</code></pre>
+  </body>
+</html>

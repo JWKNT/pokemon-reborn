@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mountain_outbound.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mountain_outbound.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed route from Celestinine water entrance to Route 3, through normal UI.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+start=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">359</span>
+<span class="hljs-keyword">assert</span> start <span class="hljs-keyword">in</span> [<span class="hljs-number">359</span>,<span class="hljs-number">380</span>,<span class="hljs-number">430</span>,<span class="hljs-number">390</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/script),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> start==<span class="hljs-number">359</span>:
+ run(<span class="hljs-string">&#x27;surface_walk.py&#x27;</span>,<span class="hljs-number">359</span>,<span class="hljs-number">21</span>,<span class="hljs-number">47</span>)
+ run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;pre-mountain&#x27;</span>)
+ act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+<span class="hljs-keyword">if</span> start <span class="hljs-keyword">in</span> [<span class="hljs-number">359</span>,<span class="hljs-number">380</span>]:
+ run(<span class="hljs-string">&#x27;surface_walk.py&#x27;</span>,<span class="hljs-number">380</span>,<span class="hljs-number">52</span>,<span class="hljs-number">7</span>)
+ run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">380</span>,<span class="hljs-number">27</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+<span class="hljs-keyword">if</span> start <span class="hljs-keyword">in</span> [<span class="hljs-number">359</span>,<span class="hljs-number">380</span>,<span class="hljs-number">430</span>]:
+ run(<span class="hljs-string">&#x27;surface_walk.py&#x27;</span>,<span class="hljs-number">430</span>,<span class="hljs-number">32</span>,<span class="hljs-number">0</span>)
+ act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;surface_walk.py&#x27;</span>,<span class="hljs-number">390</span>,<span class="hljs-number">43</span>,<span class="hljs-number">37</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">390</span>,<span class="hljs-number">25</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">390</span>,<span class="hljs-number">25</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;state=json.loads(p.read_text());state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;184&#x27;</span>]=<span class="hljs-number">6</span>;p.write_text(json.dumps(state))
+run(<span class="hljs-string">&#x27;surface_walk.py&#x27;</span>,<span class="hljs-number">390</span>,<span class="hljs-number">96</span>,<span class="hljs-number">20</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">390</span>,<span class="hljs-number">15</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MOUNTAIN OUTBOUND COMPLETE — verify Route 3 arrival&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

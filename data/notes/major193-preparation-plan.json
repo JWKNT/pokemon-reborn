@@ -1,0 +1,45 @@
+{
+  "major": 193,
+  "status": "team_prepared_not_attempted",
+  "checkpoint": "Idyll320-TeamReadyPause",
+  "objective": "Win Craudburry with Flower Garden stage 5; all four Gracidea already banked.",
+  "planned_latias": {
+    "level": 130,
+    "nature": "Timid",
+    "ev": [
+      252,
+      0,
+      252,
+      0,
+      0,
+      0
+    ],
+    "moves": [
+      "Water Sport",
+      "Psychic",
+      "Recover",
+      "Calm Mind"
+    ],
+    "held": "Wise Glasses"
+  },
+  "battle_rules": [
+    "No Synthetic Seed on Latias: Ingrain prevents switching and grounds it.",
+    "Water Sport lasts five turns; successful uses grow garden one stage. Refresh after public fade message.",
+    "Keep initial field low until Victreebel and Qwilfish are removed; Taunt and Cut can disrupt growth.",
+    "Aim for at least two Calm Minds before Amoonguss so Psychic can OHKO before Grassy Terrain.",
+    "Stall safely with recovery and boosts against a non-Taunt fire user until garden stage5; refresh Water Sport before KO.",
+    "Crobat is faster and has Taunt: finish it promptly while Water Sport still protects stage5.",
+    "If terrain temporarily changes, wait for its return and rebuild the garden before final KO."
+  ],
+  "source": [
+    "/Applications/Reborn.app/Contents/Game/Scripts/Reborn/fieldtext.rb",
+    "/Applications/Reborn.app/Contents/Game/Scripts/Battle_Move.rb ignitecheck",
+    "/Applications/Reborn.app/Contents/Game/Scripts/Battle_MoveEffects.rb Water Sport",
+    "work/318-panaceance-events.json event335"
+  ],
+  "support_updates": [
+    "Magearna Safety Goggles equipped",
+    "Excadrill127 RapidSpin taught; active party slot2"
+  ],
+  "epoch": 1791812595.294477
+}

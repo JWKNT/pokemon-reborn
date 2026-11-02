@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>giratina_badend_reload.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of giratina_badend_reload.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Advance Anna&#x27;s reviewed fake ending with normal UI reloads and saved evidence.
+
+Run while the first reloaded &#x27;gold and ivory keys&#x27; message is visible.
+Stops on the third reload&#x27;s message, before the final reveal.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> shutil, hashlib
+
+native = pathlib.Path.home()/<span class="hljs-string">&#x27;Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>
+journal_path = ROOT/<span class="hljs-string">&#x27;notes/giratina361-normal-reloads.json&#x27;</span>
+journal = json.loads(journal_path.read_text()) <span class="hljs-keyword">if</span> journal_path.exists() <span class="hljs-keyword">else</span> []
+stages = [<span class="hljs-number">3</span>] <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--last-only&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>]
+<span class="hljs-keyword">for</span> stage <span class="hljs-keyword">in</span> stages:
+    text = read().lower()
+    <span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(s <span class="hljs-keyword">in</span> text <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;anna&#x27;</span>, <span class="hljs-string">&#x27;gold and ivory keys&#x27;</span>]), text
+    before = native.stat().st_mtime
+    act(<span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-string">&#x27;wait:2&#x27;</span>)
+    text = read().lower()
+    <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;bad&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;end&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;anna&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> text, text
+    <span class="hljs-keyword">assert</span> native.stat().st_mtime &gt; before, <span class="hljs-string">&#x27;Scripted autosave did not advance&#x27;</span>
+    backup = ROOT/<span class="hljs-string">&#x27;backups&#x27;</span>/<span class="hljs-string">f&#x27;Aster-Giratina361-BadEnd<span class="hljs-subst">{stage}</span>.rxdata&#x27;</span>
+    shutil.copy2(native, backup)
+    journal.append(<span class="hljs-built_in">dict</span>(stage=stage, epoch=time.time(), save_mtime=native.stat().st_mtime,
+                        backup=<span class="hljs-built_in">str</span>(backup.relative_to(ROOT)), sha256=hashlib.sha256(backup.read_bytes()).hexdigest()))
+    journal_path.write_text(json.dumps(journal, indent=<span class="hljs-number">2</span>))
+    act(<span class="hljs-string">&#x27;f12&#x27;</span>, <span class="hljs-string">&#x27;wait:4&#x27;</span>)
+    text = read().lower()
+    <span class="hljs-comment"># ENTER blinks; the rendered title still contains two REBORN labels.</span>
+    <span class="hljs-keyword">assert</span> text.count(<span class="hljs-string">&#x27;reborn&#x27;</span>) == <span class="hljs-number">2</span> <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;continue&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;bad&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> text, text
+    act(<span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-string">&#x27;wait:2&#x27;</span>)
+    text = read().lower()
+    <span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(s <span class="hljs-keyword">in</span> text.replace(<span class="hljs-string">&#x27;distor ted&#x27;</span>, <span class="hljs-string">&#x27;distorted&#x27;</span>) <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;continue&#x27;</span>, <span class="hljs-string">&#x27;aster&#x27;</span>, <span class="hljs-string">&#x27;distorted space&#x27;</span>]), text
+    act(<span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-string">&#x27;wait:7&#x27;</span>)
+    text = read().lower()
+    <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;anna&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;gold and ivory keys&#x27;</span> <span class="hljs-keyword">in</span> text, text
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NORMAL RELOAD VERIFIED&#x27;</span>, stage+<span class="hljs-number">1</span>, text, flush=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Third reload reached; final story message remains for reviewed dialogue.&#x27;</span>, flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

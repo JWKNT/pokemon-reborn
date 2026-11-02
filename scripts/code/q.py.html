@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>q.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of q.py"><code class="hljs language-python"><span class="hljs-comment"># Queue steps written as MAP,X,Y,action,...; actual coordinates read in-game.</span>
+<span class="hljs-keyword">import</span> json,sys,pathlib,subprocess
+p=pathlib.Path(__file__).resolve().parent.parent/<span class="hljs-string">&#x27;notes/route-next.json&#x27;</span>
+steps=[]
+<span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> sys.argv[<span class="hljs-number">1</span>:]:
+ a=s.split(<span class="hljs-string">&#x27;,&#x27;</span>); m,x,y=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,a[:<span class="hljs-number">3</span>]);steps.append([m,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,x,y,a[<span class="hljs-number">3</span>:]])
+p.write_text(json.dumps(steps))
+<span class="hljs-keyword">raise</span> SystemExit(subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(p.parent.parent/<span class="hljs-string">&#x27;scripts/queue_route.py&#x27;</span>),<span class="hljs-built_in">str</span>(p)]))
+</code></pre>
+  </body>
+</html>

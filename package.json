@@ -1,0 +1,15 @@
+{
+  "name": "jehlp-pokemon-reborn",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "import": "node tools/import-reborn.mjs",
+    "build": "node build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "pretest": "node build.mjs"
+  },
+  "devDependencies": {
+    "highlight.js": "11.12.0",
+    "marked": "18.1.1"
+  }
+}

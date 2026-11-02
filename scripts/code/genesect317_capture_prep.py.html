@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>genesect317_capture_prep.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of genesect317_capture_prep.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Prepare capture moves and factory switches through reviewed normal controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;teach_machine&#x27;</span>,<span class="hljs-string">&#x27;TM54&#x27;</span>,<span class="hljs-string">&#x27;Zeraora&#x27;</span>,<span class="hljs-string">&#x27;False Swipe&#x27;</span>,<span class="hljs-number">0</span>)
+run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Genesect317-CaptureMoves&#x27;</span>)
+<span class="hljs-keyword">for</span> eid <span class="hljs-keyword">in</span> [<span class="hljs-number">135</span>,<span class="hljs-number">160</span>,<span class="hljs-number">161</span>,<span class="hljs-number">82</span>]:
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">877</span>,eid,<span class="hljs-string">&#x27;talk&#x27;</span>)
+ run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>,<span class="hljs-string">&#x27;--source&#x27;</span>,<span class="hljs-number">877</span>,eid)
+ run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit&#x27;</span>,<span class="hljs-number">12</span>)
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Genesect317-Switch&#x27;</span>+<span class="hljs-built_in">str</span>(eid))
+q=ROOT/<span class="hljs-string">&#x27;work/317-capture-route.json&#x27;</span>;q.write_text(json.dumps([[<span class="hljs-number">877</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">30</span>,<span class="hljs-number">5</span>,[]]]));run(<span class="hljs-string">&#x27;queue_route&#x27;</span>,q)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Genesect317-PreCatch&#x27;</span>)
+</code></pre>
+  </body>
+</html>

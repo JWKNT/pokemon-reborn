@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>jace343_fund.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of jace343_fund.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded ordinary training for the reviewed EV Tuner purchase; public UI only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,sys,shutil
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+previous=R/<span class="hljs-string">&#x27;notes/Postgame343-Jace3-status.json&#x27;</span>
+<span class="hljs-keyword">assert</span> previous.exists()
+<span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>,<span class="hljs-number">24</span>):
+ s=json.loads(previous.read_text())
+ <span class="hljs-keyword">if</span> s[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]&gt;=<span class="hljs-number">45000</span>:<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">assert</span> shutil.disk_usage(R).free&gt;<span class="hljs-number">5</span>*<span class="hljs-number">1024</span>**<span class="hljs-number">3</span>, <span class="hljs-string">&#x27;Reserve capture space&#x27;</span>
+ label=<span class="hljs-string">f&#x27;Postgame343-Jace<span class="hljs-subst">{n}</span>&#x27;</span>
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/jace330_round.py&#x27;</span>),label],check=<span class="hljs-literal">True</span>)
+ previous=R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FUNDS&#x27;</span>,json.loads(previous.read_text())[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>],flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Funding bound reached; review&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FUNDING COMPLETE&#x27;</span>,previous,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

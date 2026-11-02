@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>volcanion262_training.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of volcanion262_training.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded normal-UI Volcanion EV blocks, reconciled against ordinary saves.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json, os, subprocess, sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>, REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>, REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s, *a</span>):
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>), *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)], check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">saved</span>(<span class="hljs-params">label</span>):
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;VOLCANION&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">train</span>():
+    p=R/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>;c=json.loads(p.read_text())
+    targets=[<span class="hljs-string">&#x27;Rattata&#x27;</span>,<span class="hljs-string">&#x27;Bidoof&#x27;</span>,<span class="hljs-string">&#x27;Patrat&#x27;</span>,<span class="hljs-string">&#x27;Zigzagoon&#x27;</span>,<span class="hljs-string">&#x27;Meowth&#x27;</span>,<span class="hljs-string">&#x27;Pidgey&#x27;</span>,<span class="hljs-string">&#x27;Noctowl&#x27;</span>,<span class="hljs-string">&#x27;Persian&#x27;</span>,<span class="hljs-string">&#x27;Hoothoot&#x27;</span>,<span class="hljs-string">&#x27;Linoone&#x27;</span>]
+    c.update(stop=<span class="hljs-literal">False</span>,expected_foes=targets)
+    p.write_text(json.dumps(c,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+    <span class="hljs-comment"># Noctowl50&#x27;s last four installed moves are Air Slash/Uproar/Roost/Moonblast;</span>
+    <span class="hljs-comment"># trained Volcanion&#x27;s Flamethrower is a safe OHKO without Hypnosis risk.</span>
+    <span class="hljs-comment"># Installed night grass adds Persian25-50, Hoothoot25-50, Linoone45-65.</span>
+    <span class="hljs-comment"># Fire special STAB clears these; retain flee for Raticate&#x27;s Endeavor loop</span>
+    <span class="hljs-comment"># and the spiders&#x27; possible poison while Power Lens slows our attacker.</span>
+    run(<span class="hljs-string">&#x27;train_wild_bulk&#x27;</span>,<span class="hljs-string">&#x27;Volcanion&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-number">8</span>,<span class="hljs-string">&#x27;--targets&#x27;</span>,<span class="hljs-string">&#x27;,&#x27;</span>.join(targets),<span class="hljs-string">&#x27;--flex-targets&#x27;</span>,<span class="hljs-string">&#x27;--ev-ledger&#x27;</span>,<span class="hljs-string">&#x27;--expire-repel&#x27;</span>,<span class="hljs-string">&#x27;--dense-horizontal&#x27;</span>,<span class="hljs-string">&#x27;--heal-item&#x27;</span>,<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">grass</span>():
+    run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+    run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;519,28,51,up:.12,wait:1&#x27;</span>)
+phase=sys.argv[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">if</span> phase==<span class="hljs-string">&#x27;hp&#x27;</span>:
+    m=saved(<span class="hljs-string">&#x27;Postgame262-VolcanionTraining&#x27;</span>)
+    <span class="hljs-keyword">assert</span> m[<span class="hljs-string">&#x27;ev&#x27;</span>]==[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],m
+    run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;heal&#x27;</span>)
+    run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Weight&#x27;</span>,<span class="hljs-string">&#x27;Volcanion&#x27;</span>,<span class="hljs-string">&#x27;--single-step&#x27;</span>)
+    grass();train();label=<span class="hljs-string">&#x27;Postgame262-VolcanionHP&#x27;</span>;expected=[<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>]
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;spa&#x27;</span>:
+    <span class="hljs-keyword">assert</span> saved(<span class="hljs-string">&#x27;Postgame262-VolcanionHP&#x27;</span>)[<span class="hljs-string">&#x27;ev&#x27;</span>]==[<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>]
+    <span class="hljs-keyword">assert</span> saved(<span class="hljs-string">&#x27;Postgame262-VolcanionHP&#x27;</span>)[<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;move&#x27;</span>]==<span class="hljs-string">&#x27;FLAMETHROWER&#x27;</span>
+    run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-number">116</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+    run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;heal&#x27;</span>)
+    run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Lens&#x27;</span>,<span class="hljs-string">&#x27;Volcanion&#x27;</span>,<span class="hljs-string">&#x27;--single-step&#x27;</span>)
+    grass();train();label=<span class="hljs-string">&#x27;Postgame262-VolcanionEV&#x27;</span>;expected=[<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>]
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Use hp or spa&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+<span class="hljs-keyword">assert</span> saved(label)[<span class="hljs-string">&#x27;ev&#x27;</span>]==expected,(saved(label)[<span class="hljs-string">&#x27;ev&#x27;</span>],expected)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VERIFIED VOLCANION EV&#x27;</span>,label,expected,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

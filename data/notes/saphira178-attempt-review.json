@@ -1,0 +1,35 @@
+{
+  "epoch": 1791216405.44994,
+  "Saphira_defeated": false,
+  "attempts": [
+    {
+      "attempt": 1,
+      "session": 178,
+      "result": "reset",
+      "summary": "Noivern defeated. Burn plus switching allowed Salamence too many Dragon Dances; Full Restore cured burn; Cofagrigus fainted. No player bag items."
+    },
+    {
+      "attempt": 2,
+      "session": 178,
+      "result": "reset",
+      "summary": "Noivern, Salamence and Mega Charizard X defeated. Cofagrigus and Swampert fainted. SR set by Gigalith; Stone Edge missed against final Full Restore. Garchomp locked into Poison Jab against Sylveon, then switched to Charizard against immune Excadrill. X Speed let Excadrill outspeed and EQ Mega Charizard X. Reset on offered Garchomp re-entry; +2 Exc speed384 below Scarf Garchomp speed. Player used3MaxPotion+1XSpeed; reconcile completed native logs before any item-publication claim."
+    }
+  ],
+  "lessons": [
+    "Do not plan lengthy passive setup versus uncapped Dragon Dance; Full Restore removes burn.",
+    "Curse persists through Full Restore but integer quarter damage can leave a few HP after four turns.",
+    "Expect the trainer to switch a Choice-locked attacker away from an immunity.",
+    "Ground-immune reserve and own Dragon Dance/Outrage desired; avoid another attempt without a clearer plan.",
+    "Save/reload normally permitted here; both resets recorded as attempts."
+  ],
+  "next_preparation": {
+    "species": "Gyarados",
+    "acquisition": "Magikarp quest variable155 started at1; normal quest ongoing",
+    "tutor": "522E125 [88,55], Outrage menuindex2 costs8PurpleShards first unlock; owned9",
+    "source": "work/outrage-tutor-source.json",
+    "compatible": "DragonDance naturallevel45, Outrage tutor; no RockSlide compatibility",
+    "field": "DragonDen boosts DragonDance2Atk2Speed for any species and Dragon attacks1.5; Misty suppresses these advantages while active",
+    "training": "Plan actual build after normal acquisition; useful Atk and Speed/HP tradeoff must be checked against exact Scarf Garchomp. No hidden runtime reads."
+  },
+  "media": "178 published verified;179 active"
+}

@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>event_dump.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of event_dump.rb"><code class="hljs language-ruby">require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+id,eid=<span class="hljs-variable constant_">ARGV</span>.map(&amp;<span class="hljs-symbol">:to_i</span>)
+m=load_rgss(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data/Map%03d.rxdata&#x27;</span>%id)
+e=m.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>)[eid]
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(plain(e))
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g10_circus_intro.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g10_circus_intro.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed linear arrival scenes; stop on any unplanned battle or choice.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">51</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+<span class="hljs-comment"># Scene progression is read back from a checkpoint, not guessed.</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> save
+save()
+raw=subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/status.rb&#x27;</span>)],stderr=subprocess.DEVNULL)
+(ROOT/<span class="hljs-string">&#x27;notes/g10-circus-arrival.json&#x27;</span>).write_bytes(raw)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CIRCUS ARRIVAL SAVED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

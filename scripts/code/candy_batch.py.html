@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>candy_batch.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of candy_batch.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Use a verified count of Medium Exp. Candies on a named Pokemon from the open bag.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> re
+name=sys.argv[<span class="hljs-number">1</span>];count=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]);<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=count&lt;=<span class="hljs-number">35</span>
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--party-open&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/bag_select.py&#x27;</span>),<span class="hljs-string">&#x27;Exp. Candy &#x27;</span>+(sys.argv[<span class="hljs-number">3</span>] <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">3</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;M&#x27;</span>),<span class="hljs-string">&#x27;--single-step&#x27;</span>],check=<span class="hljs-literal">True</span>)
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.5&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.3&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_pick.py&#x27;</span>),name,<span class="hljs-string">&#x27;--single&#x27;</span>],check=<span class="hljs-literal">True</span>)
+t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;how many&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Quantity prompt expected&#x27;</span>)
+seq=[<span class="hljs-string">&#x27;right&#x27;</span>]*((count-<span class="hljs-number">1</span>)//<span class="hljs-number">10</span>)+[<span class="hljs-string">&#x27;up&#x27;</span>]*((count-<span class="hljs-number">1</span>)%<span class="hljs-number">10</span>)
+act(*[v <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> seq <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> (key,<span class="hljs-string">&#x27;wait:.15&#x27;</span>)],<span class="hljs-string">&#x27;wait:0.3&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+im=Image.<span class="hljs-built_in">open</span>(STATE);w,h=im.size
+crop=im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.82</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.82</span>),<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.94</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.92</span>))).resize((<span class="hljs-number">600</span>,<span class="hljs-number">400</span>))
+qpath=ROOT/<span class="hljs-string">&#x27;work/quantity.png&#x27;</span>;crop.save(qpath)
+qty=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>),<span class="hljs-built_in">str</span>(qpath)])))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;QUANTITY OCR&#x27;</span>,qty,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> ImageChops
+ref=ROOT/<span class="hljs-string">&#x27;work/quantity-seven-verified.png&#x27;</span>
+verified_seven=count==<span class="hljs-number">7</span> <span class="hljs-keyword">and</span> ref.exists() <span class="hljs-keyword">and</span> ImageChops.difference(crop,Image.<span class="hljs-built_in">open</span>(ref)).getbbox() <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>
+ref8=ROOT/<span class="hljs-string">&#x27;work/quantity-eight-verified.png&#x27;</span>
+verified_eight=count==<span class="hljs-number">8</span> <span class="hljs-keyword">and</span> ref8.exists() <span class="hljs-keyword">and</span> ImageChops.difference(crop,Image.<span class="hljs-built_in">open</span>(ref8)).getbbox() <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>
+whole_quantity=re.search(<span class="hljs-string">r&#x27;(?m)^\s*0*&#x27;</span>+<span class="hljs-built_in">str</span>(count)+<span class="hljs-string">r&#x27;\s*$&#x27;</span>,t) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;how many&#x27;</span> <span class="hljs-keyword">in</span> t.lower()
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (verified_seven <span class="hljs-keyword">or</span> verified_eight <span class="hljs-keyword">or</span> whole_quantity) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;[x:×]\s*0*&#x27;</span>+<span class="hljs-built_in">str</span>(count)+<span class="hljs-string">r&#x27;\b&#x27;</span>,t,re.I) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;0*&#x27;</span>+<span class="hljs-built_in">str</span>(count)+<span class="hljs-string">r&#x27;\b&#x27;</span>,qty,re.I):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Quantity verification failed&#x27;</span>)
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/candy_progress.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;on which&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;choose a pok&#x27;</span> <span class="hljs-keyword">in</span> t:act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>)
+<span class="hljs-keyword">elif</span> <span class="hljs-string">&#x27;sort&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;close&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Candy completion review&#x27;</span>)
+<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

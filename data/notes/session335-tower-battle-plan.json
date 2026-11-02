@@ -1,0 +1,8 @@
+{
+  "boss": "Ho-Oh",
+  "entry_plan": "Magearna lead; use Calm Mind against Articuno, one X Defend and one X Speed while safe; heal before removing Articuno if needed. Flash Cannon benefits from Mirror and bypasses evasion. Keep positive defenses and full HP for Ho-Oh.",
+  "critical_static_mechanics": "Mirror shatter damages BOTH active battlers by half their max HP. Ho-Oh Earthquake after taking a boosted Flash Cannon can finish itself. X Defend reduces physical Sacred Fire/Earthquake damage; immunity/crit rules still apply.",
+  "fallback": "Volcanion Rock Slide, Swampert Waterfall, Zapdos Discharge. Reassess public HP, switches, criticals; no blind full sweep.",
+  "capture": "Zapdos Thunder Wave, Mega Mawile Swords Dance and False Swipe. Wild125 last moves Future Sight/Natural Gift/Calm Mind/Sky Attack; no recoil or Recover. Keep capture separate from boss clip.",
+  "Lugia_notes": "Dark Crystal boosts Dark Pulse/Flash Cannon/Dazzling Gleam and makes Dark Void100%. Magic Coat seed resets at end of turn; do not target it on seed entry. Consider moving Wise Glasses to Darkrai for a guaranteed Mismagius lead KO before it attacks."
+}

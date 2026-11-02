@@ -1,0 +1,15 @@
+"""Heal and exchange the trained bench for the Wasteland quest."""
+from play import *
+def run(s,*a):subprocess.run([sys.executable,str(ROOT/'scripts'/(s+'.py')),*map(str,a)],check=True)
+for mid,eid in [(596,1),(595,20),(594,26)]:run('eventq',mid,eid,'enter')
+run('fly_to',519,'--carrier','Zapdos');run('eventq',519,116,'enter')
+run('eventq',38,3,'talk');run('heal');run('checkpoint','Idyll317-Healed')
+run('eventq',38,4,'talk');run('pc_open_reviewed');run('pc_select_box',1);run('pc_exchange_named',16,4,'Mawile','Swampert','--box',1)
+run('eventq',38,4,'talk');run('pc_open_reviewed');run('pc_select_box',2);run('pc_exchange_named',13,5,'Amoonguss','Meowstic','--box',2)
+run('party_front','Magearna');run('checkpoint','Idyll317-Team')
+run('eventq',38,5,'talk');run('mart_open')
+for name,count,price in [('Full Restore',5,3000),('Revive',6,1500),('Max Repel',20,900)]:run('shop_buy',name,count,price)
+run('mart_exit');run('checkpoint','Idyll317-Medicine')
+run('eventq',38,6,'enter');run('fly_to',520,'--carrier','Zapdos')
+run('eventq',520,67,'enter');run('eventq',369,1,'talk');run('mart_open')
+run('shop_buy','Timer Ball',40,1000);run('mart_exit');run('checkpoint','Idyll317-Balls')

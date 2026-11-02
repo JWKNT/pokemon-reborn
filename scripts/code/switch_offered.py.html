@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>switch_offered.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of switch_offered.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Choose a free replacement only after a recent observed incoming opponent.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+foe,own=sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]
+t=read().lower()
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;change pok&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;switch your&#x27;</span> <span class="hljs-keyword">in</span> t, <span class="hljs-string">&#x27;Expected free replacement offer&#x27;</span>
+rows=[json.loads(l)<span class="hljs-keyword">for</span> l <span class="hljs-keyword">in</span>(ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).read_text().splitlines()]
+offers=[r <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> time.time()-r[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;<span class="hljs-number">90</span> <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;about to send&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]).lower()]
+<span class="hljs-keyword">assert</span> offers, <span class="hljs-string">&#x27;Incoming opponent announcement was not observed&#x27;</span>
+compact=<span class="hljs-keyword">lambda</span> s:re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,s.lower())
+announcement=compact(<span class="hljs-string">&#x27; &#x27;</span>.join(offers[-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;text&#x27;</span>]))
+tail=announcement.split(<span class="hljs-string">&#x27;abouttosendin&#x27;</span>)[-<span class="hljs-number">1</span>]
+<span class="hljs-keyword">assert</span> compact(foe) <span class="hljs-keyword">in</span> tail <span class="hljs-keyword">or</span> difflib.SequenceMatcher(<span class="hljs-literal">None</span>,compact(foe),tail).ratio()&gt;=<span class="hljs-number">.78</span>, <span class="hljs-string">&#x27;Different incoming opponent: &#x27;</span>+<span class="hljs-built_in">str</span>(offers[-<span class="hljs-number">1</span>])
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_switch.py&#x27;</span>),own],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>sync_navigation.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of sync_navigation.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Refresh only planning notes from a just-written save. Never modify game data.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+root=<span class="hljs-title class_">File</span>.expand_path(<span class="hljs-string">&#x27;..&#x27;</span>,__dir__)
+save=<span class="hljs-string">&#x27;/Users/jw/Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>
+<span class="hljs-keyword">raise</span> <span class="hljs-string">&#x27;Navigation sync requires a fresh checkpoint&#x27;</span> <span class="hljs-keyword">if</span> <span class="hljs-title class_">Time</span>.now-<span class="hljs-title class_">File</span>.mtime(save)&gt;<span class="hljs-number">120</span>
+v=load_rgss(save);path=root+<span class="hljs-string">&#x27;/notes/navigation-state.json&#x27;</span>;s=<span class="hljs-variable constant_">JSON</span>.parse(<span class="hljs-title class_">File</span>.read(path))
+s[<span class="hljs-string">&#x27;variables&#x27;</span>]|<span class="hljs-params"></span>|={};v[<span class="hljs-symbol">:variable</span>].instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@data</span>).each_with_index{|<span class="hljs-params">value,i</span>|s[<span class="hljs-string">&#x27;variables&#x27;</span>][i.to_s]=(value.is_a?(<span class="hljs-title class_">Numeric</span>) ? value : <span class="hljs-number">0</span>) <span class="hljs-keyword">if</span> value.<span class="hljs-literal">nil</span>? |<span class="hljs-params"></span>| value.is_a?(<span class="hljs-title class_">Numeric</span>)}
+s[<span class="hljs-string">&#x27;switches&#x27;</span>]|<span class="hljs-params"></span>|={};v[<span class="hljs-symbol">:switches</span>].instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@data</span>).each_with_index{|<span class="hljs-params">value,i</span>|s[<span class="hljs-string">&#x27;switches&#x27;</span>][i.to_s]=value==<span class="hljs-literal">true</span>}
+s[<span class="hljs-string">&#x27;self_switches&#x27;</span>]=v[<span class="hljs-symbol">:self_switches</span>].instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@data</span>).to_h{|<span class="hljs-params">key,value</span>|[key.join(<span class="hljs-string">&#x27;,&#x27;</span>),value]}
+s[<span class="hljs-string">&#x27;positions&#x27;</span>]|<span class="hljs-params"></span>|={};s[<span class="hljs-string">&#x27;positions&#x27;</span>][v[<span class="hljs-symbol">:map_id</span>].to_s]=v[<span class="hljs-symbol">:Map</span>].instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>).to_h{|<span class="hljs-params">id,event</span>|[id.to_s,[event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@x</span>),event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@y</span>)]]}
+<span class="hljs-comment"># Grand Hall clears its transient weekday switches before serialization, while</span>
+<span class="hljs-comment"># its saved event pages still identify the trainers actually visible in-game.</span>
+<span class="hljs-comment"># Preserve that observed page condition in planning notes only.</span>
+<span class="hljs-keyword">if</span> v[<span class="hljs-symbol">:map_id</span>]==<span class="hljs-number">38</span>
+ v[<span class="hljs-symbol">:Map</span>].instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">id,event</span>|
+  <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> (<span class="hljs-number">41</span>..<span class="hljs-number">52</span>).<span class="hljs-keyword">include</span>?(id) &amp;&amp; !event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@character_name</span>).to_s.empty?
+  page=event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@page</span>);<span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> page
+  condition=page.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@condition</span>)
+  weekday=condition.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@switch2_id</span>)
+  <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> condition.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@switch2_valid</span>) &amp;&amp; (<span class="hljs-number">108</span>..<span class="hljs-number">115</span>).<span class="hljs-keyword">include</span>?(weekday)
+  s[<span class="hljs-string">&#x27;switches&#x27;</span>][weekday.to_s]=<span class="hljs-literal">true</span>
+  s[<span class="hljs-string">&#x27;observed_weekday_evidence&#x27;</span>]={<span class="hljs-string">&#x27;map&#x27;</span>=&gt;<span class="hljs-number">38</span>,<span class="hljs-string">&#x27;event&#x27;</span>=&gt;id,<span class="hljs-string">&#x27;switch&#x27;</span>=&gt;weekday,<span class="hljs-string">&#x27;save_mtime&#x27;</span>=&gt;<span class="hljs-title class_">File</span>.mtime(save).to_i,<span class="hljs-string">&#x27;evidence&#x27;</span>=&gt;<span class="hljs-string">&#x27;Active visible trainer page in freshly saved map; planning only.&#x27;</span>}
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+<span class="hljs-title class_">File</span>.write(path,<span class="hljs-variable constant_">JSON</span>.generate(s))
+puts <span class="hljs-string">&quot;NAVIGATION NOTES SYNCED from current save: map <span class="hljs-subst">#{v[<span class="hljs-symbol">:map_id</span>]}</span>, position <span class="hljs-subst">#{v[<span class="hljs-symbol">:position</span>].inspect}</span>&quot;</span>
+</code></pre>
+  </body>
+</html>

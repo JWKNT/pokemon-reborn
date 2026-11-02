@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>antoine_mighty131.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of antoine_mighty131.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One reviewed switch decline, then finite burn and guaranteed Hex finish.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,sys
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,read,act
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;yes&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;no&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;change&#x27;</span> <span class="hljs-keyword">in</span> t
+act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+base=[sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/agate_public_action.py&#x27;</span>),<span class="hljs-string">&#x27;--execute&#x27;</span>,<span class="hljs-string">&#x27;--mode&#x27;</span>,<span class="hljs-string">&#x27;antoine&#x27;</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Mightyena&#x27;</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">one</span>(<span class="hljs-params">tag,action,hp</span>):
+ path=<span class="hljs-string">&#x27;work/antoine-mighty-&#x27;</span>+tag+<span class="hljs-string">&#x27;131.json&#x27;</span>
+ rc=subprocess.run(base+action+[<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-built_in">str</span>(hp),<span class="hljs-string">&#x27;--output&#x27;</span>,path]).returncode
+ r=json.loads((ROOT/path).read_text());<span class="hljs-keyword">assert</span> rc==<span class="hljs-number">0</span>,r.get(<span class="hljs-string">&#x27;error&#x27;</span>,r.get(<span class="hljs-string">&#x27;final_guard_stop&#x27;</span>))
+ <span class="hljs-keyword">return</span> r
+r=one(<span class="hljs-string">&#x27;burn&#x27;</span>,[<span class="hljs-string">&#x27;--move-slot&#x27;</span>,<span class="hljs-string">&#x27;2&#x27;</span>],<span class="hljs-number">100</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(<span class="hljs-string">&#x27;was burned&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(s[<span class="hljs-string">&#x27;text&#x27;</span>]).lower() <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> r[<span class="hljs-string">&#x27;public_screens&#x27;</span>])
+<span class="hljs-keyword">if</span> r[<span class="hljs-string">&#x27;final_hp_proof&#x27;</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]&lt;<span class="hljs-number">90</span>:
+ r=one(<span class="hljs-string">&#x27;heal&#x27;</span>,[<span class="hljs-string">&#x27;--item&#x27;</span>,<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>],<span class="hljs-number">1</span>);<span class="hljs-keyword">assert</span> r[<span class="hljs-string">&#x27;final_hp_proof&#x27;</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]&gt;=<span class="hljs-number">90</span>
+one(<span class="hljs-string">&#x27;hex&#x27;</span>,[<span class="hljs-string">&#x27;--move-slot&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>],<span class="hljs-number">90</span>)
+</code></pre>
+  </body>
+</html>

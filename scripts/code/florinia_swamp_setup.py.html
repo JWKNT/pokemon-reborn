@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>florinia_swamp_setup.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of florinia_swamp_setup.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Three X Attacks only against publicly verified, PP-exhausted Cradily.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>):
+ r=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> r).lower();enemy=<span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>].lower() <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> r <span class="hljs-keyword">if</span> x[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.35</span>)
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;swampert&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;cradily&#x27;</span>,w).ratio()&gt;<span class="hljs-number">.8</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> enemy.split()),<span class="hljs-string">&#x27;Setup actor/foe changed; stop&#x27;</span>
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/public_turn_capture.py&#x27;</span>),<span class="hljs-string">&#x27;battle_item.py&#x27;</span>,<span class="hljs-string">&#x27;X Attack&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

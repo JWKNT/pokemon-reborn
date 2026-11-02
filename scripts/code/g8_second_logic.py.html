@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g8_second_logic.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g8_second_logic.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-keyword">if</span> s==<span class="hljs-string">&#x27;q&#x27;</span>:
+  f=ROOT/<span class="hljs-string">&#x27;work/g8-logic-route.json&#x27;</span>;f.write_text(json.dumps([[<span class="hljs-string">&#x27;q&#x27;</span>,*a]]));s=<span class="hljs-string">&#x27;safe_steps&#x27;</span>;a=(f,)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">stage</span>(<span class="hljs-params">n</span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;150&#x27;</span>]=n;p.write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">309</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>);stage(<span class="hljs-number">19</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">309</span>,<span class="hljs-number">9</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">309</span>,<span class="hljs-number">9</span>,<span class="hljs-string">&#x27;--active&#x27;</span>);stage(<span class="hljs-number">20</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;309,15,3,up,wait:2&#x27;</span>,<span class="hljs-string">&#x27;310,7,77,up,wait:2&#x27;</span>)
+<span class="hljs-keyword">for</span> eid,answer,sw <span class="hljs-keyword">in</span> [(<span class="hljs-number">39</span>,<span class="hljs-string">&#x27;Light&#x27;</span>,<span class="hljs-number">397</span>),(<span class="hljs-number">40</span>,<span class="hljs-string">&#x27;Dark&#x27;</span>,<span class="hljs-number">398</span>),(<span class="hljs-number">41</span>,<span class="hljs-string">&#x27;Dark&#x27;</span>,<span class="hljs-number">400</span>),(<span class="hljs-number">42</span>,<span class="hljs-string">&#x27;Light&#x27;</span>,<span class="hljs-number">399</span>)]:
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">310</span>,eid,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Light|Dark&#x27;</span>,answer);run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=5&#x27;</span>)
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(sw)]=<span class="hljs-literal">True</span>;p.write_text(json.dumps(v))
+stage(<span class="hljs-number">21</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;310,7,40,up,wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">310</span>,<span class="hljs-number">43</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=5&#x27;</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v.setdefault(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{})[<span class="hljs-string">&#x27;310,43,A&#x27;</span>]=<span class="hljs-literal">True</span>;p.write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;310,7,62,down,wait:2&#x27;</span>)
+f=ROOT/<span class="hljs-string">&#x27;work/g8-to-el.json&#x27;</span>;f.write_text(json.dumps([[<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;306,33,28&#x27;</span>]]))
+run(<span class="hljs-string">&#x27;safe_steps&#x27;</span>,f)
+run(<span class="hljs-string">&#x27;party_swap&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-number">4</span>)
+save();raw=subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/status.rb&#x27;</span>)],stderr=subprocess.DEVNULL);(ROOT/<span class="hljs-string">&#x27;notes/g8-before-el.json&#x27;</span>).write_bytes(raw);v=json.loads(raw);<span class="hljs-keyword">assert</span> v[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span> <span class="hljs-keyword">and</span> v[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]==v[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;totalhp&#x27;</span>]
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;EL READY AND SAVED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

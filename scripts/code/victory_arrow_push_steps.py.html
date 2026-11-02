@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_arrow_push_steps.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_arrow_push_steps.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Fast source-reviewed map787 push from a fresh public coordinate frame.
+
+The frozen normal save supplies the boulder position. Walking and pushing form
+one continuous key queue so icicles cannot strike during a destination pause.
+A fresh normal save must confirm the exact boulder outcome before any next push.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> hazard_position <span class="hljs-keyword">import</span> party_position
+<span class="hljs-keyword">import</span> shutil,time
+E=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);key=sys.argv[<span class="hljs-number">2</span>];<span class="hljs-keyword">assert</span> E <span class="hljs-keyword">in</span> [<span class="hljs-number">58</span>,<span class="hljs-number">59</span>,<span class="hljs-number">60</span>,<span class="hljs-number">61</span>,<span class="hljs-number">65</span>,<span class="hljs-number">69</span>,<span class="hljs-number">73</span>,<span class="hljs-number">74</span>]
+dx,dy={<span class="hljs-string">&#x27;up&#x27;</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;down&#x27;</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;left&#x27;</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;right&#x27;</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)}[key]
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> t.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;787&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],stderr=subprocess.DEVNULL));e=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(E)];<span class="hljs-keyword">assert</span> e[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Boulder&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;pbPushThisBoulder&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(e[<span class="hljs-string">&#x27;list&#x27;</span>])
+other_boxes={i:[ev[<span class="hljs-string">&#x27;x&#x27;</span>],ev[<span class="hljs-string">&#x27;y&#x27;</span>]] <span class="hljs-keyword">for</span> i,ev <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items() <span class="hljs-keyword">if</span> ev[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Boulder&#x27;</span> <span class="hljs-keyword">and</span> i!=<span class="hljs-built_in">str</span>(E)}
+count=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">4</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">4</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=count&lt;=<span class="hljs-number">10</span>
+before=(e[<span class="hljs-string">&#x27;x&#x27;</span>]-dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]-dy);expected=[e[<span class="hljs-string">&#x27;x&#x27;</span>]+count*dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]+count*dy]
+<span class="hljs-keyword">if</span> count&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">or</span> E <span class="hljs-keyword">in</span> [<span class="hljs-number">69</span>,<span class="hljs-number">73</span>]:
+ <span class="hljs-keyword">import</span> ast
+ tree=ast.parse((ROOT/<span class="hljs-string">&#x27;scripts/nav.py&#x27;</span>).read_text());fun=<span class="hljs-built_in">next</span>(n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> tree.body <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(n,ast.FunctionDef) <span class="hljs-keyword">and</span> n.name==<span class="hljs-string">&#x27;route&#x27;</span>)
+ pure=ast.unparse(fun).replace(<span class="hljs-string">&#x27;graph = {}&#x27;</span>,<span class="hljs-string">&#x27;jumps = {}; graph = {}&#x27;</span>).replace(<span class="hljs-string">&#x27;native_jump = terrain(n) == 1&#x27;</span>,<span class="hljs-string">&#x27;native_jump = False&#x27;</span>)
+ boxns=<span class="hljs-built_in">dict</span>(ROOT=ROOT,json=json,heapq=heapq,re=re);<span class="hljs-built_in">exec</span>(pure,boxns)
+ vv=json.loads(json.dumps(v));vv[<span class="hljs-string">&#x27;events&#x27;</span>].pop(<span class="hljs-built_in">str</span>(E));bg=boxns[<span class="hljs-string">&#x27;route&#x27;</span>](vv,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+ blocked={(ev[<span class="hljs-string">&#x27;x&#x27;</span>],ev[<span class="hljs-string">&#x27;y&#x27;</span>]) <span class="hljs-keyword">for</span> ev <span class="hljs-keyword">in</span> vv[<span class="hljs-string">&#x27;events&#x27;</span>].values() <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> ev[<span class="hljs-string">&#x27;through&#x27;</span>]}
+ cursor=(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(count):
+  dest=(cursor[<span class="hljs-number">0</span>]+dx,cursor[<span class="hljs-number">1</span>]+dy);<span class="hljs-keyword">assert</span> (key,dest) <span class="hljs-keyword">in</span> bg.get(cursor,[]) <span class="hljs-keyword">and</span> dest <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> blocked
+  cursor=dest
+
+wall_stop=E <span class="hljs-keyword">in</span> [<span class="hljs-number">69</span>,<span class="hljs-number">73</span>] <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(k==key <span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> bg.get(<span class="hljs-built_in">tuple</span>(expected),[]))
+<span class="hljs-comment"># Static source work stays in Party. Correct actual movement every six tiles.</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">frozen_stop</span>(<span class="hljs-params">message</span>):
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_open.py&#x27;</span>)],check=<span class="hljs-literal">True</span>);<span class="hljs-keyword">raise</span> SystemExit(message)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">public_position</span>():
+ act(<span class="hljs-string">&#x27;d:.6&#x27;</span>,<span class="hljs-string">&#x27;wait:.1&#x27;</span>);epoch=time.time()
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">30</span>):
+  h=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+  <span class="hljs-keyword">if</span> h.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">and</span> h.get(<span class="hljs-string">&#x27;preview_epoch&#x27;</span>,<span class="hljs-number">0</span>)&gt;=epoch <span class="hljs-keyword">and</span> time.time()-h[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;<span class="hljs-number">2</span>:<span class="hljs-keyword">break</span>
+  time.sleep(<span class="hljs-number">.05</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Fresh coordinate capture unavailable&#x27;</span>)
+ cp=ROOT/<span class="hljs-string">&#x27;work/rapid-hazard-coordinates.png&#x27;</span>;shutil.copyfile(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>,cp)
+ rows=json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>),<span class="hljs-built_in">str</span>(cp)]));txt=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RAPID PUBLIC COORDINATES&#x27;</span>,txt,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">match</span>=re.search(<span class="hljs-string">r&quot;X\s*(\d+)\s*[,.;]?\s*Y[\s\x27\u2019]*(\d+)\s*[,.;]?\s*map\s*(\d+)&quot;</span>,txt,re.I)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">match</span>:frozen_stop(<span class="hljs-string">&#x27;Coordinate review&#x27;</span>)
+ sx,sy,m=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,<span class="hljs-keyword">match</span>.groups())
+ <span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+ <span class="hljs-keyword">from</span> coordinate_digits <span class="hljs-keyword">import</span> fix_coordinates
+ canvas=Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;work/capture-preview-frame-template.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+ canvas.paste(Image.<span class="hljs-built_in">open</span>(cp).resize((<span class="hljs-number">2048</span>,<span class="hljs-number">1536</span>)),(<span class="hljs-number">112</span>,<span class="hljs-number">134</span>))
+ native=ROOT/<span class="hljs-string">&#x27;work/rapid-coordinates-native.png&#x27;</span>;canvas.save(native)
+ fixed=fix_coordinates(native,(sx,sy,m))
+ <span class="hljs-keyword">if</span> fixed!=(sx,sy,m):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUBLIC DIGIT TEMPLATE CORRECTION&#x27;</span>,(sx,sy,m),<span class="hljs-string">&#x27;-&gt;&#x27;</span>,fixed,flush=<span class="hljs-literal">True</span>)
+ sx,sy,m=fixed;<span class="hljs-keyword">assert</span> m==<span class="hljs-number">787</span>
+ <span class="hljs-keyword">return</span> sx,sy
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>);seen=[]
+<span class="hljs-keyword">for</span> attempt <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">15</span>):
+ sx,sy=public_position();v[<span class="hljs-string">&#x27;position&#x27;</span>]=[sx,sy];seen.append((sx,sy))
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(seen)&gt;=<span class="hljs-number">4</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(seen[-<span class="hljs-number">4</span>:]))==<span class="hljs-number">1</span>:frozen_stop(<span class="hljs-string">&#x27;No route progress&#x27;</span>)
+ <span class="hljs-keyword">try</span>:p=route(v,before)
+ <span class="hljs-keyword">except</span> ValueError:frozen_stop(<span class="hljs-string">&#x27;Route blocked; inspect position&#x27;</span>)
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(p)&lt;=<span class="hljs-number">110</span>;complete=<span class="hljs-built_in">len</span>(p)&lt;=<span class="hljs-number">6</span>;chunk=p <span class="hljs-keyword">if</span> complete <span class="hljs-keyword">else</span> p[:<span class="hljs-number">6</span>]
+ g=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);cursor=(sx,sy);seq=[]
+ <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> chunk:
+  target=<span class="hljs-built_in">next</span>(n <span class="hljs-keyword">for</span> kk,n <span class="hljs-keyword">in</span> g[cursor] <span class="hljs-keyword">if</span> kk==k)
+  <span class="hljs-keyword">if</span> k.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):seq += [k[<span class="hljs-number">5</span>:]+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:&#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">max</span>(<span class="hljs-number">.9</span>,<span class="hljs-number">.2</span>*(<span class="hljs-built_in">abs</span>(target[<span class="hljs-number">0</span>]-cursor[<span class="hljs-number">0</span>])+<span class="hljs-built_in">abs</span>(target[<span class="hljs-number">1</span>]-cursor[<span class="hljs-number">1</span>]))))]
+  <span class="hljs-keyword">else</span>:seq += [k+<span class="hljs-string">&#x27;:.12&#x27;</span>]
+  cursor=target
+ <span class="hljs-keyword">if</span> complete:
+  <span class="hljs-keyword">assert</span> cursor==before
+  seq += [<span class="hljs-string">&#x27;wait:.05&#x27;</span>] + ([key+<span class="hljs-string">&#x27;:&#x27;</span>+<span class="hljs-built_in">str</span>(count*<span class="hljs-number">.65</span>+<span class="hljs-number">1.2</span>),<span class="hljs-string">&#x27;wait:.4&#x27;</span>] <span class="hljs-keyword">if</span> wall_stop <span class="hljs-keyword">else</span> [part <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(count) <span class="hljs-keyword">for</span> part <span class="hljs-keyword">in</span> [key+<span class="hljs-string">&#x27;:.2&#x27;</span>,<span class="hljs-string">&#x27;wait:.9&#x27;</span>]])
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BOULDER APPROACH CHUNK&#x27;</span>,E,(sx,sy),before,chunk,expected,complete,flush=<span class="hljs-literal">True</span>)
+ act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.1&#x27;</span>,*seq)
+ <span class="hljs-keyword">if</span> complete:<span class="hljs-keyword">break</span>
+ act(<span class="hljs-string">&#x27;wait:.25&#x27;</span>)
+<span class="hljs-keyword">else</span>:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_open.py&#x27;</span>)],check=<span class="hljs-literal">True</span>);<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Approach limit; inspect&#x27;</span>)
+<span class="hljs-keyword">if</span> E==<span class="hljs-number">74</span> <span class="hljs-keyword">and</span> expected==[<span class="hljs-number">48</span>,<span class="hljs-number">65</span>]:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/dialog.py&#x27;</span>),<span class="hljs-string">&#x27;--limit=100&#x27;</span>],check=<span class="hljs-literal">True</span>)
+label=sys.argv[<span class="hljs-number">3</span>];<span class="hljs-keyword">assert</span> re.fullmatch(<span class="hljs-string">r&#x27;[A-Za-z0-9-]+&#x27;</span>,label)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),label],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_open.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;787&#x27;</span>][<span class="hljs-built_in">str</span>(E)]==expected,(<span class="hljs-string">&#x27;Push differs; inspect before retrying&#x27;</span>,s[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;787&#x27;</span>][<span class="hljs-built_in">str</span>(E)],expected)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;HAZARD PUSH VERIFIED&#x27;</span>,E,expected,flush=<span class="hljs-literal">True</span>)
+
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(s[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;787&#x27;</span>][i]==p <span class="hljs-keyword">for</span> i,p <span class="hljs-keyword">in</span> other_boxes.items()),<span class="hljs-string">&#x27;Another boulder moved: review entire current maze before continuing&#x27;</span>
+</code></pre>
+  </body>
+</html>

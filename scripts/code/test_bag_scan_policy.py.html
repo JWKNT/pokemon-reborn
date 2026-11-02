@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_bag_scan_policy.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_bag_scan_policy.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure menu geometry/coverage fixtures; no inputs, live files or hidden game data.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> unittest
+<span class="hljs-keyword">from</span> bag_scan_policy <span class="hljs-keyword">import</span> ROWS, STRIDE, viewport, transition, installed_stride_supported
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">labels</span>(<span class="hljs-params">count</span>):
+    <span class="hljs-keyword">return</span> [<span class="hljs-string">f&#x27;item<span class="hljs-subst">{i}</span>&#x27;</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(count-<span class="hljs-number">1</span>)] + [<span class="hljs-string">&#x27;closebag&#x27;</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">snap_model</span>(<span class="hljs-params">count, index, top</span>):
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;labels&#x27;</span>: labels(count)[top:top+ROWS], <span class="hljs-string">&#x27;selected_row&#x27;</span>: index-top,
+            <span class="hljs-string">&#x27;tail_visible&#x27;</span>: top+ROWS &gt;= count}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">move</span>(<span class="hljs-params">count, index, top, direction, steps=STRIDE</span>):
+    seen = <span class="hljs-built_in">set</span>(snap_model(count, index, top)[<span class="hljs-string">&#x27;labels&#x27;</span>])
+    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(steps):
+        index = (index+direction) % count
+        <span class="hljs-keyword">if</span> index &lt; top:
+            top = index
+        <span class="hljs-keyword">if</span> index &gt; top+ROWS-<span class="hljs-number">1</span>:
+            top = index-ROWS+<span class="hljs-number">1</span>
+        top = <span class="hljs-built_in">min</span>(top, count-ROWS)
+        seen.update(snap_model(count, index, top)[<span class="hljs-string">&#x27;labels&#x27;</span>])
+    <span class="hljs-keyword">return</span> index, top, seen
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">BagStrideTests</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_source_guard_and_complete_observed_rows</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.assertTrue(installed_stride_supported())
+        names = [{<span class="hljs-string">&#x27;text&#x27;</span>:<span class="hljs-string">f&#x27;Item<span class="hljs-subst">{i}</span>&#x27;</span>, <span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.12</span>+i*<span class="hljs-number">.071</span>, <span class="hljs-string">&#x27;h&#x27;</span>:<span class="hljs-number">.035</span>} <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">7</span>)]
+        <span class="hljs-variable language_">self</span>.assertIsNotNone(viewport(names, names[<span class="hljs-number">5</span>], <span class="hljs-built_in">str</span>.lower))
+        <span class="hljs-variable language_">self</span>.assertIsNone(viewport(names[:-<span class="hljs-number">1</span>], names[<span class="hljs-number">5</span>], <span class="hljs-built_in">str</span>.lower))
+        duplicate = [<span class="hljs-built_in">dict</span>(x) <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> names]; duplicate[<span class="hljs-number">6</span>][<span class="hljs-string">&#x27;text&#x27;</span>]=<span class="hljs-string">&#x27;Item5&#x27;</span>
+        <span class="hljs-variable language_">self</span>.assertIsNone(viewport(duplicate, duplicate[<span class="hljs-number">5</span>], <span class="hljs-built_in">str</span>.lower))
+        irregular = [<span class="hljs-built_in">dict</span>(x) <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> names]; irregular[<span class="hljs-number">4</span>][<span class="hljs-string">&#x27;y&#x27;</span>] += <span class="hljs-number">.03</span>
+        <span class="hljs-variable language_">self</span>.assertIsNone(viewport(irregular, irregular[<span class="hljs-number">5</span>], <span class="hljs-built_in">str</span>.lower))
+        edge = names + [{<span class="hljs-string">&#x27;text&#x27;</span>:<span class="hljs-string">&#x27;CLOSEBAG&#x27;</span>, <span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.12</span>+<span class="hljs-number">7</span>*<span class="hljs-number">.071</span>, <span class="hljs-string">&#x27;h&#x27;</span>:<span class="hljs-number">.035</span>}]
+        eight = viewport(edge, edge[<span class="hljs-number">5</span>], <span class="hljs-built_in">str</span>.lower)
+        <span class="hljs-variable language_">self</span>.assertEqual(eight[<span class="hljs-string">&#x27;labels&#x27;</span>], [<span class="hljs-string">f&#x27;item<span class="hljs-subst">{i}</span>&#x27;</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">7</span>)])
+        <span class="hljs-variable language_">self</span>.assertTrue(eight[<span class="hljs-string">&#x27;tail_visible&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(eight[<span class="hljs-string">&#x27;observed_labels&#x27;</span>][-<span class="hljs-number">1</span>], <span class="hljs-string">&#x27;closebag&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertIsNone(viewport(edge, edge[<span class="hljs-number">7</span>], <span class="hljs-built_in">str</span>.lower))
+        <span class="hljs-variable language_">self</span>.assertIsNone(viewport(edge+[{<span class="hljs-string">&#x27;text&#x27;</span>:<span class="hljs-string">&#x27;unexpected9&#x27;</span>, <span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.12</span>+<span class="hljs-number">8</span>*<span class="hljs-number">.071</span>, <span class="hljs-string">&#x27;h&#x27;</span>:<span class="hljs-number">.035</span>}], edge[<span class="hljs-number">5</span>], <span class="hljs-built_in">str</span>.lower))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_wrap_requires_end_page_before_unseen_tail_is_credited</span>(<span class="hljs-params">self</span>):
+        old = snap_model(<span class="hljs-number">20</span>, <span class="hljs-number">17</span>, <span class="hljs-number">11</span>)
+        i,t,_ = move(<span class="hljs-number">20</span>,<span class="hljs-number">17</span>,<span class="hljs-number">11</span>,<span class="hljs-number">1</span>)
+        new = snap_model(<span class="hljs-number">20</span>,i,t)
+        <span class="hljs-variable language_">self</span>.assertEqual(transition(old,new),<span class="hljs-string">&#x27;backfill-tail&#x27;</span>)
+        i,t,_ = move(<span class="hljs-number">20</span>,i,t,-<span class="hljs-number">1</span>)
+        tail = snap_model(<span class="hljs-number">20</span>,i,t)
+        <span class="hljs-variable language_">self</span>.assertTrue(tail[<span class="hljs-string">&#x27;tail_visible&#x27;</span>])
+        i,t,_ = move(<span class="hljs-number">20</span>,i,t,<span class="hljs-number">1</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(transition(tail,snap_model(<span class="hljs-number">20</span>,i,t)),<span class="hljs-string">&#x27;wrap-covered&#x27;</span>)
+        <span class="hljs-comment"># A small pocket wrap can still share several rows; overlap alone is</span>
+        <span class="hljs-comment"># insufficient. Its reversed ordered offset still requests backfill.</span>
+        old = snap_model(<span class="hljs-number">12</span>,<span class="hljs-number">9</span>,<span class="hljs-number">3</span>); i,t,_ = move(<span class="hljs-number">12</span>,<span class="hljs-number">9</span>,<span class="hljs-number">3</span>,<span class="hljs-number">1</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(transition(old,snap_model(<span class="hljs-number">12</span>,i,t)),<span class="hljs-string">&#x27;backfill-tail&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_uncertain_or_overlong_motion_is_not_credited</span>(<span class="hljs-params">self</span>):
+        old=snap_model(<span class="hljs-number">40</span>,<span class="hljs-number">12</span>,<span class="hljs-number">6</span>)
+        i,t,_=move(<span class="hljs-number">40</span>,<span class="hljs-number">12</span>,<span class="hljs-number">6</span>,<span class="hljs-number">1</span>,<span class="hljs-number">5</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(transition(old,snap_model(<span class="hljs-number">40</span>,i,t)),<span class="hljs-string">&#x27;uncertain&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(transition(old,<span class="hljs-literal">None</span>),<span class="hljs-string">&#x27;uncertain&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_exhaustive_valid_seven_row_windows_leave_no_coverage_holes</span>(<span class="hljs-params">self</span>):
+        cases=<span class="hljs-number">0</span>
+        <span class="hljs-keyword">for</span> count <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">7</span>,<span class="hljs-number">81</span>):
+            <span class="hljs-keyword">for</span> top <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(count-ROWS+<span class="hljs-number">1</span>):
+                <span class="hljs-keyword">for</span> index <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(top,top+ROWS):
+                    old=snap_model(count,index,top)
+                    i,t,intermediate=move(count,index,top,<span class="hljs-number">1</span>)
+                    new=snap_model(count,i,t)
+                    observed=<span class="hljs-built_in">set</span>(old[<span class="hljs-string">&#x27;labels&#x27;</span>])|<span class="hljs-built_in">set</span>(new[<span class="hljs-string">&#x27;labels&#x27;</span>])
+                    result=transition(old,new)
+                    <span class="hljs-variable language_">self</span>.assertNotEqual(result,<span class="hljs-string">&#x27;uncertain&#x27;</span>,(count,index,top))
+                    <span class="hljs-keyword">if</span> result==<span class="hljs-string">&#x27;backfill-tail&#x27;</span>:
+                        i,t,_=move(count,i,t,-<span class="hljs-number">1</span>)
+                        tail=snap_model(count,i,t)
+                        <span class="hljs-variable language_">self</span>.assertTrue(tail[<span class="hljs-string">&#x27;tail_visible&#x27;</span>],(count,index,top))
+                        observed.update(tail[<span class="hljs-string">&#x27;labels&#x27;</span>])
+                    <span class="hljs-variable language_">self</span>.assertTrue(intermediate&lt;=observed,(count,index,top,intermediate-observed))
+                    cases+=<span class="hljs-number">1</span>
+        <span class="hljs-variable language_">self</span>.assertEqual(cases,<span class="hljs-number">19425</span>)
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+    unittest.main()
+</code></pre>
+  </body>
+</html>

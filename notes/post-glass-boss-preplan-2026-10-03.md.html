@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="After Glass: Hypno, Agate, Hardy — installed 19.5.43">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="post-glass-boss-preplan-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/post-glass-boss-preplan-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/post-glass-boss-preplan-2026-10-03.md.html">
+    <title>post-glass-boss-preplan-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">post-glass-boss-preplan-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 12.9 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · first used Oct 3 10:42</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>After Glass: Hypno, Agate, Hardy — installed 19.5.43</h2>
+<p>Read-only research, 2026-10-03. This is preparation, not proof of a completed fight. Fresh native checkpoints and observed footage override every estimate. Source trainer/event extracts are <code>work/postglass-*-installed.json</code> and <code>work/postglass-*-event.{json,txt}</code>. No game/save/runtime data was changed.</p>
+<p>Exact mandatory Void gates, dialogue choices and source-only proposed routes are in <a href="/pokemon-reborn/notes/void-route-plan-2026-10-03.md.html">void-route-plan-2026-10-03.md</a>. It stops one tile before the Hypno trigger and includes the OHKO/PerishSong/DestinyBond limitations for the existing six.</p>
+<h3>Sequence and commitment boundaries</h3>
+<ul>
+<li>Complete <strong>all three Glass rounds consecutively</strong>, unchanged six: Cain6+Shelly3 → QMARK0/Luna → QMARK1+2/Radomus+Serra. Installed734E12 heals everyone fully after round1; after round2 <code>pbPartialHeal</code> heals living HP/status only, without PP or reviving fainted Pokémon. Archive122/123/124 are already reserved; all display “Glass Gauntlet” and one shared whole-chain attempt total. Source transfers final victory to754[31,12].</li>
+<li>Void story maps754→755→756→757→758→759→735. <strong>Use754E5 LightShard[17,12] after the gauntlet:</strong> code314 fully heals, then selfA consumes it. No PC/roster replacement opportunity was found in these story maps: prepare Hypno with the same Glass six, then use the bag normally after the gauntlet. An independently verified in-game PC/exit would supersede this restriction. The starter table&#39;s <strong>Mudkip event755E24[62,65]</strong>, Yes, transfers to756 preserving current XY via variables47/48; our starter is Mudkip. Do not interpret these table interactions as gaining another starter.</li>
+<li>Hypno is <strong>758E122[28,105], player-touch</strong>. Prepare/save before stepping north into it. Winning sets1874True. The event&#39;s code314/full-heal is in the <strong>loss branch</strong>, not its victory branch; do not assume post-victory healing. Luna758E35[40,176] transfers759, and759E5[43,191] exits to735[18,18].</li>
+<li><a href="https://bigjra.github.io/reborn/#inside-the-void">BigJRA&#39;s Void and Agate sequence</a>: finish the story, accept travel to Calcenon, talk to Shelly and Eve, then return to the story building. Eve&#39;s briefing is useful before the raid. Enter Agate from Vanhanen Labyrinth and clear the ordinary defenders.</li>
+<li>**Agate two-fight commitment:**763E44 page1 is autorun once391&gt;=53. Hardy0 joins against Howaya1+Christina0, then deregisters and Solaris2 starts in the same event. No menu/save/reload between them. <code>Trainers.rb:230</code> automatically <code>pbHealAll</code> after the partnered fight, restoring HP/PP and fainted allies before Solaris. Prepare the fixed six before the final approach; finish both consecutively. The warmup remains in the full journey and is <strong>excluded from the major compilation by the settled editorial list</strong>. Count chain attempts honestly even though only Solaris is shown.</li>
+<li>Hardy arena740E3[9,18] asks Yes/No and explicitly selects <strong>HARDY/Hardy/version1, doubles</strong>. Victory awards badge17, raises the cap to95, sets391=60 then61 and givesTM80. <a href="https://bigjra.github.io/reborn/#geode-badge">Gym puzzle</a>: bottom-to-top C, E, highG, B, B, lowG, A, A; actual installed block states must be checked before writing a queue.739E31/32[11/12,4] transfer740[9,21].</li>
+</ul>
+<h3>PULSE Hypno: existing roster, physical Arcanine</h3>
+<p>Exact HYPNO/Hypno/0: female100, form1 Psychic/Dark, BigRoot, NoGuard, Calm,31IVs,252Def/4SpA/252SpD. Hypnosis / DreamEater / DarkPulse / CalmMind. Stats <strong>381HP,479Def,603SpD,287SpA,196Spe</strong>. Starlight comes from map758 metadata. Dark/Psychic power1.5; Fairy1.3; Dark attacks also receive Fairy effectiveness. Weather suspends field boosts, so do not introduce weather casually.</p>
+<p>Use ownedTM20 <strong>Safeguard on Arcanine</strong>, replacing ExtremeSpeed after the Glass chain. Arc is installed-compatible; no new Pokémon or move reminder required. CalmMind raises Hypno&#39;s special bulk, making physical <strong>Crunch</strong> preferable to prolonged Flamethrower setup. Starlight Crunch is Dark+Fairy, net2× into Psychic/Dark, plus1.5field power. Based on current Arc228Atk/171SpD/176Spe/294HP:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Arc Attack boost</th>
+<th>Approximate Crunch</th>
+<th>Maximum ordinary hits needed</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>none</td>
+<td>76–90</td>
+<td>6</td>
+</tr>
+<tr>
+<td>+2, oneXAttack</td>
+<td>150–177</td>
+<td>3</td>
+</tr>
+<tr>
+<td>+4, twoXAttack</td>
+<td>224–264</td>
+<td>2</td>
+</tr>
+</tbody></table></div>
+<p>These are ordinary damage estimates, not live tests. No Attack increase is mandatory. One/two XAttacks reduce exposure and consumable use; native pre-resume bag has <strong>zero</strong>, so buying them requires a legitimate supply run before committing to Glass. Current stock23Ultra/11FullHeal/6XSpDef/8XSpeed/10XSpAtk may change during the gauntlet; refresh the count before Hypno.</p>
+<p>Practical plan: XSpeed makes Arc352Spe, comfortably above196. Establish and maintain <strong>five-turn Safeguard</strong>, reach+6SpDef with threeXSpDef if needed, attack physically and heal before lethal damage. Against Hypno+6SpA, Arc+6SpDef receives roughly109–128 per ordinary DarkPulse; Ultra heals200, MorningSun normally147. Count each CalmMind and each Safeguard end-turn tick. Renew Safeguard while awake before Hypnosis can land; never simply hold Crunch for six turns. If initial speed setup causes sleep, FullHeal resolves before Hypno&#39;s move: a previously selected DreamEater can fail after waking, allowing faster Safeguard next turn. <strong>Do not assume the AI always chooses DreamEater</strong>; observe and adapt. Critical hits ignore defensive boosts, so shorter plans reduce risk.</p>
+<p>KG is an inferior setup alternative here: Starlight <strong>ShiftGear gives+1Atk/+2Spe per use</strong>. Three uses give+3Atk, unlike Factory&#39;s doubled Attack gain. ArcSafeguard→switchKG consumes a turn and does not provide a clean six-boost window. No Phantom Factory bonuses.</p>
+<p>Owned alternatives are useful only if included before the Glass commitment: Drapion70(KeeneEye) is Psychic-immune and Dark/Fairy DarkPulse net0.5, but needs training and suitable attacks; Kricketune50 already holdsFocusSash and knowsPerishSong/XScissor/StickyWeb/RockSmash. Neither can be silently withdrawn inside the Void. Do not sacrifice a well-prepared Glass sixth merely to simplify Hypno when Arc already has a legal answer.</p>
+<h3>Solaris: fully physical opponent and Mega ace</h3>
+<p>The deeper whole-chain preparation is now in <a href="/pokemon-reborn/notes/agate-chain-plan-2026-10-03.md.html">agate-chain-plan-2026-10-03.md</a>: exact y52 commitment guard, shared Cofa lead, normal Timid/Hex/SpA training, damage/speed proof and the mandatory partner full-heal boundary. Use that reviewed plan rather than treating the preliminary unboosted Cryo discussion below as a guaranteed ace counter. No proposed roster changes have been executed by this research agent.</p>
+<p>No Field; oneFullRestore. Exact Solaris/Solaris/2:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Pokémon</th>
+<th>Level / item / ability</th>
+<th>Four moves</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Staraptor</td>
+<td>89 / Leftovers / Intimidate</td>
+<td>Return, CloseCombat, Uturn, BraveBird</td>
+</tr>
+<tr>
+<td>Scizor</td>
+<td>88 / LifeOrb / Technician</td>
+<td>BulletPunch, Uturn, Superpower, KnockOff</td>
+</tr>
+<tr>
+<td>Gyarados</td>
+<td>90 / WacanBerry / Moxie</td>
+<td>DragonDance, Earthquake, Waterfall, Outrage</td>
+</tr>
+<tr>
+<td>Tyranitar</td>
+<td>89 / SmoothRock / SandStream</td>
+<td>StoneEdge, Earthquake, Crunch, FirePunch</td>
+</tr>
+<tr>
+<td>Excadrill</td>
+<td>90 / FocusSash / SandRush</td>
+<td>Earthquake, RockSlide, SwordsDance, IronHead</td>
+</tr>
+<tr>
+<td>Garchomp</td>
+<td>93 / Garchompite / RoughSkin→SandForce</td>
+<td>SwordsDance, Earthquake, DragonClaw, StoneEdge</td>
+</tr>
+</tbody></table></div>
+<p>The Garchomp has <strong>252EVs in all six stats</strong>, independently of HARDCAP-only settings. Sand boosts its Mega attacks and enemyExc speed. Do not calculate its bulk like an ordinary510EV Pokémon.</p>
+<p>Keep Arc for Intimidate/ScizorFlame, Cofa for physical burn/TrickRoom/DestinyBond, Swamp for Ttar/Exc and Mienshao for priorityFakeOut in the warmup and Fighting damage in singles. A practical roster change is <strong>already-owned Hexan/Cryogonal90 replacing the least useful sixth</strong>: IceBeam gives4× coverage intoGarchomp and FreezeDry4× intoGyarados, with Recover/LightScreen. Native Hexan is Brave207Spe,205SpA,320HP/132Def; it does <strong>not</strong> naturally outrun Staraptor266, Gyarados258 or MegaGarchomp. A TimidMint is owned, but alone does not imply enough Speed; verify stats and use XSpeed/TrickRoom deliberately. IceBeam is not a proven unboosted OHKO against the fully invested Mega. Keep it away from physical rock hits until it can act safely. Borrowing the ownedKricketuneFocusSash is legal, but sand chip can break it.</p>
+<p>Optional Ampharos85→90 provides a sturdier direct Electric attacker, ThunderWave and LightScreen. Gyarados&#39;s WacanBerry halves the first Electric hit, not FreezeDry. The preceding 12v10 warmup contains Ludicolo/Lapras/Magneton/Lanturn/PorygonZ and Beheeyem/Eelektross/Cryogonal/Seismitoad/Clefable. Do not spam Discharge into LanturnVoltAbsorb or use Surf into LaprasWaterAbsorb. Exact warmup and partner rosters are extracted beside the boss files.</p>
+<h3>Hardy: WideGuard, TrickRoom, defensive field interaction</h3>
+<p>Rocky Field; twoFullRestores. Exact Hardy1 lead order:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Pokémon</th>
+<th>Level / item / ability</th>
+<th>Four moves</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Gigalith</td>
+<td>90 / ChoiceBand / SandStream</td>
+<td>StompingTantrum, RockSlide, RockSmash, ThroatChop</td>
+</tr>
+<tr>
+<td>Aerodactyl</td>
+<td>92 / Aerodactylite / Pressure→ToughClaws</td>
+<td>AquaTail, RockSlide, AerialAce, RockSmash</td>
+</tr>
+<tr>
+<td>Lycanroc midday</td>
+<td>92 / ChoiceBand / SandRush</td>
+<td>RockSlide, DrillRun, BrickBreak, ZenHeadbutt</td>
+</tr>
+<tr>
+<td>Archeops</td>
+<td>91 / FlyingGem / Defeatist</td>
+<td>RockSlide, AquaTail, Endeavor, Acrobatics</td>
+</tr>
+<tr>
+<td>Rampardos</td>
+<td>91 / ChoiceScarf / SheerForce</td>
+<td>RockSlide, IronHead, FirePunch, RockSmash</td>
+</tr>
+<tr>
+<td>Lycanroc dusk form2</td>
+<td>97 / TelluricSeed / ToughClaws</td>
+<td>RockSlide, Accelerock, BrickBreak, DrillRun</td>
+</tr>
+</tbody></table></div>
+<p>Field: Rock power1.5, RockSmash power2, Earthquake gains Rock effectiveness and1.5power, so <strong>do not assume ordinary Ground2× against pureRock</strong> (Ground2××Rock0.5 becomes neutral). Missing a contact attack causes1/8HP recoil. Most dangerously, flinching without protection causes <strong>1/4HP rock recoil</strong>. Installed<code>Battler.rb:4761</code> additionally says a positive Defense stage prevents flinching and its recoil. An XDefend can be used before incoming attacks, guaranteeing that particular flinch gate is cleared; this is more reliable than hoping twoRockSlides do not interruptTrickRoom.</p>
+<p>Keep Cofa and MienshaoWideGuard. <strong>Correction from installedBattleScene3359:</strong> Xitems forcibly target the Pokémon spending that action. Swamp cannot use XDefend on Cofa. Cofa must use XDefend itself on an earlier turn, then use TrickRoom on the following turn, supported by WideGuard/Intimidate and normal healing as needed. Do not publish the previous one-turn proposal as a valid opener. Swamp resists Rock and is healthier than most candidates into the lead coverage; Cofa&#39;s+2Def prevents flinching once established. Track both targeted attacks/HP, then burnGigalith and removeAerodactyl before exposingMienshao toAerialAce. WideGuard stops spreads, <strong>not AerialAce, ZenHeadbutt, Acrobatics orAccelerock</strong>. Cofa62Spe is slower thanGigalith77, so acts first underTrickRoom; all enemy fast rocks then favor our slower attacks. Renew room only after it expires, and do not assume KG/Exc can freely set up into boostedRockSmash/Fighting coverage. Any actual opener needs current damage calculations and live observation.</p>
+<p>No capture is required. Existing Ludicolo90 can replaceArc for this Rock gym; teach ownedScald/Surf before assuming its current MegaDrain/ZenHeadbutt/KnockOff/Uproar build is ready. Its142Spe fitsTrickRoom; sand raises opposingRockSpDef. ExistingSwamp/Exc/KG provide real Rock resistance. <strong>Optional new reserve:</strong> LevitateBronzong is legitimately catchable onRoute3/map361 (17%morning,5%day/night;55–62 or72), learns/accepts ownedTM92TrickRoom, and combines Rock resistance with Ground immunity and GyroBall. It still fears ThroatChop and RampardosFirePunch. OptionalStormDrainGastrodon is obtainable viaSurf in ChrysoliaSpring1F/map238 (15%,60–80), adding recovery and Water immunity forAeroAquaTail; only train it if Swamp&#39;s coverage actually proves insufficient. Catch/train through normal controls, never alter ability/EV/save data.</p>
+<h3>Archive choices and exact source anchors</h3>
+<p>Settled planned entries future012–014=Glass, future015=Hypno, future016=Solaris, future017=Hardy. After existing122–124, <strong>candidate IDs125/126/127</strong> must be confirmed unused at actual entry; these notes do not allocate them. Only these boss victories belong in the major compilation. OrdinaryGlass trainers, Void dialogue, Agate defenders, Howaya/Christina and gym trainers stay in fulljourneys. Solaris&#39;s editorial warmup exclusion survives the requirement to play its true chain consecutively. Show exact player bag consumable totals from each displayed completed log, not opponentFullRestores; record every failed chain in the full journey. Actual doubles ownership/left-right order must come from footage.</p>
+<p>Installed anchors: trainers.dat; Map734E12,754E5/14,755E24,758E122,759E5,763E44,739E31/32,740E3; <code>Trainers.rb:136–240</code>; <code>metatext.rb</code> maps740/758/763; <code>fieldtext.rb</code> ROCKY805 / STARLIGHT2200; <code>Battle_Move.rb:1118</code> mixed effectiveness; <code>Battler.rb:4740–4765</code>; <code>montext.rb</code> Hypno6963/7035, Arc4217, Kricketune27016, Drapion30162; <code>enctext.rb</code> maps238/361. Static source and actual current snapshots take precedence over guide version19.5.18. CurrentBigJRA Gym roster happens to match the extracted Hardy1 list; historic wording that the live online guide still differs is stale.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

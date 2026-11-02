@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>pavilion376_select.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of pavilion376_select.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Enter attempt3 with an explicitly reviewed facility trio; stop before Confirm.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;56&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PAVILION SELECT&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">827</span>,<span class="hljs-number">95</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Singles|Doubles&#x27;</span>,<span class="hljs-string">&#x27;Singles&#x27;</span>)
+run(<span class="hljs-string">&#x27;play&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;select_three_reviewed&#x27;</span>,<span class="hljs-string">&#x27;Darkrai|Magearna|Cresselia&#x27;</span>,<span class="hljs-string">&#x27;work/376-pavilion-selection.png&#x27;</span>)
+</code></pre>
+  </body>
+</html>

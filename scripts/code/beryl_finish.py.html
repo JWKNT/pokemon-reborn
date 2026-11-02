@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>beryl_finish.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of beryl_finish.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Verified normal-input Beryl route, with restartable stage boundaries.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> wtc_push_plan <span class="hljs-keyword">import</span> solve
+
+stage = <span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv) &gt; <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script, *args</span>):
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(script+<span class="hljs-string">&#x27;.py&#x27;</span>)),
+                    *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, args)], check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">walk</span>(<span class="hljs-params">mid, x, y, target=<span class="hljs-number">0</span></span>):
+    s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+    run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>,mid,x,y,<span class="hljs-built_in">int</span>(s[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;410&#x27;</span>,<span class="hljs-literal">False</span>)),target)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">pushes</span>(<span class="hljs-params">goals, label</span>):
+    mid,x,y=locate(<span class="hljs-number">476</span>)
+    <span class="hljs-keyword">assert</span> mid==<span class="hljs-number">476</span>
+    s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+    p=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/label
+    p.write_text(json.dumps(solve(mid,x,y,s[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;410&#x27;</span>,<span class="hljs-literal">False</span>),goals),indent=<span class="hljs-number">2</span>))
+    run(<span class="hljs-string">&#x27;wtc_push_queue&#x27;</span>,p)
+
+<span class="hljs-keyword">if</span> stage &lt;= <span class="hljs-number">1</span>:
+    run(<span class="hljs-string">&#x27;wtc_touch&#x27;</span>,<span class="hljs-number">476</span>,<span class="hljs-number">64</span>,<span class="hljs-number">496</span>,<span class="hljs-number">13</span>,<span class="hljs-number">24</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;up&#x27;</span>)
+    walk(<span class="hljs-number">496</span>,<span class="hljs-number">17</span>,<span class="hljs-number">16</span>)
+    run(<span class="hljs-string">&#x27;wtc_touch&#x27;</span>,<span class="hljs-number">496</span>,<span class="hljs-number">63</span>,<span class="hljs-number">476</span>,<span class="hljs-number">17</span>,<span class="hljs-number">16</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;up&#x27;</span>)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BERYL STAGE 1 COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> stage &lt;= <span class="hljs-number">2</span>:
+    pushes({<span class="hljs-string">&#x27;16&#x27;</span>:[<span class="hljs-number">8</span>,<span class="hljs-number">15</span>],<span class="hljs-string">&#x27;17&#x27;</span>:[<span class="hljs-number">12</span>,<span class="hljs-number">12</span>]},<span class="hljs-string">&#x27;beryl-upper-live-plan.json&#x27;</span>)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BERYL STAGE 2 COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> stage &lt;= <span class="hljs-number">3</span>:
+    run(<span class="hljs-string">&#x27;wtc_touch&#x27;</span>,<span class="hljs-number">476</span>,<span class="hljs-number">66</span>,<span class="hljs-number">496</span>,<span class="hljs-number">15</span>,<span class="hljs-number">11</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;left&#x27;</span>)
+    walk(<span class="hljs-number">496</span>,<span class="hljs-number">6</span>,<span class="hljs-number">14</span>)
+    walk(<span class="hljs-number">496</span>,<span class="hljs-number">4</span>,<span class="hljs-number">27</span>)
+    run(<span class="hljs-string">&#x27;wtc_exit&#x27;</span>,<span class="hljs-number">496</span>,<span class="hljs-number">22</span>)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BERYL STAGE 3 COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> stage &lt;= <span class="hljs-number">4</span>:
+    walk(<span class="hljs-number">475</span>,<span class="hljs-number">38</span>,<span class="hljs-number">20</span>)
+    run(<span class="hljs-string">&#x27;wtc_exit&#x27;</span>,<span class="hljs-number">475</span>,<span class="hljs-number">19</span>)
+    walk(<span class="hljs-number">474</span>,<span class="hljs-number">29</span>,<span class="hljs-number">32</span>)
+    run(<span class="hljs-string">&#x27;wtc_gate&#x27;</span>,<span class="hljs-number">474</span>,<span class="hljs-number">39</span>)
+    walk(<span class="hljs-number">474</span>,<span class="hljs-number">43</span>,<span class="hljs-number">34</span>)
+    run(<span class="hljs-string">&#x27;wtc_exit&#x27;</span>,<span class="hljs-number">474</span>,<span class="hljs-number">24</span>)
+    run(<span class="hljs-string">&#x27;wtc_gate&#x27;</span>,<span class="hljs-number">488</span>,<span class="hljs-number">21</span>)
+    run(<span class="hljs-string">&#x27;touch_heal&#x27;</span>,<span class="hljs-number">488</span>,<span class="hljs-number">47</span>)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BERYL STAGE 4 COMPLETE; PARTY HEALED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> stage &lt;= <span class="hljs-number">5</span>:
+    run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>)
+    run(<span class="hljs-string">&#x27;wtc_water&#x27;</span>,<span class="hljs-number">488</span>,<span class="hljs-number">20</span>,<span class="hljs-number">473</span>)
+    run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;PULSE-Swalot-ready&#x27;</span>)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PULSE SWALOT PREPARATION COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

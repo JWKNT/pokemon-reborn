@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>aegir_event.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of aegir_event.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reach an Aegir event with source-planned bridge levels and normal UI only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> layer_route <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+mid,eid=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]),<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]);kind=sys.argv[<span class="hljs-number">3</span>]
+<span class="hljs-keyword">assert</span> mid <span class="hljs-keyword">in</span> [<span class="hljs-number">849</span>,<span class="hljs-number">850</span>] <span class="hljs-keyword">and</span> kind <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;talk&#x27;</span>,<span class="hljs-string">&#x27;item&#x27;</span>,<span class="hljs-string">&#x27;enter&#x27;</span>,<span class="hljs-string">&#x27;smash&#x27;</span>]
+m,x,y=locate(mid);<span class="hljs-keyword">assert</span> m==mid
+state=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+ground=<span class="hljs-built_in">bool</span>(state[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;410&#x27;</span>])
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],stderr=subprocess.DEVNULL))
+e=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)];choices=[]
+<span class="hljs-keyword">for</span> dx,dy <span class="hljs-keyword">in</span> [(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)]:
+ goal=(e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>((ee[<span class="hljs-string">&#x27;x&#x27;</span>],ee[<span class="hljs-string">&#x27;y&#x27;</span>])==goal <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span> <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> ee.get(<span class="hljs-string">&#x27;list&#x27;</span>)<span class="hljs-keyword">or</span>[]) <span class="hljs-keyword">for</span> ee <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values()):<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">try</span>:steps=plan(mid,x,y,ground,*goal);choices.append((<span class="hljs-built_in">len</span>(steps),goal))
+ <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">pass</span>
+<span class="hljs-keyword">assert</span> choices,<span class="hljs-string">&#x27;No layered approach to this Aegir event&#x27;</span>
+_,goal=<span class="hljs-built_in">min</span>(choices)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;AEGIR LAYER APPROACH&#x27;</span>,mid,eid,goal,ground,flush=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/layer_walk.py&#x27;</span>),<span class="hljs-built_in">str</span>(mid),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,goal),<span class="hljs-built_in">str</span>(<span class="hljs-built_in">int</span>(ground)),<span class="hljs-string">&#x27;--hold-straights&#x27;</span>],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(eid),kind],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>circus_to_blake.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of circus_to_blake.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed elevator, ice and cliff route from circus to Blake&#x27;s approach.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;use_field_item&#x27;</span>,<span class="hljs-string">&#x27;Super Repel&#x27;</span>)
+run(<span class="hljs-string">&#x27;party_swap&#x27;</span>,<span class="hljs-number">4</span>,<span class="hljs-number">1</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;355,13,34,left:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,8,33,up:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,8,48,up:.03,c,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Agate Circus|Route 2&#x27;</span>,<span class="hljs-string">&#x27;Route 2&#x27;</span>);act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;j=json.loads(p.read_text());j[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;74&#x27;</span>]=<span class="hljs-number">1</span>;p.write_text(json.dumps(j))
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;365,9,51,down:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,4,63,left:.12,wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>,<span class="hljs-number">358</span>,<span class="hljs-number">47</span>,<span class="hljs-number">13</span>,<span class="hljs-number">0</span>);act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">361</span>,<span class="hljs-number">8</span>,<span class="hljs-number">16</span>);act(<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;surface_event&#x27;</span>,<span class="hljs-number">364</span>,<span class="hljs-number">24</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;surface_event&#x27;</span>,<span class="hljs-number">366</span>,<span class="hljs-number">23</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;surface_event&#x27;</span>,<span class="hljs-number">373</span>,<span class="hljs-number">14</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;439,88,35,up:.12,wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">441</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">442</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;439,82,21&#x27;</span>)
+run(<span class="hljs-string">&#x27;party_swap&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Blake-defensive-retry-ready&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BLAKE APPROACH READY&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "reviewed_epoch": 1791359750.730363,
+  "static_source": "work/225-final-lin-event.json",
+  "preentry_switch735": true,
+  "hard_route": "Switch735 is ON, so Map824 Event3 command100 chooses LIN3 rather than LIN2.",
+  "lin3_entry_order_requirement": "Altaria FIRST holding intact Focus Sash and full HP. Immediately switch to Mawile through normal battle menu before Mismagius attacks. This preserves Altaria in first persistent party slot for forced Child Lin start.",
+  "reason": "No party-menu/healing gap between Lin3 and Child; starting Lin3 with Mawile first would force a damaging switch on Altaria before its X Speed + Perish Song plan.",
+  "child_plan": [
+    "X Speed immediately with full-health Sash Altaria",
+    "Perish Song next turn at +2 Speed522, above fastest expected Arceus419",
+    "Keep at least4 other party members alive entering Child; allow perish countdown to finish"
+  ],
+  "no_save": true,
+  "x_speed_reservation": "Reserve at least1 XSpeed for Child Altaria. At Anna entry9 left: allocation Anna3, Lin1 up to3, Lin3 up to2, Child1. Avoid switching out boostedMawile and spending extraSpeed unless an alternative is proven."
+}

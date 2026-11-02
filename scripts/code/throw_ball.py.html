@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>throw_ball.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of throw_ball.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Throw one named ball through the ordinary bag; stop for capture/party decisions.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+item=<span class="hljs-string">&#x27; &#x27;</span>.join(sys.argv[<span class="hljs-number">1</span>:]) <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;Poke Ball&#x27;</span>
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_bag.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">9</span>):
+ t=read().lower()
+ <span class="hljs-keyword">if</span> (<span class="hljs-string">&#x27;balls&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;balla&#x27;</span> <span class="hljs-keyword">in</span> t) <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;sort&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;close bag&#x27;</span> <span class="hljs-keyword">in</span> t):<span class="hljs-keyword">break</span>
+ act(<span class="hljs-string">&#x27;right:0.22&#x27;</span>,<span class="hljs-string">&#x27;wait:0.5&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Ball pocket review&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/bag_select.py&#x27;</span>),item],check=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.6&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(z.strip(<span class="hljs-string">&#x27; •›&gt;&#x27;</span>).lower() <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;use&#x27;</span>,<span class="hljs-string">&#x27;lse&#x27;</span>,<span class="hljs-string">&#x27;uee&#x27;</span>,<span class="hljs-string">&#x27;uise&#x27;</span>] <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> t.splitlines()):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Ball Use menu review&#x27;</span>)
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+missed=<span class="hljs-literal">False</span>;empty_after_miss=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">40</span>):
+ t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>);low=t.lower()
+ missed=missed <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;broke free&#x27;</span>,<span class="hljs-string">&#x27;so close&#x27;</span>,<span class="hljs-string">&#x27;appeared to be caught&#x27;</span>,<span class="hljs-string">&#x27;almost had it&#x27;</span>])
+ empty_after_miss=empty_after_miss+<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> missed <span class="hljs-keyword">and</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,low) <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27;pokemonreborn&#x27;</span>] <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+ <span class="hljs-keyword">if</span> empty_after_miss&gt;=<span class="hljs-number">3</span>:
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Post-throw overworld boundary verified after failed ball; encounter ended&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;hp was restored&quot;</span> <span class="hljs-keyword">in</span> low:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Enemy restored HP: review weakening before another throw&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;gotcha&#x27;</span>,<span class="hljs-string">&#x27;caught&#x27;</span>,<span class="hljs-string">&#x27;nickname&#x27;</span>,<span class="hljs-string">&#x27;pokedex&#x27;</span>,<span class="hljs-string">&#x27;party is full&#x27;</span>,<span class="hljs-string">&#x27;add to your&#x27;</span>,<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;fled!&#x27;</span>]):<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fainted&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;choose a pok&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;use next pok&#x27;</span> <span class="hljs-keyword">in</span> low:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Battle ended during capture&#x27;</span>)
+ act(<span class="hljs-string">&#x27;wait:0.5&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Capture animation timeout&#x27;</span>)
+</code></pre>
+  </body>
+</html>

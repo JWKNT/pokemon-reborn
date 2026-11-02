@@ -1,0 +1,18 @@
+{
+  "session": 237,
+  "route_to_Azelf": [
+    "526 pier27,22 faceleft Surf",
+    "5269,18 left\u219253695,37",
+    "5369,18 left\u2192567119,26",
+    "56770,67 down\u219256515,0",
+    "56539,25 Dive\u2192547",
+    "54748,9 then48,0; up\u2192553103,67",
+    "Dive\u2192567103,67 then98,41"
+  ],
+  "pitfalls": [
+    "Pier terrain reads water under wood; explicit Surf prompt required.",
+    "Underwater q route near building missed steps on grouped turns; intermediate waypoints48,9 and48,0 plus held route verified.",
+    "54746,0 north blocked by destination553101,67; use48,0."
+  ],
+  "epoch": 1791405113.8211122
+}

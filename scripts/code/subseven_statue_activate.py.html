@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>subseven_statue_activate.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of subseven_statue_activate.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Activate a reviewed statue while phased, without walking onto its event.
+Approach from two tiles away so the final normal step sets the correct facing;
+confirm is then sent separately. All positions are public coordinate checks.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+oldx,oldy,eid,px,py=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">6</span>])
+e=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/event_dump.rb&#x27;</span>),<span class="hljs-string">&#x27;871&#x27;</span>,<span class="hljs-built_in">str</span>(eid)],stderr=subprocess.DEVNULL))
+cs=e[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>];ex,ey=e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">abs</span>(ex-px)+<span class="hljs-built_in">abs</span>(ey-py)==<span class="hljs-number">1</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">122</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][:<span class="hljs-number">2</span>]==[<span class="hljs-number">629</span>,<span class="hljs-number">629</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs)
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">102</span>,<span class="hljs-number">103</span>,<span class="hljs-number">104</span>,<span class="hljs-number">301</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs)
+bx,by=<span class="hljs-number">2</span>*px-ex,<span class="hljs-number">2</span>*py-ey
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">abs</span>(bx-oldx)+<span class="hljs-built_in">abs</span>(by-oldy)&lt;=<span class="hljs-number">8</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">abs</span>(px-oldx)+<span class="hljs-built_in">abs</span>(py-oldy)&lt;=<span class="hljs-number">8</span>, <span class="hljs-string">&#x27;Approach exceeds current phase radius&#x27;</span>
+<span class="hljs-keyword">for</span> x,y <span class="hljs-keyword">in</span> [(bx,by),(px,py)]:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/subseven_phase_walk.py&#x27;</span>),<span class="hljs-built_in">str</span>(oldx),<span class="hljs-built_in">str</span>(oldy),<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],check=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+t=read();<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\bhp\b|fight|yes|no&#x27;</span>,t,re.I),t
+actual=locate(<span class="hljs-number">871</span>);<span class="hljs-keyword">assert</span> actual==(<span class="hljs-number">871</span>,px,py),actual
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STATUE CONFIRM FROM VERIFIED FACING&#x27;</span>,eid,<span class="hljs-string">&#x27;new origin&#x27;</span>,ex,ey,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

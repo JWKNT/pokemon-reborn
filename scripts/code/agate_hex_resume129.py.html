@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>agate_hex_resume129.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of agate_hex_resume129.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finish currently open normal reminder list after wrong-index guard; exact visible Hex.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,subprocess,sys,json,re
+os.environ[<span class="hljs-string">&#x27;REBORN_COORD_CACHE&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,read,act
+<span class="hljs-keyword">from</span> agate_prep_phase <span class="hljs-keyword">import</span> execute
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;night shade&#x27;</span> <span class="hljs-keyword">in</span> read().lower(),<span class="hljs-string">&#x27;Expected currently reviewed reminder list&#x27;</span>
+act(<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.4&#x27;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;hex&#x27;</span> <span class="hljs-keyword">in</span> read().lower(),<span class="hljs-string">&#x27;Hex missing from visible list&#x27;</span>
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;teachhex&#x27;</span> <span class="hljs-keyword">in</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,read().lower()),<span class="hljs-string">&#x27;Exact Hex confirmation required&#x27;</span>
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">from</span> learning <span class="hljs-keyword">import</span> PLANS,resolve
+PLANS[<span class="hljs-string">&#x27;hex&#x27;</span>]=<span class="hljs-number">1</span>
+<span class="hljs-keyword">assert</span> resolve(read()),<span class="hljs-string">&#x27;Hex learning needs review&#x27;</span>
+<span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;relearn_finish&#x27;</span>,<span class="hljs-string">&#x27;overworld&#x27;</span>]:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(name+<span class="hljs-string">&#x27;.py&#x27;</span>))],check=<span class="hljs-literal">True</span>)
+before=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Circus-Cofa-after-shopping-129-status.json&#x27;</span>).read_text())
+cmds=[{<span class="hljs-string">&#x27;script&#x27;</span>:<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;args&#x27;</span>:[<span class="hljs-string">&#x27;Power Lens&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>]},{<span class="hljs-string">&#x27;script&#x27;</span>:<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-string">&#x27;args&#x27;</span>:[<span class="hljs-number">355</span>,<span class="hljs-number">118</span>,<span class="hljs-string">&#x27;talk&#x27;</span>]},{<span class="hljs-string">&#x27;script&#x27;</span>:<span class="hljs-string">&#x27;heal&#x27;</span>,<span class="hljs-string">&#x27;args&#x27;</span>:[]},{<span class="hljs-string">&#x27;script&#x27;</span>:<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;args&#x27;</span>:[<span class="hljs-string">&#x27;Agate-Cofa-training-ready&#x27;</span>]}]
+execute(<span class="hljs-string">&#x27;build&#x27;</span>,before,cmds)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;HEX AND COFA BUILD COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

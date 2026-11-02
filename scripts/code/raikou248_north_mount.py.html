@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>raikou248_north_mount.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of raikou248_north_mount.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Use the north Route1 pair after the isolated southern mount.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,sys,subprocess
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NORTH MOUNT&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Postgame248-Dismounted&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">287</span>,<span class="hljs-number">27</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;forest_mount245&#x27;</span>,<span class="hljs-string">&#x27;Postgame248-NorthTauros&#x27;</span>)
+run(<span class="hljs-string">&#x27;connected_walk&#x27;</span>,<span class="hljs-number">287</span>,<span class="hljs-number">285</span>,<span class="hljs-number">66</span>,<span class="hljs-number">9</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">285</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;forest_honey245&#x27;</span>,<span class="hljs-number">289</span>,<span class="hljs-number">40</span>,<span class="hljs-number">42</span>,<span class="hljs-string">&#x27;Postgame248-NorthWeb328&#x27;</span>,<span class="hljs-string">&#x27;Pinsir&#x27;</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;289,57,10&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Postgame248-RaikouGate&#x27;</span>)
+</code></pre>
+  </body>
+</html>

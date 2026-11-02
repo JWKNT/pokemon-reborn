@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Hardy puzzle and route to Saphira — source review, 2026-10-03">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="hardy-puzzle-saphira-route-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/hardy-puzzle-saphira-route-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/hardy-puzzle-saphira-route-2026-10-03.md.html">
+    <title>hardy-puzzle-saphira-route-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">hardy-puzzle-saphira-route-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 9.6 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · first used Oct 3 15:07</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Hardy puzzle and route to Saphira — source review, 2026-10-03</h2>
+<p>This is <strong>hypothetical future preparation</strong>, not observed current progress or flags. Installed19.5.43 events are authoritative; the <a href="https://bigjra.github.io/reborn/#geode-badge">BigJRA Geode section</a> and <a href="https://bigjra.github.io/reborn/#labradorra-city">Episode19 route</a> were checked online, but the guide identifies itself as19.5.18. Source extracts contain every page, not a presumed live selected page: <code>work/hardy-piano-static-739.json</code>, <code>work/hardy-saphira-static-events.json</code>, <code>work/hardy-post-calcenon-labradorra-static.json</code>. No UI, live save/log, navigation state or battle config was accessed or changed.</p>
+<h3>Hardy piano: exact normal-control solution</h3>
+<p>739E23–30 are horizontally pushable tuners, initially x14. Their y coordinates, bottom to top, are45,41,37,33,22,18,14,10. After each interaction, the event assigns variables441–448 to its own current x coordinate, then subtracts14. <code>Interpreter.rb:907–930</code> confirms operand6/character0/x; this is not a push counter. Notes indexed0–7 are lowG,A,B,C,D,E,F,highG. E1i404–411 checks <strong>[3,5,7,2,2,0,1,1]</strong>, exactly C,E,highG,B,B,lowG,A,A.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Tuner/event</th>
+<th align="right">y</th>
+<th align="right">Final x</th>
+<th>Required variable</th>
+<th align="right">Right pushes if still x14</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1/E23</td>
+<td align="right">45</td>
+<td align="right">17</td>
+<td>441=3</td>
+<td align="right">3</td>
+</tr>
+<tr>
+<td>2/E24</td>
+<td align="right">41</td>
+<td align="right">19</td>
+<td>442=5</td>
+<td align="right">5</td>
+</tr>
+<tr>
+<td>3/E25</td>
+<td align="right">37</td>
+<td align="right">21</td>
+<td>443=7</td>
+<td align="right">7</td>
+</tr>
+<tr>
+<td>4/E26</td>
+<td align="right">33</td>
+<td align="right">16</td>
+<td>444=2</td>
+<td align="right">2</td>
+</tr>
+<tr>
+<td>5/E27</td>
+<td align="right">22</td>
+<td align="right">16</td>
+<td>445=2</td>
+<td align="right">2</td>
+</tr>
+<tr>
+<td>6/E28</td>
+<td align="right">18</td>
+<td align="right">14</td>
+<td>446=0</td>
+<td align="right">0</td>
+</tr>
+<tr>
+<td>7/E29</td>
+<td align="right">14</td>
+<td align="right">15</td>
+<td>447=1</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td>8/E30</td>
+<td align="right">10</td>
+<td align="right">15</td>
+<td>448=1</td>
+<td align="right">1</td>
+</tr>
+</tbody></table></div>
+<p>Each tuner pushes only when the player faces Right or Left. <code>Field.rb:2899–2928</code> moves the event one tile and waits for movement; it does <strong>not</strong> move the player. For repeated normal C pushes, start immediately west of the observed tuner, faceRight, C, then stepRight into the tuner&#39;s old tile before the next C. Avoid a long uninspected key hold. For tuner6 left atx14, interact from above/below facing vertically: no push occurs, but variable446 is explicitly refreshed to0. If previous moves changed any tuner, plan from its observed x rather than blindly using the initial counts.</p>
+<p>Defeat the three right-side trainers before queuing their corridors:739E35 Alistair[15,49], E36 Xavier[19,27], E22 Noivy[20,7]. They have sight triggers. The Isaac tutorial739E37[3,7] is optional: initial talk demonstrates the riff; the later Help branch adds an optional battle and opens the door. The ordinary tuner solution avoids needing that branch. Do not use another-save puzzle-skip state as a presumed shortcut.</p>
+<p>After all eight values/positions match, approach739E1 RockClimb[5,45] from <strong>[5,46], facingUp</strong>, with a legal RockClimb user. Its forced movement net is(0,−38), ending[5,8]. It plays each string in order, checks the eight variables, and sets switch1022True only on a match. Then739E31/32[11/12,4] transfer to740[9,21]. Inspect the open door/landing before proceeding. There is a normal field/menu checkpoint in the arena before the encounter trigger.</p>
+<p>Hardy740E3[9,18] is player-touch: stage at[9,19] and save/record the reviewed team before steppingUp. The event asks Yes/No before <code>pbTrainerBattle(:HARDY,&quot;Hardy&quot;,...,true,1)</code>; this is doubles. Victory sets badge17 (<code>badges[16]</code>), switch658True and391=60→61, givesTM80, and raises the cap to95. The battle field is Rocky (<code>metatext.rb:5944</code>). Preserve the normal post-victory item checkpoint before changing medicine/roster. The proposed JSON template lists interaction anchors and guards; it intentionally does not claim a continuous tile route through an unobserved gym.</p>
+<h3>Mandatory Episode19 commitments before the tournament</h3>
+<ol>
+<li>Fly to <strong>Calcenon413</strong>, talk to Hardy413E102[19,25] after switch658True. His story questions are readiness Yes/No, then trust Bennett Yes/No; completion sets475=1. Talk to Bennett413E118[21,28], answerYes when actually prepared; completion sets475=2. This is story entry, not an immediate unavoidable boss gauntlet.</li>
+<li>Enter Labradorra414 and clear the route&#39;s Meteor trainers: Kenan414E74[63,38], DianaE75[51,26], AudreyE108[27,32], all sight triggers. After the early city scene, normal Pokémon Center access allows preparation. The cultist encounter starts from player-touch gates414E104/109/110 at[20/21/22,22], setting475=9;414E111 then autoruns. Its switch878 branch changes opponent versions and whether Amaria is a partner. Verify the actual route switch and page before approach. This is not safely described as one fixed roster.</li>
+<li>PULSE Clawitzer/Zero begins in414E119 <strong>autorun once475&gt;=23</strong>; it callsZEL2/Zero/0 at i206. Plan/save before the story transition that raises the value, not by attempting to walk up to the displayed Zero event[12,11]. Winning advances475 through24→25. Inspect the actual source gate and fresh flags at that future checkpoint; no current trigger coordinates are invented here.</li>
+<li>The required LCCC visit is775, entered through Labradorra&#39;s southwest building774. Its battlefield is <strong>Shortcircuit</strong> (<code>metatext.rb:6210</code>). PULSE Mime+Sigmund is775E11[87,5], player-touch, callingMIME/Mime/0+FRIEND/Sigmund Connal/0 without an NPC partner; stage one tile before it, with normal prebattle save and party/item evidence. Winning sets475=30. Normal LCCC computer/power-door traversal needs its own observed-state route plan; the guide&#39;s Calcenon shortcut and associated pickups are optional detours. Additional Flora content is gated by variable611;414E161 autoruns only at611&gt;=6, so it is conditional rather than a universally required boss.</li>
+<li>The tournament city doors414E50/51[45/46,9] become transfers to768[41/42,31] once475&gt;=32. The768 starting controller autoruns, sets the Pokémon Center return point, closes the exit sequence and eventually475=60. Finish preparation before entry; keep the initial story commitment separate from individual arena battle entries.</li>
+</ol>
+<h3>Tournament has normal waiting rooms between its battles</h3>
+<p>The mandatory competitive battles are:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Arena source</th>
+<th>Fight</th>
+<th>Field</th>
+<th>Route condition</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>769E1i877</td>
+<td>Lumi0+Eve0, withCal3 orFlorinia2 partner</td>
+<td>Inverse</td>
+<td>878True/Reshiram getsCal;False/Zekrom getsFlorinia</td>
+</tr>
+<tr>
+<td>770E2</td>
+<td>Cal2 <strong>or</strong> Florinia3</td>
+<td>Dragon&#39;s Den forCal;Glitch forFlorinia</td>
+<td>ReshiramCal first;ZekromFlorinia first</td>
+</tr>
+<tr>
+<td>771E2</td>
+<td>the other ofFlorinia3/Cal2</td>
+<td>same respective fields</td>
+<td>ReshiramFlorinia second;ZekromCal second</td>
+</tr>
+</tbody></table></div>
+<p>Each arena controller has an autorun page and commits on entry; each successful battle exits into its waiting-room progression. This differs mechanically from Glass&#39;s same-event immediate three-round chain: <strong>normal PCs are present</strong> at768E67[4,53],776E67[20,53],777E21[20,53] andE67[20,79],778E23[44,12], all <code>pbPokeCenterPC</code> calls. Use normal preparation/save/team snapshots in those rooms before each arena transfer. There is no source full-heal after the two unpartnered Cal/Florinia fights; partnered Lumi/Eve uses the usual trainer-helper partner full heal. Bag and normal storage actions remain legal at the waiting-room checkpoints. Do not assume external shopping/exits remain available. Keep every failed battle in fulljourneys; reserve major-archive decisions for the settled list and actual victories.</p>
+<h3>Saphira chest defense and badge18</h3>
+<p>After the first three tournament rounds,778E15/16[1,14/15] enters779 before completion, or780 after switch1098True. Both maps use <strong>Dragon&#39;s Den</strong> (<code>metatext.rb:6238/6246</code>). Talk to Saphira as the story requires, then stage beside the chest at779[26/27,43] with the whole defense+Steelix team, medicine and PP prepared. ChestE74/75 at475&gt;=101 sets475=102; StoryControllerE76 asks the branching values questions, advances475=103, then turns1074True and starts active defense. The source explicitly suggests turning Speed-Up off for this challenge.</p>
+<p>The defense controller779E81 progresses <strong>26 waves</strong>, with movement/battle parallel controllersE83/E85. FourKnight battles (Dan0,Frey0,Edgard0,Kalezis0) and multiple generated wild Pokémon occur during defense. This needs an event-aware movement/visible-threat plan, not a blind walk queue; keep close enough to intercept threats and heal/restorePP during the source-provided pauses. Wild encounters do not produce the normal trainer debug log, so exact defense consumable use needs the visible ledger plus whole challenge native pre/post reconciliation. Losing/exiting resets defense progression; require a genuinely successful full challenge. The exit handlersE1/2 reset1074/478 and impose the story penalty.</p>
+<p>After wave26, E81 sets selfA and its next autorun page <strong>immediately</strong> runsSteelix/Gargantuan/version1 at i275. Treat chest defense plusGargantuan as one committed successful run; there is no guaranteed normal save/menu checkpoint just before that autorun boss. Winning transfers to780 at current coordinates and sets1098True. Only then there is a proper field preparation opportunity for Saphira. The one-use full-heal LightShard780E74[26,40] runscode314. Take/review the normal boss precheckpoint after any planned healing or roster changes, then stop at[30,12] before steppingUp into780E93[30,11], player-touch, which callsSAPHIRA/Saphira/0.</p>
+<p><strong>Winning Saphira alone does not award badge18.</strong> E93 completes the story and sets475=104. Return to chest780E91/92[26/27,43], stand directly south at[26/27,44] <strong>facingUp</strong>, and interact. Only this chest page sets475=105, <code>badges[17]=true</code>, switch659True and givesTM02. Save/verify the actual badge after opening it.</p>
+<p>Dragon&#39;s Den strengthensDragon/Fire1.5, halvesWater/Ice damage, and boostsDragonDance/NobleRoar. Two ordinarySurf/MuddyWater/SparklingAria uses solidify it intoCave; SubzeroSlammer/Glaciate and certainWaterZmoves add2counter in one use (<code>fieldtext.rb:1850–1918</code>). These are source battle-planning facts, not advice to change the field blindly. Cal, the chest defense, Gargantuan and Saphira all require their own reviewed roster/field plans; the source controls when room changes and checkpoint opportunities actually occur.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

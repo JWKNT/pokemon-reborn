@@ -1,0 +1,25 @@
+{
+  "electric": "Owned Zeraora Plasma Fists or Raikou teach Electric Terrain if needed; Plasma Fists installed field change verified before gate.",
+  "misty": "Owned Meowstic Lv120 Prankster/Misty Terrain/Amplifield Rock box1slot17; Sylveon backup.",
+  "psychic": {
+    "preferred": "Fennekin gift map477 event5 always Psychic Terrain; switches570/571 bothfalse at Jirachi298-Quest.",
+    "unlock": "map477 event2 Electrode65 must finish battle on Factory field; starts Shortcircuit. Zapdos Discharge can transform field. Inspect source active page and normal access before action.",
+    "training": "Legitimate EXP/candy to survive Unown gate; preserve Psychic Terrain through evolution.",
+    "postgame_route": "524E30->168;elevator8then18choose7thStreet,exit11->15->324E3->327E7->478E13->478E1->505E21->504E17->502. Storagebutton502E35 fromsouthupperplane unlocks546;door19->477.",
+    "electrode_refresh": "First477E2pickup isElectirizer and eraseseventuntilroomreload. Leave477E1 thenreturn502E19 to exposepage2Electrode65. Verified frozenStorage302-Item E2 erasedtrue, pageNone.",
+    "status": "Fennekin15 collected302; Box2slot26 before303 withdrawal. PsychicTerrain3 verified."
+  },
+  "grassy": {
+    "preferred": "Comfey wild Chrysolia Forest map234: 10% morning/day,5%night,Lv39\u201344; learns GrassyTerrain46. One XL candy should suffice, confirm actual experience.",
+    "alternative": "Comfey map233 day/nightLv37\u201341; GrassyTerrain46."
+  },
+  "gate": "VictoryRoad four NewWorld doors. Finish wild Unown encounter while corresponding terrain active, then battle/catch Tapu. Plan all four terrain users before trip.",
+  "ground_upgrade": {
+    "move": "EARTHQUAKE",
+    "candidate": "Swampert replacing Bulldoze; alternatively train owned Excadrill100 with Earthquake/SwordsDance/RockSlide.",
+    "heart_scale": "Map234 ChrysoliaForest event6[41,53] uncollected in Jirachi298-Quest; combine pickup with Comfey capture.",
+    "verified_source": "work/298-heartscales.json"
+  },
+  "gate_level_correction": "Installed855E12 createsUnownLv1; low-levelterrainuserssurvive. TrainComfey46forGrassyTerrainonly; Fennekin15giftalreadyknowsPsychicTerrain. ActualTapubosses125fullteamsrequireseparatecorepreparation.",
+  "gate_persistence": "Installed810E27/28 page1 checks1667 and bypassesUnown to855[31/32,166]. Gate persists afterunlock; caster can be boxed later if needed."
+}

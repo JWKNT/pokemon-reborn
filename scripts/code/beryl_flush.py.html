@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>beryl_flush.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of beryl_flush.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reach Titania&#x27;s installed post-PULSE flush scene through recorded controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(name+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--from-low&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ mid,x,y=locate(<span class="hljs-number">496</span>);<span class="hljs-keyword">assert</span> mid==<span class="hljs-number">496</span>
+ s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+ <span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;548&#x27;</span>) <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-string">&#x27;276&#x27;</span>)==<span class="hljs-number">23</span>
+ e=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;496&#x27;</span>,<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],stderr=subprocess.DEVNULL))[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-string">&#x27;57&#x27;</span>]
+ <span class="hljs-keyword">assert</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> (e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])==(<span class="hljs-number">31</span>,<span class="hljs-number">22</span>)
+ <span class="hljs-keyword">assert</span> {<span class="hljs-built_in">tuple</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>:<span class="hljs-number">4</span>])<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>]<span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span>}=={(<span class="hljs-number">495</span>,<span class="hljs-number">29</span>,<span class="hljs-number">19</span>)}
+ run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>,<span class="hljs-number">496</span>,<span class="hljs-number">31</span>,<span class="hljs-number">23</span>,<span class="hljs-built_in">int</span>(s[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;410&#x27;</span>,<span class="hljs-literal">False</span>)),<span class="hljs-number">0</span>)
+ act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+ run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">496</span>,<span class="hljs-number">57</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+ actual=locate()
+ <span class="hljs-keyword">assert</span> actual <span class="hljs-keyword">in</span> [(<span class="hljs-number">495</span>,<span class="hljs-number">29</span>,<span class="hljs-number">19</span>),(<span class="hljs-number">505</span>,<span class="hljs-number">29</span>,<span class="hljs-number">19</span>)],<span class="hljs-string">&#x27;Flush arrival requires review&#x27;</span>
+ <span class="hljs-comment"># The last normal C can activate the button directly above the arrival</span>
+ <span class="hljs-comment"># square after the flush dialogue. Accept only the witnessed clean-high</span>
+ <span class="hljs-comment"># destination, then verify the actual saved water/story state below.</span>
+ <span class="hljs-keyword">if</span> actual[<span class="hljs-number">0</span>]==<span class="hljs-number">495</span>:run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;WTC-Beryl-flushed&#x27;</span>)
+<span class="hljs-keyword">if</span> locate()[<span class="hljs-number">0</span>]==<span class="hljs-number">495</span>:run(<span class="hljs-string">&#x27;wtc_water&#x27;</span>,<span class="hljs-number">495</span>,<span class="hljs-number">32</span>,<span class="hljs-number">505</span>,<span class="hljs-string">&#x27;--scene&#x27;</span>,<span class="hljs-number">505</span>,<span class="hljs-number">57</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;WTC-purified&#x27;</span>)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-string">&#x27;276&#x27;</span>)==<span class="hljs-number">24</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(s[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-built_in">str</span>(i))==<span class="hljs-number">3</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">256</span>,<span class="hljs-number">265</span>))
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>chest_safe_pause.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of chest_safe_pause.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Enter a real Bag/party screen, or briefly inspect the world and re-pause.
+
+Uses only normal keys and newly recorded public pixels. The pause command list
+is deliberately never accepted as a frozen world. Before the challenge, open
+Bag normally once so the remembered pause-menu choice is Bag.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse,json,time,shutil
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">classify</span>(<span class="hljs-params">rows</span>):
+    words=[r[<span class="hljs-string">&#x27;text&#x27;</span>].strip().lower() <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows]
+    text=<span class="hljs-string">&#x27; &#x27;</span>.join(words)
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(k <span class="hljs-keyword">in</span> text <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;what will&#x27;</span>,<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;quit game&#x27;</span>,<span class="hljs-string">&#x27;would you like&#x27;</span>]):<span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+    <span class="hljs-keyword">if</span> (<span class="hljs-string">&#x27;sort&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(k <span class="hljs-keyword">in</span> text <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;medicine&#x27;</span>,<span class="hljs-string">&#x27;items&#x27;</span>,<span class="hljs-string">&#x27;berries&#x27;</span>,<span class="hljs-string">&#x27;close bag&#x27;</span>])):<span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;bag&#x27;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> (text.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">sum</span>(n <span class="hljs-keyword">in</span> text <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;arcanine&#x27;</span>,<span class="hljs-string">&#x27;swampert&#x27;</span>,<span class="hljs-string">&#x27;cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;klinklang&#x27;</span>,<span class="hljs-string">&#x27;sylveon&#x27;</span>,<span class="hljs-string">&#x27;excadrill&#x27;</span>])&gt;=<span class="hljs-number">4</span>) <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(k <span class="hljs-keyword">in</span> text <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;choose a pok&#x27;</span>,<span class="hljs-string">&#x27;chooce a pok&#x27;</span>,<span class="hljs-string">&#x27;thoose a pok&#x27;</span>]):<span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;party&#x27;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">finish_bag_entry</span>():
+    <span class="hljs-string">&quot;&quot;&quot;Verify a requested pause and recover the fresh-load Pokédex default.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act,snap
+    rows=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows).lower()
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;quit game&#x27;</span> <span class="hljs-keyword">in</span> text:
+        act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>);rows=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows).lower()
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;pokedex&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;search&#x27;</span> <span class="hljs-keyword">in</span> text:
+        act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>,<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>)
+        rows=snap()
+    <span class="hljs-keyword">assert</span> classify(rows)==<span class="hljs-string">&#x27;bag&#x27;</span>,<span class="hljs-string">&#x27;Actual Bag entry requires immediate review&#x27;</span>
+    <span class="hljs-keyword">return</span> rows
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument(<span class="hljs-string">&#x27;mode&#x27;</span>,choices=[<span class="hljs-string">&#x27;open&#x27;</span>,<span class="hljs-string">&#x27;peek&#x27;</span>,<span class="hljs-string">&#x27;verify&#x27;</span>]);a=p.parse_args()
+    <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act,snap,ROOT,NATIVE
+    <span class="hljs-keyword">if</span> a.mode==<span class="hljs-string">&#x27;peek&#x27;</span>:
+        <span class="hljs-keyword">assert</span> classify(snap())==<span class="hljs-string">&#x27;bag&#x27;</span>,<span class="hljs-string">&#x27;Peek requires the actual main Bag screen&#x27;</span>
+        act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>,<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.4&#x27;</span>)
+        rows=snap();epoch=time.time()
+        world=ROOT/<span class="hljs-string">&#x27;work/chest-world-observation.png&#x27;</span>;shutil.copy2(NATIVE,world)
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(x[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(x[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">8</span> <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> rows):
+            (ROOT/<span class="hljs-string">&#x27;work/chest-world-observation.json&#x27;</span>).write_text(json.dumps({<span class="hljs-string">&#x27;epoch&#x27;</span>:epoch,<span class="hljs-string">&#x27;rows&#x27;</span>:rows,<span class="hljs-string">&#x27;image&#x27;</span>:<span class="hljs-built_in">str</span>(world),<span class="hljs-string">&#x27;interruption&#x27;</span>:<span class="hljs-string">&#x27;public dialogue; no confirmation sent&#x27;</span>},indent=<span class="hljs-number">2</span>))
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DIALOGUE INTERRUPTED PEEK; no Bag claim and no further inputs&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-number">2</span>)
+        <span class="hljs-comment"># Return immediately to the remembered Bag before doing any analysis.</span>
+        act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>,<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.5&#x27;</span>)
+        (ROOT/<span class="hljs-string">&#x27;work/chest-world-observation.json&#x27;</span>).write_text(json.dumps({<span class="hljs-string">&#x27;epoch&#x27;</span>:epoch,<span class="hljs-string">&#x27;rows&#x27;</span>:rows,<span class="hljs-string">&#x27;image&#x27;</span>:<span class="hljs-built_in">str</span>(world)},indent=<span class="hljs-number">2</span>))
+    <span class="hljs-keyword">elif</span> a.mode==<span class="hljs-string">&#x27;open&#x27;</span>:
+        act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>,<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.5&#x27;</span>)
+    rows=snap();kind=classify(rows)
+    <span class="hljs-keyword">assert</span> kind, <span class="hljs-string">&#x27;Actual Bag/party pause was NOT verified; inspect the current screen promptly&#x27;</span>
+    proof={<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;screen&#x27;</span>:kind,<span class="hljs-string">&#x27;rows&#x27;</span>:rows,<span class="hljs-string">&#x27;basis&#x27;</span>:<span class="hljs-string">&#x27;Public rendered full-screen Bag/party; installed pbFadeOutIn blocks map updates&#x27;</span>}
+    (ROOT/<span class="hljs-string">&#x27;work/chest-pause-proof.json&#x27;</span>).write_text(json.dumps(proof,indent=<span class="hljs-number">2</span>))
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ACTUAL WORLD PAUSE VERIFIED&#x27;</span>,kind,flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">if</span> a.mode==<span class="hljs-string">&#x27;peek&#x27;</span>:<span class="hljs-built_in">print</span>(world,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:main()
+</code></pre>
+  </body>
+</html>

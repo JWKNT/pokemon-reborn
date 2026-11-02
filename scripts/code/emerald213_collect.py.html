@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>emerald213_collect.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of emerald213_collect.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Collect remaining Emerald Stars normally, stopping on unreviewed interruptions.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/script),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;victory_wild_safe_event.py&#x27;</span>,<span class="hljs-number">809</span>,<span class="hljs-number">26</span>,<span class="hljs-string">&#x27;item&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Emerald213-Star2&#x27;</span>)
+run(<span class="hljs-string">&#x27;victory_wild_safe_event.py&#x27;</span>,<span class="hljs-number">809</span>,<span class="hljs-number">47</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;dialog.py&#x27;</span>,<span class="hljs-string">&#x27;--limit=8&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Emerald213-Crystal47&#x27;</span>)
+run(<span class="hljs-string">&#x27;victory_wild_safe_event.py&#x27;</span>,<span class="hljs-number">809</span>,<span class="hljs-number">48</span>,<span class="hljs-string">&#x27;smash&#x27;</span>)
+run(<span class="hljs-string">&#x27;victory_wild_safe_event.py&#x27;</span>,<span class="hljs-number">809</span>,<span class="hljs-number">25</span>,<span class="hljs-string">&#x27;item&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Emerald213-AllStars&#x27;</span>)
+</code></pre>
+  </body>
+</html>

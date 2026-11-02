@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g9_iolia_middle.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g9_iolia_middle.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> g9_iolia_first <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">crystal</span>(<span class="hljs-params">m,e,s</span>):
+ run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,m,e,<span class="hljs-string">&#x27;talk&#x27;</span>)
+ t=read().lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;reacted&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Crystal activation not observed: &#x27;</span>+t)
+ run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,m,e,<span class="hljs-string">&#x27;--active&#x27;</span>)
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(s)]=<span class="hljs-literal">True</span>;p.write_text(json.dumps(v))
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ crystal(<span class="hljs-number">335</span>,<span class="hljs-number">101</span>,<span class="hljs-number">441</span>)
+ run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;335,18,2,up:0.22,wait:1&#x27;</span>)
+ run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;342,25,7,right:0.22,wait:1&#x27;</span>)
+ run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;334,16,0,up:0.22,wait:1&#x27;</span>)
+ crystal(<span class="hljs-number">333</span>,<span class="hljs-number">18</span>,<span class="hljs-number">439</span>)
+ crystal(<span class="hljs-number">333</span>,<span class="hljs-number">70</span>,<span class="hljs-number">444</span>)
+ run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;333,31,41,down:0.22,wait:1&#x27;</span>)
+ crystal(<span class="hljs-number">334</span>,<span class="hljs-number">5</span>,<span class="hljs-number">446</span>)
+ run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">334</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;smash&#x27;</span>)
+ run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;334,35,22,down:0.22,wait:1&#x27;</span>)
+ crystal(<span class="hljs-number">335</span>,<span class="hljs-number">57</span>,<span class="hljs-number">440</span>)
+ crystal(<span class="hljs-number">335</span>,<span class="hljs-number">136</span>,<span class="hljs-number">447</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MIDDLE CRYSTALS COMPLETE; inspect onward.&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

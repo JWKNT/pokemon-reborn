@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mega_ring_preplan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mega_ring_preplan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Static Ring-quest cost report from explicitly named frozen files only.
+
+No controls, captures, current save/runtime/planner reads, or game mutations.
+Absent observed cage self-switches are unknown ownership, not proof of absence.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> hashlib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+ROOT = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+SOURCE = ROOT / <span class="hljs-string">&quot;work/mega-ring-installed-source.json&quot;</span>
+STATUS = ROOT / <span class="hljs-string">&quot;notes/Void-Hypno-won-128-status.json&quot;</span>
+NAV = ROOT / <span class="hljs-string">&quot;notes/Void-Hypno-won-128-navigation.json&quot;</span>
+CAGES = [(<span class="hljs-number">16</span>, <span class="hljs-string">&quot;VANILLITE&quot;</span>, <span class="hljs-string">&quot;PURPLESHARD&quot;</span>, <span class="hljs-number">3</span>, <span class="hljs-string">&quot;Eustace&quot;</span>),
+         (<span class="hljs-number">17</span>, <span class="hljs-string">&quot;LOUDRED&quot;</span>, <span class="hljs-string">&quot;BLUESHARD&quot;</span>, <span class="hljs-number">5</span>, <span class="hljs-string">&quot;Lillin&quot;</span>),
+         (<span class="hljs-number">18</span>, <span class="hljs-string">&quot;CYNDAQUIL&quot;</span>, <span class="hljs-string">&quot;REDSHARD&quot;</span>, <span class="hljs-number">9</span>, <span class="hljs-string">&quot;Sanford&quot;</span>),
+         (<span class="hljs-number">19</span>, <span class="hljs-string">&quot;LICKITUNG&quot;</span>, <span class="hljs-string">&quot;BLUESHARD&quot;</span>, <span class="hljs-number">7</span>, <span class="hljs-string">&quot;Myles&quot;</span>),
+         (<span class="hljs-number">20</span>, <span class="hljs-string">&quot;MAKUHITA&quot;</span>, <span class="hljs-string">&quot;GREENSHARD&quot;</span>, <span class="hljs-number">3</span>, <span class="hljs-string">&quot;Felicia&quot;</span>),
+         (<span class="hljs-number">21</span>, <span class="hljs-string">&quot;JIGGLYPUFF&quot;</span>, <span class="hljs-string">&quot;GREENSHARD&quot;</span>, <span class="hljs-number">5</span>, <span class="hljs-string">&quot;Santiago&quot;</span>),
+         (<span class="hljs-number">22</span>, <span class="hljs-string">&quot;ABRA&quot;</span>, <span class="hljs-string">&quot;PURPLESHARD&quot;</span>, <span class="hljs-number">8</span>, <span class="hljs-string">&quot;Arzelle&quot;</span>),
+         (<span class="hljs-number">23</span>, <span class="hljs-string">&quot;ROGGENROLA&quot;</span>, <span class="hljs-string">&quot;REDSHARD&quot;</span>, <span class="hljs-number">3</span>, <span class="hljs-string">&quot;Mr. McKrezzy&quot;</span>),
+         (<span class="hljs-number">24</span>, <span class="hljs-string">&quot;DITTO&quot;</span>, <span class="hljs-string">&quot;GREENSHARD&quot;</span>, <span class="hljs-number">8</span>, <span class="hljs-string">&quot;Sanford&quot;</span>)]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">report</span>():
+    source, status, nav = [json.loads(p.read_text()) <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> [SOURCE, STATUS, NAV]]
+    events = {(e[<span class="hljs-string">&quot;map&quot;</span>], e[<span class="hljs-string">&quot;id&quot;</span>]): e[<span class="hljs-string">&quot;event&quot;</span>] <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> source[<span class="hljs-string">&quot;events&quot;</span>]}
+    total = {s: <span class="hljs-number">0</span> <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;REDSHARD&quot;</span>, <span class="hljs-string">&quot;BLUESHARD&quot;</span>, <span class="hljs-string">&quot;GREENSHARD&quot;</span>, <span class="hljs-string">&quot;PURPLESHARD&quot;</span>]}
+    rows = []
+    <span class="hljs-keyword">for</span> eid, mon, shard, count, owner <span class="hljs-keyword">in</span> CAGES:
+        e = events[(<span class="hljs-number">324</span>, eid)]
+        commands = e[<span class="hljs-string">&quot;pages&quot;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&quot;list&quot;</span>]
+        <span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">355</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&quot;parameters&quot;</span>] ==
+                   [<span class="hljs-string">f&quot;$PokemonBag.pbDeleteItem(:<span class="hljs-subst">{shard}</span>,<span class="hljs-subst">{count}</span>)&quot;</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> commands)
+        <span class="hljs-keyword">assert</span> mon <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(commands) <span class="hljs-keyword">and</span> <span class="hljs-string">f&#x27;knownTrainer(&quot;<span class="hljs-subst">{owner}</span>&quot;)&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(commands)
+        observed = nav.get(<span class="hljs-string">&quot;self_switches&quot;</span>, {}).get(<span class="hljs-string">f&quot;324,<span class="hljs-subst">{eid}</span>,A&quot;</span>)
+        total[shard] += count
+        rows.append(<span class="hljs-built_in">dict</span>(event=eid, position=[e[<span class="hljs-string">&quot;x&quot;</span>],e[<span class="hljs-string">&quot;y&quot;</span>]], species=mon,
+                         shard=shard, cost=count, original_owner=owner,
+                         observed_purchased=<span class="hljs-literal">True</span> <span class="hljs-keyword">if</span> observed <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>))
+    stock = {s: status[<span class="hljs-string">&quot;bag&quot;</span>][<span class="hljs-string">&quot;contents&quot;</span>].get(s, <span class="hljs-number">0</span>) <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> total}
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">dict</span>(scope=<span class="hljs-string">&quot;Static plan, not a game action or current inventory query&quot;</span>,
+                frozen_binding={p.name:hashlib.sha256(p.read_bytes()).hexdigest()
+                                <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> [SOURCE, STATUS, NAV]},
+                cage_rows=rows, all_nine_cost=total, frozen_shards=stock,
+                worst_case_additional_shards={s:<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,total[s]-stock[s]) <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> total},
+                earlier_ditto_flag426=nav.get(<span class="hljs-string">&quot;switches&quot;</span>,{}).get(<span class="hljs-string">&quot;426&quot;</span>),
+                observed_quest_variable160=nav.get(<span class="hljs-string">&quot;variables&quot;</span>,{}).get(<span class="hljs-string">&quot;160&quot;</span>),
+                cage_ownership_caveat=<span class="hljs-string">&quot;Unmarked cages need ordinary visible event/PC inspection; mirror absence does not prove not owned.&quot;</span>,
+                mandatory_battles=[<span class="hljs-string">&quot;Santiago0&quot;</span>, <span class="hljs-string">&quot;Colin0+Matthew0 doubles&quot;</span>, <span class="hljs-string">&quot;Eustace0 singles immediately after doubles&quot;</span>],
+                optional_battle=<span class="hljs-string">&quot;McKrezzy0; autograph is given on the preceding page&quot;</span>,
+                required_returns=[<span class="hljs-string">&quot;Lillin Loudred&quot;</span>, <span class="hljs-string">&quot;Felicia Makuhita&quot;</span>, <span class="hljs-string">&quot;Mr. McKrezzy Roggenrola&quot;</span>, <span class="hljs-string">&quot;Lillin/Santiago Jigglypuff&quot;</span>, <span class="hljs-string">&quot;Eustace Vanillite&quot;</span>],
+                ring_reward=<span class="hljs-string">&quot;826E8p4, variable160&gt;=25 and switch479; normal reward sets160=26&quot;</span>)
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    <span class="hljs-built_in">print</span>(json.dumps(report(), indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

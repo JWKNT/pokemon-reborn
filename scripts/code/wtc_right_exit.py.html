@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>wtc_right_exit.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of wtc_right_exit.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Use Opal&#x27;s east exit, including the installed one-time Shade scene.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">497</span>)[<span class="hljs-number">0</span>]==<span class="hljs-number">497</span>
+state=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;276&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">26</span>,<span class="hljs-number">27</span>,<span class="hljs-number">28</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(n+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;276&#x27;</span>]==<span class="hljs-number">26</span>:
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;497&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],stderr=subprocess.DEVNULL))
+ cs=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-string">&#x27;19&#x27;</span>][<span class="hljs-string">&#x27;list&#x27;</span>]
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">122</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>]==[<span class="hljs-number">276</span>,<span class="hljs-number">276</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">27</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs)
+ run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">497</span>,<span class="hljs-number">21</span>,<span class="hljs-number">4</span>);act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+ run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">497</span>,<span class="hljs-number">19</span>,<span class="hljs-string">&#x27;--log-scripted-bgm&#x27;</span>)
+ <span class="hljs-keyword">assert</span> locate(<span class="hljs-number">497</span>)[<span class="hljs-number">0</span>]==<span class="hljs-number">497</span>
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;s=json.loads(p.read_text());s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;276&#x27;</span>]=<span class="hljs-number">27</span>;p.write_text(json.dumps(s))
+ <span class="hljs-comment"># The first touch plays Shade&#x27;s message and keeps us on the trigger tile.</span>
+ act(<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">497</span>,<span class="hljs-number">21</span>,<span class="hljs-number">4</span>)
+act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">467</span>)==(<span class="hljs-number">467</span>,<span class="hljs-number">13</span>,<span class="hljs-number">27</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;EAST BANK EXIT / SHADE STORY VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

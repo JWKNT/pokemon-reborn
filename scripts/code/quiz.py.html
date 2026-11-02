@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>quiz.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of quiz.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> loadmap
+x=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);answer=sys.argv[<span class="hljs-number">2</span>]
+r=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/go.py&#x27;</span>),<span class="hljs-built_in">str</span>(x),<span class="hljs-string">&#x27;4&#x27;</span>])
+<span class="hljs-keyword">if</span> r.returncode:<span class="hljs-keyword">raise</span> SystemExit(r.returncode)
+act(<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.8&#x27;</span>);txt=read();<span class="hljs-built_in">print</span>(txt,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;true&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> answer.lower():
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.5&#x27;</span>)
+ seq=[]
+ <span class="hljs-keyword">for</span> i,n <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(<span class="hljs-built_in">str</span>(<span class="hljs-built_in">int</span>(answer)).zfill(<span class="hljs-number">3</span>)[::-<span class="hljs-number">1</span>]):
+  <span class="hljs-keyword">if</span> i:seq.append(<span class="hljs-string">&#x27;left&#x27;</span>)
+  n=<span class="hljs-built_in">int</span>(n);seq += [<span class="hljs-string">&#x27;up&#x27;</span>]*n <span class="hljs-keyword">if</span> n&lt;=<span class="hljs-number">5</span> <span class="hljs-keyword">else</span> [<span class="hljs-string">&#x27;down&#x27;</span>]*(<span class="hljs-number">10</span>-n)
+ act(*seq,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.8&#x27;</span>)
+<span class="hljs-keyword">else</span>:act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.8&#x27;</span>)
+txt=read();<span class="hljs-built_in">print</span>(txt,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> answer.lower()==<span class="hljs-string">&#x27;true&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;true&#x27;</span> <span class="hljs-keyword">in</span> txt.lower() <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;false&#x27;</span> <span class="hljs-keyword">in</span> txt.lower() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;falze&#x27;</span> <span class="hljs-keyword">in</span> txt.lower()):
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.8&#x27;</span>);txt=read();<span class="hljs-built_in">print</span>(txt,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;correct&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> txt.lower() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;incorrect&#x27;</span> <span class="hljs-keyword">in</span> txt.lower():<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Quiz result needs review&#x27;</span>)
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.5&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

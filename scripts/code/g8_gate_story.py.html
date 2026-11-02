@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g8_gate_story.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g8_gate_story.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">stage</span>(<span class="hljs-params">n</span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;150&#x27;</span>]=n;p.write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">295</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;--active&#x27;</span>);stage(<span class="hljs-number">10</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;295,1,9,left,wait:2&#x27;</span>,<span class="hljs-string">&#x27;296,13,8,left,wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">296</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;--active&#x27;</span>);stage(<span class="hljs-number">11</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;296,9,8,left,wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">296</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;--active&#x27;</span>);stage(<span class="hljs-number">12</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">296</span>,<span class="hljs-number">11</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">296</span>,<span class="hljs-number">11</span>,<span class="hljs-string">&#x27;--active&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">302</span>)[<span class="hljs-number">0</span>]==<span class="hljs-number">302</span>
+run(<span class="hljs-string">&#x27;party_swap&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-number">3</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">302</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">302</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;--active&#x27;</span>);stage(<span class="hljs-number">13</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;302,10,41,down,wait:2&#x27;</span>)
+</code></pre>
+  </body>
+</html>

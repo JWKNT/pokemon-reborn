@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>save_info.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of save_info.rb"><code class="hljs language-ruby">require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+v=load_rgss(<span class="hljs-string">&#x27;/Users/jw/Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">vars</span>(<span class="hljs-params">v</span>)
+ v.instance_variables.to_h{|<span class="hljs-params">k</span>| a=v.instance_variable_get(k);[k, a.is_a?(<span class="hljs-title class_">Numeric</span>)|<span class="hljs-params"></span>|a.is_a?(<span class="hljs-title class_">String</span>)|<span class="hljs-params"></span>|a.is_a?(<span class="hljs-title class_">Symbol</span>)|<span class="hljs-params"></span>|a==<span class="hljs-literal">false</span>|<span class="hljs-params"></span>|a==<span class="hljs-literal">true</span> ? a : a.<span class="hljs-keyword">class</span>.name]}
+<span class="hljs-keyword">end</span>
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate({<span class="hljs-symbol">map_id:</span>v[<span class="hljs-symbol">:map_id</span>],<span class="hljs-symbol">position:</span>v[<span class="hljs-symbol">:position</span>],<span class="hljs-symbol">keys:</span>v.keys,<span class="hljs-symbol">map:</span>vars(v[<span class="hljs-symbol">:Map</span>]),<span class="hljs-symbol">player:</span>vars(v[<span class="hljs-symbol">:game_player</span>]),<span class="hljs-symbol">trainer:</span>vars(v[<span class="hljs-symbol">:Trainer</span>])})
+</code></pre>
+  </body>
+</html>

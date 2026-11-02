@@ -1,0 +1,460 @@
+{
+  "status": "Not obtained yet; preparation plan only",
+  "quest_source": "work/magikarp-installed-events.json",
+  "gift": "693 event16, level5 with random ordinary IVs; inspect owned saved specimen before EV decisions",
+  "moves": "Use one XL to evolve Magikarp at about28, then bulk level as Gyarados. Planned final moves Waterfall / Crunch / Dragon Dance / Outrage. Ice Fang27 would be missed on first evolution; not needed for this plan and do not silently assume learned. Set species-specific learning choices before bulk candy.",
+  "nature_speed": "Inspect actual IVs. Jolly252Speed goal; compare actual speed*2 with installed Scarf Garchomp before battle.",
+  "confusion_berry": "Persim Berry purchasable ordinary Department Store 2F map114 event2; no high-floor sticker gate needed. Not purchased yet.",
+  "lum_alternatives": "10F map7 event1 or North Aventurine289E82; not needed if only confusion cure wanted",
+  "berry_source": "work/180-berry-sources.json",
+  "department_transfers": [
+    {
+      "map": 112,
+      "event": 1,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        36,
+        59,
+        16
+      ]
+    },
+    {
+      "map": 112,
+      "event": 1,
+      "x": 9,
+      "y": 11,
+      "page": 1,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": true,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 479,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        520,
+        60,
+        16
+      ]
+    },
+    {
+      "map": 112,
+      "event": 6,
+      "x": 9,
+      "y": 4,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        113,
+        9,
+        10
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        425,
+        9,
+        3
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        6,
+        9,
+        5
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        7,
+        9,
+        5
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        5,
+        9,
+        5
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        4,
+        9,
+        5
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        3,
+        9,
+        5
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        2,
+        9,
+        5
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        1,
+        9,
+        5
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        183,
+        9,
+        5
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        141,
+        9,
+        5
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        114,
+        9,
+        5
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        112,
+        9,
+        5
+      ]
+    },
+    {
+      "map": 113,
+      "event": 2,
+      "x": 9,
+      "y": 11,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        112,
+        9,
+        5
+      ]
+    },
+    {
+      "map": 114,
+      "event": 6,
+      "x": 9,
+      "y": 4,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        113,
+        9,
+        10
+      ]
+    },
+    {
+      "map": 520,
+      "event": 101,
+      "x": 60,
+      "y": 15,
+      "page": 0,
+      "condition": {
+        "type": "RPG::Event::Page::Condition",
+        "switch1_valid": false,
+        "switch2_valid": false,
+        "variable_valid": false,
+        "self_switch_valid": false,
+        "switch1_id": 1,
+        "switch2_id": 1,
+        "variable_id": 1,
+        "variable_value": 0,
+        "self_switch_ch": "A"
+      },
+      "destination": [
+        112,
+        9,
+        10
+      ]
+    }
+  ],
+  "training": "IndraLv68 wins each5XL; railnet normal wild power-item EVs; no save or game modification",
+  "Coral_Surf_route": {
+    "observed_boarding": [
+      526,
+      27,
+      15,
+      "up"
+    ],
+    "failure": "Ground pier overlays water terrain; original planner mistook 35,15 for boarding and walked to lighthouse instead. Actual Surf prompt at27,15 facing up succeeded.",
+    "incidental_trainer": "526E10 Swimmer Aidan won, two Max Potions, Cofagrigus faint retained in recording180.",
+    "surface_planner_fix": "Surface graph discarded nav sightline weights; copied installed trainer-direction/range penalty into surface search. No gameplay-state modifications."
+  },
+  "Saphira_preliminary": "Obtain owned build before firm plan. Candidate Gigalith Stealth Rock followed by Gyarados setup against Noivern with limited X SpDef/healing; observe Defog, never assume hazards persist. +4 DD desirable to avoid Scarf speed and low-IV/nature issues; Crunch can finish Noivern before using Outrage vs Dragons. No claim of prepared win.",
+  "candy_plan": "Only4XL owned; use1XL on Magikarp and verify evolution (~Lv28). Then3XL on Gyarados reaches~45 and learns DD. After normal EV training, seven Indra wins provide35XL; calculate exact remaining candy from frozen EXP before final95 batch. Approx total36XL fromLv5, not35.",
+  "learning_plan": "Expected after evolution Splash/Tackle/Bite; Aqua Tail30 fills slot3. Reject Dragon Rage36 and Hydro Pump42. Crunch39 replacesBite slot2; DragonDance45 replacesAquaTail slot3. RejectHurricane48/RainDance51/HyperBeam54. TeachWaterfallslot0 andOutrageslot1 normally. Verify actual move order before committing menus.",
+  "gift_party_option": "Installed addPkmnToPartyOrPC offers to send one party member to PC directly. Choose Yes and observed Cofagrigus, preserving Surf/Fly carriers; avoids an extra PC trip. Verify normal prompt."
+}

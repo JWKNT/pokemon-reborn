@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>idyll318_southeast.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of idyll318_southeast.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Collect the source-reviewed southeast Shaymin using normal controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">878</span>,<span class="hljs-number">173</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+act(<span class="hljs-string">&#x27;wait:4&#x27;</span>)
+<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Idyll318-SEOrb&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">878</span>,<span class="hljs-number">189</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">878</span>,<span class="hljs-number">189</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">0</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Idyll318-Shaymin4&#x27;</span>)
+</code></pre>
+  </body>
+</html>

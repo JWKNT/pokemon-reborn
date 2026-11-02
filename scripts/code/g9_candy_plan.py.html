@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g9_candy_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g9_candy_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only calculation of candies needed to reach level65 from the latest save.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,re,math,pathlib
+root=pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+ruby=<span class="hljs-string">&quot;require_relative &#x27;scripts/read_rgss&#x27;; v=load_rgss(&#x27;/Users/jw/Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;); puts JSON.generate(v[:Trainer].instance_variable_get(:@party).map{|p|plain(p).slice(&#x27;species&#x27;,&#x27;name&#x27;,&#x27;level&#x27;,&#x27;exp&#x27;)})&quot;</span>
+party=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;-e&#x27;</span>,ruby],cwd=root,stderr=subprocess.DEVNULL))
+s=pathlib.Path(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Scripts/Reborn/montext.rb&#x27;</span>).read_text();out=[]
+<span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> party:
+ block=re.search(<span class="hljs-string">r&#x27;^  :&#x27;</span>+p[<span class="hljs-string">&#x27;species&#x27;</span>]+<span class="hljs-string">r&#x27; =&gt; \{[\s\S]*?(?=^  :|\Z)&#x27;</span>,s,re.M)[<span class="hljs-number">0</span>]
+ rate=re.search(<span class="hljs-string">r&#x27;:GrowthRate =&gt; :(\w+)&#x27;</span>,block)[<span class="hljs-number">1</span>];n=<span class="hljs-number">65</span>
+ goal={<span class="hljs-string">&#x27;MediumFast&#x27;</span>:n**<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;Slow&#x27;</span>:<span class="hljs-number">5</span>*n**<span class="hljs-number">3</span>//<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;MediumSlow&#x27;</span>:<span class="hljs-number">6</span>*n**<span class="hljs-number">3</span>//<span class="hljs-number">5</span>-<span class="hljs-number">15</span>*n*n+<span class="hljs-number">100</span>*n-<span class="hljs-number">140</span>}[rate]
+ out.append({<span class="hljs-string">&#x27;name&#x27;</span>:p[<span class="hljs-string">&#x27;name&#x27;</span>],<span class="hljs-string">&#x27;level&#x27;</span>:p[<span class="hljs-string">&#x27;level&#x27;</span>],<span class="hljs-string">&#x27;exp&#x27;</span>:p[<span class="hljs-string">&#x27;exp&#x27;</span>],<span class="hljs-string">&#x27;target_exp&#x27;</span>:goal,<span class="hljs-string">&#x27;candies&#x27;</span>:<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,math.ceil((goal-p[<span class="hljs-string">&#x27;exp&#x27;</span>])/<span class="hljs-number">10000</span>))})
+<span class="hljs-built_in">print</span>(json.dumps(out,indent=<span class="hljs-number">2</span>));<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Total&#x27;</span>,<span class="hljs-built_in">sum</span>(p[<span class="hljs-string">&#x27;candies&#x27;</span>] <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> out))
+(root/<span class="hljs-string">&#x27;work/g9-candy-plan.json&#x27;</span>).write_text(json.dumps(out,indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

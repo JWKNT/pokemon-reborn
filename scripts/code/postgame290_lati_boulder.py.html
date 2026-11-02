@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>postgame290_lati_boulder.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of postgame290_lati_boulder.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One ordinary leftward Strength push, checked against a frozen checkpoint.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">375</span>)==(<span class="hljs-number">375</span>,<span class="hljs-number">16</span>,<span class="hljs-number">32</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">375</span>,<span class="hljs-number">15</span>,<span class="hljs-number">32</span>)
+run(<span class="hljs-string">&#x27;party_open&#x27;</span>);run(<span class="hljs-string">&#x27;party_pick&#x27;</span>,<span class="hljs-string">&#x27;Volcanion&#x27;</span>,<span class="hljs-string">&#x27;--single&#x27;</span>)
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;strength&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;summary&#x27;</span> <span class="hljs-keyword">in</span> t,t
+act(<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=8&#x27;</span>);run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">375</span>)==(<span class="hljs-number">375</span>,<span class="hljs-number">15</span>,<span class="hljs-number">32</span>)
+act(<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.5&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Postgame290-BoulderOpen&#x27;</span>)
+v=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Postgame290-BoulderOpen-navigation.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> v[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;375&#x27;</span>][<span class="hljs-string">&#x27;1&#x27;</span>]==[<span class="hljs-number">12</span>,<span class="hljs-number">32</span>],v[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;375&#x27;</span>][<span class="hljs-string">&#x27;1&#x27;</span>]
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BOULDER SLID LEFT TO12,32; NORMAL INPUT VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

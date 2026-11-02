@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>amaria342_retry_enter.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of amaria342_retry_enter.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Capture the fresh Amaria retry roster, then enter its reviewed normal fight.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;major_attempt&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,R/<span class="hljs-string">&#x27;work/major-207.json&#x27;</span>,<span class="hljs-number">342</span>,<span class="hljs-string">&#x27;--status&#x27;</span>,R/<span class="hljs-string">&#x27;notes/Amaria342-Retry-status.json&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">850</span>,<span class="hljs-number">125</span>,<span class="hljs-string">&#x27;UMBAMARIA&#x27;</span>,<span class="hljs-string">&#x27;Amaria&#x27;</span>)
+run(<span class="hljs-string">&#x27;major_battle_intro&#x27;</span>,R/<span class="hljs-string">&#x27;work/major-207.json&#x27;</span>,<span class="hljs-number">342</span>)
+</code></pre>
+  </body>
+</html>

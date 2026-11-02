@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>emerald_public_position.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of emerald_public_position.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Estimate Emerald position from recorded pixels against the static rendered map.
+No process, memory or save access. Fractional values indicate mid-step frames.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> cv2,json,sys
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">position</span>(<span class="hljs-params">image_path=<span class="hljs-literal">None</span></span>):
+ im=cv2.imread(<span class="hljs-built_in">str</span>(image_path <span class="hljs-keyword">or</span> R/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>))
+ <span class="hljs-keyword">assert</span> im <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> im.shape[:<span class="hljs-number">2</span>]==(<span class="hljs-number">640</span>,<span class="hljs-number">852</span>)
+ im=cv2.resize(im,(<span class="hljs-number">512</span>,<span class="hljs-number">384</span>));mp=cv2.imread(<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;work/installed-map-805.png&#x27;</span>))
+ estimates=[]
+ <span class="hljs-keyword">for</span> x,y,w,h <span class="hljs-keyword">in</span> [(<span class="hljs-number">20</span>,<span class="hljs-number">180</span>,<span class="hljs-number">180</span>,<span class="hljs-number">170</span>),(<span class="hljs-number">315</span>,<span class="hljs-number">180</span>,<span class="hljs-number">170</span>,<span class="hljs-number">170</span>),(<span class="hljs-number">20</span>,<span class="hljs-number">35</span>,<span class="hljs-number">175</span>,<span class="hljs-number">130</span>)]:
+  res=cv2.matchTemplate(mp,im[y:y+h,x:x+w],cv2.TM_CCOEFF_NORMED);_,score,_,(mx,my)=cv2.minMaxLoc(res)
+  estimates.append({<span class="hljs-string">&#x27;score&#x27;</span>:<span class="hljs-built_in">round</span>(score,<span class="hljs-number">4</span>),<span class="hljs-string">&#x27;x&#x27;</span>:(mx-x+<span class="hljs-number">256</span>)/<span class="hljs-number">32</span>-<span class="hljs-number">.5</span>,<span class="hljs-string">&#x27;y&#x27;</span>:(my-y+<span class="hljs-number">192</span>)/<span class="hljs-number">32</span>-<span class="hljs-number">.5</span>})
+ estimates.sort(key=<span class="hljs-keyword">lambda</span> d:d[<span class="hljs-string">&#x27;score&#x27;</span>],reverse=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">return</span> estimates
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:<span class="hljs-built_in">print</span>(json.dumps(position(sys.argv[<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>)))
+</code></pre>
+  </body>
+</html>

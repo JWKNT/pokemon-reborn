@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>tapu303_gateprep.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of tapu303_gateprep.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finish reviewed gate arrival, lead terrain setter, save normally.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,sys,subprocess
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;112&#x27;</span>)
+<span class="hljs-keyword">for</span> n,a <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,[<span class="hljs-number">855</span>,<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>]),(<span class="hljs-string">&#x27;party_front&#x27;</span>,[<span class="hljs-string">&#x27;Fennekin&#x27;</span>]),(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,[<span class="hljs-string">&#x27;Lele303-Gate&#x27;</span>])]:
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;GATE PREP&#x27;</span>,n,a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

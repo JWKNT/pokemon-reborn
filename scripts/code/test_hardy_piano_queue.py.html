@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_hardy_piano_queue.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_hardy_piano_queue.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure installed-source/synthetic UI tests. No actual game input/capture.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">from</span> datetime <span class="hljs-keyword">import</span> datetime,timezone
+<span class="hljs-keyword">import</span> unittest
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">from</span> hardy_piano_queue <span class="hljs-keyword">import</span> (GAME,TARGETS,YS,group_keys,preflight,source_proof,tile_asset,tile_score)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">frozen</span>():
+    status={<span class="hljs-string">&#x27;map&#x27;</span>:<span class="hljs-number">739</span>,<span class="hljs-string">&#x27;save_mtime&#x27;</span>:datetime.fromtimestamp(<span class="hljs-number">1000</span>,timezone.utc).isoformat(),
+            <span class="hljs-string">&#x27;party&#x27;</span>:[{<span class="hljs-string">&#x27;moves&#x27;</span>:[{<span class="hljs-string">&#x27;move&#x27;</span>:<span class="hljs-string">&#x27;ROCKCLIMB&#x27;</span>}]}]+[{<span class="hljs-string">&#x27;moves&#x27;</span>:[]} <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>)]}
+    nav={<span class="hljs-string">&#x27;switches&#x27;</span>:{<span class="hljs-string">&#x27;1022&#x27;</span>:<span class="hljs-literal">False</span>},<span class="hljs-string">&#x27;variables&#x27;</span>:{<span class="hljs-string">&#x27;391&#x27;</span>:<span class="hljs-number">51</span>},
+         <span class="hljs-string">&#x27;self_switches&#x27;</span>:{<span class="hljs-string">f&#x27;739,<span class="hljs-subst">{eid}</span>,A&#x27;</span>:<span class="hljs-literal">True</span> <span class="hljs-keyword">for</span> eid <span class="hljs-keyword">in</span> [<span class="hljs-number">22</span>,<span class="hljs-number">35</span>,<span class="hljs-number">36</span>]},
+         <span class="hljs-string">&#x27;positions&#x27;</span>:{<span class="hljs-string">&#x27;739&#x27;</span>:{<span class="hljs-built_in">str</span>(<span class="hljs-number">23</span>+i):[<span class="hljs-number">14</span>,y] <span class="hljs-keyword">for</span> i,y <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(YS)}}}
+    <span class="hljs-keyword">return</span> status,nav
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Tests</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_installed_source</span>(<span class="hljs-params">self</span>):
+        proof=source_proof()
+        <span class="hljs-variable language_">self</span>.assertEqual([e[<span class="hljs-string">&#x27;target&#x27;</span>][<span class="hljs-number">0</span>] <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> proof[<span class="hljs-string">&#x27;tuners&#x27;</span>]],[<span class="hljs-number">17</span>,<span class="hljs-number">19</span>,<span class="hljs-number">21</span>,<span class="hljs-number">16</span>,<span class="hljs-number">16</span>,<span class="hljs-number">14</span>,<span class="hljs-number">15</span>,<span class="hljs-number">15</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(proof[<span class="hljs-string">&#x27;climb&#x27;</span>],[<span class="hljs-number">739</span>,<span class="hljs-number">5</span>,<span class="hljs-number">46</span>,<span class="hljs-number">5</span>,<span class="hljs-number">8</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(proof[<span class="hljs-string">&#x27;open_door&#x27;</span>],[<span class="hljs-number">739</span>,<span class="hljs-number">11</span>,<span class="hljs-number">4</span>,<span class="hljs-number">740</span>,<span class="hljs-number">9</span>,<span class="hljs-number">21</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_fresh_initial_only</span>(<span class="hljs-params">self</span>):
+        status,nav=frozen();preflight(status,nav,now=<span class="hljs-number">1001</span>)
+        <span class="hljs-keyword">for</span> mutate <span class="hljs-keyword">in</span> [<span class="hljs-keyword">lambda</span> s,n:n[<span class="hljs-string">&#x27;self_switches&#x27;</span>].update({<span class="hljs-string">&#x27;739,36,A&#x27;</span>:<span class="hljs-literal">False</span>}),
+                       <span class="hljs-keyword">lambda</span> s,n:n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;739&#x27;</span>].update({<span class="hljs-string">&#x27;23&#x27;</span>:[<span class="hljs-number">15</span>,<span class="hljs-number">45</span>]}),
+                       <span class="hljs-keyword">lambda</span> s,n:n[<span class="hljs-string">&#x27;switches&#x27;</span>].update({<span class="hljs-string">&#x27;1022&#x27;</span>:<span class="hljs-literal">True</span>}),
+                       <span class="hljs-keyword">lambda</span> s,n:s.update({<span class="hljs-string">&#x27;map&#x27;</span>:<span class="hljs-number">740</span>})]:
+            s,n=copy.deepcopy((status,nav));mutate(s,n)
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s,n,now=<span class="hljs-number">1001</span>)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(status,nav,now=<span class="hljs-number">1121</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_exact_group_adjacency</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> TARGETS:
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> n:<span class="hljs-keyword">continue</span>
+            player,tuner=<span class="hljs-number">13</span>,<span class="hljs-number">14</span>
+            <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> group_keys(n):
+                <span class="hljs-keyword">if</span> k.startswith(<span class="hljs-string">&#x27;c:&#x27;</span>):
+                    <span class="hljs-variable language_">self</span>.assertEqual(player+<span class="hljs-number">1</span>,tuner);tuner+=<span class="hljs-number">1</span>
+                <span class="hljs-keyword">elif</span> k.startswith(<span class="hljs-string">&#x27;right:&#x27;</span>):player+=<span class="hljs-number">1</span>
+            <span class="hljs-variable language_">self</span>.assertEqual((player,tuner),(<span class="hljs-number">13</span>+n,<span class="hljs-number">14</span>+n))
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):group_keys(<span class="hljs-number">0</span>)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):group_keys(<span class="hljs-number">8</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_saved_prefix_resume</span>(<span class="hljs-params">self</span>):
+        status,nav=frozen()
+        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>):
+            nav[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;739&#x27;</span>][<span class="hljs-built_in">str</span>(<span class="hljs-number">23</span>+i)]=[<span class="hljs-number">14</span>+TARGETS[i],YS[i]]
+            nav.setdefault(<span class="hljs-string">&#x27;variables&#x27;</span>,{})[<span class="hljs-built_in">str</span>(<span class="hljs-number">441</span>+i)]=TARGETS[i]
+        preflight(status,nav,now=<span class="hljs-number">1001</span>,start_tuner=<span class="hljs-number">3</span>)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(status,nav,now=<span class="hljs-number">1001</span>)
+        wrong=copy.deepcopy(nav);wrong[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;443&#x27;</span>]=<span class="hljs-number">6</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(status,wrong,now=<span class="hljs-number">1001</span>,start_tuner=<span class="hljs-number">3</span>)
+        wrong=copy.deepcopy(nav);wrong[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;739&#x27;</span>][<span class="hljs-string">&#x27;26&#x27;</span>]=[<span class="hljs-number">15</span>,<span class="hljs-number">33</span>]
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(status,wrong,now=<span class="hljs-number">1001</span>,start_tuner=<span class="hljs-number">3</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_rendered_actual_tuner_relative_square</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">for</span> scale <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>]:
+            image=Image.new(<span class="hljs-string">&#x27;RGB&#x27;</span>,(<span class="hljs-number">512</span>*scale,<span class="hljs-number">384</span>*scale),<span class="hljs-string">&#x27;white&#x27;</span>);tile=tile_asset(<span class="hljs-number">604</span>)
+            side=<span class="hljs-number">32</span>*scale
+            <span class="hljs-comment"># Actual player13,45 at foot256,224; tuner14,45 is one tile east.</span>
+            left,top=<span class="hljs-number">272</span>*scale,<span class="hljs-number">192</span>*scale
+            image.paste(tile.resize((side,side),Image.Resampling.NEAREST).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>),(left,top))
+            score=tile_score(image,tile,(<span class="hljs-number">256</span>*scale,<span class="hljs-number">224</span>*scale),(<span class="hljs-number">13</span>,<span class="hljs-number">45</span>),(<span class="hljs-number">14</span>,<span class="hljs-number">45</span>),scale)
+            <span class="hljs-variable language_">self</span>.assertEqual(score[<span class="hljs-string">&#x27;score&#x27;</span>],<span class="hljs-number">1</span>)
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):tile_score(image,tile,(<span class="hljs-number">256</span>*scale,<span class="hljs-number">224</span>*scale),(<span class="hljs-number">13</span>,<span class="hljs-number">45</span>),(<span class="hljs-number">15</span>,<span class="hljs-number">45</span>),scale)
+            image.paste(<span class="hljs-string">&#x27;white&#x27;</span>,(left,top,left+side,top+side))
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):tile_score(image,tile,(<span class="hljs-number">256</span>*scale,<span class="hljs-number">224</span>*scale),(<span class="hljs-number">13</span>,<span class="hljs-number">45</span>),(<span class="hljs-number">14</span>,<span class="hljs-number">45</span>),scale)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_open_door_template_and_bounds</span>(<span class="hljs-params">self</span>):
+        tile=tile_asset(<span class="hljs-number">573</span>);image=Image.new(<span class="hljs-string">&#x27;RGB&#x27;</span>,(<span class="hljs-number">512</span>,<span class="hljs-number">384</span>),<span class="hljs-string">&#x27;white&#x27;</span>)
+        image.paste(tile.convert(<span class="hljs-string">&#x27;RGB&#x27;</span>),(<span class="hljs-number">240</span>,<span class="hljs-number">160</span>))
+        <span class="hljs-variable language_">self</span>.assertEqual(tile_score(image,tile,(<span class="hljs-number">256</span>,<span class="hljs-number">224</span>),(<span class="hljs-number">11</span>,<span class="hljs-number">5</span>),(<span class="hljs-number">11</span>,<span class="hljs-number">4</span>),<span class="hljs-number">1</span>)[<span class="hljs-string">&#x27;score&#x27;</span>],<span class="hljs-number">1</span>)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):tile_score(image,tile,(<span class="hljs-number">0</span>,<span class="hljs-number">0</span>),(<span class="hljs-number">11</span>,<span class="hljs-number">5</span>),(<span class="hljs-number">11</span>,<span class="hljs-number">4</span>),<span class="hljs-number">1</span>)
+        <span class="hljs-comment"># The closed map paints573 below594: the opaque event573 must cover the</span>
+        <span class="hljs-comment"># actual bars before we credit1022. Underlying573 alone is not enough.</span>
+        sheet=Image.<span class="hljs-built_in">open</span>(GAME/<span class="hljs-string">&#x27;Graphics/Tilesets/Agate Gym.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>)
+        n=<span class="hljs-number">594</span>;x=(n-<span class="hljs-number">384</span>)%<span class="hljs-number">8</span>*<span class="hljs-number">32</span>;y=(n-<span class="hljs-number">384</span>)//<span class="hljs-number">8</span>*<span class="hljs-number">32</span>
+        closed=sheet.crop((x,y,x+<span class="hljs-number">32</span>,y+<span class="hljs-number">32</span>));image.paste(closed,(<span class="hljs-number">240</span>,<span class="hljs-number">160</span>),closed)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):tile_score(image,tile,(<span class="hljs-number">256</span>,<span class="hljs-number">224</span>),(<span class="hljs-number">11</span>,<span class="hljs-number">5</span>),(<span class="hljs-number">11</span>,<span class="hljs-number">4</span>),<span class="hljs-number">1</span>)
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:unittest.main()
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>tier251_source.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of tier251_source.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Read-only installed quest event index.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+root=<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data/&#x27;</span>
+out=[]
+<span class="hljs-title class_">Dir</span>.glob(root+<span class="hljs-string">&#x27;Map*.rxdata&#x27;</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">path</span>|
+ <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> <span class="hljs-title class_">File</span>.basename(path)=~<span class="hljs-regexp">/Map(\d+)\.rxdata/</span>
+ id=<span class="hljs-variable">$1</span>.to_i
+ m=load_rgss(path)
+ m.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">eid,e</span>|
+  pages=e.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@pages</span>)
+  text=<span class="hljs-variable constant_">JSON</span>.generate(plain(pages))
+  <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> text.match?(<span class="hljs-regexp">/Cobalion|Tornadus|Thundurus|Landorus/</span>) |<span class="hljs-params"></span>| pages.any?{|<span class="hljs-params">p</span>| c=p.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@condition</span>); c.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@variable_valid</span>)&amp;&amp;[<span class="hljs-number">586</span>,<span class="hljs-number">589</span>].<span class="hljs-keyword">include</span>?(c.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@variable_id</span>))}
+  out &lt;&lt; {<span class="hljs-symbol">map:</span>id,<span class="hljs-symbol">event:</span>eid,<span class="hljs-symbol">data:</span>plain(e)}
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+<span class="hljs-title class_">File</span>.write(<span class="hljs-string">&#x27;work/251-quest-source.json&#x27;</span>,<span class="hljs-variable constant_">JSON</span>.pretty_generate(out))
+puts out.map{|<span class="hljs-params">e</span>|[e[<span class="hljs-symbol">:map</span>],e[<span class="hljs-symbol">:event</span>],e[<span class="hljs-symbol">:data</span>][<span class="hljs-string">&#x27;name&#x27;</span>],e[<span class="hljs-symbol">:data</span>][<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-symbol">:data</span>][<span class="hljs-string">&#x27;y&#x27;</span>]].inspect}
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>prisma_mirror_push.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of prisma_mirror_push.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Push a reviewed Citae Prisma mirror using normal keys and public pixel proofs.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,sys,json,subprocess,time
+os.environ.setdefault(<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>);os.environ.setdefault(<span class="hljs-string">&#x27;REBORN_COORD_CACHE&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>);os.environ.setdefault(<span class="hljs-string">&#x27;REBORN_ROUTE_STEP_PAUSE&#x27;</span>,<span class="hljs-string">&#x27;.10&#x27;</span>)
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,act,snap,NATIVE
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> sprite_match <span class="hljs-keyword">import</span> <span class="hljs-keyword">match</span>
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np
+eid=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);direction=sys.argv[<span class="hljs-number">2</span>];count=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">3</span>]);<span class="hljs-keyword">assert</span> eid <span class="hljs-keyword">in</span> [<span class="hljs-number">73</span>,<span class="hljs-number">74</span>,<span class="hljs-number">75</span>,<span class="hljs-number">95</span>] <span class="hljs-keyword">and</span> <span class="hljs-number">1</span>&lt;=count&lt;=<span class="hljs-number">12</span>
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;896&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],stderr=subprocess.DEVNULL));e=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)]
+<span class="hljs-keyword">assert</span> e[<span class="hljs-string">&#x27;character&#x27;</span>]==<span class="hljs-string">&#x27;mirrorpanel&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">209</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]==<span class="hljs-number">0</span> <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>])
+xy=(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]);dx,dy={<span class="hljs-string">&#x27;up&#x27;</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;down&#x27;</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;left&#x27;</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;right&#x27;</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)}[direction]
+sheet=Image.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Graphics/Characters/mirrorpanel.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>);row=(e[<span class="hljs-string">&#x27;direction&#x27;</span>]//<span class="hljs-number">2</span>-<span class="hljs-number">1</span>)*<span class="hljs-number">64</span>
+tile=sheet.crop((<span class="hljs-number">0</span>,row,<span class="hljs-number">32</span>,row+<span class="hljs-number">64</span>)).resize((<span class="hljs-number">128</span>,<span class="hljs-number">256</span>),Image.Resampling.NEAREST)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">proof</span>(<span class="hljs-params">player,block</span>):
+ <span class="hljs-comment"># Pixel matching needs a fresh recorded frame, not OCR of the entire screen.</span>
+ <span class="hljs-comment"># Preserve the same calibrated canvas and refuse a stale recorder preview.</span>
+ requested=time.time()
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">40</span>):
+  health=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+  <span class="hljs-keyword">if</span> health.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">and</span> health.get(<span class="hljs-string">&#x27;preview_epoch&#x27;</span>,<span class="hljs-number">0</span>)&gt;=requested <span class="hljs-keyword">and</span> time.time()-health[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;<span class="hljs-number">2</span>:<span class="hljs-keyword">break</span>
+  time.sleep(<span class="hljs-number">.1</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Fresh recorded mirror frame unavailable&#x27;</span>)
+ preview=Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+ <span class="hljs-keyword">assert</span> preview.size==(<span class="hljs-number">852</span>,<span class="hljs-number">640</span>)
+ im=Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;work/capture-preview-frame-template.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+ <span class="hljs-keyword">assert</span> im.size==(<span class="hljs-number">2272</span>,<span class="hljs-number">1816</span>)
+ im.paste(preview.resize((<span class="hljs-number">2048</span>,<span class="hljs-number">1536</span>)),(<span class="hljs-number">112</span>,<span class="hljs-number">134</span>))
+ <span class="hljs-comment"># This board is far from every map edge. Installed Game_Player.center and</span>
+ <span class="hljs-comment"># Game_Character.screen_y_ground place the tile foot at this fixed point in</span>
+ <span class="hljs-comment"># the 2048x1536 public canvas. Unlike sprite matching this remains valid when</span>
+ <span class="hljs-comment"># a tall mirror occludes the player. Calibrated directly against mirror74.</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-number">16</span>&lt;=player[<span class="hljs-number">0</span>]&lt;=<span class="hljs-number">29</span> <span class="hljs-keyword">and</span> <span class="hljs-number">58</span>&lt;=player[<span class="hljs-number">1</span>]&lt;=<span class="hljs-number">69</span>
+ foot=[<span class="hljs-number">1136</span>,<span class="hljs-number">966</span>]
+ left=<span class="hljs-built_in">round</span>(foot[<span class="hljs-number">0</span>]+(block[<span class="hljs-number">0</span>]-player[<span class="hljs-number">0</span>])*<span class="hljs-number">128</span>-<span class="hljs-number">64</span>);top=<span class="hljs-built_in">round</span>(foot[<span class="hljs-number">1</span>]+(block[<span class="hljs-number">1</span>]-player[<span class="hljs-number">1</span>])*<span class="hljs-number">128</span>-<span class="hljs-number">256</span>)
+ target=np.array(tile);mask=target[:,:,<span class="hljs-number">3</span>]&gt;<span class="hljs-number">250</span>
+ <span class="hljs-comment"># Top half of tall mirror remains exposed while pushing from the south.</span>
+ <span class="hljs-keyword">if</span> player[<span class="hljs-number">0</span>]==block[<span class="hljs-number">0</span>] <span class="hljs-keyword">and</span> player[<span class="hljs-number">1</span>]==block[<span class="hljs-number">1</span>]-<span class="hljs-number">1</span>:
+  mask[:<span class="hljs-number">128</span>,:]=<span class="hljs-literal">False</span>
+  <span class="hljs-comment"># A stored shadow is drawn over the plate&#x27;s outer border when the real</span>
+  <span class="hljs-comment"># mirror is still on its return tile. Match its unobscured interior.</span>
+  mask[:,:<span class="hljs-number">8</span>]=<span class="hljs-literal">False</span>;mask[:,-<span class="hljs-number">8</span>:]=<span class="hljs-literal">False</span>;mask[-<span class="hljs-number">8</span>:,:]=<span class="hljs-literal">False</span>
+ <span class="hljs-keyword">else</span>:
+  mask[<span class="hljs-number">128</span>:,:]=<span class="hljs-literal">False</span>
+ scores=[]
+ <span class="hljs-keyword">for</span> oy <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(-<span class="hljs-number">6</span>,<span class="hljs-number">7</span>,<span class="hljs-number">2</span>):
+  <span class="hljs-keyword">for</span> ox <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(-<span class="hljs-number">6</span>,<span class="hljs-number">7</span>,<span class="hljs-number">2</span>):
+   aa=np.array(im.crop((left+ox,top+oy,left+<span class="hljs-number">128</span>+ox,top+<span class="hljs-number">256</span>+oy)))[mask].astype(<span class="hljs-built_in">float</span>).ravel()
+   bb=target[:,:,:<span class="hljs-number">3</span>][mask].astype(<span class="hljs-built_in">float</span>).ravel();scores.append(<span class="hljs-built_in">float</span>(np.corrcoef(aa,bb)[<span class="hljs-number">0</span>,<span class="hljs-number">1</span>]))
+ score=<span class="hljs-built_in">max</span>(scores)
+ <span class="hljs-keyword">with</span> (ROOT/<span class="hljs-string">&#x27;work/prisma-public-pushes.jsonl&#x27;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>) <span class="hljs-keyword">as</span> f:f.write(json.dumps(<span class="hljs-built_in">dict</span>(epoch=time.time(),preview_epoch=health[<span class="hljs-string">&#x27;preview_epoch&#x27;</span>],event=eid,player=player,mirror=block,score=score))+<span class="hljs-string">&#x27;\n&#x27;</span>)
+ <span class="hljs-keyword">assert</span> score&gt;<span class="hljs-number">.82</span>,(<span class="hljs-string">&#x27;Mirror public-pixel review&#x27;</span>,block,score)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VISIBLE MIRROR VERIFIED&#x27;</span>,eid,block,<span class="hljs-built_in">round</span>(score,<span class="hljs-number">4</span>),flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(count):
+ before=(xy[<span class="hljs-number">0</span>]-dx,xy[<span class="hljs-number">1</span>]-dy)
+ <span class="hljs-keyword">if</span> i==<span class="hljs-number">0</span>:
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">f&#x27;896,<span class="hljs-subst">{before[<span class="hljs-number">0</span>]}</span>,<span class="hljs-subst">{before[<span class="hljs-number">1</span>]}</span>&#x27;</span>],check=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">assert</span> locate(<span class="hljs-number">896</span>)==(<span class="hljs-number">896</span>,*before)
+ <span class="hljs-keyword">else</span>:
+  act(direction+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+ act(direction+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>);proof(before,xy)
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>);after=(xy[<span class="hljs-number">0</span>]+dx,xy[<span class="hljs-number">1</span>]+dy);proof(before,after)
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;n=json.loads(p.read_text());n.setdefault(<span class="hljs-string">&#x27;positions&#x27;</span>,{}).setdefault(<span class="hljs-string">&#x27;896&#x27;</span>,{})[<span class="hljs-built_in">str</span>(eid)]=<span class="hljs-built_in">list</span>(after);p.write_text(json.dumps(n));xy=after
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MIRROR PUSH GROUP VERIFIED&#x27;</span>,eid,xy,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

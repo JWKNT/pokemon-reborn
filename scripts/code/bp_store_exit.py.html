@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>bp_store_exit.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of bp_store_exit.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">8</span>):
+ t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;what would you like today&#x27;</span> <span class="hljs-keyword">in</span> t.lower():act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);<span class="hljs-built_in">print</span>(read());<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> t.lower()<span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;obtained&#x27;</span>,<span class="hljs-string">&#x27;obrtained&#x27;</span>,<span class="hljs-string">&#x27;aster put&#x27;</span>,<span class="hljs-string">&#x27;anything else&#x27;</span>,<span class="hljs-string">&#x27;you have&#x27;</span>]):
+  act(<span class="hljs-string">&#x27;wait:.7&#x27;</span>);t=read()
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> t.lower()<span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;obtained&#x27;</span>,<span class="hljs-string">&#x27;obrtained&#x27;</span>,<span class="hljs-string">&#x27;aster put&#x27;</span>,<span class="hljs-string">&#x27;anything else&#x27;</span>,<span class="hljs-string">&#x27;you have&#x27;</span>]),t
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Store exit review&#x27;</span>)
+</code></pre>
+  </body>
+</html>

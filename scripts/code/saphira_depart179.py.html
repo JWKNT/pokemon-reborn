@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>saphira_depart179.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of saphira_depart179.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal reload and reviewed tournament exit for reserve preparation.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ e=<span class="hljs-built_in">dict</span>(os.environ,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>);e.pop(<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>,<span class="hljs-literal">None</span>)
+ <span class="hljs-keyword">if</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;eventq&#x27;</span>]:e[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>,env=e)
+run(<span class="hljs-string">&#x27;play&#x27;</span>,<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:3&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Saphira179-preparation-departure&#x27;</span>)
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act,read
+p=R/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>;c=json.loads(p.read_text())
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> c.get(<span class="hljs-string">&#x27;overworld_turbo_enabled&#x27;</span>)
+<span class="hljs-comment"># Clear any remembered battle speed using two normal world toggles.</span>
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(x <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;pp:&#x27;</span>,<span class="hljs-string">&#x27;choose a pok&#x27;</span>])
+act(<span class="hljs-string">&#x27;m:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.35&#x27;</span>,<span class="hljs-string">&#x27;m:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.35&#x27;</span>)
+c.update(battle_turbo_enabled=<span class="hljs-literal">False</span>,battle_turbo=<span class="hljs-literal">False</span>,active_major=<span class="hljs-literal">None</span>,session=<span class="hljs-number">179</span>,recording_session=<span class="hljs-number">179</span>,recording_closed_session=<span class="hljs-number">178</span>,recording_active=<span class="hljs-literal">True</span>,recording_paused=<span class="hljs-literal">False</span>,capture_current=<span class="hljs-string">&#x27;179 active;178 closed for review&#x27;</span>);p.write_text(json.dumps(c,indent=<span class="hljs-number">2</span>))
+<span class="hljs-keyword">for</span> mid,eid <span class="hljs-keyword">in</span> [(<span class="hljs-number">780</span>,<span class="hljs-number">1</span>),(<span class="hljs-number">778</span>,<span class="hljs-number">21</span>),(<span class="hljs-number">778</span>,<span class="hljs-number">2</span>),(<span class="hljs-number">777</span>,<span class="hljs-number">36</span>),(<span class="hljs-number">777</span>,<span class="hljs-number">8</span>),(<span class="hljs-number">777</span>,<span class="hljs-number">1</span>),(<span class="hljs-number">776</span>,<span class="hljs-number">51</span>),(<span class="hljs-number">776</span>,<span class="hljs-number">7</span>),(<span class="hljs-number">776</span>,<span class="hljs-number">1</span>),(<span class="hljs-number">768</span>,<span class="hljs-number">101</span>),(<span class="hljs-number">768</span>,<span class="hljs-number">112</span>),(<span class="hljs-number">414</span>,<span class="hljs-number">22</span>)]:run(<span class="hljs-string">&#x27;eventq&#x27;</span>,mid,eid,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">772</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;pc_open_reviewed&#x27;</span>)
+run(<span class="hljs-string">&#x27;pc_exchange_named&#x27;</span>,<span class="hljs-number">12</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>,<span class="hljs-string">&#x27;Excadrill&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">772</span>,<span class="hljs-number">8</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Saphira179-GrandHall-preparation&#x27;</span>)
+</code></pre>
+  </body>
+</html>

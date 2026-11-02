@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_nonmega_saphira_review.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_nonmega_saphira_review.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Small meaningful pure fixtures for the relevant installed damage mechanics.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> unittest
+<span class="hljs-keyword">from</span> fractions <span class="hljs-keyword">import</span> Fraction <span class="hljs-keyword">as</span> F
+<span class="hljs-keyword">from</span> nonmega_saphira_review <span class="hljs-keyword">import</span> calc, stage, build_report
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Mechanics</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_critical_keeps_attack_boost_but_drops_defense_boost</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.assertEqual(stage(<span class="hljs-number">278</span>,<span class="hljs-number">1</span>,critical=<span class="hljs-literal">True</span>),<span class="hljs-number">417</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(stage(<span class="hljs-number">243</span>,<span class="hljs-number">6</span>,critical=<span class="hljs-literal">True</span>,defensive=<span class="hljs-literal">True</span>),<span class="hljs-number">243</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_av_remains_fractional_and_survives_critical</span>(<span class="hljs-params">self</span>):
+        plain=calc(<span class="hljs-number">95</span>,<span class="hljs-number">85</span>,<span class="hljs-number">278</span>,<span class="hljs-number">243</span>,attack_stage=<span class="hljs-number">1</span>,field_multiplier=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),critical=<span class="hljs-literal">True</span>)
+        vest=calc(<span class="hljs-number">95</span>,<span class="hljs-number">85</span>,<span class="hljs-number">278</span>,<span class="hljs-number">243</span>,attack_stage=<span class="hljs-number">1</span>,defense_multiplier=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),field_multiplier=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),critical=<span class="hljs-literal">True</span>)
+        <span class="hljs-variable language_">self</span>.assertGreater(plain[<span class="hljs-number">1</span>],<span class="hljs-number">363</span>)
+        <span class="hljs-variable language_">self</span>.assertLess(vest[<span class="hljs-number">1</span>],<span class="hljs-number">363</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_field_type_boost_is_after_core_plus_two</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.assertEqual(calc(<span class="hljs-number">95</span>,<span class="hljs-number">85</span>,<span class="hljs-number">417</span>,F(<span class="hljs-number">729</span>,<span class="hljs-number">2</span>),field_multiplier=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>),stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>)),[<span class="hljs-number">151</span>,<span class="hljs-number">178</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_sash_and_scarf_branches</span>(<span class="hljs-params">self</span>):
+        r=build_report()
+        <span class="hljs-variable language_">self</span>.assertTrue(r[<span class="hljs-string">&#x27;outgoing_plus6&#x27;</span>][<span class="hljs-string">&#x27;SALAMENCE&#x27;</span>][<span class="hljs-string">&#x27;sash&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertGreater(r[<span class="hljs-string">&#x27;outgoing_plus6&#x27;</span>][<span class="hljs-string">&#x27;GARCHOMP&#x27;</span>][<span class="hljs-string">&#x27;damage&#x27;</span>][<span class="hljs-number">0</span>],r[<span class="hljs-string">&#x27;foes&#x27;</span>][<span class="hljs-string">&#x27;GARCHOMP&#x27;</span>][<span class="hljs-number">0</span>])
+        <span class="hljs-variable language_">self</span>.assertGreater(r[<span class="hljs-string">&#x27;speed_plus6&#x27;</span>],r[<span class="hljs-string">&#x27;foes&#x27;</span>][<span class="hljs-string">&#x27;CHARIZARD&#x27;</span>][<span class="hljs-number">5</span>]*<span class="hljs-number">2</span>)
+        <span class="hljs-variable language_">self</span>.assertGreater(r[<span class="hljs-string">&#x27;physical_incoming&#x27;</span>][<span class="hljs-string">&#x27;HAXORUS:DRAGONCLAW&#x27;</span>][<span class="hljs-string">&#x27;2&#x27;</span>][<span class="hljs-string">&#x27;critical_bypasses_def&#x27;</span>][<span class="hljs-number">0</span>],r[<span class="hljs-string">&#x27;proposed_swamp&#x27;</span>][<span class="hljs-number">0</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_impish_survives_base_sash_crit_but_not_prior_dd</span>(<span class="hljs-params">self</span>):
+        r=build_report(nature=<span class="hljs-string">&#x27;IMPISH&#x27;</span>,ev=[<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">100</span>,<span class="hljs-number">0</span>,<span class="hljs-number">52</span>,<span class="hljs-number">104</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(r[<span class="hljs-string">&#x27;proposed_swamp&#x27;</span>],[<span class="hljs-number">363</span>,<span class="hljs-number">242</span>,<span class="hljs-number">232</span>,<span class="hljs-number">155</span>,<span class="hljs-number">197</span>,<span class="hljs-number">160</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(r[<span class="hljs-string">&#x27;noivern_incoming&#x27;</span>][<span class="hljs-string">&#x27;DRAGONPULSE&#x27;</span>][<span class="hljs-string">&#x27;critical_even_at_plus6_spdef&#x27;</span>],[<span class="hljs-number">278</span>,<span class="hljs-number">327</span>])
+        <span class="hljs-keyword">for</span> species <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;SALAMENCE&#x27;</span>,<span class="hljs-string">&#x27;HAXORUS&#x27;</span>):
+            rows=r[<span class="hljs-string">&#x27;physical_incoming&#x27;</span>][species+<span class="hljs-string">&#x27;:DRAGONCLAW&#x27;</span>]
+            <span class="hljs-variable language_">self</span>.assertLess(rows[<span class="hljs-string">&#x27;0&#x27;</span>][<span class="hljs-string">&#x27;critical_bypasses_def&#x27;</span>][<span class="hljs-number">1</span>],<span class="hljs-number">363</span>)
+            <span class="hljs-variable language_">self</span>.assertGreater(rows[<span class="hljs-string">&#x27;2&#x27;</span>][<span class="hljs-string">&#x27;critical_bypasses_def&#x27;</span>][<span class="hljs-number">0</span>],<span class="hljs-number">363</span>)
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:
+    unittest.main()
+</code></pre>
+  </body>
+</html>

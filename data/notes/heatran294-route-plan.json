@@ -1,0 +1,19 @@
+{
+  "quest": 631,
+  "accepted": true,
+  "map_connections": [
+    "387\u2192433 south: y36\u21920",
+    "433\u2192434 south:y20\u21920",
+    "434 Dive\u2192436",
+    "436\u2192435 north:y0\u219219",
+    "435\u2192400 north:y0\u219235",
+    "400 E2\u2192401",
+    "401 surface\u2192388",
+    "388 E4\u2192870"
+  ],
+  "moves": "Swampert Dive/RockClimb/Surf/RockSmash; teach Strength after surfacing and restore Bulldoze before battle",
+  "media293": "journey and both majors verified, sources cleaned",
+  "checkpoint": "Heatran294-LowerIce",
+  "core_notes": "The boulder event stays on the opposite map half in observed saves: cold BrothersReady x107, hot Hot2 x17. Do not assume its position from the displayed half. Crystal progress is monotone. Use freshly saved navigation positions for each phase.",
+  "dialog_fix": "Count consecutive blank observations only; old total blank count caused premature stops during longer scenes."
+}

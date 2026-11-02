@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Source-reviewed proposal; not yet attempted">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="saphira182-cave-proposal.json">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/saphira182-cave-proposal.json.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/saphira182-cave-proposal.json.html">
+    <title>saphira182-cave-proposal.json · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">saphira182-cave-proposal.json</h1>
+        <p class="task-meta">JSON · 2.4 KB · <a href="/pokemon-reborn/reasoning/23/">Task 23</a> · first used Oct 5 14:47</p>
+      </header>
+      <article class="note-body" data-fragment>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="Contents of saphira182-cave-proposal.json"><code class="hljs language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;status&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Source-reviewed proposal; not yet attempted&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;field_change&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Dragon Den field counter increases1 per Surf; &gt;1 transforms to Cave. Swampert already owns Surf slot3. Verify actual field change message and backdrop.&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;sources&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-string">&quot;Scripts/Reborn/fieldtext.rb:1876&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;Scripts/Battle_Field.rb:953&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;Scripts/Battle_Field.rb:587&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;Scripts/Battle_Move.rb:559&quot;</span>
+  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;benefits&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-string">&quot;Removes Dragon and Fire1.5, Water/Ice0.5, Dragon defenses1.3 and special Dragonite Multiscale weakness neutralization&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;Dragon Dance returns to ordinary+1 Attack/Speed. Cave Rock1.5 helps Gigalith.&quot;</span>
+  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;cave_risk&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Every second qualifying Earthquake/Bulldoze/Magnitude/Fissure/Z quake causes ceiling collapse, dealing total HP to most active Pokemon including flyers. Sturdy subtracts1 from total-HP damage, not a guarantee if already injured. Count observed falling-rock/ceiling text; do not spam Ground moves. Enemy quakes also count.&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;candidate_opening&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Healthy Swampert lead: X SpDef before attack, Surf once, Max Potion if needed, Surf again. Need actual damage calc before commitment. Then Sylveon can absorb Dragon Pulse and finish Noivern. Set Stealth Rock with Gigalith AFTER Noivern is gone; adapt to actual Mence setup.&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Gyarados&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Brave planned252Attack252Speed gives about198Speed at95; three ordinary Cave Dragon Dances reach495, above installed Scarf Garchomp about486. Two doubled dances in DragonDen give+4 and594. Always use current field.&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;rejected_assumptions&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-string">&quot;Do not assume Crunch+4 OHKOs untouched Noivern in DragonDen with1.3 defenses.&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;Dragonite Multiscale in DragonDen also neutralizes Dragon weakness, not just a simple half-damage calculation.&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;Do not predict AI stays Choice-locked without switching; only public moves/state.&quot;</span>
+  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;epoch&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1791226035.772316</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;damage_estimates&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;notes/saphira182-explicit-damage-estimates.json&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;alternative_gyarados_setup&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Consider preserving Dragon Den and three doubled Dragon Dances for +6 Attack/+6 Speed (792Speed), outspeeding a single doubled DD from sash Salamence/Haxorus. +6 Outrage still needs two hits on full Multiscale Dragonite. With Persim and Full Heals, monitor confusion between Outrage locks. X SpDef boosts help ordinary Noivern damage but crit bypasses them; heal based on observed HP. No assumption of Stealth Rock surviving Defog. Evaluate actual trained stats and supplies before a bounded attempt.&quot;</span>
+<span class="hljs-punctuation">}</span></code></pre>
+      </article>
+    </main>
+  </body>
+</html>

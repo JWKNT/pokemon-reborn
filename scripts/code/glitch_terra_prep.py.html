@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glitch_terra_prep.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glitch_terra_prep.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Heal after Mewtwo and stop at Terra&#x27;s reviewed prebattle position.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">assert</span> locate()[<span class="hljs-number">0</span>]==<span class="hljs-number">454</span>
+rc=subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-string">&#x27;454&#x27;</span>,<span class="hljs-string">&#x27;2&#x27;</span>,<span class="hljs-string">&#x27;talk&#x27;</span>])
+<span class="hljs-keyword">if</span> rc <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;cinder&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> read().lower():<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Cinder gate interruption needs review&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">454</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate()[<span class="hljs-number">0</span>]==<span class="hljs-number">454</span>
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;193&#x27;</span>]=<span class="hljs-number">42</span>;p.write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">454</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">454</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>);run(<span class="hljs-string">&#x27;mark_event&#x27;</span>,<span class="hljs-number">454</span>,<span class="hljs-number">6</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">454</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);<span class="hljs-keyword">assert</span> locate()[<span class="hljs-number">0</span>]==<span class="hljs-number">456</span>
+run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>);run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;456,9,6&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Mewtwo-won-Terra-prepared&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TERRA PREPARATION VERIFIED; safe pause before interaction&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

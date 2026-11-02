@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>battle_turn.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of battle_turn.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Choose one reviewed move, then await the next public decision screen.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+root = Path(__file__).resolve().parent
+args = sys.argv[<span class="hljs-number">1</span>:]
+<span class="hljs-keyword">assert</span> args <span class="hljs-keyword">and</span> args[<span class="hljs-number">0</span>] <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;0&#x27;</span>, <span class="hljs-string">&#x27;1&#x27;</span>, <span class="hljs-string">&#x27;2&#x27;</span>, <span class="hljs-string">&#x27;3&#x27;</span>)
+move = subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(root / <span class="hljs-string">&#x27;battle_move.py&#x27;</span>), *args, <span class="hljs-string">&#x27;--watch&#x27;</span>])
+<span class="hljs-keyword">if</span> move.returncode:
+    <span class="hljs-keyword">raise</span> SystemExit(move.returncode)
+<span class="hljs-keyword">raise</span> SystemExit(subprocess.call([sys.executable, <span class="hljs-built_in">str</span>(root / <span class="hljs-string">&#x27;battle_ready.py&#x27;</span>)]))
+</code></pre>
+  </body>
+</html>

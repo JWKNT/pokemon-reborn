@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>find_static_lightclay.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of find_static_lightclay.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Installed item events only; never load game state or modify game data.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+r=[]
+<span class="hljs-title class_">Dir</span>.glob(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data/Map[0-9][0-9][0-9].rxdata&#x27;</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">path</span>|
+ <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> <span class="hljs-title class_">File</span>.binread(path).<span class="hljs-keyword">include</span>?(<span class="hljs-string">&#x27;LIGHTCLAY&#x27;</span>)
+ m=load_rgss(path);m.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">id,e</span>|
+  p=plain(e);<span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> <span class="hljs-variable constant_">JSON</span>.generate(p).<span class="hljs-keyword">include</span>?(<span class="hljs-string">&#x27;LIGHTCLAY&#x27;</span>)
+  r &lt;&lt; {<span class="hljs-symbol">map:</span><span class="hljs-title class_">File</span>.basename(path)[<span class="hljs-number">3</span>,<span class="hljs-number">3</span>].to_i,<span class="hljs-symbol">event:</span>id,<span class="hljs-symbol">data:</span>p}
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(r)
+</code></pre>
+  </body>
+</html>

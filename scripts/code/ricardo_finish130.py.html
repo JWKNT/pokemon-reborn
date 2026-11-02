@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ricardo_finish130.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ricardo_finish130.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Final reviewed Speed boost, heal, own stats proof and guaranteed five-Hex sweep.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,re,subprocess,sys,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+v=json.loads((ROOT/<span class="hljs-string">&#x27;work/ricardo-speed2.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> v[<span class="hljs-string">&#x27;error&#x27;</span>]==<span class="hljs-string">&#x27;ValueError: Capture restarted; stop and inspect, never repeat pending action&#x27;</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(<span class="hljs-string">&#x27;Speed rose sharply&#x27;</span> <span class="hljs-keyword">in</span> line <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;literal_message_candidates&#x27;</span>] <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> c[<span class="hljs-string">&#x27;lines&#x27;</span>])
+<span class="hljs-keyword">for</span> label,item,threshold <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;speed3&#x27;</span>,<span class="hljs-string">&#x27;X Speed&#x27;</span>,<span class="hljs-number">93</span>),(<span class="hljs-string">&#x27;heal&#x27;</span>,<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,<span class="hljs-number">1</span>)]:
+ out=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/(<span class="hljs-string">&#x27;ricardo-final-&#x27;</span>+label+<span class="hljs-string">&#x27;.json&#x27;</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/agate_public_action.py&#x27;</span>),<span class="hljs-string">&#x27;--execute&#x27;</span>,<span class="hljs-string">&#x27;--mode&#x27;</span>,<span class="hljs-string">&#x27;ricardo&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-built_in">str</span>(threshold),<span class="hljs-string">&#x27;--item&#x27;</span>,item,<span class="hljs-string">&#x27;--output&#x27;</span>,<span class="hljs-built_in">str</span>(out)],check=<span class="hljs-literal">True</span>)
+ r=json.loads(out.read_text());<span class="hljs-keyword">assert</span> r[<span class="hljs-string">&#x27;final_classification&#x27;</span>]==<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>
+<span class="hljs-keyword">assert</span> r[<span class="hljs-string">&#x27;final_hp_proof&#x27;</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]&gt;=<span class="hljs-number">76</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read,act,snap
+<span class="hljs-keyword">from</span> agate_public_action <span class="hljs-keyword">import</span> inspection_guard,command_guard
+act(<span class="hljs-string">&#x27;q:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>);rows=snap();proof=inspection_guard(rows)
+text=proof[<span class="hljs-string">&#x27;inspection_text&#x27;</span>];<span class="hljs-keyword">assert</span> re.search(<span class="hljs-string">r&#x27;Sp[. ]?Attack\s*:\s*840\b&#x27;</span>,text,re.I),text
+<span class="hljs-keyword">assert</span> re.search(<span class="hljs-string">r&#x27;Speed\s*:\s*272\b&#x27;</span>,text,re.I),text
+<span class="hljs-keyword">assert</span> proof[<span class="hljs-string">&#x27;hp&#x27;</span>]&gt;=<span class="hljs-number">76</span>
+(ROOT/<span class="hljs-string">&#x27;work/ricardo-presweep-own-stats.json&#x27;</span>).write_text(json.dumps({<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;public_rows&#x27;</span>:rows,<span class="hljs-string">&#x27;proof&#x27;</span>:proof},indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>);rows=snap();command_guard(rows,[<span class="hljs-string">&#x27;Slurpuff&#x27;</span>],<span class="hljs-string">&#x27;ricardo&#x27;</span>,captured_at=time.time(),now=time.time())
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_batch.py&#x27;</span>),<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Slurpuff,Minior,Scolipede,Aggron,Blaziken&#x27;</span>,<span class="hljs-string">&#x27;--stay-team-reviewed&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-string">&#x27;5&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.30&#x27;</span>,<span class="hljs-string">&#x27;--stop-after-victory&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

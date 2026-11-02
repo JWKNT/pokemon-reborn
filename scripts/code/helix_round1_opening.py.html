@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>helix_round1_opening.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of helix_round1_opening.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Four reviewed opening turns, using public menus and existing input guards.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+
+journal = json.loads((ROOT / <span class="hljs-string">&#x27;notes/active-league-chain.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> journal[<span class="hljs-string">&#x27;kind&#x27;</span>] == <span class="hljs-string">&#x27;helix&#x27;</span> <span class="hljs-keyword">and</span> journal[<span class="hljs-string">&#x27;status&#x27;</span>] == <span class="hljs-string">&#x27;active&#x27;</span>
+<span class="hljs-keyword">assert</span> journal[<span class="hljs-string">&#x27;rounds&#x27;</span>] == [], <span class="hljs-string">&#x27;Only the first round opening is approved&#x27;</span>
+receipt = ROOT / <span class="hljs-string">&#x27;notes&#x27;</span> / (journal[<span class="hljs-string">&#x27;run_id&#x27;</span>] + <span class="hljs-string">&#x27;-opening.json&#x27;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> receipt.exists(), <span class="hljs-string">&#x27;Opening already started; inspect its receipt and resume manually&#x27;</span>
+progress = <span class="hljs-built_in">dict</span>(run_id=journal[<span class="hljs-string">&#x27;run_id&#x27;</span>], started_epoch=time.time(), completed_turns=[])
+receipt.write_text(json.dumps(progress, indent=<span class="hljs-number">2</span>) + <span class="hljs-string">&#x27;\n&#x27;</span>)
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">command</span>(<span class="hljs-params">actor</span>):
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)], check=<span class="hljs-literal">True</span>)
+    rows = snap()
+    text = <span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows).lower()
+    compact = re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, text)
+    expected = re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, actor.lower())
+    <span class="hljs-keyword">if</span> actor == <span class="hljs-string">&#x27;Meowstic&#x27;</span>:
+        compact = compact.replace(<span class="hljs-string">&#x27;meoustic&#x27;</span>, <span class="hljs-string">&#x27;meowstic&#x27;</span>)
+    <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> expected <span class="hljs-keyword">in</span> compact, <span class="hljs-string">&#x27;Opening actor/menu changed: &#x27;</span> + text
+    <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> text <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fainted&#x27;</span>, <span class="hljs-string">&#x27;choose a pok&#x27;</span>, <span class="hljs-string">&#x27;defeated&#x27;</span>]), text
+
+steps = [
+    (<span class="hljs-string">&#x27;Meowstic&#x27;</span>, <span class="hljs-string">&#x27;battle_move&#x27;</span>, <span class="hljs-string">&#x27;1&#x27;</span>, <span class="hljs-string">&#x27;--watch&#x27;</span>),
+    (<span class="hljs-string">&#x27;Meowstic&#x27;</span>, <span class="hljs-string">&#x27;battle_switch&#x27;</span>, <span class="hljs-string">&#x27;Magearna&#x27;</span>),
+    (<span class="hljs-string">&#x27;Magearna&#x27;</span>, <span class="hljs-string">&#x27;battle_item&#x27;</span>, <span class="hljs-string">&#x27;X Defend&#x27;</span>, <span class="hljs-string">&#x27;Magearna&#x27;</span>),
+    (<span class="hljs-string">&#x27;Magearna&#x27;</span>, <span class="hljs-string">&#x27;battle_move&#x27;</span>, <span class="hljs-string">&#x27;3&#x27;</span>, <span class="hljs-string">&#x27;--watch&#x27;</span>),
+]
+<span class="hljs-keyword">for</span> turn, (actor, helper, *args) <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(steps, <span class="hljs-number">1</span>):
+    command(actor)
+    <span class="hljs-keyword">if</span> turn == <span class="hljs-number">1</span>:
+        text = read().lower()
+        <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;ninetales&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;glaceon&#x27;</span> <span class="hljs-keyword">in</span> text, <span class="hljs-string">&#x27;Initial opponents changed&#x27;</span>
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;HELIX OPENING TURN&#x27;</span>, turn, helper, *args, flush=<span class="hljs-literal">True</span>)
+    progress[<span class="hljs-string">&#x27;pending_turn&#x27;</span>] = turn
+    receipt.write_text(json.dumps(progress, indent=<span class="hljs-number">2</span>) + <span class="hljs-string">&#x27;\n&#x27;</span>)
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&#x27;scripts&#x27;</span> / (helper + <span class="hljs-string">&#x27;.py&#x27;</span>)), *args], check=<span class="hljs-literal">True</span>)
+    progress[<span class="hljs-string">&#x27;completed_turns&#x27;</span>].append(turn)
+    progress[<span class="hljs-string">&#x27;pending_turn&#x27;</span>] = <span class="hljs-literal">None</span>
+    receipt.write_text(json.dumps(progress, indent=<span class="hljs-number">2</span>) + <span class="hljs-string">&#x27;\n&#x27;</span>)
+command(<span class="hljs-string">&#x27;Magearna&#x27;</span>)
+progress[<span class="hljs-string">&#x27;finished_epoch&#x27;</span>] = time.time()
+receipt.write_text(json.dumps(progress, indent=<span class="hljs-number">2</span>) + <span class="hljs-string">&#x27;\n&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OPENING COMPLETE; review the current opposing lineup before attacking&#x27;</span>, flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>league202_candy_rounds.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of league202_candy_rounds.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded normal Indra wins; verify each five-candy reward in a native save.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+ <span class="hljs-keyword">if</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-string">&#x27;q&#x27;</span>]:env.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;112&#x27;</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>,env=env)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">saved</span>(<span class="hljs-params">label</span>):<span class="hljs-keyword">return</span> json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text())
+start,count=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]);<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=start&lt;=<span class="hljs-number">10</span> <span class="hljs-keyword">and</span> <span class="hljs-number">1</span>&lt;=count&lt;=<span class="hljs-number">3</span>
+previous=sys.argv[<span class="hljs-number">3</span>]
+prefix=sys.argv[<span class="hljs-number">4</span>] <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">4</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Prep203&#x27;</span>
+plan=Path(sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--plan&#x27;</span>)+<span class="hljs-number">1</span>]) <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--plan&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> R/<span class="hljs-string">&#x27;work/session202-indra-plan.json&#x27;</span>
+st=saved(previous);<span class="hljs-keyword">assert</span> st[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">355</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(m[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Arcanine&#x27;</span> <span class="hljs-keyword">and</span> m[<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;move&#x27;</span>]==<span class="hljs-string">&#x27;FLAMETHROWER&#x27;</span> <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>])
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(m[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Swampert&#x27;</span> <span class="hljs-keyword">and</span> m[<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;move&#x27;</span>]==<span class="hljs-string">&#x27;WATERFALL&#x27;</span> <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>])
+<span class="hljs-keyword">for</span> matchup <span class="hljs-keyword">in</span> json.loads(plan.read_text())[<span class="hljs-string">&#x27;foes&#x27;</span>].values():
+ mon=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;name&#x27;</span>]==matchup[<span class="hljs-string">&#x27;actor&#x27;</span>])
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;move&#x27;</span> <span class="hljs-keyword">in</span> matchup:<span class="hljs-keyword">assert</span> mon[<span class="hljs-string">&#x27;moves&#x27;</span>][matchup[<span class="hljs-string">&#x27;slot&#x27;</span>]][<span class="hljs-string">&#x27;move&#x27;</span>]==matchup[<span class="hljs-string">&#x27;move&#x27;</span>],matchup
+control_path=R/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>
+control=json.loads(control_path.read_text());control.update(stop=<span class="hljs-literal">False</span>,expected_foes=<span class="hljs-built_in">list</span>(json.loads(plan.read_text())[<span class="hljs-string">&#x27;foes&#x27;</span>]));control_path.write_text(json.dumps(control))
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(start,start+count):
+ before=saved(previous)[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>].get(<span class="hljs-string">&#x27;EXPCANDYXL&#x27;</span>,<span class="hljs-number">0</span>)
+ run(<span class="hljs-string">&#x27;saphira_indra_candy&#x27;</span>,<span class="hljs-string">&#x27;--turbo&#x27;</span>,<span class="hljs-string">&#x27;--plan&#x27;</span>,plan)
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">118</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;heal&#x27;</span>)
+ previous=<span class="hljs-string">f&#x27;<span class="hljs-subst">{prefix}</span>-Indra-<span class="hljs-subst">{i}</span>&#x27;</span>
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,previous)
+ after=saved(previous)[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>].get(<span class="hljs-string">&#x27;EXPCANDYXL&#x27;</span>,<span class="hljs-number">0</span>)
+ <span class="hljs-keyword">assert</span> after==before+<span class="hljs-number">5</span>,(before,after)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NORMAL CANDY REWARD VERIFIED&#x27;</span>,i,after,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

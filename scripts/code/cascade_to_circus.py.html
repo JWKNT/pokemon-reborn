@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>cascade_to_circus.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of cascade_to_circus.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed Cascade / Route2 elevator return and nurse, normal UI controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+stage=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>])<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(n+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">1</span>:run(<span class="hljs-string">&#x27;surface_event&#x27;</span>,<span class="hljs-number">359</span>,<span class="hljs-number">47</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">2</span>:
+ g=<span class="hljs-built_in">int</span>(json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text()).get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;410&#x27;</span>,<span class="hljs-literal">False</span>))
+ run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>,<span class="hljs-number">360</span>,<span class="hljs-number">40</span>,<span class="hljs-number">13</span>,g,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--hold-straights&#x27;</span>);act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>);<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">358</span>)==(<span class="hljs-number">358</span>,<span class="hljs-number">40</span>,<span class="hljs-number">65</span>)
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;s=json.loads(p.read_text());s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;410&#x27;</span>]=<span class="hljs-literal">True</span>;p.write_text(json.dumps(s))
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">3</span>:run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>,<span class="hljs-number">358</span>,<span class="hljs-number">54</span>,<span class="hljs-number">61</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--hold-straights&#x27;</span>);act(<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>);<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">365</span>)==(<span class="hljs-number">365</span>,<span class="hljs-number">4</span>,<span class="hljs-number">63</span>)
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">4</span>:
+ run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;365,10,61,up:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,8,48,up:.03,c,wait:1&#x27;</span>)
+ run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Agate Circus|Route 2&#x27;</span>,<span class="hljs-string">&#x27;Agate Circus&#x27;</span>);act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;s=json.loads(p.read_text());s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;74&#x27;</span>]=<span class="hljs-number">0</span>;p.write_text(json.dumps(s))
+ run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;365,9,51,down:.12,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,15,35,right:.12,wait:2&#x27;</span>)
+ <span class="hljs-keyword">assert</span> locate(<span class="hljs-number">355</span>)[<span class="hljs-number">0</span>]==<span class="hljs-number">355</span>
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">118</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;heal&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CIRCUS RETURN / FREE NURSE HEAL VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

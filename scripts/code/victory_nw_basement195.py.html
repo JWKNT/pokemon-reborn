@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_nw_basement195.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_nw_basement195.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal northwest descent and healthy escape lead; verify then begin rail.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,sys,json,subprocess
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>];env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/name),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>,env=env)
+n=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1119&#x27;</span>]
+run(<span class="hljs-string">&#x27;hazard_retry.py&#x27;</span>,<span class="hljs-string">&#x27;victory_hazard_interact_fast.py&#x27;</span>,<span class="hljs-number">126</span>,<span class="hljs-string">&#x27;NW195-basement-entry&#x27;</span>)
+s=json.loads((R/<span class="hljs-string">&#x27;notes/NW195-basement-entry-status.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">786</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;position&#x27;</span>]==[<span class="hljs-number">69</span>,<span class="hljs-number">21</span>]
+run(<span class="hljs-string">&#x27;overworld.py&#x27;</span>);run(<span class="hljs-string">&#x27;field_medicine.py&#x27;</span>,<span class="hljs-string">&#x27;Max Potion&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>);run(<span class="hljs-string">&#x27;overworld.py&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;NW195-basement-ready&#x27;</span>);run(<span class="hljs-string">&#x27;party_open.py&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NW BASEMENT READY; NORMAL SAVE VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

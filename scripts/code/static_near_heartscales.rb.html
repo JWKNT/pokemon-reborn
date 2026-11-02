@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>static_near_heartscales.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of static_near_heartscales.rb"><code class="hljs language-ruby">require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+r=[]
+[<span class="hljs-number">355</span>,<span class="hljs-number">519</span>,<span class="hljs-number">520</span>,<span class="hljs-number">521</span>,<span class="hljs-number">523</span>,<span class="hljs-number">524</span>,<span class="hljs-number">530</span>,<span class="hljs-number">531</span>,<span class="hljs-number">168</span>,<span class="hljs-number">324</span>,<span class="hljs-number">325</span>,<span class="hljs-number">178</span>,<span class="hljs-number">179</span>,<span class="hljs-number">412</span>].each <span class="hljs-keyword">do</span> |<span class="hljs-params">mid</span>|
+ m=load_rgss(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data/Map%03d.rxdata&#x27;</span>%mid)
+ m.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">id,e</span>|
+  p=plain(e);p[<span class="hljs-string">&#x27;pages&#x27;</span>].each_with_index <span class="hljs-keyword">do</span> |<span class="hljs-params">pg,i</span>|
+   pg[<span class="hljs-string">&#x27;list&#x27;</span>].each <span class="hljs-keyword">do</span> |<span class="hljs-params">c</span>|
+    <span class="hljs-keyword">next</span> <span class="hljs-keyword">unless</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">111</span> &amp;&amp; c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]==<span class="hljs-number">12</span> &amp;&amp; c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>].match?(<span class="hljs-regexp">/pbItemBall\(:HEARTSCALE/</span>)
+    r &lt;&lt; {<span class="hljs-symbol">map:</span>mid,<span class="hljs-symbol">event:</span>id,<span class="hljs-symbol">x:</span>p[<span class="hljs-string">&#x27;x&#x27;</span>],<span class="hljs-symbol">y:</span>p[<span class="hljs-string">&#x27;y&#x27;</span>],<span class="hljs-symbol">page:</span>i,<span class="hljs-symbol">script:</span>c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>]}
+   <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">end</span>
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+v=load_rgss(<span class="hljs-string">&#x27;/Users/jw/Documents/ChatGPT/Reborn/backups/Aster-League218-LightClay.rxdata&#x27;</span>);ss=v[<span class="hljs-symbol">:self_switches</span>].instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@data</span>)
+r.each{|<span class="hljs-params">e</span>|e[<span class="hljs-symbol">:collected</span>]=!!ss[[e[<span class="hljs-symbol">:map</span>],e[<span class="hljs-symbol">:event</span>],<span class="hljs-string">&#x27;A&#x27;</span>]]}
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(r)
+</code></pre>
+  </body>
+</html>

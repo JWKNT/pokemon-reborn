@@ -1,0 +1,26 @@
+{
+  "team": [
+    "Cryogonal",
+    "Swampert",
+    "Cresselia",
+    "Zapdos",
+    "Mawile",
+    "Cofagrigus"
+  ],
+  "candies_XL": {
+    "Cresselia": 14,
+    "Zapdos": 14,
+    "Swampert": 12,
+    "Hexan": 9,
+    "Cofagrigus": 8,
+    "Mawile": 4
+  },
+  "moves": [
+    "Zapdos ThunderWave3/Fly0",
+    "Mawile FalseSwipe3",
+    "Cofagrigus DarkPulse1"
+  ],
+  "strategy": "Cryogonal screens; Mawile IronHead for Aromatisse; Cofagrigus immune to Ursaring Facade/CloseCombat and handles Fling once, then Curse. Cresselia bulky recovery/Psychic for Vileplume. Swampert Waterfall for Camerupt/Entei; Zapdos Discharge for Primarina. Preserve Zapdos and Mawile for immediate Entei capture. Adjust to public battle evidence; no hidden live reads.",
+  "opening": "Cryogonal Light Screen then Reflect against Aromatisse; switch Mawile, Mega Iron Head twice through Sash. Screens protect switching/support. Stop for unexpected NastyPlot stacks/HP.",
+  "matchups": "Ursaring: Cofagrigus Curse then Dark Pulse under Reflect, immune Facade/CloseCombat, Fling once. Vileplume: Cresselia Psychic/Moonlight. Camerupt: Swampert Waterfall. Primarina: reset Light Screen with Cryogonal before Zapdos, FreezeDry chip. Entei: Swampert Waterfall; keep catchers healthy."
+}

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>devon_walk.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of devon_walk.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Plan and execute safe Devon floor crossings with the actual radio color.
+Reads public map pages. Writes only navigation notes after observed normal inputs.
+Conveyor/spinner events are excluded until their movement has been reviewed.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate,capture_ready
+<span class="hljs-keyword">import</span> copy,argparse
+<span class="hljs-keyword">from</span> devon_terrain <span class="hljs-keyword">import</span> terrain_conveyors
+p=argparse.ArgumentParser();p.add_argument(<span class="hljs-string">&#x27;map&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;y&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;--color&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,choices=[<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>]);p.add_argument(<span class="hljs-string">&#x27;--go&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;--from&#x27;</span>,dest=<span class="hljs-string">&#x27;origin&#x27;</span>,nargs=<span class="hljs-number">2</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;--conveyors&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>,<span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;Follow inspected single-cardinal conveyor chains; spinners remain blocked&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;--planning-overrides&#x27;</span>,<span class="hljs-built_in">type</span>=json.loads,<span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;Read-only hypothetical state for dry route planning&#x27;</span>);a=p.parse_args()
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> (a.go <span class="hljs-keyword">and</span> a.planning_overrides),<span class="hljs-string">&#x27;Hypothetical overrides are only for read-only plans&#x27;</span>
+statepath=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;state=json.loads(statepath.read_text());color=a.color <span class="hljs-keyword">or</span> state[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-string">&#x27;342&#x27;</span>);<span class="hljs-keyword">assert</span> color <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>]
+<span class="hljs-keyword">if</span> a.go:m,x,y=locate(a.<span class="hljs-built_in">map</span>);<span class="hljs-keyword">assert</span> m==a.<span class="hljs-built_in">map</span>
+<span class="hljs-keyword">else</span>:
+ m=a.<span class="hljs-built_in">map</span>;x,y=a.origin <span class="hljs-keyword">or</span> (<span class="hljs-number">12</span>,<span class="hljs-number">10</span>)
+models={};graphs={};physicalgraphs={};hazards={};arrows={}
+<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>]:
+ extra=copy.deepcopy(a.planning_overrides <span class="hljs-keyword">or</span> {});extra.setdefault(<span class="hljs-string">&#x27;variables&#x27;</span>,{})[<span class="hljs-string">&#x27;342&#x27;</span>]=c
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(m),<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y),json.dumps(extra)],stderr=subprocess.DEVNULL));models[c]=v
+ arrows[c]=terrain_conveyors(v) <span class="hljs-keyword">if</span> a.conveyors <span class="hljs-keyword">else</span> {}
+ <span class="hljs-keyword">for</span> i,e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items():
+  cs=e[<span class="hljs-string">&#x27;list&#x27;</span>];danger=<span class="hljs-built_in">any</span>(<span class="hljs-string">&#x27;pbFieldDamage&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(z[<span class="hljs-string">&#x27;parameters&#x27;</span>])<span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> cs)
+  routes=[z[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>] <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> cs <span class="hljs-keyword">if</span> z[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">209</span> <span class="hljs-keyword">and</span> z[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]==-<span class="hljs-number">1</span>]
+  forced=<span class="hljs-built_in">bool</span>(routes)
+  reviewed=<span class="hljs-literal">False</span>
+  <span class="hljs-keyword">if</span> routes <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(<span class="hljs-built_in">all</span>(z[<span class="hljs-string">&#x27;code&#x27;</span>]<span class="hljs-keyword">in</span>[<span class="hljs-number">0</span>,<span class="hljs-number">29</span>,<span class="hljs-number">31</span>,<span class="hljs-number">32</span>,<span class="hljs-number">35</span>,<span class="hljs-number">36</span>]<span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> r[<span class="hljs-string">&#x27;list&#x27;</span>])<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> routes):
+   reviewed=<span class="hljs-literal">True</span>  <span class="hljs-comment"># Native animation/speed restoration, no forced movement.</span>
+  <span class="hljs-keyword">if</span> a.conveyors <span class="hljs-keyword">and</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(routes)==<span class="hljs-number">1</span>:
+   moves=[z[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> routes[<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">if</span> z[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>,<span class="hljs-number">9</span>)]
+   <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(moves)==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> moves[<span class="hljs-number">0</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>] <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(z[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>,<span class="hljs-number">29</span>,<span class="hljs-number">31</span>,<span class="hljs-number">32</span>,<span class="hljs-number">35</span>,<span class="hljs-number">36</span>] <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> routes[<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>]):
+    arrows[c][(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])]={<span class="hljs-number">1</span>:<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-number">2</span>:<span class="hljs-string">&#x27;left&#x27;</span>,<span class="hljs-number">3</span>:<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-number">4</span>:<span class="hljs-string">&#x27;up&#x27;</span>}[moves[<span class="hljs-number">0</span>]]
+    reviewed=<span class="hljs-literal">True</span>
+  <span class="hljs-keyword">if</span> danger <span class="hljs-keyword">or</span> (forced <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> reviewed):e[<span class="hljs-string">&#x27;through&#x27;</span>]=<span class="hljs-literal">False</span>;e[<span class="hljs-string">&#x27;character&#x27;</span>]=<span class="hljs-string">&#x27;REVIEWED_BLOCK&#x27;</span>
+ physical=copy.deepcopy(v)
+ <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> physical[<span class="hljs-string">&#x27;events&#x27;</span>].values():
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(<span class="hljs-string">&#x27;pbFieldDamage&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(z[<span class="hljs-string">&#x27;parameters&#x27;</span>])<span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>]):
+   e[<span class="hljs-string">&#x27;through&#x27;</span>]=<span class="hljs-literal">True</span>;e[<span class="hljs-string">&#x27;character&#x27;</span>]=<span class="hljs-string">&#x27;&#x27;</span>
+   e[<span class="hljs-string">&#x27;list&#x27;</span>]=[z <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;pbFieldDamage&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(z[<span class="hljs-string">&#x27;parameters&#x27;</span>])]
+ physicalgraphs[c]=route(physical,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+ graphs[c]=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+ <span class="hljs-comment"># The raw graph intentionally contains trainer sight lines. Prefer routes</span>
+ <span class="hljs-comment"># around those lines when controlling the electrical floor puzzle.</span>
+ hazards[c]=<span class="hljs-built_in">set</span>()
+ <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values():
+  sight=re.search(<span class="hljs-string">r&#x27;Trainer\((\d+)\)&#x27;</span>,e.get(<span class="hljs-string">&#x27;name&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>))
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> sight <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(<span class="hljs-string">&#x27;pbTrainerBattle&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(z[<span class="hljs-string">&#x27;parameters&#x27;</span>]) <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>]):<span class="hljs-keyword">continue</span>
+  dx,dy={<span class="hljs-number">2</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-number">4</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">6</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">8</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)}.get(e[<span class="hljs-string">&#x27;direction&#x27;</span>],(<span class="hljs-number">0</span>,<span class="hljs-number">0</span>))
+  hazards[c].update((e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx*n,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy*n) <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>,<span class="hljs-built_in">int</span>(sight[<span class="hljs-number">1</span>])+<span class="hljs-number">1</span>))
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">follow</span>(<span class="hljs-params">n,c</span>):
+ seen=<span class="hljs-built_in">set</span>();hops=<span class="hljs-number">0</span>;visited=[]
+ <span class="hljs-keyword">while</span> n <span class="hljs-keyword">in</span> arrows[c]:
+  <span class="hljs-keyword">if</span> n <span class="hljs-keyword">in</span> seen:<span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Conveyor cycle&#x27;</span>)
+  seen.add(n);visited.append(n)
+  key=arrows[c][n];ends=[p <span class="hljs-keyword">for</span> k,p <span class="hljs-keyword">in</span> graphs[c].get(n,[]) <span class="hljs-keyword">if</span> k==key]
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> ends:
+   <span class="hljs-comment"># These inspected routes are skippable: a conveyor against a wall ends</span>
+   <span class="hljs-comment"># with the player on that tile. Electrical hazards remain blocked.</span>
+   <span class="hljs-keyword">if</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> graphs[c] <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(k==key <span class="hljs-keyword">for</span> k,_ <span class="hljs-keyword">in</span> physicalgraphs[c].get(n,[])):<span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Conveyor landing unsafe&#x27;</span>)
+   <span class="hljs-keyword">return</span> n,hops,visited
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(ends)!=<span class="hljs-number">1</span>:<span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Ambiguous conveyor landing&#x27;</span>)
+  n=ends[<span class="hljs-number">0</span>];hops+=<span class="hljs-number">1</span>
+ visited.append(n)
+ <span class="hljs-keyword">return</span> n,hops,visited
+start=(x,y,color);goal=(a.x,a.y);q=[(<span class="hljs-number">0</span>,start)];dist={start:<span class="hljs-number">0</span>};prev={start:<span class="hljs-literal">None</span>};end=<span class="hljs-literal">None</span>
+<span class="hljs-keyword">while</span> q:
+ cost,node=heapq.heappop(q)
+ <span class="hljs-keyword">if</span> cost!=dist[node]:<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> node[:<span class="hljs-number">2</span>]==goal:end=node;<span class="hljs-keyword">break</span>
+ xx,yy,c=node
+ choices=[]
+ <span class="hljs-keyword">for</span> key,np <span class="hljs-keyword">in</span> graphs[c].get((xx,yy),[]):
+  <span class="hljs-keyword">try</span>:np,hops,visited=follow(np,c)
+  <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">continue</span>
+  choices.append(((<span class="hljs-string">&#x27;conveyor:&#x27;</span>+key) <span class="hljs-keyword">if</span> hops <span class="hljs-keyword">else</span> key,(*np,c),<span class="hljs-number">1</span>+hops*<span class="hljs-number">.2</span>+(<span class="hljs-number">500</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(p <span class="hljs-keyword">in</span> hazards[c] <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> visited) <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>)))
+ choices.append((<span class="hljs-string">&#x27;a&#x27;</span>,(xx,yy,c%<span class="hljs-number">3</span>+<span class="hljs-number">1</span>),<span class="hljs-number">2</span>))
+ <span class="hljs-keyword">for</span> key,np,extra <span class="hljs-keyword">in</span> choices:
+  nc=cost+extra
+  <span class="hljs-keyword">if</span> nc&lt;dist.get(np,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):dist[np]=nc;prev[np]=(node,key);heapq.heappush(q,(nc,np))
+<span class="hljs-keyword">if</span> end <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No safe route without an unreviewed conveyor&#x27;</span>)
+steps=[]
+<span class="hljs-keyword">while</span> prev[end]:
+ old,key=prev[end];steps.append({<span class="hljs-string">&#x27;from&#x27;</span>:<span class="hljs-built_in">list</span>(old),<span class="hljs-string">&#x27;to&#x27;</span>:<span class="hljs-built_in">list</span>(end),<span class="hljs-string">&#x27;key&#x27;</span>:key});end=old
+steps.reverse();<span class="hljs-built_in">print</span>(json.dumps(steps),flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> a.go:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-number">0</span>)
+<span class="hljs-comment"># Twelve reviewed edges fit in the capture guard&#x27;s freshness window. Radio</span>
+<span class="hljs-comment"># changes settle before the next queued step; verify each whole short crossing.</span>
+idx=<span class="hljs-number">0</span>
+<span class="hljs-keyword">while</span> idx&lt;<span class="hljs-built_in">len</span>(steps):
+ chunk=[]
+ <span class="hljs-keyword">while</span> idx&lt;<span class="hljs-built_in">len</span>(steps) <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(chunk)&lt;<span class="hljs-number">16</span>:
+  s=steps[idx]
+  chunk.append(s);idx+=<span class="hljs-number">1</span>
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">tuple</span>(s[<span class="hljs-string">&#x27;to&#x27;</span>][:<span class="hljs-number">2</span>]) <span class="hljs-keyword">in</span> hazards[s[<span class="hljs-string">&#x27;to&#x27;</span>][<span class="hljs-number">2</span>]] <span class="hljs-keyword">or</span> s[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;conveyor:&#x27;</span>):<span class="hljs-keyword">break</span>
+ expected=<span class="hljs-built_in">tuple</span>(chunk[-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;to&#x27;</span>]);seq=[]
+ <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> chunk:
+  seq.append(z[<span class="hljs-string">&#x27;key&#x27;</span>].removeprefix(<span class="hljs-string">&#x27;conveyor:&#x27;</span>)+<span class="hljs-string">&#x27;:.12&#x27;</span>)
+  <span class="hljs-keyword">if</span> z[<span class="hljs-string">&#x27;key&#x27;</span>]==<span class="hljs-string">&#x27;a&#x27;</span>:seq.append(<span class="hljs-string">&#x27;wait:.25&#x27;</span>)
+  <span class="hljs-keyword">if</span> z[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;conveyor:&#x27;</span>):seq.append(<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+ act(*seq,<span class="hljs-string">&#x27;wait:.7&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(z[<span class="hljs-string">&#x27;key&#x27;</span>]==<span class="hljs-string">&#x27;a&#x27;</span> <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> chunk):
+  state=json.loads(statepath.read_text());state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;342&#x27;</span>]=expected[<span class="hljs-number">2</span>];statepath.write_text(json.dumps(state))
+ <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;\bhp\b|\bfight\b&#x27;</span>,t,re.I) <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(z[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(z[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">18</span> <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> snap()):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Devon crossing interrupted&#x27;</span>)
+ actual=locate(m)
+ <span class="hljs-keyword">if</span> actual!=(m,*expected[:<span class="hljs-number">2</span>]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">f&#x27;Devon coordinate mismatch: expected <span class="hljs-subst">{expected}</span>, actual <span class="hljs-subst">{actual}</span>&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DEVON SAFE CROSSING VERIFIED&#x27;</span>,m,*goal,expected[<span class="hljs-number">2</span>] <span class="hljs-keyword">if</span> steps <span class="hljs-keyword">else</span> color,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

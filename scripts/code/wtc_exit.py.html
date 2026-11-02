@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>wtc_exit.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of wtc_exit.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute a simple WTC door and verify its installed destination; reset map positions.
+The installed onMapChange clears moved events, so old coordinate notes cannot carry
+between visits. Story autoruns are left for review if they block coordinates.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+mid,eid=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]);actual=locate(mid);<span class="hljs-keyword">assert</span> actual[<span class="hljs-number">0</span>]==mid
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(actual[<span class="hljs-number">1</span>]),<span class="hljs-built_in">str</span>(actual[<span class="hljs-number">2</span>])],stderr=subprocess.DEVNULL));e=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)]
+cs=e[<span class="hljs-string">&#x27;list&#x27;</span>]<span class="hljs-keyword">or</span>[];dest={<span class="hljs-built_in">tuple</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>:<span class="hljs-number">4</span>])<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]==<span class="hljs-number">0</span>}
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(dest)==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]<span class="hljs-keyword">in</span>[<span class="hljs-number">102</span>,<span class="hljs-number">355</span>,<span class="hljs-number">655</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs),<span class="hljs-string">&#x27;Not a simple door&#x27;</span>
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(eid),<span class="hljs-string">&#x27;enter&#x27;</span>],check=<span class="hljs-literal">True</span>)
+new=<span class="hljs-built_in">next</span>(<span class="hljs-built_in">iter</span>(dest));<span class="hljs-keyword">assert</span> locate(new[<span class="hljs-number">0</span>])==new,<span class="hljs-string">&#x27;Door destination review&#x27;</span>
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;s=json.loads(p.read_text());s.get(<span class="hljs-string">&#x27;positions&#x27;</span>,{}).pop(<span class="hljs-built_in">str</span>(new[<span class="hljs-number">0</span>]),<span class="hljs-literal">None</span>);p.write_text(json.dumps(s));<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;WTC DOOR AND FRESH MAP VERIFIED&#x27;</span>,mid,eid,new,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

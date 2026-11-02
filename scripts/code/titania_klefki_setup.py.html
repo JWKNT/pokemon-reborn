@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>titania_klefki_setup.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of titania_klefki_setup.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal UI boosts against reviewed Klefki; stop on any unexpected matchup.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+path=ROOT/<span class="hljs-string">&#x27;work/titania-120-attempt2-klefki-setup.json&#x27;</span>
+plan=[(<span class="hljs-string">&#x27;item&#x27;</span>,<span class="hljs-string">&#x27;X Sp. Def&#x27;</span>),(<span class="hljs-string">&#x27;item&#x27;</span>,<span class="hljs-string">&#x27;X Sp. Def&#x27;</span>),(<span class="hljs-string">&#x27;item&#x27;</span>,<span class="hljs-string">&#x27;X Defend&#x27;</span>),
+      (<span class="hljs-string">&#x27;item&#x27;</span>,<span class="hljs-string">&#x27;X Defend&#x27;</span>),(<span class="hljs-string">&#x27;item&#x27;</span>,<span class="hljs-string">&#x27;X Speed&#x27;</span>),(<span class="hljs-string">&#x27;move&#x27;</span>,<span class="hljs-number">3</span>),(<span class="hljs-string">&#x27;move&#x27;</span>,<span class="hljs-number">3</span>)]
+state=json.loads(path.read_text()) <span class="hljs-keyword">if</span> path.exists() <span class="hljs-keyword">else</span> {<span class="hljs-string">&#x27;done&#x27;</span>:<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;heals&#x27;</span>:<span class="hljs-number">0</span>}
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">while</span> state[<span class="hljs-string">&#x27;done&#x27;</span>]&lt;<span class="hljs-built_in">len</span>(plan):
+ run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>);rows=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows);low=t.lower()
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;klef&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;excadr&#x27;</span> <span class="hljs-keyword">in</span> low,t
+ pairs=[(<span class="hljs-built_in">int</span>(a),<span class="hljs-built_in">int</span>(b))<span class="hljs-keyword">for</span> a,b <span class="hljs-keyword">in</span> re.findall(<span class="hljs-string">r&#x27;(\d+)\s*/\s*(\d+)&#x27;</span>,t)]
+ hp=<span class="hljs-built_in">next</span>((a <span class="hljs-keyword">for</span> a,b <span class="hljs-keyword">in</span> pairs <span class="hljs-keyword">if</span> b==<span class="hljs-number">358</span> <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;a&lt;=b),<span class="hljs-literal">None</span>)
+ <span class="hljs-keyword">if</span> hp <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+  <span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+  im=Image.<span class="hljs-built_in">open</span>(STATE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=im.size
+  fills=[]
+  <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> [<span class="hljs-number">.575</span>+i*<span class="hljs-number">.001</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">35</span>)]:
+   pixels=[im.getpixel((x,<span class="hljs-built_in">int</span>(h*y)))<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.761</span>),<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.929</span>))]
+   fills.append(<span class="hljs-built_in">sum</span>((g&gt;<span class="hljs-number">75</span> <span class="hljs-keyword">and</span> g&gt;r*<span class="hljs-number">1.3</span> <span class="hljs-keyword">and</span> g&gt;b*<span class="hljs-number">1.3</span>)<span class="hljs-keyword">or</span>(r&gt;<span class="hljs-number">130</span> <span class="hljs-keyword">and</span> b&lt;<span class="hljs-number">70</span> <span class="hljs-keyword">and</span> g&lt;<span class="hljs-number">220</span>)<span class="hljs-keyword">for</span> r,g,b <span class="hljs-keyword">in</span> pixels)/<span class="hljs-built_in">len</span>(pixels))
+  hp=<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,<span class="hljs-built_in">int</span>(<span class="hljs-built_in">max</span>(fills)*<span class="hljs-number">358</span>)-<span class="hljs-number">5</span>)
+  <span class="hljs-keyword">assert</span> hp&gt;<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;HP bar review: &#x27;</span>+t
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Conservative visible HP-bar estimate&#x27;</span>,hp,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;KLEFKI SETUP&#x27;</span>,state,<span class="hljs-string">&#x27;HP&#x27;</span>,hp,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> hp&lt;<span class="hljs-number">230</span>:
+  <span class="hljs-keyword">assert</span> state[<span class="hljs-string">&#x27;heals&#x27;</span>]&lt;<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;Heal budget review&#x27;</span>
+  run(<span class="hljs-string">&#x27;battle_item&#x27;</span>,<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,<span class="hljs-string">&#x27;Excadrill&#x27;</span>);state[<span class="hljs-string">&#x27;heals&#x27;</span>]+=<span class="hljs-number">1</span>
+ <span class="hljs-keyword">else</span>:
+  kind,value=plan[state[<span class="hljs-string">&#x27;done&#x27;</span>]]
+  <span class="hljs-keyword">if</span> kind==<span class="hljs-string">&#x27;item&#x27;</span>:run(<span class="hljs-string">&#x27;battle_item&#x27;</span>,value,<span class="hljs-string">&#x27;Excadrill&#x27;</span>,<span class="hljs-string">&#x27;--active&#x27;</span>)
+  <span class="hljs-keyword">else</span>:run(<span class="hljs-string">&#x27;battle_move&#x27;</span>,value,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+  state[<span class="hljs-string">&#x27;done&#x27;</span>]+=<span class="hljs-number">1</span>
+ path.write_text(json.dumps(state,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;KLEFKI SETUP DONE; inspect health and battle before sweep&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

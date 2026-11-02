@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>story_transition.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of story_transition.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Play an inspected linear map scene and verify its destination before noting progress.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+mid,eid,dest,stage=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">5</span>])
+rc=subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(eid),<span class="hljs-string">&#x27;talk&#x27;</span>])
+<span class="hljs-keyword">if</span> rc <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">2</span>]:<span class="hljs-keyword">raise</span> SystemExit(rc)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/linear_dialog.py&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(eid)],check=<span class="hljs-literal">True</span>)
+a=locate(dest);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SCENE DESTINATION&#x27;</span>,a,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> a[<span class="hljs-number">0</span>]!=dest:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected scene destination&#x27;</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;s=json.loads(p.read_text());s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;149&#x27;</span>]=stage;p.write_text(json.dumps(s))
+</code></pre>
+  </body>
+</html>

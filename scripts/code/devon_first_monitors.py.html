@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>devon_first_monitors.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of devon_first_monitors.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute the walkthrough&#x27;s first four Devon monitors with verified landings.
+Normal native controls only. Source-driven switches below are planning notes.
+Stops at the spinner entrance; rotating spinners require a separate model.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,read,act
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> subprocess,json,sys
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+    subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/s),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">state</span>():<span class="hljs-keyword">return</span> json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">write</span>(<span class="hljs-params">v</span>):(ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).write_text(json.dumps(v))
+
+<span class="hljs-keyword">assert</span> state()[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;339&#x27;</span>]==<span class="hljs-number">33</span>,<span class="hljs-string">&#x27;Victoria victory phase required&#x27;</span>
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> state().get(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;630,24,A&#x27;</span>):
+    run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">630</span>,<span class="hljs-number">24</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+    v=state();v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;342&#x27;</span>]=v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;342&#x27;</span>]%<span class="hljs-number">3</span>+<span class="hljs-number">1</span>
+    v.setdefault(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{})[<span class="hljs-string">&#x27;630,24,A&#x27;</span>]=<span class="hljs-literal">True</span>;write(v)
+    <span class="hljs-comment"># Capture the actual radio after the intro and any pending field trigger.</span>
+    run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Devon-first-puzzle-radio-ready&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">630</span>)[<span class="hljs-number">0</span>]==<span class="hljs-number">630</span>
+
+<span class="hljs-keyword">for</span> eid,x,y,sw <span class="hljs-keyword">in</span> [(<span class="hljs-number">28</span>,<span class="hljs-number">24</span>,<span class="hljs-number">23</span>,<span class="hljs-number">746</span>),(<span class="hljs-number">22</span>,<span class="hljs-number">18</span>,<span class="hljs-number">19</span>,<span class="hljs-number">747</span>),(<span class="hljs-number">28</span>,<span class="hljs-number">24</span>,<span class="hljs-number">23</span>,<span class="hljs-number">746</span>),(<span class="hljs-number">62</span>,<span class="hljs-number">8</span>,<span class="hljs-number">14</span>,<span class="hljs-number">748</span>),(<span class="hljs-number">63</span>,<span class="hljs-number">27</span>,<span class="hljs-number">14</span>,<span class="hljs-number">749</span>)]:
+    run(<span class="hljs-string">&#x27;devon_walk.py&#x27;</span>,<span class="hljs-number">630</span>,x,y,<span class="hljs-string">&#x27;--go&#x27;</span>,<span class="hljs-string">&#x27;--conveyors&#x27;</span>)
+    model=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;630&#x27;</span>,<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],stderr=subprocess.DEVNULL))
+    ev=model[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)]
+    <span class="hljs-keyword">assert</span> (ev[<span class="hljs-string">&#x27;x&#x27;</span>],ev[<span class="hljs-string">&#x27;y&#x27;</span>])==(x,y-<span class="hljs-number">1</span>)
+    cs=ev[<span class="hljs-string">&#x27;list&#x27;</span>];<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">101</span>,<span class="hljs-number">102</span>,<span class="hljs-number">201</span>,<span class="hljs-number">301</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs)
+    <span class="hljs-keyword">assert</span> [c[<span class="hljs-string">&#x27;parameters&#x27;</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">121</span>]==[[sw,sw,<span class="hljs-number">1</span>],[sw,sw,<span class="hljs-number">0</span>]]
+    act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">assert</span> locate(<span class="hljs-number">630</span>)==(<span class="hljs-number">630</span>,x,y)
+    v=state();v.setdefault(<span class="hljs-string">&#x27;switches&#x27;</span>,{})[<span class="hljs-built_in">str</span>(sw)]=<span class="hljs-keyword">not</span> v.get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).get(<span class="hljs-built_in">str</span>(sw),<span class="hljs-literal">False</span>);write(v)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DEVON MONITOR VERIFIED&#x27;</span>,eid,sw,v[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(sw)],flush=<span class="hljs-literal">True</span>)
+
+run(<span class="hljs-string">&#x27;devon_walk.py&#x27;</span>,<span class="hljs-number">630</span>,<span class="hljs-number">4</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;--go&#x27;</span>,<span class="hljs-string">&#x27;--conveyors&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DEVON FIRST MONITORS COMPLETE; SPINNER ENTRANCE VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

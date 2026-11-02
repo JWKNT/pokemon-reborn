@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_west_swap_and_pallets.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_west_swap_and_pallets.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed normal western companion swap, then three gated pallet motions.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> glass_positions <span class="hljs-keyword">import</span> refresh
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">732</span>)==(<span class="hljs-number">732</span>,<span class="hljs-number">18</span>,<span class="hljs-number">31</span>)
+act(<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),<span class="hljs-string">&#x27;Glass-west-companions-ready&#x27;</span>],check=<span class="hljs-literal">True</span>)
+v=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> v[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;947&#x27;</span>) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> v[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;946&#x27;</span>), <span class="hljs-string">&#x27;Normal swap not confirmed&#x27;</span>
+<span class="hljs-keyword">assert</span> v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;404&#x27;</span>]&lt;=<span class="hljs-number">19</span>, <span class="hljs-string">&#x27;Blue not in western corridor&#x27;</span>
+(ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).write_text(json.dumps(refresh(v,json.loads((ROOT/<span class="hljs-string">&#x27;work/story-map-732-events.json&#x27;</span>).read_text()))))
+<span class="hljs-keyword">for</span> core,direction <span class="hljs-keyword">in</span> [(<span class="hljs-number">97</span>,<span class="hljs-string">&#x27;down&#x27;</span>),(<span class="hljs-number">147</span>,<span class="hljs-string">&#x27;right&#x27;</span>),(<span class="hljs-number">157</span>,<span class="hljs-string">&#x27;right&#x27;</span>)]:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/glass_pallet.py&#x27;</span>),<span class="hljs-built_in">str</span>(core),direction],check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;WEST STAGING AND FIRST UPPER PALLETS COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

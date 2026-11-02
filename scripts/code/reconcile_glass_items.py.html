@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>reconcile_glass_items.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of reconcile_glass_items.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reconcile three completed Glass logs with native pre/post-chain bag snapshots.
+
+Reads only the explicitly supplied files. It never finds or reads a live log,
+changes a game/save/manifest, or allocates aggregate refunds to individual rounds.
+The caller must prove that the logs are completed consecutive winning rounds and
+that tracked consumables had no shopping, field uses, rewards or other bag flows.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> Counter
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> hashlib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">from</span> datetime <span class="hljs-keyword">import</span> datetime
+
+ROOT = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-comment"># Exact installed Reborn itemtext.rb IDs/names; all are one-unit consumables.</span>
+<span class="hljs-comment"># In particular X Sp. Atk is XSPECIAL, not XSPATK.</span>
+CONSUMABLES = {
+    <span class="hljs-string">&#x27;POTION&#x27;</span>: <span class="hljs-string">&#x27;Potion&#x27;</span>, <span class="hljs-string">&#x27;SUPERPOTION&#x27;</span>: <span class="hljs-string">&#x27;Super Potion&#x27;</span>,
+    <span class="hljs-string">&#x27;HYPERPOTION&#x27;</span>: <span class="hljs-string">&#x27;Hyper Potion&#x27;</span>, <span class="hljs-string">&#x27;ULTRAPOTION&#x27;</span>: <span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,
+    <span class="hljs-string">&#x27;MAXPOTION&#x27;</span>: <span class="hljs-string">&#x27;Max Potion&#x27;</span>, <span class="hljs-string">&#x27;FULLRESTORE&#x27;</span>: <span class="hljs-string">&#x27;Full Restore&#x27;</span>,
+    <span class="hljs-string">&#x27;LEMONADE&#x27;</span>: <span class="hljs-string">&#x27;Lemonade&#x27;</span>,
+    <span class="hljs-string">&#x27;AWAKENING&#x27;</span>: <span class="hljs-string">&#x27;Awakening&#x27;</span>, <span class="hljs-string">&#x27;ANTIDOTE&#x27;</span>: <span class="hljs-string">&#x27;Antidote&#x27;</span>,
+    <span class="hljs-string">&#x27;BURNHEAL&#x27;</span>: <span class="hljs-string">&#x27;Burn Heal&#x27;</span>, <span class="hljs-string">&#x27;PARLYZHEAL&#x27;</span>: <span class="hljs-string">&#x27;Paralyze Heal&#x27;</span>,
+    <span class="hljs-string">&#x27;ICEHEAL&#x27;</span>: <span class="hljs-string">&#x27;Ice Heal&#x27;</span>, <span class="hljs-string">&#x27;FULLHEAL&#x27;</span>: <span class="hljs-string">&#x27;Full Heal&#x27;</span>,
+    <span class="hljs-string">&#x27;REVIVE&#x27;</span>: <span class="hljs-string">&#x27;Revive&#x27;</span>, <span class="hljs-string">&#x27;MAXREVIVE&#x27;</span>: <span class="hljs-string">&#x27;Max Revive&#x27;</span>,
+    <span class="hljs-string">&#x27;COTTONCANDY&#x27;</span>: <span class="hljs-string">&#x27;Cotton Candy&#x27;</span>, <span class="hljs-string">&#x27;REVIVALHERB&#x27;</span>: <span class="hljs-string">&#x27;Revival Herb&#x27;</span>,
+    <span class="hljs-string">&#x27;XATTACK&#x27;</span>: <span class="hljs-string">&#x27;X Attack&#x27;</span>, <span class="hljs-string">&#x27;XDEFEND&#x27;</span>: <span class="hljs-string">&#x27;X Defend&#x27;</span>,
+    <span class="hljs-string">&#x27;XSPECIAL&#x27;</span>: <span class="hljs-string">&#x27;X Sp. Atk&#x27;</span>, <span class="hljs-string">&#x27;XSPDEF&#x27;</span>: <span class="hljs-string">&#x27;X Sp. Def&#x27;</span>,
+    <span class="hljs-string">&#x27;XSPEED&#x27;</span>: <span class="hljs-string">&#x27;X Speed&#x27;</span>, <span class="hljs-string">&#x27;XACCURACY&#x27;</span>: <span class="hljs-string">&#x27;X Accuracy&#x27;</span>,
+    <span class="hljs-string">&#x27;DIREHIT&#x27;</span>: <span class="hljs-string">&#x27;Dire Hit&#x27;</span>, <span class="hljs-string">&#x27;GUARDSPEC&#x27;</span>: <span class="hljs-string">&#x27;Guard Spec.&#x27;</span>,
+    <span class="hljs-string">&#x27;ETHER&#x27;</span>: <span class="hljs-string">&#x27;Ether&#x27;</span>, <span class="hljs-string">&#x27;MAXETHER&#x27;</span>: <span class="hljs-string">&#x27;Max Ether&#x27;</span>,
+    <span class="hljs-string">&#x27;ELIXIR&#x27;</span>: <span class="hljs-string">&#x27;Elixir&#x27;</span>, <span class="hljs-string">&#x27;MAXELIXIR&#x27;</span>: <span class="hljs-string">&#x27;Max Elixir&#x27;</span>,
+}
+NAME_TO_ID = {name: item <span class="hljs-keyword">for</span> item, name <span class="hljs-keyword">in</span> CONSUMABLES.items()}
+EXECUTION = re.<span class="hljs-built_in">compile</span>(<span class="hljs-string">r&#x27;^\[Player used (.+)\]\s*$&#x27;</span>, re.M)
+STORY_ITEMS = {<span class="hljs-string">&#x27;SAPPHIREBRACELETS&#x27;</span>}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">native_inventory</span>(<span class="hljs-params">status</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Use PokemonBag.contents, which native pbQuantity reads directly.&quot;&quot;&quot;</span>
+    bag = status.get(<span class="hljs-string">&#x27;bag&#x27;</span>, {})
+    contents = bag.get(<span class="hljs-string">&#x27;contents&#x27;</span>)
+    <span class="hljs-keyword">if</span> bag.get(<span class="hljs-string">&#x27;type&#x27;</span>) != <span class="hljs-string">&#x27;PokemonBag&#x27;</span> <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">isinstance</span>(contents, <span class="hljs-built_in">dict</span>):
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Expected native status JSON bag.type=PokemonBag and bag.contents&#x27;</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(<span class="hljs-built_in">type</span>(qty) <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">int</span> <span class="hljs-keyword">or</span> qty &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">for</span> qty <span class="hljs-keyword">in</span> contents.values()):
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Native bag quantities must be nonnegative integers&#x27;</span>)
+    party = status.get(<span class="hljs-string">&#x27;party&#x27;</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">isinstance</span>(party, <span class="hljs-built_in">list</span>) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">all</span>(<span class="hljs-built_in">isinstance</span>(mon, <span class="hljs-built_in">dict</span>) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;item&#x27;</span> <span class="hljs-keyword">in</span> mon <span class="hljs-keyword">for</span> mon <span class="hljs-keyword">in</span> party):
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Native party held-item fields are required&#x27;</span>)
+    held = Counter(mon[<span class="hljs-string">&#x27;item&#x27;</span>] <span class="hljs-keyword">for</span> mon <span class="hljs-keyword">in</span> party <span class="hljs-keyword">if</span> mon[<span class="hljs-string">&#x27;item&#x27;</span>])
+    <span class="hljs-keyword">return</span> contents, held
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">reconcile</span>(<span class="hljs-params">before, after, completed_logs, expected_rounds=<span class="hljs-number">3</span></span>):
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">type</span>(expected_rounds)<span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">int</span> <span class="hljs-keyword">or</span> expected_rounds&lt;<span class="hljs-number">1</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">len</span>(completed_logs)!=expected_rounds:
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">f&#x27;Exactly <span class="hljs-subst">{expected_rounds}</span> completed logs are required, in battle order&#x27;</span>)
+    pre, pre_held = native_inventory(before)
+    post, post_held = native_inventory(after)
+    rounds = [Counter(EXECUTION.findall(text)) <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> completed_logs]
+    total = <span class="hljs-built_in">sum</span>(rounds, Counter())
+    errors = []
+    unknown = <span class="hljs-built_in">sorted</span>(<span class="hljs-built_in">set</span>(total) - <span class="hljs-built_in">set</span>(NAME_TO_ID))
+    <span class="hljs-keyword">if</span> unknown:
+        errors.append({<span class="hljs-string">&#x27;reason&#x27;</span>: <span class="hljs-string">&#x27;Unknown or reusable executed item; scope must be reviewed&#x27;</span>, <span class="hljs-string">&#x27;names&#x27;</span>: unknown})
+
+    aggregate = []
+    <span class="hljs-keyword">for</span> item, name <span class="hljs-keyword">in</span> CONSUMABLES.items():
+        qty_before, qty_after = pre.get(item, <span class="hljs-number">0</span>), post.get(item, <span class="hljs-number">0</span>)
+        delta = qty_before - qty_after
+        executions = total[name]
+        held_changed = pre_held[item] != post_held[item]
+        <span class="hljs-keyword">if</span> executions <span class="hljs-keyword">or</span> delta <span class="hljs-keyword">or</span> held_changed:
+            aggregate.append({<span class="hljs-string">&#x27;item_id&#x27;</span>: item, <span class="hljs-string">&#x27;name&#x27;</span>: name,
+                              <span class="hljs-string">&#x27;logged_executions&#x27;</span>: executions,
+                              <span class="hljs-string">&#x27;bag_before&#x27;</span>: qty_before, <span class="hljs-string">&#x27;bag_after&#x27;</span>: qty_after,
+                              <span class="hljs-string">&#x27;bag_decline&#x27;</span>: delta,
+                              <span class="hljs-string">&#x27;held_before&#x27;</span>: pre_held[item], <span class="hljs-string">&#x27;held_after&#x27;</span>: post_held[item],
+                              <span class="hljs-string">&#x27;matched&#x27;</span>: delta == executions <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> held_changed})
+        <span class="hljs-keyword">if</span> held_changed:
+            errors.append({<span class="hljs-string">&#x27;item_id&#x27;</span>: item, <span class="hljs-string">&#x27;reason&#x27;</span>: <span class="hljs-string">&#x27;Tracked consumable held stock changed; cannot infer transfer versus other loss&#x27;</span>})
+        <span class="hljs-keyword">if</span> delta != executions:
+            errors.append({<span class="hljs-string">&#x27;item_id&#x27;</span>: item, <span class="hljs-string">&#x27;reason&#x27;</span>: <span class="hljs-string">&#x27;Bag decline does not equal executed-use markers&#x27;</span>,
+                           <span class="hljs-string">&#x27;bag_decline&#x27;</span>: delta, <span class="hljs-string">&#x27;logged_executions&#x27;</span>: executions})
+
+    ignored = []
+    <span class="hljs-keyword">for</span> item <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(<span class="hljs-built_in">set</span>(pre) | <span class="hljs-built_in">set</span>(post)):
+        delta = pre.get(item, <span class="hljs-number">0</span>) - post.get(item, <span class="hljs-number">0</span>)
+        <span class="hljs-keyword">if</span> delta <span class="hljs-keyword">and</span> item <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> CONSUMABLES:
+            held_change = post_held[item] - pre_held[item]
+            category = (<span class="hljs-string">&#x27;story_key_item&#x27;</span> <span class="hljs-keyword">if</span> item <span class="hljs-keyword">in</span> STORY_ITEMS <span class="hljs-keyword">else</span>
+                        <span class="hljs-string">&#x27;held_transfer_candidate&#x27;</span> <span class="hljs-keyword">if</span> held_change == delta <span class="hljs-keyword">else</span>
+                        <span class="hljs-string">&#x27;outside_tracked_consumable_scope&#x27;</span>)
+            ignored.append({<span class="hljs-string">&#x27;item_id&#x27;</span>: item, <span class="hljs-string">&#x27;bag_decline&#x27;</span>: delta,
+                            <span class="hljs-string">&#x27;held_change&#x27;</span>: held_change, <span class="hljs-string">&#x27;excluded_as&#x27;</span>: category})
+
+    per_round = []
+    <span class="hljs-keyword">for</span> i, counts <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(rounds, <span class="hljs-number">1</span>):
+        row = {<span class="hljs-string">&#x27;round&#x27;</span>: i, <span class="hljs-string">&#x27;logged_executions&#x27;</span>: [
+            {<span class="hljs-string">&#x27;name&#x27;</span>: name, <span class="hljs-string">&#x27;count&#x27;</span>: count} <span class="hljs-keyword">for</span> name, count <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(counts.items())]}
+        <span class="hljs-comment"># All markers are consumption only when the entire chain balances and</span>
+        <span class="hljs-comment"># the stated no-other-flow assumptions hold. Never guess refund rounds.</span>
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> errors:
+            row[<span class="hljs-string">&#x27;item_usage&#x27;</span>] = row[<span class="hljs-string">&#x27;logged_executions&#x27;</span>]
+        per_round.append(row)
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;status&#x27;</span>: <span class="hljs-string">&#x27;mismatch&#x27;</span> <span class="hljs-keyword">if</span> errors <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;verified_counts&#x27;</span>,
+            <span class="hljs-string">&#x27;scope&#x27;</span>: <span class="hljs-string">f&#x27;Player bag consumables in the <span class="hljs-subst">{expected_rounds}</span> supplied completed battles&#x27;</span>,
+            <span class="hljs-string">&#x27;assumptions&#x27;</span>: [<span class="hljs-string">&#x27;Supplied logs are completed and player-only; Glass has no NPC partner&#x27;</span>,
+                            <span class="hljs-string">&#x27;Snapshots anchor this exact uninterrupted winning chain&#x27;</span>,
+                            <span class="hljs-string">&#x27;No tracked-consumable shopping, rewards, field use, held loss or other outside flow&#x27;</span>],
+            <span class="hljs-string">&#x27;does_not_prove&#x27;</span>: [<span class="hljs-string">&#x27;Victory or chain continuity&#x27;</span>, <span class="hljs-string">&#x27;Whole-gauntlet attempt count&#x27;</span>],
+            <span class="hljs-string">&#x27;per_round&#x27;</span>: per_round, <span class="hljs-string">&#x27;aggregate&#x27;</span>: <span class="hljs-built_in">sorted</span>(aggregate, key=<span class="hljs-keyword">lambda</span> row: row[<span class="hljs-string">&#x27;name&#x27;</span>]),
+            <span class="hljs-string">&#x27;ignored_bag_changes&#x27;</span>: ignored, <span class="hljs-string">&#x27;errors&#x27;</span>: errors,
+            <span class="hljs-string">&#x27;mismatch_policy&#x27;</span>: <span class="hljs-string">&#x27;Review per-round visible no-effect/refund ledger; never distribute aggregate differences by guessing&#x27;</span>}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">file_evidence</span>(<span class="hljs-params">path</span>):
+    path=path.resolve()
+    display=<span class="hljs-built_in">str</span>(path.relative_to(ROOT)) <span class="hljs-keyword">if</span> path.is_relative_to(ROOT) <span class="hljs-keyword">else</span> <span class="hljs-built_in">str</span>(path)
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;path&#x27;</span>: display, <span class="hljs-string">&#x27;sha256&#x27;</span>: hashlib.sha256(path.read_bytes()).hexdigest()}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">read_saved_inventory</span>(<span class="hljs-params">path</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Read a frozen native save through RGSS stubs; never load the game runtime.&quot;&quot;&quot;</span>
+    code=<span class="hljs-string">&quot;v=load_rgss(ARGV[0]); t=v[:Trainer]; puts JSON.generate({bag:plain(v[:PokemonBag]),party:t.instance_variable_get(:@party).map { |m| {item:m.instance_variable_get(:@item)} }})&quot;</span>
+    <span class="hljs-keyword">return</span> json.loads(subprocess.check_output(
+        [<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;-r&#x27;</span>,<span class="hljs-built_in">str</span>(Path(__file__).with_name(<span class="hljs-string">&#x27;read_rgss.rb&#x27;</span>)),<span class="hljs-string">&#x27;-e&#x27;</span>,code,<span class="hljs-built_in">str</span>(path)],
+        text=<span class="hljs-literal">True</span>,stderr=subprocess.DEVNULL))
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">bind_native_chain</span>(<span class="hljs-params">report, before, after, saves, proof_path</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Attach source provenance for later staging; all inputs are frozen files.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">for</span> status,save <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>([before,after],saves):
+        <span class="hljs-keyword">if</span> native_inventory(status)!=native_inventory(read_saved_inventory(save)):
+            <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Status JSON bag/held inventory differs from its frozen native save: &#x27;</span>+<span class="hljs-built_in">str</span>(save))
+    report[<span class="hljs-string">&#x27;evidence&#x27;</span>][<span class="hljs-string">&#x27;native_saves&#x27;</span>]={key:file_evidence(path) <span class="hljs-keyword">for</span> key,path <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>([<span class="hljs-string">&#x27;before&#x27;</span>,<span class="hljs-string">&#x27;after&#x27;</span>],saves)}
+    report[<span class="hljs-string">&#x27;native_save_inventories_verified&#x27;</span>]=<span class="hljs-literal">True</span>
+    <span class="hljs-keyword">if</span> proof_path <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<span class="hljs-keyword">return</span>
+    proof=json.loads(proof_path.read_text()); rounds=proof.get(<span class="hljs-string">&#x27;rounds&#x27;</span>,[])
+    <span class="hljs-keyword">if</span> [r.get(<span class="hljs-string">&#x27;id&#x27;</span>)<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rounds]!=[<span class="hljs-number">122</span>,<span class="hljs-number">123</span>,<span class="hljs-number">124</span>]:
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Expected completed Glass chain proof rounds122,123,124&#x27;</span>)
+    <span class="hljs-keyword">if</span> proof.get(<span class="hljs-string">&#x27;native_checkpoint_sha256&#x27;</span>)!=report[<span class="hljs-string">&#x27;evidence&#x27;</span>][<span class="hljs-string">&#x27;native_saves&#x27;</span>][<span class="hljs-string">&#x27;before&#x27;</span>][<span class="hljs-string">&#x27;sha256&#x27;</span>]:
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Pre-chain native save does not match the completed-chain checkpoint proof&#x27;</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">all</span>(r[<span class="hljs-string">&#x27;start&#x27;</span>]&lt;r[<span class="hljs-string">&#x27;end&#x27;</span>]<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rounds) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">all</span>(a[<span class="hljs-string">&#x27;end&#x27;</span>]&lt;b[<span class="hljs-string">&#x27;start&#x27;</span>]<span class="hljs-keyword">for</span> a,b <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(rounds,rounds[<span class="hljs-number">1</span>:])):
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Completed-chain proof rounds are not chronological&#x27;</span>)
+    <span class="hljs-keyword">if</span> datetime.fromisoformat(before[<span class="hljs-string">&#x27;save_mtime&#x27;</span>]).timestamp()&gt;rounds[<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;start&#x27;</span>]:
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Pre-chain snapshot was saved after round1 started&#x27;</span>)
+    <span class="hljs-keyword">if</span> datetime.fromisoformat(after[<span class="hljs-string">&#x27;save_mtime&#x27;</span>]).timestamp()&lt;rounds[-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;end&#x27;</span>]:
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Post-chain snapshot was saved before round3 ended&#x27;</span>)
+    report[<span class="hljs-string">&#x27;evidence&#x27;</span>][<span class="hljs-string">&#x27;chain_proof&#x27;</span>]=file_evidence(proof_path)
+    report[<span class="hljs-string">&#x27;gauntlet_run_id&#x27;</span>]=proof[<span class="hljs-string">&#x27;run_id&#x27;</span>]
+    <span class="hljs-keyword">for</span> row,source,log <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(report[<span class="hljs-string">&#x27;per_round&#x27;</span>],rounds,report[<span class="hljs-string">&#x27;evidence&#x27;</span>][<span class="hljs-string">&#x27;completed_logs&#x27;</span>]):
+        row.update(major_id=source[<span class="hljs-string">&#x27;id&#x27;</span>],battle_start_epoch=source[<span class="hljs-string">&#x27;start&#x27;</span>],
+                   battle_end_epoch=source[<span class="hljs-string">&#x27;end&#x27;</span>],completed_log_sha256=log[<span class="hljs-string">&#x27;sha256&#x27;</span>])
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument(<span class="hljs-string">&#x27;before&#x27;</span>, <span class="hljs-built_in">type</span>=Path)
+    p.add_argument(<span class="hljs-string">&#x27;after&#x27;</span>, <span class="hljs-built_in">type</span>=Path)
+    p.add_argument(<span class="hljs-string">&#x27;completed_logs&#x27;</span>, <span class="hljs-built_in">type</span>=Path, nargs=<span class="hljs-number">3</span>, metavar=<span class="hljs-string">&#x27;ROUND_LOG&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--output&#x27;</span>, <span class="hljs-built_in">type</span>=Path, <span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;Optional new JSON report inside this repository&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--before-save&#x27;</span>,<span class="hljs-built_in">type</span>=Path,<span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;Frozen pre-chain .rxdata copy inside this repository&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--after-save&#x27;</span>,<span class="hljs-built_in">type</span>=Path,<span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;Frozen post-chain .rxdata copy inside this repository&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--chain-proof&#x27;</span>,<span class="hljs-built_in">type</span>=Path,<span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;Completed Glass chain verification JSON; requires both native save copies&#x27;</span>)
+    a = p.parse_args()
+    paths = [a.before.resolve(), a.after.resolve(), *[path.resolve() <span class="hljs-keyword">for</span> path <span class="hljs-keyword">in</span> a.completed_logs]]
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(paths)) != <span class="hljs-built_in">len</span>(paths):
+        p.error(<span class="hljs-string">&#x27;Before/after snapshots and all three completed logs must be distinct files&#x27;</span>)
+    output = a.output.resolve() <span class="hljs-keyword">if</span> a.output <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+    <span class="hljs-keyword">if</span> output <span class="hljs-keyword">and</span> (<span class="hljs-keyword">not</span> output.is_relative_to(ROOT) <span class="hljs-keyword">or</span> output <span class="hljs-keyword">in</span> paths <span class="hljs-keyword">or</span> output.suffix != <span class="hljs-string">&#x27;.json&#x27;</span>):
+        p.error(<span class="hljs-string">&#x27;--output must be a separate JSON report inside this repository&#x27;</span>)
+    <span class="hljs-keyword">if</span> output <span class="hljs-keyword">and</span> output.exists():
+        p.error(<span class="hljs-string">&#x27;--output already exists; preserve prior evidence or choose a new report path&#x27;</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">bool</span>(a.before_save)!=<span class="hljs-built_in">bool</span>(a.after_save) <span class="hljs-keyword">or</span> a.chain_proof <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> a.before_save:
+        p.error(<span class="hljs-string">&#x27;Provide both --before-save and --after-save; --chain-proof requires both&#x27;</span>)
+    saves=[a.before_save.resolve(),a.after_save.resolve()] <span class="hljs-keyword">if</span> a.before_save <span class="hljs-keyword">else</span> []
+    proof=a.chain_proof.resolve() <span class="hljs-keyword">if</span> a.chain_proof <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(<span class="hljs-keyword">not</span> path.is_relative_to(ROOT) <span class="hljs-keyword">or</span> path.suffix!=<span class="hljs-string">&#x27;.rxdata&#x27;</span> <span class="hljs-keyword">for</span> path <span class="hljs-keyword">in</span> saves):
+        p.error(<span class="hljs-string">&#x27;Native save inputs must be frozen .rxdata copies inside this repository&#x27;</span>)
+    <span class="hljs-keyword">if</span> proof <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> proof.is_relative_to(ROOT):p.error(<span class="hljs-string">&#x27;Chain proof must be inside this repository&#x27;</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(saves))!=<span class="hljs-built_in">len</span>(saves) <span class="hljs-keyword">or</span> output <span class="hljs-keyword">and</span> output <span class="hljs-keyword">in</span> saves+[proof]:
+        p.error(<span class="hljs-string">&#x27;Native save copies and output report must be distinct files&#x27;</span>)
+    <span class="hljs-keyword">try</span>:
+        before,after=[json.loads(path.read_text())<span class="hljs-keyword">for</span> path <span class="hljs-keyword">in</span> paths[:<span class="hljs-number">2</span>]]
+        report = reconcile(before,after,[path.read_text() <span class="hljs-keyword">for</span> path <span class="hljs-keyword">in</span> paths[<span class="hljs-number">2</span>:]])
+        report[<span class="hljs-string">&#x27;evidence&#x27;</span>] = {<span class="hljs-string">&#x27;before&#x27;</span>: file_evidence(paths[<span class="hljs-number">0</span>]), <span class="hljs-string">&#x27;after&#x27;</span>: file_evidence(paths[<span class="hljs-number">1</span>]),
+                              <span class="hljs-string">&#x27;completed_logs&#x27;</span>: [file_evidence(path) <span class="hljs-keyword">for</span> path <span class="hljs-keyword">in</span> paths[<span class="hljs-number">2</span>:]]}
+        <span class="hljs-keyword">if</span> saves:bind_native_chain(report,before,after,saves,proof)
+    <span class="hljs-keyword">except</span> (ValueError, OSError, KeyError, subprocess.CalledProcessError) <span class="hljs-keyword">as</span> exc:
+        p.error(<span class="hljs-built_in">str</span>(exc))
+    encoded = json.dumps(report, indent=<span class="hljs-number">2</span>) + <span class="hljs-string">&#x27;\n&#x27;</span>
+    <span class="hljs-keyword">if</span> output:
+        output.parent.mkdir(parents=<span class="hljs-literal">True</span>, exist_ok=<span class="hljs-literal">True</span>)
+        output.write_text(encoded)
+    <span class="hljs-built_in">print</span>(encoded, end=<span class="hljs-string">&#x27;&#x27;</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span> <span class="hljs-keyword">if</span> report[<span class="hljs-string">&#x27;status&#x27;</span>] == <span class="hljs-string">&#x27;verified_counts&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:
+    <span class="hljs-keyword">raise</span> SystemExit(main())
+</code></pre>
+  </body>
+</html>

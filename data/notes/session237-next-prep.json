@@ -1,0 +1,13 @@
+{
+  "after_lake_quest": "ExpAll shares EXP but NOT EVs, verified installed Battle.rb and frozen Cresselia. Train each reserve directly: Cress HP/Def, Zapdos SpA/Speed, Azelf SpA/Speed. Pilot one KO then frozen EV verification before bulk; 8 KOs per stat with Power item (32 EV/KO). Avoid cap increase until video22 finalized.",
+  "moves": [
+    "Zapdos relearn Discharge/Thunder Wave/Roost; Static utility and paralysis for future captures",
+    "Cresselia consider TM92 Trick Room plus Moonlight/Lunar Dance",
+    "Azelf Nasty Plot plus reliable Psychic STAB; evaluate TMs on owned actual compatibility"
+  ],
+  "next_major": "Route1 New World after Randall; inspect installed actual teams before entry and follow postgame-major workflow.",
+  "bp_budget": "Target12BP from3ordinaryCassbotwins:5BP50XLcandies,3BP3naturemints,4BP4HeartScales. Existing11XL. Confirm current shop/nature NPC. ZapdosTimid,AzelfTimid,CresseliaBold proposed. 2HeartScalesZapdosDischarge/TWave; preserve spare scales for MawilePlayRough/FalseSwipe flexibility. Can prioritize8BP minimum if boss team readiness adequate.",
+  "bp_sequence": "First Luna13 win with known screens/Maw/Alt/Swamp/Amoo party gives4BP. Buy2HeartScales(2BP),2mints(2BP ZapTimid/CressBold). RelearnMawPlayRough replacingFalseSwipe (TM54owned can restore freely), ZapDischarge replacingZapCannon. Two further Luna wins should be faster with +6MawPlayRough OHKOHydreigon/Absol; check accuracy/KingShield and health. Next8BP:5BP50XL,1BPAzelfTimid,2BP2scales forZapThunderWave+spare. Need planFalseSwipe before boss->wild immediatelegend chain.",
+  "Azelf_TMs": "OwnedTM35Flamethrower andTM99DazzlingGleam available. NastyPlot/Extrasensory retain; replaceLastResort withFlamethrower, considerSwift->DazzlingGleam exceptSwift2x onNewWorld. CressTM92TrickRoom owned, Reflect/LightScreen TMs notowned.",
+  "bp_tactical_correction": "Hydreigon does NOT resist Steel; boostedIronHead canKO. Its fasterFlashCannon is mainissue. TryMawoneSD(+3FairyTale)vsMuk, secondSDduringBisharpseedKingShield for+6. Savingoneearlysetupturn preservesHP/screens. Do notassumePlayRough alone fixesHydra becausealso slow. Keepknownfullpartybackup; inspectpublicHP. DecideHeartScales afterfirstBPwin."
+}

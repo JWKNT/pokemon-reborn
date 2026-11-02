@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>refresh_handoff_docs.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of refresh_handoff_docs.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Refresh handoff prose from explicit verified metadata; no game input.
+
+Safe to import. Writes Desktop package documents only from the explicit CLI.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> json
+
+<span class="hljs-keyword">from</span> handoff_context <span class="hljs-keyword">import</span> journey_verification, refreshed_documents
+
+ROOT = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+DEST = Path(<span class="hljs-string">&#x27;/Users/jw/Desktop/bin/reborn&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(<span class="hljs-string">&#x27;label&#x27;</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;session&#x27;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--quit&#x27;</span>, action=<span class="hljs-string">&#x27;store_true&#x27;</span>)
+    args = parser.parse_args()
+    save = json.loads((ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{args.label}</span>-status.json&#x27;</span>).read_text())
+    verification = json.loads((ROOT/<span class="hljs-string">&#x27;recordings/major-fights/verification.json&#x27;</span>).read_text())
+    master = json.loads((ROOT/<span class="hljs-string">&#x27;recordings/major-fights/manifest.json&#x27;</span>).read_text())
+    meta = json.loads((ROOT/<span class="hljs-string">f&#x27;recordings/session-<span class="hljs-subst">{args.session:03}</span>.json&#x27;</span>).read_text())
+    <span class="hljs-keyword">if</span> args.quit:
+        <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;stop_epoch&#x27;</span> <span class="hljs-keyword">in</span> meta, <span class="hljs-string">&#x27;Finalize the supplied recording before claiming save+quit&#x27;</span>
+        <span class="hljs-keyword">assert</span> (ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{args.label}</span>-quit-status.json&#x27;</span>).is_file(), <span class="hljs-string">&#x27;Missing actual-quit evidence&#x27;</span>
+    _, _, journey = journey_verification(ROOT, meta)
+    catalog = json.loads((DEST/<span class="hljs-string">&#x27;handoff/media-catalog.json&#x27;</span>).read_text())
+    control = json.loads((ROOT/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>).read_text())
+    names = (<span class="hljs-string">&#x27;README.md&#x27;</span>, <span class="hljs-string">&#x27;docs/DOT_HANDOFF.md&#x27;</span>, <span class="hljs-string">&#x27;docs/LINUX_SETUP.md&#x27;</span>, <span class="hljs-string">&#x27;AGENTS.md&#x27;</span>)
+    texts = {name:(DEST/name).read_text() <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> names}
+    updated = refreshed_documents(texts, root=ROOT, label=args.label, save=save,
+                                  session=args.session, metadata=meta, journey=journey,
+                                  master=master, verification=verification, catalog=catalog,
+                                  control=control, closed=args.quit)
+    <span class="hljs-keyword">for</span> name, value <span class="hljs-keyword">in</span> updated.items():
+        (DEST/name).write_text(value)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CURRENT HANDOFF PROSE REFRESHED&#x27;</span>, args.label, save[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;badges&#x27;</span>].count(<span class="hljs-literal">True</span>),
+          <span class="hljs-string">&#x27;badges&#x27;</span>, <span class="hljs-built_in">len</span>(catalog[<span class="hljs-string">&#x27;files&#x27;</span>]), <span class="hljs-string">&#x27;exports&#x27;</span>, verification[<span class="hljs-string">&#x27;fights&#x27;</span>], <span class="hljs-string">&#x27;major victories&#x27;</span>)
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:
+    main()
+</code></pre>
+  </body>
+</html>

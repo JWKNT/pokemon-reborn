@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>zygarde383_enhance.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of zygarde383_enhance.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Use the installed 50% enhancement machine via its normal UI.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">20</span>):
+ t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>);lo=t.lower().replace(<span class="hljs-string">&#x27; &#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;chooseapok&#x27;</span> <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">or</span> (<span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">and</span> lo.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>):
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_pick.py&#x27;</span>),<span class="hljs-string">&#x27;Zygarde&#x27;</span>,<span class="hljs-string">&#x27;--single&#x27;</span>],check=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">elif</span> <span class="hljs-string">&#x27;enhance?&#x27;</span> <span class="hljs-keyword">in</span> lo:
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>],check=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">elif</span> <span class="hljs-built_in">any</span>(q <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">for</span> q <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;50%enhancement&#x27;</span>,<span class="hljs-string">&#x27;cellsactive:40&#x27;</span>,<span class="hljs-string">&#x27;40cellsrequired&#x27;</span>,<span class="hljs-string">&#x27;enhancing&#x27;</span>,<span class="hljs-string">&#x27;complete.&#x27;</span>]):act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>)
+ <span class="hljs-keyword">elif</span> <span class="hljs-keyword">not</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,lo.replace(<span class="hljs-string">&#x27;pokemonreborn&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>)):<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Enhancement review: &#x27;</span>+t)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Enhancement bound&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),<span class="hljs-string">&#x27;Zygarde383-50Percent&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

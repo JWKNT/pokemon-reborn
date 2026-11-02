@@ -1,0 +1,33 @@
+{
+  "source": "Installed Holy fieldtext.rb and work/321-subseven-trainers.json, owned frozen PhaseTest save. Estimates only; react to public battle results.",
+  "holy": {
+    "fairy_special": 1.5,
+    "normal_special": 1.5,
+    "psychic_dragon": 1.2,
+    "sacred_fire": 1.5,
+    "legend_signature": 1.3,
+    "magical_seed": "SpA+1 and MagicCoat; not Wish"
+  },
+  "palkia": {
+    "recommended_leads": [
+      "Mienshao",
+      "Volcanion"
+    ],
+    "turn1": "Fake Out Entei; Steam Eruption Entei. Prevent Scarf boosted Sacred Fire, remove it immediately. Opposing Magearna gains SoulHeart; +2 VoltSwitch could nearly KO Volcanion but rough damage estimate below470HP. FleurCannon may KO Mienshao.",
+    "followup": "Bring Magearna when safe, use TrickRoom with VolcanionProtect when needed, exploit SoulHeart+DazzlingGleam. Beware Victini Vcreate, Entei SacredFire; no direct Magearna opening into those.",
+    "capture": "Keep Palkia, one-time event; wild followsboss. ZapdosThunderWave; TimerBalls; avoid boosted Fairy OHKO.",
+    "turn2_contingency": "If Mienshao falls after FakeOut+SteamEntei, send ownMagearna. Consider TrickRoom + VolcanionFlamethrower opposingMagearna rather than Protect: enemyMagearna214Spe is slower than Volcanion227 and moves first underTR, so protect-only may concede initiative. Volcanion can Flame before enemyMagearna outsideTR if it survives Meloetta hit. IfVolc falls then bringMawile, MegaPlayRoughMeloetta + MagearnaFlashCannon weakenedopposingMagearna underTR; review actualHP/damage. No fixed assumptions about targeting.",
+    "held_item_refinement": "Give Volcanion owned Charcoal instead of WaveIncense: FakeOut+unboostedSteam still comfortably removes Entei, while Charcoal boosts follow-up Flamethrower into opposing Magearna. FairyGem on ownMagearna for laterGleam. Verify actual held items in finalprebattle snapshot."
+  },
+  "dialga": {
+    "recommended_leads": [
+      "Magearna",
+      "Mawile"
+    ],
+    "turn1": "TrickRoom + MegaSwordsDance. Celebi and Hoopa attacks largely resisted or immune; IntimidateHoopa.",
+    "followup": "PlayRoughHoopa + DazzlingGleam. SoulHeart then targetFireVolcanion quickly with concentrated damage. MienshaoWideGuard reserve blocks spreadHeatWave/Surf/SludgeWave. DialgaFireBlast remains threat."
+  },
+  "inventory": "OnlyFairyGem/PersimBerries useful held consumables; noMagicalSeed/Occa/Sitrus/Choiceitems/TM89Uturn. Do not claim these owned. AllbaghealsunchangedafterTialaTanner.",
+  "status": "Proposed, no anomaly attempt yet",
+  "correction": "Fairy/Steel Magearna resists Fairy by one-half, not one-quarter. Volcanion also only one-half resists Fairy. Enemy+2 FleurCannon can threaten Volcanion; watch public targeting and HP. Opposing Magearna likely eliminates Mienshao after turn1, then bring ownMagearna."
+}

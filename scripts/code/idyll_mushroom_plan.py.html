@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>idyll_mushroom_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of idyll_mushroom_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only route planner for installed Idyll mushroom switches; no game inputs.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> ast,heapq,json,re,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-comment"># Load only the pure route function, avoiding the UI module&#x27;s input ownership.</span>
+module=ast.parse((ROOT/<span class="hljs-string">&#x27;scripts/nav.py&#x27;</span>).read_text())
+node=<span class="hljs-built_in">next</span>(n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> module.body <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(n,ast.FunctionDef) <span class="hljs-keyword">and</span> n.name==<span class="hljs-string">&#x27;route&#x27;</span>)
+<span class="hljs-built_in">exec</span>(<span class="hljs-built_in">compile</span>(ast.Module(body=[node],type_ignores=[]),<span class="hljs-string">&#x27;nav-route&#x27;</span>,<span class="hljs-string">&#x27;exec&#x27;</span>))
+switch_ids=[<span class="hljs-string">&#x27;1763&#x27;</span>,<span class="hljs-string">&#x27;1770&#x27;</span>,<span class="hljs-string">&#x27;1771&#x27;</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">build</span>():
+ out={}
+ <span class="hljs-keyword">for</span> state <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  <span class="hljs-keyword">for</span> orb <span class="hljs-keyword">in</span> [<span class="hljs-literal">False</span>,<span class="hljs-literal">True</span>]:
+   sw={k:i==state <span class="hljs-keyword">for</span> i,k <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(switch_ids)};sw[<span class="hljs-string">&#x27;1773&#x27;</span>]=orb;sw[<span class="hljs-string">&#x27;1772&#x27;</span>]=<span class="hljs-literal">True</span> <span class="hljs-comment"># Plan for after the southeast orb is activated.</span>
+   v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;878&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,json.dumps({<span class="hljs-string">&#x27;switches&#x27;</span>:sw})],stderr=subprocess.DEVNULL))
+   graph=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+   triggers={}
+   <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values():
+    changes=[c[<span class="hljs-string">&#x27;parameters&#x27;</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">121</span>]
+    <span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>]!=<span class="hljs-number">1</span> <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> changes:<span class="hljs-keyword">continue</span>
+    relevant=[a <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> changes <span class="hljs-keyword">if</span> <span class="hljs-built_in">str</span>(a[<span class="hljs-number">0</span>])<span class="hljs-keyword">in</span> switch_ids <span class="hljs-keyword">and</span> a[<span class="hljs-number">2</span>]==<span class="hljs-number">0</span>]
+    <span class="hljs-keyword">if</span> relevant:triggers[(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])]=switch_ids.index(<span class="hljs-built_in">str</span>(relevant[-<span class="hljs-number">1</span>][<span class="hljs-number">0</span>]))
+   out[state,orb]=(graph,triggers)
+ <span class="hljs-keyword">return</span> out
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ start=<span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]));state=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">3</span>]);target=sys.argv[<span class="hljs-number">4</span>]
+ grids=build();initial=(*start,state,<span class="hljs-literal">False</span>);q=[(<span class="hljs-number">0</span>,initial)];dist={initial:<span class="hljs-number">0</span>};prev={initial:<span class="hljs-literal">None</span>};goal=<span class="hljs-literal">None</span>
+ <span class="hljs-keyword">while</span> q:
+  cost,u=heapq.heappop(q)
+  <span class="hljs-keyword">if</span> cost!=dist[u]:<span class="hljs-keyword">continue</span>
+  x,y,s,o=u
+  <span class="hljs-keyword">if</span> target==<span class="hljs-string">&#x27;orb&#x27;</span> <span class="hljs-keyword">and</span> o <span class="hljs-keyword">or</span> target==<span class="hljs-string">&#x27;shaymin&#x27;</span> <span class="hljs-keyword">and</span> o <span class="hljs-keyword">and</span> <span class="hljs-built_in">abs</span>(x-<span class="hljs-number">44</span>)+<span class="hljs-built_in">abs</span>(y-<span class="hljs-number">134</span>)==<span class="hljs-number">1</span>:goal=u;<span class="hljs-keyword">break</span>
+  g,tr=grids[s,o];edges=[]
+  <span class="hljs-keyword">for</span> key,p <span class="hljs-keyword">in</span> g.get((x,y),[]):
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span>(<span class="hljs-number">0</span>&lt;=p[<span class="hljs-number">0</span>]&lt;=<span class="hljs-number">65</span> <span class="hljs-keyword">and</span> <span class="hljs-number">90</span>&lt;=p[<span class="hljs-number">1</span>]&lt;=<span class="hljs-number">145</span>):<span class="hljs-keyword">continue</span>
+   edges.append(((*p,tr.get(p,s),o),key))
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> o <span class="hljs-keyword">and</span> <span class="hljs-built_in">abs</span>(x-<span class="hljs-number">26</span>)+<span class="hljs-built_in">abs</span>(y-<span class="hljs-number">130</span>)==<span class="hljs-number">1</span>:edges.append(((x,y,s,<span class="hljs-literal">True</span>),<span class="hljs-string">&#x27;orb&#x27;</span>))
+  <span class="hljs-keyword">for</span> v,k <span class="hljs-keyword">in</span> edges:
+   n=cost+<span class="hljs-number">1</span>
+   <span class="hljs-keyword">if</span> n&lt;dist.get(v,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):dist[v]=n;prev[v]=(u,k);heapq.heappush(q,(n,v))
+ <span class="hljs-keyword">if</span> goal <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;reachable&#x27;</span>,<span class="hljs-built_in">len</span>(dist),<span class="hljs-string">&#x27;states&#x27;</span>,<span class="hljs-built_in">sorted</span>(<span class="hljs-built_in">set</span>(u[<span class="hljs-number">2</span>:]<span class="hljs-keyword">for</span> u <span class="hljs-keyword">in</span> dist)),<span class="hljs-string">&#x27;bounds&#x27;</span>,[(<span class="hljs-built_in">min</span>(u[i]<span class="hljs-keyword">for</span> u <span class="hljs-keyword">in</span> dist),<span class="hljs-built_in">max</span>(u[i]<span class="hljs-keyword">for</span> u <span class="hljs-keyword">in</span> dist))<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">1</span>]])
+  <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No mushroom path&#x27;</span>)
+ steps=[];u=goal
+ <span class="hljs-keyword">while</span> prev[u]:p,k=prev[u];steps.append({<span class="hljs-string">&#x27;from&#x27;</span>:p,<span class="hljs-string">&#x27;to&#x27;</span>:u,<span class="hljs-string">&#x27;key&#x27;</span>:k});u=p
+ steps.reverse();out={<span class="hljs-string">&#x27;start&#x27;</span>:initial,<span class="hljs-string">&#x27;goal&#x27;</span>:goal,<span class="hljs-string">&#x27;steps&#x27;</span>:steps}
+ (ROOT/<span class="hljs-string">&#x27;work/318-mushroom-plan.json&#x27;</span>).write_text(json.dumps(out,indent=<span class="hljs-number">2</span>))
+ <span class="hljs-built_in">print</span>(json.dumps({<span class="hljs-string">&#x27;count&#x27;</span>:<span class="hljs-built_in">len</span>(steps),<span class="hljs-string">&#x27;transitions&#x27;</span>:[x <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> steps <span class="hljs-keyword">if</span> x[<span class="hljs-string">&#x27;from&#x27;</span>][<span class="hljs-number">2</span>:]!=x[<span class="hljs-string">&#x27;to&#x27;</span>][<span class="hljs-number">2</span>:]],<span class="hljs-string">&#x27;goal&#x27;</span>:goal}))
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,267 @@
+{
+  "scope": "Offline explicit planning estimates, intermediate rounding uncertainty; no runtime state or AI.",
+  "foes": {
+    "NOIVERN": [
+      296,
+      150,
+      186,
+      278,
+      186,
+      360
+    ],
+    "SALAMENCE": [
+      319,
+      354,
+      188,
+      220,
+      188,
+      315
+    ],
+    "GARCHOMP": [
+      344,
+      344,
+      217,
+      169,
+      197,
+      320
+    ],
+    "HAXORUS": [
+      279,
+      373,
+      205,
+      133,
+      167,
+      305
+    ],
+    "CHARIZARD": [
+      289,
+      348,
+      250,
+      258,
+      199,
+      319
+    ],
+    "DRAGONITE": [
+      386,
+      320,
+      226,
+      212,
+      236,
+      268
+    ]
+  },
+  "planned_gyarados": [
+    310,
+    333,
+    172,
+    133,
+    220,
+    198
+  ],
+  "reports": [
+    {
+      "label": "Dragon Den Seed Noivern Dragon Pulse vs Swampert SpDef+0",
+      "range": [
+        295,
+        347
+      ],
+      "hp": 363
+    },
+    {
+      "label": "Dragon Den Seed Noivern Dragon Pulse vs Gyarados SpDef+0",
+      "range": [
+        249,
+        293
+      ],
+      "hp": 310
+    },
+    {
+      "label": "Dragon Den Seed Noivern Dragon Pulse vs Swampert SpDef+2",
+      "range": [
+        148,
+        174
+      ],
+      "hp": 363
+    },
+    {
+      "label": "Dragon Den Seed Noivern Dragon Pulse vs Gyarados SpDef+2",
+      "range": [
+        125,
+        147
+      ],
+      "hp": 310
+    },
+    {
+      "label": "Dragon Den Seed Noivern Dragon Pulse vs Swampert SpDef+4",
+      "range": [
+        99,
+        117
+      ],
+      "hp": 363
+    },
+    {
+      "label": "Dragon Den Seed Noivern Dragon Pulse vs Gyarados SpDef+4",
+      "range": [
+        84,
+        99
+      ],
+      "hp": 310
+    },
+    {
+      "label": "Cave Seed Noivern Dragon Pulse vs Swampert SpDef+0",
+      "range": [
+        198,
+        233
+      ],
+      "hp": 363
+    },
+    {
+      "label": "Cave Seed Noivern Dragon Pulse vs Gyarados SpDef+0",
+      "range": [
+        166,
+        195
+      ],
+      "hp": 310
+    },
+    {
+      "label": "Cave Seed Noivern Dragon Pulse vs Swampert SpDef+2",
+      "range": [
+        99,
+        117
+      ],
+      "hp": 363
+    },
+    {
+      "label": "Cave Seed Noivern Dragon Pulse vs Gyarados SpDef+2",
+      "range": [
+        84,
+        99
+      ],
+      "hp": 310
+    },
+    {
+      "label": "Cave Seed Noivern Dragon Pulse vs Swampert SpDef+4",
+      "range": [
+        68,
+        80
+      ],
+      "hp": 363
+    },
+    {
+      "label": "Cave Seed Noivern Dragon Pulse vs Gyarados SpDef+4",
+      "range": [
+        56,
+        66
+      ],
+      "hp": 310
+    },
+    {
+      "label": "Dragon Den +4 Gyarados Outrage vs full NOIVERN",
+      "range": [
+        1013,
+        1192
+      ],
+      "hp": 296,
+      "note": "Sash and Rough Skin remain relevant; no STAB for Gyarados."
+    },
+    {
+      "label": "Dragon Den +4 Gyarados Outrage vs full SALAMENCE",
+      "range": [
+        1003,
+        1180
+      ],
+      "hp": 319,
+      "note": "Sash and Rough Skin remain relevant; no STAB for Gyarados."
+    },
+    {
+      "label": "Dragon Den +4 Gyarados Outrage vs full GARCHOMP",
+      "range": [
+        869,
+        1022
+      ],
+      "hp": 344,
+      "note": "Sash and Rough Skin remain relevant; no STAB for Gyarados."
+    },
+    {
+      "label": "Dragon Den +4 Gyarados Outrage vs full HAXORUS",
+      "range": [
+        920,
+        1082
+      ],
+      "hp": 279,
+      "note": "Sash and Rough Skin remain relevant; no STAB for Gyarados."
+    },
+    {
+      "label": "Dragon Den +4 Gyarados Outrage vs full CHARIZARD",
+      "range": [
+        755,
+        888
+      ],
+      "hp": 289,
+      "note": "Sash and Rough Skin remain relevant; no STAB for Gyarados."
+    },
+    {
+      "label": "Dragon Den +4 Gyarados Outrage vs full DRAGONITE",
+      "range": [
+        209,
+        246
+      ],
+      "hp": 386,
+      "note": "Sash and Rough Skin remain relevant; no STAB for Gyarados."
+    },
+    {
+      "label": "Cave +4 Gyarados Outrage vs full NOIVERN",
+      "range": [
+        879,
+        1034
+      ],
+      "hp": 296,
+      "note": "Sash and Rough Skin remain relevant; no STAB for Gyarados."
+    },
+    {
+      "label": "Cave +4 Gyarados Outrage vs full SALAMENCE",
+      "range": [
+        870,
+        1024
+      ],
+      "hp": 319,
+      "note": "Sash and Rough Skin remain relevant; no STAB for Gyarados."
+    },
+    {
+      "label": "Cave +4 Gyarados Outrage vs full GARCHOMP",
+      "range": [
+        753,
+        886
+      ],
+      "hp": 344,
+      "note": "Sash and Rough Skin remain relevant; no STAB for Gyarados."
+    },
+    {
+      "label": "Cave +4 Gyarados Outrage vs full HAXORUS",
+      "range": [
+        797,
+        938
+      ],
+      "hp": 279,
+      "note": "Sash and Rough Skin remain relevant; no STAB for Gyarados."
+    },
+    {
+      "label": "Cave +4 Gyarados Outrage vs full CHARIZARD",
+      "range": [
+        655,
+        770
+      ],
+      "hp": 289,
+      "note": "Sash and Rough Skin remain relevant; no STAB for Gyarados."
+    },
+    {
+      "label": "Cave +4 Gyarados Outrage vs full DRAGONITE",
+      "range": [
+        362,
+        426
+      ],
+      "hp": 386,
+      "note": "Sash and Rough Skin remain relevant; no STAB for Gyarados."
+    }
+  ]
+}

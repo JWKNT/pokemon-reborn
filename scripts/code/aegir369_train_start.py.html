@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>aegir369_train_start.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of aegir369_train_start.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Assemble owned supports and take the reviewed Amulet Coin for training.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;AEGIR PREP&#x27;</span>,s,*args,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-number">116</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;heal&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;pc_open_reviewed&#x27;</span>);run(<span class="hljs-string">&#x27;pc_select_box&#x27;</span>,<span class="hljs-number">1</span>)
+run(<span class="hljs-string">&#x27;pc_exchange_named&#x27;</span>,<span class="hljs-number">23</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;Heatran&#x27;</span>,<span class="hljs-string">&#x27;Volcanion&#x27;</span>,<span class="hljs-string">&#x27;--box&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--stay-open&#x27;</span>)
+run(<span class="hljs-string">&#x27;pc_exchange_named&#x27;</span>,<span class="hljs-number">16</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;Cresselia&#x27;</span>,<span class="hljs-string">&#x27;Zeraora&#x27;</span>,<span class="hljs-string">&#x27;--box&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--stay-open&#x27;</span>)
+run(<span class="hljs-string">&#x27;pc_select_box&#x27;</span>,<span class="hljs-number">2</span>)
+act(<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,*[<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>]*<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+run(<span class="hljs-string">&#x27;pc_take_owned_item&#x27;</span>,<span class="hljs-number">25</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Amulet Coin&#x27;</span>,<span class="hljs-string">&#x27;--menu-open&#x27;</span>)
+run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Amulet Coin&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>)
+run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Aegir369-TrainingParty&#x27;</span>)
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>,<span class="hljs-number">4</span>):run(<span class="hljs-string">&#x27;silva367_round&#x27;</span>,<span class="hljs-string">&#x27;Postgame369-Silva&#x27;</span>+<span class="hljs-built_in">str</span>(i))
+</code></pre>
+  </body>
+</html>

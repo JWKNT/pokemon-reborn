@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>layer_readonly.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of layer_readonly.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Expose the pure layered planner without importing the UI input owner.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> ast,copy,json,subprocess,heapq
+<span class="hljs-keyword">from</span> route_readonly <span class="hljs-keyword">import</span> ROOT,route,action_jump
+DIR={<span class="hljs-string">&#x27;up&#x27;</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>,<span class="hljs-number">8</span>),<span class="hljs-string">&#x27;down&#x27;</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>),<span class="hljs-string">&#x27;left&#x27;</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">4</span>),<span class="hljs-string">&#x27;right&#x27;</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">6</span>)}
+CACHE={}
+tree=ast.parse((ROOT/<span class="hljs-string">&#x27;scripts/layer_route.py&#x27;</span>).read_text())
+functions=[n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> tree.body <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(n,ast.FunctionDef) <span class="hljs-keyword">and</span> n.name <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;effect&#x27;</span>,<span class="hljs-string">&#x27;plan&#x27;</span>]]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(functions)==<span class="hljs-number">2</span>
+<span class="hljs-built_in">exec</span>(<span class="hljs-built_in">compile</span>(ast.Module(body=functions,type_ignores=[]),<span class="hljs-string">&#x27;layer-readonly-extract&#x27;</span>,<span class="hljs-string">&#x27;exec&#x27;</span>))
+</code></pre>
+  </body>
+</html>

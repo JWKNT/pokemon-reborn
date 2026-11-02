@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>volcanion_enter.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of volcanion_enter.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Register the fresh reviewed anomaly attempt, then enter through normal controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+label,session=sys.argv[<span class="hljs-number">1</span>],<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]);cfg=<span class="hljs-string">&#x27;work/major-154.json&#x27;</span>
+E=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],env=E,check=<span class="hljs-literal">True</span>)
+s=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">545</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;position&#x27;</span>]==[<span class="hljs-number">30</span>,<span class="hljs-number">19</span>]
+p=R/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>;c=json.loads(p.read_text());c.update(stop=<span class="hljs-literal">False</span>,expected_foes=[<span class="hljs-string">&#x27;Dragonite&#x27;</span>,<span class="hljs-string">&#x27;Tornadus&#x27;</span>,<span class="hljs-string">&#x27;Volcanion&#x27;</span>,<span class="hljs-string">&#x27;Silvally&#x27;</span>,<span class="hljs-string">&#x27;Hydreigon&#x27;</span>,<span class="hljs-string">&#x27;Naganadel&#x27;</span>]);p.write_text(json.dumps(c,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+run(<span class="hljs-string">&#x27;major_attempt&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,cfg,session,<span class="hljs-string">&#x27;--status&#x27;</span>,<span class="hljs-string">f&#x27;notes/<span class="hljs-subst">{label}</span>-status.json&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,<span class="hljs-string">&#x27;VOLCANION&#x27;</span>,<span class="hljs-string">&#x27;Volcanion&#x27;</span>,<span class="hljs-string">&#x27;--map&#x27;</span>,<span class="hljs-number">545</span>)
+run(<span class="hljs-string">&#x27;play&#x27;</span>,<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">545</span>,<span class="hljs-number">31</span>,<span class="hljs-string">&#x27;VOLCANION&#x27;</span>,<span class="hljs-string">&#x27;Volcanion&#x27;</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--active-dialogue&#x27;</span>,<span class="hljs-string">&#x27;--resume-intro&#x27;</span>)
+run(<span class="hljs-string">&#x27;major_battle_intro&#x27;</span>,cfg,session)
+</code></pre>
+  </body>
+</html>

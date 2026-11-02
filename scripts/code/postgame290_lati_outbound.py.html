@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>postgame290_lati_outbound.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of postgame290_lati_outbound.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal travel to the reviewed Ametrine ice boulder; stop before pushing.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,sys,json,subprocess
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;LATI OUTBOUND&#x27;</span>,n,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--mountain&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--from-zapdos-menu&#x27;</span> <span class="hljs-keyword">in</span> sys.argv:
+  run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">413</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>,<span class="hljs-string">&#x27;--menu-open&#x27;</span>,<span class="hljs-string">&#x27;--origin&#x27;</span>,<span class="hljs-number">527</span>)
+ <span class="hljs-keyword">else</span>:
+  run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">827</span>,<span class="hljs-number">826</span>);run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">826</span>,<span class="hljs-number">527</span>);run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">413</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>)
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">413</span>,<span class="hljs-number">62</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">418</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">361</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ run(<span class="hljs-string">&#x27;use_field_item&#x27;</span>,<span class="hljs-string">&#x27;Super Repel&#x27;</span>)
+run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">364</span>,<span class="hljs-number">82</span>,<span class="hljs-number">60</span>)
+run(<span class="hljs-string">&#x27;play&#x27;</span>,<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>);run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>);run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=12&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Postgame290-Ametrine1F&#x27;</span>)
+s=json.loads((R/<span class="hljs-string">&#x27;notes/Postgame290-Ametrine1F-status.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">375</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;position&#x27;</span>]==[<span class="hljs-number">44</span>,<span class="hljs-number">12</span>]
+run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">375</span>,<span class="hljs-number">40</span>,<span class="hljs-number">23</span>);run(<span class="hljs-string">&#x27;waterfall_step&#x27;</span>,<span class="hljs-number">375</span>,<span class="hljs-number">40</span>,<span class="hljs-number">23</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-number">375</span>,<span class="hljs-number">40</span>,<span class="hljs-number">33</span>)
+run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">375</span>,<span class="hljs-number">16</span>,<span class="hljs-number">32</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Postgame290-IceBoulder&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;AT RIGHT SIDE OF ICE BOULDER; PUSH NOT EXECUTED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

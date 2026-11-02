@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_sylveon_saphira_review.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_sylveon_saphira_review.py"><code class="hljs language-python"><span class="hljs-keyword">import</span> unittest
+
+<span class="hljs-keyword">from</span> sylveon_saphira_review <span class="hljs-keyword">import</span> (EVS, backed_up_field_after_defog,
+                                   build_report, incoming)
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SylveonSourceReviewTests</span>(unittest.TestCase):
+<span class="hljs-meta">    @classmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">setUpClass</span>(<span class="hljs-params">cls</span>):
+        cls.report = build_report()
+        cls.worst = cls.report[<span class="hljs-string">&quot;builds&quot;</span>][<span class="hljs-number">0</span>]
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_legal_ev_budget_and_conservative_stats</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-built_in">sum</span>(EVS), <span class="hljs-number">508</span>)
+        <span class="hljs-variable language_">self</span>.assertLessEqual(<span class="hljs-built_in">max</span>(EVS), <span class="hljs-number">252</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-variable language_">self</span>.worst[<span class="hljs-string">&quot;stats&quot;</span>], [<span class="hljs-number">345</span>, <span class="hljs-number">115</span>, <span class="hljs-number">128</span>, <span class="hljs-number">214</span>, <span class="hljs-number">342</span>, <span class="hljs-number">119</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_first_terrain_survives_critical_and_burn</span>(<span class="hljs-params">self</span>):
+        fields = <span class="hljs-variable language_">self</span>.worst[<span class="hljs-string">&quot;fields&quot;</span>]
+        crit = fields[<span class="hljs-string">&quot;DRAGONSDEN&quot;</span>][<span class="hljs-string">&quot;incoming&quot;</span>][<span class="hljs-string">&quot;FLAMETHROWER&quot;</span>][<span class="hljs-string">&quot;critical&quot;</span>]
+        <span class="hljs-variable language_">self</span>.assertEqual(crit, [<span class="hljs-number">254</span>, <span class="hljs-number">299</span>])
+        <span class="hljs-variable language_">self</span>.assertGreater(<span class="hljs-variable language_">self</span>.worst[<span class="hljs-string">&quot;stats&quot;</span>][<span class="hljs-number">0</span>], crit[<span class="hljs-number">1</span>] + <span class="hljs-variable language_">self</span>.worst[<span class="hljs-string">&quot;burn_tick&quot;</span>] + <span class="hljs-number">2</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_misty_moonblast_ohko_but_unboosted_den_does_not</span>(<span class="hljs-params">self</span>):
+        fields = <span class="hljs-variable language_">self</span>.worst[<span class="hljs-string">&quot;fields&quot;</span>]
+        <span class="hljs-variable language_">self</span>.assertEqual(fields[<span class="hljs-string">&quot;MISTY&quot;</span>][<span class="hljs-string">&quot;moonblast&quot;</span>], [<span class="hljs-number">339</span>, <span class="hljs-number">399</span>])
+        <span class="hljs-variable language_">self</span>.assertGreater(fields[<span class="hljs-string">&quot;MISTY&quot;</span>][<span class="hljs-string">&quot;moonblast&quot;</span>][<span class="hljs-number">0</span>], <span class="hljs-variable language_">self</span>.report[<span class="hljs-string">&quot;noivern&quot;</span>][<span class="hljs-number">0</span>])
+        <span class="hljs-variable language_">self</span>.assertLess(fields[<span class="hljs-string">&quot;DRAGONSDEN&quot;</span>][<span class="hljs-string">&quot;moonblast&quot;</span>][<span class="hljs-number">1</span>], <span class="hljs-variable language_">self</span>.report[<span class="hljs-string">&quot;noivern&quot;</span>][<span class="hljs-number">0</span>])
+        <span class="hljs-variable language_">self</span>.assertGreater(fields[<span class="hljs-string">&quot;DRAGONSDEN&quot;</span>][<span class="hljs-string">&quot;moonblast_after_one_x_spatk&quot;</span>][<span class="hljs-number">0</span>], <span class="hljs-variable language_">self</span>.report[<span class="hljs-string">&quot;noivern&quot;</span>][<span class="hljs-number">0</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_critical_bypasses_x_spdef_but_not_field_defense</span>(<span class="hljs-params">self</span>):
+        base = incoming(<span class="hljs-variable language_">self</span>.report[<span class="hljs-string">&quot;noivern&quot;</span>], <span class="hljs-variable language_">self</span>.worst[<span class="hljs-string">&quot;stats&quot;</span>], <span class="hljs-string">&quot;DRAGONSDEN&quot;</span>)
+        boosted = incoming(<span class="hljs-variable language_">self</span>.report[<span class="hljs-string">&quot;noivern&quot;</span>], <span class="hljs-variable language_">self</span>.worst[<span class="hljs-string">&quot;stats&quot;</span>], <span class="hljs-string">&quot;DRAGONSDEN&quot;</span>, spdef_stage=<span class="hljs-number">6</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(base[<span class="hljs-string">&quot;FLAMETHROWER&quot;</span>][<span class="hljs-string">&quot;critical&quot;</span>], boosted[<span class="hljs-string">&quot;FLAMETHROWER&quot;</span>][<span class="hljs-string">&quot;critical&quot;</span>])
+        misty = incoming(<span class="hljs-variable language_">self</span>.report[<span class="hljs-string">&quot;noivern&quot;</span>], <span class="hljs-variable language_">self</span>.worst[<span class="hljs-string">&quot;stats&quot;</span>], <span class="hljs-string">&quot;MISTY&quot;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(misty[<span class="hljs-string">&quot;BOOMBURST&quot;</span>][<span class="hljs-string">&quot;critical&quot;</span>], [<span class="hljs-number">119</span>, <span class="hljs-number">140</span>])
+        <span class="hljs-variable language_">self</span>.assertLess(misty[<span class="hljs-string">&quot;FLAMETHROWER&quot;</span>][<span class="hljs-string">&quot;critical&quot;</span>][<span class="hljs-number">1</span>], base[<span class="hljs-string">&quot;FLAMETHROWER&quot;</span>][<span class="hljs-string">&quot;critical&quot;</span>][<span class="hljs-number">1</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_actual_backup_pop_and_installed_no_roost</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.assertEqual(backed_up_field_after_defog([<span class="hljs-string">&quot;DRAGONSDEN&quot;</span>, <span class="hljs-string">&quot;MISTY&quot;</span>]), <span class="hljs-string">&quot;DRAGONSDEN&quot;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(backed_up_field_after_defog([<span class="hljs-string">&quot;INDOOR&quot;</span>, <span class="hljs-string">&quot;MISTY&quot;</span>]), <span class="hljs-string">&quot;INDOOR&quot;</span>)
+        <span class="hljs-variable language_">self</span>.assertFalse(<span class="hljs-variable language_">self</span>.report[<span class="hljs-string">&quot;noivern_has_roost&quot;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-built_in">set</span>(<span class="hljs-variable language_">self</span>.report[<span class="hljs-string">&quot;noivern_moves&quot;</span>]), {<span class="hljs-string">&quot;BOOMBURST&quot;</span>, <span class="hljs-string">&quot;DRAGONPULSE&quot;</span>, <span class="hljs-string">&quot;FLAMETHROWER&quot;</span>, <span class="hljs-string">&quot;DEFOG&quot;</span>})
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    unittest.main()
+</code></pre>
+  </body>
+</html>

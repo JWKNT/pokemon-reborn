@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>saphira_circus_build.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of saphira_circus_build.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Small reviewed preparation phases via normal controls; each stops on guards.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,sys,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ[<span class="hljs-string">&#x27;REBORN_COORD_CACHE&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,s,*args,flush=<span class="hljs-literal">True</span>)
+ env=<span class="hljs-built_in">dict</span>(os.environ)
+ <span class="hljs-keyword">if</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-string">&#x27;q&#x27;</span>]:env[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>,cwd=ROOT,env=env)
+phase=sys.argv[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">if</span> phase==<span class="hljs-string">&#x27;berries&#x27;</span>:
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Saphira-Swamp-before-berries&#x27;</span>)
+ st=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Saphira-Swamp-before-berries-status.json&#x27;</span>).read_text())
+ mon=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;SWAMPERT&#x27;</span>)
+ <span class="hljs-keyword">assert</span> mon[<span class="hljs-string">&#x27;ev&#x27;</span>]==[<span class="hljs-number">32</span>,<span class="hljs-number">155</span>,<span class="hljs-number">59</span>,<span class="hljs-number">159</span>,<span class="hljs-number">32</span>,<span class="hljs-number">73</span>],mon[<span class="hljs-string">&#x27;ev&#x27;</span>]
+ <span class="hljs-keyword">assert</span> st[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]&gt;=<span class="hljs-number">8500</span>
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">136</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;mart_open&#x27;</span>)
+ <span class="hljs-keyword">for</span> item,count <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;Qualot Berry&#x27;</span>,<span class="hljs-number">3</span>),(<span class="hljs-string">&#x27;Hondew Berry&#x27;</span>,<span class="hljs-number">8</span>),(<span class="hljs-string">&#x27;Grepa Berry&#x27;</span>,<span class="hljs-number">2</span>),(<span class="hljs-string">&#x27;Tamato Berry&#x27;</span>,<span class="hljs-number">4</span>)]:run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,item,count,<span class="hljs-number">500</span>)
+ run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>)
+ <span class="hljs-keyword">for</span> item,count <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;Qualot Berry&#x27;</span>,<span class="hljs-number">3</span>),(<span class="hljs-string">&#x27;Hondew Berry&#x27;</span>,<span class="hljs-number">8</span>),(<span class="hljs-string">&#x27;Grepa Berry&#x27;</span>,<span class="hljs-number">2</span>),(<span class="hljs-string">&#x27;Tamato Berry&#x27;</span>,<span class="hljs-number">4</span>)]:run(<span class="hljs-string">&#x27;berry_batch&#x27;</span>,item,<span class="hljs-string">&#x27;Swampert&#x27;</span>,count)
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Saphira-Swamp-berries-used&#x27;</span>)
+ st=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Saphira-Swamp-berries-used-status.json&#x27;</span>).read_text())
+ mon=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;SWAMPERT&#x27;</span>)
+ <span class="hljs-keyword">assert</span> mon[<span class="hljs-string">&#x27;ev&#x27;</span>]==[<span class="hljs-number">32</span>,<span class="hljs-number">155</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],mon[<span class="hljs-string">&#x27;ev&#x27;</span>]
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;arcanine-berries&#x27;</span>:
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Saphira-Arcanine-before-berries&#x27;</span>)
+ st=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Saphira-Arcanine-before-berries-status.json&#x27;</span>).read_text())
+ mon=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;ARCANINE&#x27;</span>)
+ <span class="hljs-keyword">assert</span> mon[<span class="hljs-string">&#x27;ev&#x27;</span>]==[<span class="hljs-number">34</span>,<span class="hljs-number">114</span>,<span class="hljs-number">121</span>,<span class="hljs-number">107</span>,<span class="hljs-number">44</span>,<span class="hljs-number">90</span>],mon[<span class="hljs-string">&#x27;ev&#x27;</span>]
+ <span class="hljs-keyword">assert</span> st[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]&gt;=<span class="hljs-number">10500</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--purchased&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+  run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">136</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;mart_open&#x27;</span>)
+  <span class="hljs-keyword">for</span> item,count <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;Kelpsy Berry&#x27;</span>,<span class="hljs-number">6</span>),(<span class="hljs-string">&#x27;Qualot Berry&#x27;</span>,<span class="hljs-number">7</span>),(<span class="hljs-string">&#x27;Grepa Berry&#x27;</span>,<span class="hljs-number">3</span>),(<span class="hljs-string">&#x27;Tamato Berry&#x27;</span>,<span class="hljs-number">5</span>)]:run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,item,count,<span class="hljs-number">500</span>)
+  run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>)
+ <span class="hljs-keyword">else</span>:
+  <span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(st[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][k]&gt;=n <span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;KELPSYBERRY&#x27;</span>,<span class="hljs-number">6</span>),(<span class="hljs-string">&#x27;QUALOTBERRY&#x27;</span>,<span class="hljs-number">7</span>),(<span class="hljs-string">&#x27;GREPABERRY&#x27;</span>,<span class="hljs-number">3</span>),(<span class="hljs-string">&#x27;TAMATOBERRY&#x27;</span>,<span class="hljs-number">5</span>)])
+ <span class="hljs-keyword">for</span> item,count <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;Kelpsy Berry&#x27;</span>,<span class="hljs-number">6</span>),(<span class="hljs-string">&#x27;Qualot Berry&#x27;</span>,<span class="hljs-number">7</span>),(<span class="hljs-string">&#x27;Grepa Berry&#x27;</span>,<span class="hljs-number">3</span>),(<span class="hljs-string">&#x27;Tamato Berry&#x27;</span>,<span class="hljs-number">5</span>)]:run(<span class="hljs-string">&#x27;berry_batch&#x27;</span>,item,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,count)
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Saphira-Arcanine-berries-used&#x27;</span>)
+ st=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Saphira-Arcanine-berries-used-status.json&#x27;</span>).read_text())
+ mon=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;ARCANINE&#x27;</span>)
+ <span class="hljs-keyword">assert</span> mon[<span class="hljs-string">&#x27;ev&#x27;</span>]==[<span class="hljs-number">34</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">107</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],mon[<span class="hljs-string">&#x27;ev&#x27;</span>]
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;curse&#x27;</span>:
+ <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read,act
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">35</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+ run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Teach one-by-one.|Remember all.|No&#x27;</span>,<span class="hljs-string">&#x27;Teach one-by-one.&#x27;</span>,<span class="hljs-string">&#x27;--source&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">35</span>)
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>):
+  t=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;choose a pok&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> (<span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> t.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>):<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;which pok&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;klhich pok&#x27;</span> <span class="hljs-keyword">in</span> t,t
+  act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Reminder party entry timeout&#x27;</span>)
+ run(<span class="hljs-string">&#x27;party_pick&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;--single&#x27;</span>)
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>):
+  t=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;teach which&#x27;</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">assert</span> <span class="hljs-string">&quot;what&#x27;ll it be&quot;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;whatll it be&#x27;</span> <span class="hljs-keyword">in</span> t,t
+  act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Reminder list timeout&#x27;</span>)
+ run(<span class="hljs-string">&#x27;relearn_select&#x27;</span>,<span class="hljs-string">&#x27;Curse&#x27;</span>,<span class="hljs-number">7</span>,<span class="hljs-number">3</span>)
+ run(<span class="hljs-string">&#x27;overworld&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Saphira-Cofagrigus-Curse&#x27;</span>)
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;ice-punch&#x27;</span>:
+ <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read,act
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--at-payment&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+  run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">129</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+  run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Dual Chop|Thunder Punch|Fire Punch|Ice Punch&#x27;</span>,<span class="hljs-string">&#x27;Ice Punch&#x27;</span>)
+ run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>)
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>):
+  t=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> (t.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span> <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;teach which&#x27;</span> <span class="hljs-keyword">in</span> t):<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;which pok&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;choose a pok&#x27;</span> <span class="hljs-keyword">in</span> t,t
+  act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Tutor party entry timeout&#x27;</span>)
+ run(<span class="hljs-string">&#x27;party_pick&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;--single&#x27;</span>)
+ <span class="hljs-keyword">from</span> learning <span class="hljs-keyword">import</span> PLANS,resolve
+ PLANS[<span class="hljs-string">&#x27;ice punch&#x27;</span>]=<span class="hljs-number">2</span>
+ t=read()
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;icepunch&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27;&#x27;</span>.join(t.lower().split()) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;swampert&#x27;</span> <span class="hljs-keyword">in</span> t.lower(),t
+ <span class="hljs-keyword">assert</span> resolve(t),<span class="hljs-string">&#x27;Tutor learning prompt requires review&#x27;</span>
+ <span class="hljs-comment"># Tutor returns to its four-move menu; do not blindly confirm another purchase.</span>
+ <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> snap
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">15</span>):
+  t=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">all</span>(z <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;dual chop&#x27;</span>,<span class="hljs-string">&#x27;fire punch&#x27;</span>,<span class="hljs-string">&#x27;ice punch&#x27;</span>]):
+   act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>);<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;learned&#x27;</span>,<span class="hljs-string">&#x27;and&#x27;</span>,<span class="hljs-string">&#x27;poof&#x27;</span>,<span class="hljs-string">&#x27;forgot&#x27;</span>,<span class="hljs-string">&#x27;settle things&#x27;</span>]),t
+  act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Tutor completion review&#x27;</span>)
+ run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=12&#x27;</span>)
+ run(<span class="hljs-string">&#x27;overworld&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Saphira-Swampert-IcePunch&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unknown phase&#x27;</span>)
+</code></pre>
+  </body>
+</html>

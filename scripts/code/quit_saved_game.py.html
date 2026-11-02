@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>quit_saved_game.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of quit_saved_game.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Verify an already closed macOS game and back up its save; sends no quit key.&quot;&quot;&quot;</span>
+<span class="hljs-comment"># This helper deliberately leaves the quitting keystroke to the CUA app binding.</span>
+<span class="hljs-comment"># Read-only verification and backup are performed after the app closes.</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> shutil
+label=sys.argv[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">assert</span> label.replace(<span class="hljs-string">&#x27;-&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).replace(<span class="hljs-string">&#x27;_&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).isalnum()
+processes=subprocess.check_output([<span class="hljs-string">&#x27;ps&#x27;</span>,<span class="hljs-string">&#x27;-axo&#x27;</span>,<span class="hljs-string">&#x27;command=&#x27;</span>],text=<span class="hljs-literal">True</span>).splitlines()
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(line.strip().startswith(<span class="hljs-string">&#x27;/Applications/Reborn.app/&#x27;</span>) <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> processes),<span class="hljs-string">&#x27;Reborn is still running; quit normally before this helper&#x27;</span>
+p=pathlib.Path.home()/<span class="hljs-string">&#x27;Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>
+raw=subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/status_full.rb&#x27;</span>)],stderr=subprocess.DEVNULL)
+j=json.loads(raw);<span class="hljs-keyword">assert</span> j[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Aster&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">isinstance</span>(j[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;badges&#x27;</span>],<span class="hljs-built_in">list</span>)
+(ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-quit-status.json&#x27;</span>).write_bytes(raw)
+shutil.copy2(p,ROOT/<span class="hljs-string">&#x27;backups&#x27;</span>/<span class="hljs-string">f&#x27;Aster-<span class="hljs-subst">{label}</span>-quit.rxdata&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;POST-QUIT SAVE BACKUP&#x27;</span>,j[<span class="hljs-string">&#x27;save_mtime&#x27;</span>],j[<span class="hljs-string">&#x27;map&#x27;</span>],j[<span class="hljs-string">&#x27;position&#x27;</span>],flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_checkpoint_weather.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_checkpoint_weather.rb"><code class="hljs language-ruby"><span class="hljs-keyword">require</span> <span class="hljs-string">&#x27;minitest/autorun&#x27;</span>
+require_relative <span class="hljs-string">&#x27;checkpoint_weather&#x27;</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CheckpointWeatherTest</span> &lt; <span class="hljs-title class_ inherited__">Minitest::Test</span>
+  <span class="hljs-keyword">def</span> <span class="hljs-title function_">object</span>(<span class="hljs-params">fields</span>)
+    value = <span class="hljs-title class_">Object</span>.new
+    fields.each { |<span class="hljs-params">name, v</span>| value.instance_variable_set(<span class="hljs-string">&quot;@<span class="hljs-subst">#{name}</span>&quot;</span>, v) }
+    value
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_saved_symbol_weather_and_numeric_intensity</span>
+    screen = object(<span class="hljs-symbol">weather_type:</span> <span class="hljs-symbol">:Rain</span>, <span class="hljs-symbol">weather_max:</span> <span class="hljs-number">20.0</span>,
+                    <span class="hljs-symbol">weather_type_target:</span> <span class="hljs-symbol">:Rain</span>, <span class="hljs-symbol">weather_max_target:</span> <span class="hljs-number">20.0</span>,
+                    <span class="hljs-symbol">weatherVector:</span> [<span class="hljs-string">&#x27;must not export forecast&#x27;</span>])
+    metadata = object(<span class="hljs-title class_">MapPosition</span>: [<span class="hljs-number">0</span>, <span class="hljs-number">13</span>, <span class="hljs-number">6</span>])
+    result = <span class="hljs-title class_">CheckpointWeather</span>.export(screen, metadata, <span class="hljs-literal">false</span>)
+    assert_equal({<span class="hljs-symbol">weather_type:</span> <span class="hljs-symbol">:Rain</span>, <span class="hljs-symbol">weather_type_id:</span> <span class="hljs-number">1</span>, <span class="hljs-symbol">weather_max:</span> <span class="hljs-number">20.0</span>,
+                  <span class="hljs-symbol">weather_type_target:</span> <span class="hljs-symbol">:Rain</span>, <span class="hljs-symbol">weather_max_target:</span> <span class="hljs-number">20.0</span>,
+                  <span class="hljs-symbol">region:</span> <span class="hljs-number">4</span>}, result)
+    refute_includes <span class="hljs-variable constant_">JSON</span>.generate(result), <span class="hljs-string">&#x27;forecast&#x27;</span>
+    assert_equal <span class="hljs-string">&#x27;Rain&#x27;</span>, <span class="hljs-variable constant_">JSON</span>.parse(<span class="hljs-variable constant_">JSON</span>.generate(result))[<span class="hljs-string">&#x27;weather_type&#x27;</span>]
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_transition_preserves_actual_and_target_instead_of_inventing_power</span>
+    screen = object(<span class="hljs-symbol">weather_type:</span> <span class="hljs-symbol">:Storm</span>, <span class="hljs-symbol">weather_max:</span> <span class="hljs-number">7.5</span>,
+                    <span class="hljs-symbol">weather_type_target:</span> <span class="hljs-number">0</span>, <span class="hljs-symbol">weather_max_target:</span> <span class="hljs-number">0.0</span>)
+    result = <span class="hljs-title class_">CheckpointWeather</span>.export(screen, object(<span class="hljs-title class_">MapPosition</span>: [<span class="hljs-number">0</span>, <span class="hljs-number">8</span>, <span class="hljs-number">10</span>]), <span class="hljs-literal">false</span>)
+    assert_equal <span class="hljs-symbol">:Storm</span>, result[<span class="hljs-symbol">:weather_type</span>]
+    assert_equal <span class="hljs-number">2</span>, result[<span class="hljs-symbol">:weather_type_id</span>]
+    assert_equal <span class="hljs-number">7.5</span>, result[<span class="hljs-symbol">:weather_max</span>]
+    assert_equal <span class="hljs-number">0</span>, result[<span class="hljs-symbol">:weather_type_target</span>]
+    assert_equal <span class="hljs-number">0.0</span>, result[<span class="hljs-symbol">:weather_max_target</span>]
+    refute result.key?(<span class="hljs-symbol">:power</span>)
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_source_region_boundaries_and_city_restore</span>
+    cases = [[[<span class="hljs-number">0</span>, <span class="hljs-number">8</span>, <span class="hljs-number">7</span>], <span class="hljs-literal">false</span>, <span class="hljs-number">2</span>], [[<span class="hljs-number">0</span>, <span class="hljs-number">7</span>, <span class="hljs-number">6</span>], <span class="hljs-literal">false</span>, <span class="hljs-number">3</span>],
+             [[<span class="hljs-number">0</span>, <span class="hljs-number">8</span>, <span class="hljs-number">6</span>], <span class="hljs-literal">false</span>, <span class="hljs-number">4</span>], [[<span class="hljs-number">0</span>, <span class="hljs-number">5</span>, <span class="hljs-number">15</span>], <span class="hljs-literal">false</span>, <span class="hljs-number">0</span>],
+             [[<span class="hljs-number">0</span>, <span class="hljs-number">6</span>, <span class="hljs-number">15</span>], <span class="hljs-literal">false</span>, <span class="hljs-number">5</span>], [[<span class="hljs-number">0</span>, <span class="hljs-number">9</span>, <span class="hljs-number">15</span>], <span class="hljs-literal">false</span>, <span class="hljs-number">1</span>],
+             [[<span class="hljs-number">0</span>, <span class="hljs-number">9</span>, <span class="hljs-number">15</span>], <span class="hljs-literal">true</span>, <span class="hljs-number">2</span>], [[<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">14</span>], <span class="hljs-literal">false</span>, <span class="hljs-number">0</span>],
+             [[<span class="hljs-number">0</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>], <span class="hljs-literal">false</span>, <span class="hljs-number">5</span>]]
+    cases.each { |<span class="hljs-params">position, restored, expected</span>| assert_equal expected, <span class="hljs-title class_">CheckpointWeather</span>.region(position, restored) }
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_unknown_type_or_missing_screen_is_not_reported_clear</span>
+    result = <span class="hljs-title class_">CheckpointWeather</span>.export(object(<span class="hljs-symbol">weather_type:</span> <span class="hljs-symbol">:CustomFog</span>), <span class="hljs-literal">nil</span>, <span class="hljs-literal">false</span>)
+    assert_equal <span class="hljs-symbol">:CustomFog</span>, result[<span class="hljs-symbol">:weather_type</span>]
+    assert_nil result[<span class="hljs-symbol">:weather_type_id</span>]
+    assert_nil result[<span class="hljs-symbol">:weather_max</span>]
+    assert_nil result[<span class="hljs-symbol">:region</span>]
+    assert_nil <span class="hljs-title class_">CheckpointWeather</span>.export(<span class="hljs-literal">nil</span>, <span class="hljs-literal">nil</span>, <span class="hljs-literal">false</span>)[<span class="hljs-symbol">:weather_type</span>]
+    assert_equal <span class="hljs-number">3</span>, <span class="hljs-title class_">CheckpointWeather</span>.export(<span class="hljs-literal">nil</span>, object(<span class="hljs-title class_">MapPosition</span>: <span class="hljs-literal">nil</span>), <span class="hljs-literal">false</span>)[<span class="hljs-symbol">:region</span>]
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_installed_static_source_and_agate_metadata</span>
+    game = <span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game&#x27;</span>
+    source = <span class="hljs-title class_">File</span>.read(game + <span class="hljs-string">&#x27;/Scripts/Game_Screen.rb&#x27;</span>)
+    assert_includes source, <span class="hljs-string">&#x27;@weather_max_target = (power + 1) * 4.0&#x27;</span>
+    assert_includes source, <span class="hljs-string">&#x27;def determineWeatherRegion&#x27;</span>
+    assert_includes <span class="hljs-title class_">File</span>.read(game + <span class="hljs-string">&#x27;/Scripts/Save.rb&#x27;</span>), <span class="hljs-string">&#x27;savehash[:game_screen]&#x27;</span>
+    assert_match(<span class="hljs-regexp">/Reborn_City_Restore:\s*479/</span>, <span class="hljs-title class_">File</span>.read(game + <span class="hljs-string">&#x27;/Scripts/Reborn/SystemConstants.rb&#x27;</span>))
+    maps = load_rgss(game + <span class="hljs-string">&#x27;/Data/maps.dat&#x27;</span>)
+    assert_equal [<span class="hljs-number">0</span>, <span class="hljs-number">13</span>, <span class="hljs-number">6</span>], maps[<span class="hljs-number">763</span>].instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@MapPosition</span>)
+    assert_equal <span class="hljs-number">4</span>, <span class="hljs-title class_">CheckpointWeather</span>.export(<span class="hljs-literal">nil</span>, maps[<span class="hljs-number">763</span>], <span class="hljs-literal">false</span>)[<span class="hljs-symbol">:region</span>]
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "status": "planning; no gauntlet entry yet",
+  "party_plan": [
+    "Heatran",
+    "Cresselia",
+    "Magearna",
+    "Mienshao",
+    "Rayquaza",
+    "Mawile"
+  ],
+  "next_steps": [
+    "Catch paralyzed, weakened Rayquaza using visible map only; preserve checkpoint",
+    "Grand Hall PC: put Heatran and Cresselia in party; keep Zapdos for Silva training",
+    "Train 3 Silva rounds initially, plan candy to145; earn additional supplies funds as needed",
+    "EV Tuner Cresselia Defense->Special Defense; teach Trick Room and Light Screen",
+    "Buy Lum berries from installed map7 event1, verify access route; give Heatran and Cresselia",
+    "Plan Rayquaza moves and EVs from caught owned build; Mega Dragon Ascent and Rock Slide useful versus Ho-Oh",
+    "Stock balls and healing for entire two-double-battle gauntlet plus immediate wild Groudon120",
+    "Save normal full team before entering; never save between forced battles"
+  ],
+  "round2_opening": "Heatran Flamethrower Venusaur + Cresselia Trick Room; both Lum to cover Grass Whistle. Keep Ninetales alive while eliminating Grass side; confirm damage and incoming enemies each turn.",
+  "review_needed": [
+    "Cresselia needs enough special bulk to survive simultaneous Ninetales+Venusaur attacks",
+    "Heatran Earth Power handles Houndoom; Rayquaza physical Rock Slide handles Ho-Oh",
+    "Choose Thunder Wave carrier for wild Groudon, preserve capture capacity through full chain",
+    "pbPartialHeal only heals nonfainted members between rounds; no full-team sacrifices in round1"
+  ],
+  "sources": [
+    "work/aegir367-rosters-static.json",
+    "work/aegir367-branch-static.json",
+    "work/368-berry-sources.json",
+    "notes/Postgame362-Tier9Healed-status.json",
+    "notes/Darkrai329-AnomalyDoor-status.json"
+  ],
+  "berry_access": "Lum is Department Store10F map7; if sticker access unavailable, Chesto Berry at2F map114 event2 is sufficient for Grass Whistle. Chesto400, Lum800.",
+  "funding": "Take Arcanine Amulet Coin for Zapdos; sell spare Power Anklet and Protein if needed (12400 total sale). Preserve training power set. Silva reward1444 doubled2888 plus12XL.",
+  "capture": "Groudon catch rate3 (Ray45). Need capture budget and safe weakening. Ray cannot learn False Swipe; can learn Thunder Wave. Preserve Mawile for False Swipe and Cresselia for screening/recovery.",
+  "capture_correction": "Primal Groudon is Ground-type and immune to Thunder Wave. Do not rely on Rayquaza paralysis for this capture. Preserve screen support, Rayquaza Mega weather control and Mawile False Swipe; buy sufficient Dusk/Timer Balls for status-free capture. Rayquaza can Mega Evolve while choosing Protect provided Dragon Ascent is known."
+}

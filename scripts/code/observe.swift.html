@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>observe.swift</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of observe.swift"><code class="hljs language-swift"><span class="hljs-keyword">import</span> Foundation
+<span class="hljs-keyword">import</span> CoreGraphics
+<span class="hljs-keyword">import</span> Vision
+<span class="hljs-keyword">import</span> AppKit
+<span class="hljs-keyword">let</span> gamePID<span class="hljs-operator">=</span><span class="hljs-type">NSRunningApplication</span>.runningApplications(withBundleIdentifier:<span class="hljs-string">&quot;org.struma.mkxp-z&quot;</span>).first<span class="hljs-operator">?</span>.processIdentifier
+<span class="hljs-keyword">let</span> infos<span class="hljs-operator">=</span><span class="hljs-type">CGWindowListCopyWindowInfo</span>([.optionOnScreenOnly,.excludeDesktopElements],kCGNullWindowID) <span class="hljs-keyword">as!</span> [[<span class="hljs-type">String</span>:<span class="hljs-keyword">Any</span>]]
+<span class="hljs-keyword">if</span> <span class="hljs-type">CommandLine</span>.arguments.count <span class="hljs-operator">&lt;</span> <span class="hljs-number">2</span> {
+ <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> infos <span class="hljs-keyword">where</span> (i[kCGWindowOwnerPID <span class="hljs-keyword">as</span> <span class="hljs-type">String</span>] <span class="hljs-keyword">as?</span> <span class="hljs-type">Int</span>)<span class="hljs-operator">==</span>gamePID.map(<span class="hljs-type">Int</span>.<span class="hljs-keyword">init</span>) {<span class="hljs-built_in">print</span>(i)}
+ exit(<span class="hljs-number">0</span>)
+}
+<span class="hljs-keyword">let</span> url<span class="hljs-operator">=</span><span class="hljs-type">URL</span>(fileURLWithPath:<span class="hljs-type">CommandLine</span>.arguments[<span class="hljs-number">1</span>])
+<span class="hljs-keyword">let</span> request<span class="hljs-operator">=</span><span class="hljs-type">VNRecognizeTextRequest</span>()
+request.recognitionLevel <span class="hljs-operator">=</span> .accurate
+request.usesLanguageCorrection <span class="hljs-operator">=</span> <span class="hljs-literal">false</span>
+<span class="hljs-keyword">try</span> <span class="hljs-type">VNImageRequestHandler</span>(url:url).perform([request])
+<span class="hljs-keyword">let</span> result<span class="hljs-operator">=</span>(request.results <span class="hljs-operator">??</span> []).map { r -&gt; [<span class="hljs-type">String</span>:<span class="hljs-keyword">Any</span>] <span class="hljs-keyword">in</span>
+ <span class="hljs-keyword">let</span> box<span class="hljs-operator">=</span>r.boundingBox
+ <span class="hljs-keyword">return</span> [<span class="hljs-string">&quot;text&quot;</span>:r.topCandidates(<span class="hljs-number">1</span>).first<span class="hljs-operator">?</span>.string <span class="hljs-operator">??</span> <span class="hljs-string">&quot;&quot;</span>, <span class="hljs-string">&quot;x&quot;</span>:box.minX,<span class="hljs-string">&quot;y&quot;</span>:<span class="hljs-number">1</span><span class="hljs-operator">-</span>box.maxY,<span class="hljs-string">&quot;w&quot;</span>:box.width,<span class="hljs-string">&quot;h&quot;</span>:box.height]
+}
+<span class="hljs-keyword">let</span> data<span class="hljs-operator">=</span><span class="hljs-keyword">try</span> <span class="hljs-type">JSONSerialization</span>.data(withJSONObject:result,options:[.sortedKeys])
+<span class="hljs-built_in">print</span>(<span class="hljs-type">String</span>(data:data,encoding:.utf8)<span class="hljs-operator">!</span>)
+</code></pre>
+  </body>
+</html>

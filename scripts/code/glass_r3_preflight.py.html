@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_r3_preflight.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_r3_preflight.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read rendered R3 doubles HUD, emit guarded opener plan; sends no game keys.
+
+Development validation is syntax-only. Invoke at an actual command menu, then
+run the printed JSON plan separately with glass_turn.py if the root approves
+the observed report. Unknown replacements, status or a damaged opening stop.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> difflib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> math
+<span class="hljs-keyword">import</span> pathlib
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> time
+
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT, NATIVE, snap
+<span class="hljs-keyword">from</span> luna_arcanine_setup <span class="hljs-keyword">import</span> CAPTURE_CANVASES, TRANSLATION, level_seen, normalized
+
+ASSETS = pathlib.Path(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Graphics/Pictures/Battle&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">name_seen</span>(<span class="hljs-params">text, name</span>):
+    words = re.findall(<span class="hljs-string">&#x27;[a-z]+&#x27;</span>, text.lower().translate(TRANSLATION))
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>, normalized(name), normalized(word)).ratio() &gt;= <span class="hljs-number">.82</span>
+               <span class="hljs-keyword">for</span> word <span class="hljs-keyword">in</span> words)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">crop</span>(<span class="hljs-params">native, canvas, rect</span>):
+    left, top, width, height = canvas
+    x1, y1, x2, y2 = rect
+    <span class="hljs-keyword">return</span> native.crop((<span class="hljs-built_in">round</span>(left + x1 * width / <span class="hljs-number">512</span>), <span class="hljs-built_in">round</span>(top + y1 * height / <span class="hljs-number">384</span>),
+                        <span class="hljs-built_in">round</span>(left + x2 * width / <span class="hljs-number">512</span>), <span class="hljs-built_in">round</span>(top + y2 * height / <span class="hljs-number">384</span>)))
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">ocr</span>(<span class="hljs-params">native, canvas, rect, label</span>):
+    patch = crop(native, canvas, rect)
+    patch = patch.resize((patch.width * <span class="hljs-number">2</span>, patch.height * <span class="hljs-number">2</span>), Image.Resampling.NEAREST)
+    path = ROOT / <span class="hljs-string">&#x27;work&#x27;</span> / (<span class="hljs-string">&#x27;glass-r3-&#x27;</span> + label + <span class="hljs-string">&#x27;.png&#x27;</span>)
+    patch.save(path)
+    value = subprocess.run([<span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&#x27;scripts/observe&#x27;</span>), <span class="hljs-built_in">str</span>(path)], check=<span class="hljs-literal">True</span>,
+                           capture_output=<span class="hljs-literal">True</span>, text=<span class="hljs-literal">True</span>, timeout=<span class="hljs-number">20</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;\n&#x27;</span>.join(row[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> json.loads(value.stdout))
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">status_and_hp</span>(<span class="hljs-params">native, canvas, x, y, maximum</span>):
+    blank = Image.<span class="hljs-built_in">open</span>(ASSETS / <span class="hljs-string">&#x27;battlePlayerBoxD.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>).crop((<span class="hljs-number">58</span>, <span class="hljs-number">36</span>, <span class="hljs-number">122</span>, <span class="hljs-number">52</span>))
+    badges = Image.<span class="hljs-built_in">open</span>(ASSETS / <span class="hljs-string">&#x27;battleStatuses.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>)
+    templates = {<span class="hljs-string">&#x27;none&#x27;</span>: blank.convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)}
+    <span class="hljs-keyword">for</span> i, label <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>((<span class="hljs-string">&#x27;sleep&#x27;</span>, <span class="hljs-string">&#x27;poison&#x27;</span>, <span class="hljs-string">&#x27;burn&#x27;</span>, <span class="hljs-string">&#x27;paralysis&#x27;</span>, <span class="hljs-string">&#x27;frozen&#x27;</span>)):
+        templates[label] = Image.alpha_composite(blank, badges.crop((<span class="hljs-number">0</span>, <span class="hljs-number">16</span>*i, <span class="hljs-number">64</span>, <span class="hljs-number">16</span>*(i+<span class="hljs-number">1</span>)))).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+    scores = []
+    <span class="hljs-keyword">for</span> label, template <span class="hljs-keyword">in</span> templates.items():
+        offsets = []
+        <span class="hljs-keyword">for</span> dy <span class="hljs-keyword">in</span> (<span class="hljs-number">0</span>, <span class="hljs-number">2</span>):
+            patch = crop(native, canvas, (x+<span class="hljs-number">58</span>, y+<span class="hljs-number">36</span>+dy, x+<span class="hljs-number">122</span>, y+<span class="hljs-number">52</span>+dy)).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+            expected = template.resize(patch.size, Image.Resampling.NEAREST)
+            error = <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">abs</span>(a-b) <span class="hljs-keyword">for</span> a,b <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(p,q)) <span class="hljs-keyword">for</span> p,q <span class="hljs-keyword">in</span>
+                        <span class="hljs-built_in">zip</span>(patch.getdata(), expected.getdata())) / (patch.width*patch.height*<span class="hljs-number">3</span>)
+            offsets.append((error, dy))
+        error, dy = <span class="hljs-built_in">min</span>(offsets)
+        scores.append((error, label, dy))
+    scores.sort()
+    <span class="hljs-keyword">if</span> scores[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] &gt; <span class="hljs-number">20</span> <span class="hljs-keyword">or</span> scores[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] - scores[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] &lt; <span class="hljs-number">2</span>:
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Ambiguous rendered doubles status badge: &#x27;</span> + <span class="hljs-built_in">repr</span>(scores))
+    <span class="hljs-keyword">if</span> scores[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>] != <span class="hljs-string">&#x27;none&#x27;</span>:
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Status requires manual cure/review: &#x27;</span> + scores[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>])
+    dy = scores[<span class="hljs-number">0</span>][<span class="hljs-number">2</span>]
+    bar = crop(native, canvas, (x+<span class="hljs-number">136</span>, y+<span class="hljs-number">41</span>+dy, x+<span class="hljs-number">232</span>, y+<span class="hljs-number">45</span>+dy)).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+    columns = []
+    <span class="hljs-keyword">for</span> xx <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(bar.width):
+        colored = <span class="hljs-number">0</span>
+        <span class="hljs-keyword">for</span> yy <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(bar.height):
+            r,g,b = bar.getpixel((xx, yy))
+            colored += (g &gt; <span class="hljs-number">75</span> <span class="hljs-keyword">and</span> g &gt; r*<span class="hljs-number">1.3</span> <span class="hljs-keyword">and</span> g &gt; b*<span class="hljs-number">1.3</span>) <span class="hljs-keyword">or</span> (r &gt; <span class="hljs-number">130</span> <span class="hljs-keyword">and</span> b &lt; <span class="hljs-number">85</span> <span class="hljs-keyword">and</span> g &lt; <span class="hljs-number">220</span>)
+        columns.append(colored / bar.height &gt; <span class="hljs-number">.45</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(columns):
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;No visible HP fill; critical KO, missing HUD or unknown geometry&#x27;</span>)
+    end = <span class="hljs-built_in">max</span>(i <span class="hljs-keyword">for</span> i,v <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(columns) <span class="hljs-keyword">if</span> v) + <span class="hljs-number">1</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">sum</span>(columns[:end]) / end &lt; <span class="hljs-number">.95</span>:
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;HP fill is not a contiguous prefix&#x27;</span>)
+    units = end / bar.width * <span class="hljs-number">96</span>
+    <span class="hljs-comment"># Source truncates HP to a 96-pixel gauge and uses at least two pixels for</span>
+    <span class="hljs-comment"># any positive HP. Report an interval rather than inventing exact HP.</span>
+    lower = <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> units &lt;= <span class="hljs-number">2.25</span> <span class="hljs-keyword">else</span> math.ceil((units-<span class="hljs-number">.25</span>) * maximum / <span class="hljs-number">96</span>)
+    upper = <span class="hljs-built_in">min</span>(maximum, math.ceil((units+<span class="hljs-number">1.25</span>) * maximum / <span class="hljs-number">96</span>) - <span class="hljs-number">1</span>)
+    <span class="hljs-keyword">if</span> units &gt;= <span class="hljs-number">95.75</span>:
+        lower = maximum
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;hp_lower&#x27;</span>: lower, <span class="hljs-string">&#x27;hp_upper&#x27;</span>: upper, <span class="hljs-string">&#x27;max_hp_assumed&#x27;</span>: maximum,
+            <span class="hljs-string">&#x27;bar_units&#x27;</span>: <span class="hljs-built_in">round</span>(units, <span class="hljs-number">3</span>), <span class="hljs-string">&#x27;status&#x27;</span>: <span class="hljs-string">&#x27;none&#x27;</span>, <span class="hljs-string">&#x27;status_error&#x27;</span>: <span class="hljs-built_in">round</span>(scores[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>], <span class="hljs-number">3</span>)}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">read_guard</span>(<span class="hljs-params">args</span>):
+    rows = snap()
+    text = <span class="hljs-string">&#x27;\n&#x27;</span>.join(row[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows)
+    tokens = {normalized(row[<span class="hljs-string">&#x27;text&#x27;</span>]) <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows}
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> tokens <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;bag&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> tokens <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> tokens &amp; {<span class="hljs-string">&#x27;run&#x27;</span>, <span class="hljs-string">&#x27;riun&#x27;</span>}:
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Exact command labels required; no keys sent&#x27;</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(phrase <span class="hljs-keyword">in</span> text.lower() <span class="hljs-keyword">for</span> phrase <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;fainted&#x27;</span>, <span class="hljs-string">&#x27;switch in&#x27;</span>, <span class="hljs-string">&#x27;choose a pok&#x27;</span>,
+                                                <span class="hljs-string">&#x27;for winning&#x27;</span>, <span class="hljs-string">&#x27;out of usable&#x27;</span>, <span class="hljs-string">&#x27;change pok&#x27;</span>)):
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Battle transition/replacement requires manual review&#x27;</span>)
+    prompt = <span class="hljs-string">&#x27; &#x27;</span>.join(row[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> row[<span class="hljs-string">&#x27;y&#x27;</span>] &gt; <span class="hljs-number">.72</span> <span class="hljs-keyword">and</span> row[<span class="hljs-string">&#x27;x&#x27;</span>] &lt; <span class="hljs-number">.55</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> name_seen(prompt, args.actor):
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Acting Pokémon is not the requested actor: &#x27;</span> + prompt)
+    native = Image.<span class="hljs-built_in">open</span>(NATIVE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+    canvas = args.canvas <span class="hljs-keyword">or</span> CAPTURE_CANVASES.get(native.size)
+    <span class="hljs-keyword">if</span> canvas <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Uncalibrated screenshot geometry; supply verified --canvas&#x27;</span>)
+    left, top, width, height = canvas
+    <span class="hljs-keyword">if</span> left &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> top &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> left+width &gt; native.width <span class="hljs-keyword">or</span> top+height &gt; native.height:
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Canvas falls outside native screenshot&#x27;</span>)
+    own = [(<span class="hljs-string">&#x27;Arcanine&#x27;</span>, (<span class="hljs-number">256</span>,<span class="hljs-number">172</span>), args.arc_max_hp, (<span class="hljs-number">256</span>,<span class="hljs-number">172</span>,<span class="hljs-number">512</span>,<span class="hljs-number">225</span>)),
+           (<span class="hljs-string">&#x27;Klinklang&#x27;</span>, (<span class="hljs-number">268</span>,<span class="hljs-number">226</span>), args.kg_max_hp, (<span class="hljs-number">268</span>,<span class="hljs-number">226</span>,<span class="hljs-number">512</span>,<span class="hljs-number">280</span>))]
+    report = {}
+    <span class="hljs-keyword">for</span> name, position, maximum, rect <span class="hljs-keyword">in</span> own:
+        hud = ocr(native, canvas, rect, name.lower())
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> name_seen(hud, name) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> level_seen(hud, <span class="hljs-number">90</span>):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Exact allied Lv90 HUD missing: &#x27;</span> + name + <span class="hljs-string">&#x27; / &#x27;</span> + hud)
+        report[name] = status_and_hp(native, canvas, *position, maximum)
+        report[name][<span class="hljs-string">&#x27;hud_text&#x27;</span>] = hud
+    <span class="hljs-keyword">for</span> name, rect <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;Clefable&#x27;</span>,(<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">256</span>,<span class="hljs-number">54</span>)), (<span class="hljs-string">&#x27;Ninetales&#x27;</span>,(<span class="hljs-number">0</span>,<span class="hljs-number">54</span>,<span class="hljs-number">256</span>,<span class="hljs-number">112</span>))]:
+        hud = ocr(native, canvas, rect, name.lower())
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> name_seen(hud, name) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> level_seen(hud, <span class="hljs-number">81</span>):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Initial opposing slot changed; manual branch required: &#x27;</span> + name + <span class="hljs-string">&#x27; / &#x27;</span> + hud)
+        report[name] = {<span class="hljs-string">&#x27;level&#x27;</span>: <span class="hljs-number">81</span>, <span class="hljs-string">&#x27;hud_text&#x27;</span>: hud}
+    <span class="hljs-keyword">if</span> args.phase == <span class="hljs-string">&#x27;t1&#x27;</span>:
+        <span class="hljs-keyword">if</span> report[<span class="hljs-string">&#x27;Arcanine&#x27;</span>][<span class="hljs-string">&#x27;hp_lower&#x27;</span>] != args.arc_max_hp <span class="hljs-keyword">or</span> report[<span class="hljs-string">&#x27;Klinklang&#x27;</span>][<span class="hljs-string">&#x27;hp_lower&#x27;</span>] != args.kg_max_hp:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;First-turn opener requires both allies fully healed&#x27;</span>)
+    <span class="hljs-keyword">elif</span> args.phase == <span class="hljs-string">&#x27;t2&#x27;</span>:
+        <span class="hljs-keyword">if</span> report[<span class="hljs-string">&#x27;Arcanine&#x27;</span>][<span class="hljs-string">&#x27;hp_lower&#x27;</span>] &lt; <span class="hljs-number">140</span> <span class="hljs-keyword">or</span> report[<span class="hljs-string">&#x27;Klinklang&#x27;</span>][<span class="hljs-string">&#x27;hp_lower&#x27;</span>] &lt; <span class="hljs-number">130</span>:
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Turn-2 HP below ordinary reviewed opening branch; heal/adapt manually&#x27;</span>)
+    <span class="hljs-keyword">elif</span> report[<span class="hljs-string">&#x27;Arcanine&#x27;</span>][<span class="hljs-string">&#x27;hp_lower&#x27;</span>] &lt; <span class="hljs-number">140</span>:
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Arcanine too low to commit the reviewed support turn; adapt manually&#x27;</span>)
+    <span class="hljs-keyword">return</span> report
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(<span class="hljs-string">&#x27;--phase&#x27;</span>, choices=(<span class="hljs-string">&#x27;t1&#x27;</span>,<span class="hljs-string">&#x27;t2&#x27;</span>,<span class="hljs-string">&#x27;t3&#x27;</span>), required=<span class="hljs-literal">True</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--actor&#x27;</span>, choices=(<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Klinklang&#x27;</span>), default=<span class="hljs-string">&#x27;Arcanine&#x27;</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--arc-max-hp&#x27;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, default=<span class="hljs-number">294</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--kg-max-hp&#x27;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, default=<span class="hljs-number">275</span>)
+    parser.add_argument(<span class="hljs-string">&#x27;--canvas&#x27;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-keyword">lambda</span> s: <span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,s.split(<span class="hljs-string">&#x27;,&#x27;</span>))))
+    args = parser.parse_args()
+    <span class="hljs-keyword">try</span>:
+        first = read_guard(args)
+        time.sleep(<span class="hljs-number">.2</span>)
+        second = read_guard(args)
+        <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Klinklang&#x27;</span>):
+            <span class="hljs-keyword">if</span> first[name][<span class="hljs-string">&#x27;bar_units&#x27;</span>] != second[name][<span class="hljs-string">&#x27;bar_units&#x27;</span>]:
+                <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;HP bar still changing between two rendered reads&#x27;</span>)
+        plan = ROOT / <span class="hljs-string">&#x27;work&#x27;</span> / (<span class="hljs-string">&#x27;glass-r3-opener-&#x27;</span> + args.phase + <span class="hljs-string">&#x27;.json&#x27;</span>)
+        <span class="hljs-built_in">print</span>(json.dumps({<span class="hljs-string">&#x27;phase&#x27;</span>: args.phase, <span class="hljs-string">&#x27;actor&#x27;</span>: args.actor, <span class="hljs-string">&#x27;visible&#x27;</span>: second,
+                          <span class="hljs-string">&#x27;suggested_plan&#x27;</span>: <span class="hljs-built_in">str</span>(plan), <span class="hljs-string">&#x27;no_keys_sent&#x27;</span>: <span class="hljs-literal">True</span>}, indent=<span class="hljs-number">2</span>))
+    <span class="hljs-keyword">except</span> (RuntimeError, OSError, ValueError, subprocess.SubprocessError) <span class="hljs-keyword">as</span> exc:
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;STOP — &#x27;</span> + <span class="hljs-built_in">str</span>(exc)) <span class="hljs-keyword">from</span> exc
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:
+    main()
+</code></pre>
+  </body>
+</html>

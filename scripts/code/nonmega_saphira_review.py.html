@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>nonmega_saphira_review.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of nonmega_saphira_review.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure future Saphira calculator; reads only named installed extracts/frozen IVs.
+
+No gameplay helpers, live state, battle logs, controls or RNG are imported.
+Separates base-power multipliers from final type-field multipliers, matching
+Battle_Move.rb:1785,1947,1987,2078,2110,2212–2215. Fractions preserve Ruby&#x27;s
+positive rounding while defense multipliers (AV/Dragon&#x27;s Den) stay fractional.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> math
+<span class="hljs-keyword">from</span> fractions <span class="hljs-keyword">import</span> Fraction <span class="hljs-keyword">as</span> F
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> saphira_damage_review <span class="hljs-keyword">import</span> stats
+
+ROOT = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">stage</span>(<span class="hljs-params">value, stages, *, critical=<span class="hljs-literal">False</span>, defensive=<span class="hljs-literal">False</span></span>):
+    <span class="hljs-keyword">if</span> critical <span class="hljs-keyword">and</span> ((defensive <span class="hljs-keyword">and</span> stages &gt; <span class="hljs-number">0</span>) <span class="hljs-keyword">or</span> (<span class="hljs-keyword">not</span> defensive <span class="hljs-keyword">and</span> stages &lt; <span class="hljs-number">0</span>)):
+        stages = <span class="hljs-number">0</span>
+    factor = F(<span class="hljs-number">2</span> + stages, <span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> stages &gt;= <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> F(<span class="hljs-number">2</span>, <span class="hljs-number">2</span> - stages)
+    <span class="hljs-keyword">return</span> math.floor(value * factor)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">calc</span>(<span class="hljs-params">level, power, attack, defense, *, attack_stage=<span class="hljs-number">0</span>, defense_stage=<span class="hljs-number">0</span>,
+         attack_multiplier=<span class="hljs-number">1</span>, defense_multiplier=<span class="hljs-number">1</span>, power_multiplier=<span class="hljs-number">1</span>,
+         field_multiplier=<span class="hljs-number">1</span>, stab=<span class="hljs-number">1</span>, effectiveness=<span class="hljs-number">1</span>, critical=<span class="hljs-literal">False</span>,
+         final_multiplier=<span class="hljs-number">1</span></span>):
+    a = stage(attack, attack_stage, critical=critical) * F(attack_multiplier)
+    d = stage(defense, defense_stage, critical=critical, defensive=<span class="hljs-literal">True</span>) * F(defense_multiplier)
+    core = math.floor(math.floor((<span class="hljs-number">2</span> * level // <span class="hljs-number">5</span> + <span class="hljs-number">2</span>) * power * F(power_multiplier) * a / d) / <span class="hljs-number">50</span>) + <span class="hljs-number">2</span>
+    modifier = F(field_multiplier) * F(stab) * F(effectiveness) * F(final_multiplier)
+    <span class="hljs-keyword">if</span> critical:
+        modifier *= F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>)
+    <span class="hljs-keyword">return</span> [<span class="hljs-built_in">max</span>(<span class="hljs-number">1</span>, math.floor(core * modifier * F(roll, <span class="hljs-number">100</span>) + F(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>)))
+            <span class="hljs-keyword">for</span> roll <span class="hljs-keyword">in</span> (<span class="hljs-number">85</span>, <span class="hljs-number">100</span>)]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">build_report</span>(<span class="hljs-params">*, nature=<span class="hljs-string">&quot;CAREFUL&quot;</span>, ev=<span class="hljs-literal">None</span></span>):
+    species = json.loads((ROOT / <span class="hljs-string">&quot;work/saphira-capture-options-source.json&quot;</span>).read_text())[<span class="hljs-string">&quot;species&quot;</span>]
+    rows = json.loads((ROOT / <span class="hljs-string">&quot;work/saphira-installed-team.json&quot;</span>).read_text())[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]
+    old = <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> json.loads((ROOT / <span class="hljs-string">&quot;notes/Glass-post-gauntlet-attempt-1-status.json&quot;</span>).read_text())[<span class="hljs-string">&quot;party&quot;</span>]
+               <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;SWAMPERT&quot;</span>)
+    build = <span class="hljs-built_in">dict</span>(old, level=<span class="hljs-number">95</span>, nature=nature,
+                 ev=ev <span class="hljs-keyword">if</span> ev <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> [<span class="hljs-number">252</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">152</span>, <span class="hljs-number">104</span>], form=<span class="hljs-number">0</span>)
+    swamp = stats(build, species)
+    foes = {m[<span class="hljs-string">&quot;species&quot;</span>]: stats(m, species, <span class="hljs-string">&quot;Mega X Form&quot;</span> <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;CHARIZARD&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>)
+            <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> rows}
+    lead = foes[<span class="hljs-string">&quot;NOIVERN&quot;</span>]
+    incoming = {}
+    <span class="hljs-keyword">for</span> name, power, stab, field, fire, effectiveness <span class="hljs-keyword">in</span> (
+            (<span class="hljs-string">&quot;DRAGONPULSE&quot;</span>, <span class="hljs-number">85</span>, F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>), F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>), <span class="hljs-number">1</span>, <span class="hljs-number">1</span>),
+            (<span class="hljs-string">&quot;BOOMBURST&quot;</span>, <span class="hljs-number">140</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>),
+            (<span class="hljs-string">&quot;FLAMETHROWER&quot;</span>, <span class="hljs-number">90</span>, <span class="hljs-number">1</span>, F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>), F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>), F(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>))):
+        incoming[name] = {
+            <span class="hljs-string">&quot;ordinary_by_spdef_stage&quot;</span>: {<span class="hljs-built_in">str</span>(s): calc(<span class="hljs-number">95</span>, power, lead[<span class="hljs-number">3</span>], swamp[<span class="hljs-number">4</span>],
+                    attack_stage=<span class="hljs-number">1</span>, defense_stage=s, attack_multiplier=fire,
+                    defense_multiplier=F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>), field_multiplier=field,
+                    stab=stab, effectiveness=effectiveness) <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> (<span class="hljs-number">0</span>, <span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>)},
+            <span class="hljs-string">&quot;critical_even_at_plus6_spdef&quot;</span>: calc(<span class="hljs-number">95</span>, power, lead[<span class="hljs-number">3</span>], swamp[<span class="hljs-number">4</span>],
+                    attack_stage=<span class="hljs-number">1</span>, defense_stage=<span class="hljs-number">6</span>, attack_multiplier=fire,
+                    defense_multiplier=F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>), field_multiplier=field,
+                    stab=stab, effectiveness=effectiveness, critical=<span class="hljs-literal">True</span>)}
+    outgoing = {}
+    physical = {}
+    physical_moves = {
+        <span class="hljs-string">&quot;DRAGONCLAW&quot;</span>: (<span class="hljs-number">80</span>, <span class="hljs-string">&quot;DRAGON&quot;</span>, <span class="hljs-literal">True</span>), <span class="hljs-string">&quot;EARTHQUAKE&quot;</span>: (<span class="hljs-number">100</span>, <span class="hljs-string">&quot;GROUND&quot;</span>, <span class="hljs-literal">False</span>),
+        <span class="hljs-string">&quot;FIREFANG&quot;</span>: (<span class="hljs-number">65</span>, <span class="hljs-string">&quot;FIRE&quot;</span>, <span class="hljs-literal">True</span>), <span class="hljs-string">&quot;POISONJAB&quot;</span>: (<span class="hljs-number">80</span>, <span class="hljs-string">&quot;POISON&quot;</span>, <span class="hljs-literal">True</span>),
+        <span class="hljs-string">&quot;IRONHEAD&quot;</span>: (<span class="hljs-number">80</span>, <span class="hljs-string">&quot;STEEL&quot;</span>, <span class="hljs-literal">True</span>), <span class="hljs-string">&quot;FLAREBLITZ&quot;</span>: (<span class="hljs-number">120</span>, <span class="hljs-string">&quot;FIRE&quot;</span>, <span class="hljs-literal">True</span>),
+        <span class="hljs-string">&quot;FIREPUNCH&quot;</span>: (<span class="hljs-number">75</span>, <span class="hljs-string">&quot;FIRE&quot;</span>, <span class="hljs-literal">True</span>), <span class="hljs-string">&quot;EXTREMESPEED&quot;</span>: (<span class="hljs-number">80</span>, <span class="hljs-string">&quot;NORMAL&quot;</span>, <span class="hljs-literal">True</span>)}
+    <span class="hljs-keyword">for</span> mon <span class="hljs-keyword">in</span> rows:
+        name = mon[<span class="hljs-string">&quot;species&quot;</span>]
+        st = foes[name]
+        airborne = name <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;NOIVERN&quot;</span>, <span class="hljs-string">&quot;SALAMENCE&quot;</span>, <span class="hljs-string">&quot;DRAGONITE&quot;</span>)
+        outgoing[name] = <span class="hljs-built_in">dict</span>(
+            hp=st[<span class="hljs-number">0</span>], move=<span class="hljs-string">&quot;ROCKSLIDE&quot;</span> <span class="hljs-keyword">if</span> airborne <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;EARTHQUAKE&quot;</span>,
+            damage=calc(<span class="hljs-number">95</span>, <span class="hljs-number">75</span> <span class="hljs-keyword">if</span> airborne <span class="hljs-keyword">else</span> <span class="hljs-number">100</span>, swamp[<span class="hljs-number">1</span>], st[<span class="hljs-number">2</span>], attack_stage=<span class="hljs-number">6</span>,
+                defense_multiplier=F(<span class="hljs-number">13</span>, <span class="hljs-number">10</span>), stab=<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> airborne <span class="hljs-keyword">else</span> F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>),
+                effectiveness=<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> airborne <span class="hljs-keyword">or</span> name == <span class="hljs-string">&quot;CHARIZARD&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>,
+                final_multiplier=F(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> name == <span class="hljs-string">&quot;DRAGONITE&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>),
+            sash=mon[<span class="hljs-string">&quot;item&quot;</span>] == <span class="hljs-string">&quot;FOCUSSASH&quot;</span>)
+        <span class="hljs-keyword">if</span> name == <span class="hljs-string">&quot;DRAGONITE&quot;</span>:
+            outgoing[name][<span class="hljs-string">&quot;after_multiscale_broken&quot;</span>] = calc(<span class="hljs-number">95</span>,<span class="hljs-number">75</span>,swamp[<span class="hljs-number">1</span>],st[<span class="hljs-number">2</span>],
+                    attack_stage=<span class="hljs-number">6</span>,defense_multiplier=F(<span class="hljs-number">13</span>,<span class="hljs-number">10</span>),effectiveness=<span class="hljs-number">2</span>)
+        <span class="hljs-keyword">if</span> name == <span class="hljs-string">&quot;NOIVERN&quot;</span>:
+            <span class="hljs-keyword">continue</span>
+        <span class="hljs-keyword">for</span> move <span class="hljs-keyword">in</span> mon[<span class="hljs-string">&quot;moves&quot;</span>]:
+            <span class="hljs-keyword">if</span> move <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> physical_moves:
+                <span class="hljs-keyword">continue</span>
+            p, typ, contact = physical_moves[move]
+            stab = F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> typ == <span class="hljs-string">&quot;DRAGON&quot;</span> <span class="hljs-keyword">or</span> (typ == <span class="hljs-string">&quot;GROUND&quot;</span> <span class="hljs-keyword">and</span> name==<span class="hljs-string">&quot;GARCHOMP&quot;</span>) <span class="hljs-keyword">or</span> (typ == <span class="hljs-string">&quot;FIRE&quot;</span> <span class="hljs-keyword">and</span> name==<span class="hljs-string">&quot;CHARIZARD&quot;</span>) <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+            field = F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> typ <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;DRAGON&quot;</span>, <span class="hljs-string">&quot;FIRE&quot;</span>) <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+            effect = F(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> typ <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;FIRE&quot;</span>, <span class="hljs-string">&quot;STEEL&quot;</span>, <span class="hljs-string">&quot;POISON&quot;</span>) <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+            tough = F(<span class="hljs-number">13</span>,<span class="hljs-number">10</span>) <span class="hljs-keyword">if</span> name == <span class="hljs-string">&quot;CHARIZARD&quot;</span> <span class="hljs-keyword">and</span> contact <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+            physical[<span class="hljs-string">f&quot;<span class="hljs-subst">{name}</span>:<span class="hljs-subst">{move}</span>&quot;</span>] = {
+                <span class="hljs-built_in">str</span>(s): {<span class="hljs-string">&quot;ordinary_vs_plus6_def&quot;</span>: calc(mon[<span class="hljs-string">&quot;level&quot;</span>],p,st[<span class="hljs-number">1</span>],swamp[<span class="hljs-number">2</span>],
+                            attack_stage=s,defense_stage=<span class="hljs-number">6</span>,power_multiplier=tough,
+                            field_multiplier=field,stab=stab,effectiveness=effect),
+                         <span class="hljs-string">&quot;critical_bypasses_def&quot;</span>: calc(mon[<span class="hljs-string">&quot;level&quot;</span>],p,st[<span class="hljs-number">1</span>],swamp[<span class="hljs-number">2</span>],
+                            attack_stage=s,defense_stage=<span class="hljs-number">6</span>,power_multiplier=tough,
+                            field_multiplier=field,stab=stab,effectiveness=effect,critical=<span class="hljs-literal">True</span>)}
+                <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> (<span class="hljs-number">0</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)}
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">dict</span>(scope=<span class="hljs-string">&quot;Hypothetical trained build; no current ownership/training claim&quot;</span>,
+                stat_order=[<span class="hljs-string">&quot;HP&quot;</span>,<span class="hljs-string">&quot;Atk&quot;</span>,<span class="hljs-string">&quot;Def&quot;</span>,<span class="hljs-string">&quot;SpA&quot;</span>,<span class="hljs-string">&quot;SpD&quot;</span>,<span class="hljs-string">&quot;Spe&quot;</span>], proposed_swamp=swamp,
+                nature=build[<span class="hljs-string">&quot;nature&quot;</span>],level=<span class="hljs-number">95</span>,ev=build[<span class="hljs-string">&quot;ev&quot;</span>],historical_iv=old[<span class="hljs-string">&quot;iv&quot;</span>],
+                vest_effective_spdef=<span class="hljs-built_in">str</span>(F(swamp[<span class="hljs-number">4</span>]*<span class="hljs-number">3</span>,<span class="hljs-number">2</span>)), speed_plus6=swamp[<span class="hljs-number">5</span>]*<span class="hljs-number">4</span>,
+                foes=foes,noivern_incoming=incoming,outgoing_plus6=outgoing,
+                physical_incoming=physical,
+                provenance=[<span class="hljs-string">&quot;Installed saphira source extracts; frozen Glass-post-gauntlet-attempt-1-status IV only&quot;</span>,
+                    <span class="hljs-string">&quot;Battle_Move.rb damage/type-field/AV/critical and Battle_Field.rb Dragon defense factors&quot;</span>,
+                    <span class="hljs-string">&quot;Does not model AI choices, future field changes, opponent Full Restore decisions or random outcomes&quot;</span>])
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    <span class="hljs-built_in">print</span>(json.dumps(<span class="hljs-built_in">dict</span>(careful_special_tank=build_report(),
+                         impish_balanced=build_report(nature=<span class="hljs-string">&quot;IMPISH&quot;</span>,ev=[<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">100</span>,<span class="hljs-number">0</span>,<span class="hljs-number">52</span>,<span class="hljs-number">104</span>])),indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Round1 attempt3 won, no save/reload afterward. Continue normal recovery/PC. Round2 opponent Cal2 on Dragon Den (switch878 ON selects ELSE…">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="tournament-round2-sturdy-plan-2026-10-04.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/tournament-round2-sturdy-plan-2026-10-04.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/tournament-round2-sturdy-plan-2026-10-04.md.html">
+    <title>tournament-round2-sturdy-plan-2026-10-04.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">tournament-round2-sturdy-plan-2026-10-04.md</h1>
+        <p class="task-meta">Markdown · 4.2 KB · <a href="/pokemon-reborn/reasoning/21/">Task 21</a> · first used Oct 4 15:29</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><p>Round1 attempt3 won, no save/reload afterward. Continue normal recovery/PC. Round2 opponent Cal2 on Dragon Den (switch878 ON selects ELSE Cal; OFF selects Flo). Exact static source: work/session147-battle-770-2-source.json; work/tournament-cal-installed-team.json; trainer_stats.py uses installed bases, defaultIV10 only when omitted. Cal has explicitIV31. Speeds: Magm270, Arc295, Camer108, Kom253 before DD, Char281x1.5 Scarf=421, Mega Medi faster270base estimate must recompute form. Own Swamp153, Syl127, Arc186, Mien218, Cofa71. Do not do mental stat estimates.</p>
+<p>Adjust round2 roster: Box1 Boldore51 slot14 STURDY full136, Everstone, replace Hexan party1 temporarily. Teach ownedTM78 Bulldoze over Sandstorm(slot1); lead Boldore. At fullHP Sturdy guarantees one move even crit. Bulldoze lowers Mag270 to180 (and chips ~40+). Boldore likely faints to Lava burn after moving, else choose second Bulldoze expecting KO before moving. Free replacement Mienshao218: FakeOut chip then HJK/Reckless; no Protect on Mag. After Bulldoze+FakeOut HJK min damage suffices;90% accuracy risk remains. Normal UI team prep only.</p>
+<p>Cal ElementalSeed on DragonDen gives SpA+1 AND FlashFire boost; no Defense boost. LavaPlume also has move1.5 AND Firetype1.5. Unprepared bulky lead cannot safely tank it. Do not assume old seedDefense. Mystic field self-target uses --double --spread, avoids extra target confirm reopening move menu.</p>
+<p>Restore six at common80 (776e68/69) and replenish Lemonades from vending for80HP; Ultra/Max/Revive all consumed round1. Elixir1 and XSpeed2 remain. Need buy Lemonades before round2. Normal PC can exchange again before round3; keep Cofa for Kom and Medi, Swamp for Camer (EQ4), Syl for Misty/Char, Arc for recoil/PP stall. Arcanine can use XSpeed once to outspeed enemyArc; MorningSun moves FIRST afterward, stall LO recoil7ish turns then Crunch. Heal itself, never assume speed boost survives switch. Reserve Elixir to restore Arc MorningSun if spent. Char Scarf421 exceeds Arc+2Speed372; FireBlast5PP public-use counter, no livePP reads. Syl fullHP survives one DD FireBlast then castsMisty; underMisty FairySpDef1.5 helps. Wish+Lemonade can bridge healing while five public FireBlast uses exhaust. Do not script long unguarded guesses: stop at each new foe and currentHP.</p>
+<p>Recovery route after round1:769e44 exit to76866,43;768e110 to77652,75;776e5 to77641,23 sets switch1062 ON and triggers776e12 long Charlotte/Hardy scene (linear, no battles/choices). After scene update only source-demonstrated navigation state;776e66 from69,11 Up→77621,78;776e68 healer accessible. Navigation-state annotations are planning only, never game data writes. No save/reload between won rounds.</p>
+<p>Attempt3 lostCal afterHJKmiss (actualfight5m27s). Completedlog AFTERbattle confirmsBulldoze44, FakeOut43, ArcCrunch85 andArc did actbeforeMagm. Saferupdatedopener: BoldoreBulldoze→faint;MiensFakeOut→BrickBreak(min<del>119)→faint;ArcfreeCrunch(min</del>84)KO. TotalminBulldoze34+Fake42+Brick119+Crunch84=279&gt;MagHP272. ThistradesBoldoreandMienswithoutHJKaccuracyrisk. Do notmisinterpretwatchOCRomissionasfailuretoact. KeepArc/Cofa/Syl/Swampavailableforremainingfive.</p>
+<p>Attempt7 round1 won in151. Mien now91/220Speed/255Attack, all originalsix except neededBoldorepending. Prize11400 AmuletCofa participation; round1 used1MaxPotion+FairyGem only. RemainingUltra1, XSpeed2, XAttack6, XAccuracy3, Elixir1, Lemonade1; verify bag normally after normal common80heal. Do not save/reload wonround.
+ReadstaticCalstats: Mag272HP158Def270Spe; Arc300HP297Atk182Def295Spe; Camer320HP164Def108Spe; Kom275HP330Atk269Def253Spe; Char280HP327SpA193SpD281Spe*Scarf1.5; Medi249HP(mega stats notyetcomputed). Important revisedArc matchup: enemyOutrage getsDragonDen1.5 andcanexceedMorningSun healing. Do NOT blindlyXSpeed/Sunloop. MorningSun FIRST withfullownArc186 slowerenemy295 heals AFTERhit, safevsFlareBlitz+recoil. If Outrage observed, useSyl immunity pivot, possibly healownArc throughnormalbag whileSylactive, then bringArcback forIntimidate; do notassumeOutragelasts3turns. KeepSwampfreeentryEarthquakebackup forenemyArc (can takeonenoncrit atfullHP, EQ2xOHKO). OwnSwamp must remainavailableCamer; freeincomingtrainer switchprompt ifoffered. ReadactualHPaftereachturn.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

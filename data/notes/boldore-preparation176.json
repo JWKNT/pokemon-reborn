@@ -1,0 +1,35 @@
+{
+  "objective": "Reusable Sturdy Stealth Rock reserve for Saphira",
+  "owned": "Boldore51 Docile Sturdy, zero EVs, IVs9/18/18/25/5/22",
+  "party_changes_completed": [
+    "Klinklang to Box1slot14; Boldore in party slot3",
+    "Excadrill to Box1slot12; Tranquill carrier in slot5",
+    "Everstone removed normally"
+  ],
+  "current_task": "HP252 verified; finishing8 Attack KOs using temporary Strength",
+  "next": [
+    "FinishAttack252, restoreBulldoze viaTM78",
+    "gigalith_return_saphira.py:removePowerBracer,MaxPotion5,restoreExcadrill,FairyGemSylveon,heal andsave"
+  ],
+  "projected_Gigalith95_trained_stats": {
+    "hp": 334,
+    "attack": 338,
+    "defense": 269,
+    "spatk": 142,
+    "spdef": 161,
+    "speed": 73
+  },
+  "source": "Owned frozen Saphira176-Indra1 + installedmontext; projected until actual verification",
+  "media175": "Fulljourney335225frames +45major archive published/verified/cleaned",
+  "epoch": 1791211199.671168,
+  "completed": [
+    "Six Indra wins;30XL",
+    "26XL level95",
+    "Route2 map358 E348 LinkStone collected normally",
+    "Evolved Gigalith95 Sturdy",
+    "HP252 verified"
+  ],
+  "route_correction": "Beryl cave inaccessible with current field moves. Used reviewed Circus elevator -> Route2 layered route ->358[20,48] E348. Route2 initial elevation flag requires normal checkpoint refresh (entry410=false).",
+  "training_optimization": "TemporaryTMX4Strength replacesBulldoze for direct Gigalith KOs; avoids Noibat Supersonic on repeated switch-ins. RestoreTM78 after13direct KOs. Default Railnet hunt acceptsNoibat/Woobat, fleesStunky.",
+  "media176": "349593frames gym18 fulljourney published/verified/cleaned;45major archive unchanged"
+}

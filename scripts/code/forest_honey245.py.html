@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>forest_honey245.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of forest_honey245.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Complete one explicitly chosen Honey-tree obstacle through guarded UI steps.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+mid,tree,bug=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">4</span>]);label=sys.argv[<span class="hljs-number">4</span>];foe=sys.argv[<span class="hljs-number">5</span>]
+<span class="hljs-keyword">assert</span> foe <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Pinsir&#x27;</span>,<span class="hljs-string">&#x27;Heracross&#x27;</span>]
+expected_opening={(<span class="hljs-number">283</span>,<span class="hljs-number">108</span>):<span class="hljs-number">367</span>,(<span class="hljs-number">283</span>,<span class="hljs-number">112</span>):<span class="hljs-number">369</span>,(<span class="hljs-number">283</span>,<span class="hljs-number">110</span>):<span class="hljs-number">368</span>,(<span class="hljs-number">283</span>,<span class="hljs-number">114</span>):<span class="hljs-number">370</span>,(<span class="hljs-number">283</span>,<span class="hljs-number">115</span>):<span class="hljs-number">371</span>,(<span class="hljs-number">282</span>,<span class="hljs-number">94</span>):<span class="hljs-number">372</span>,(<span class="hljs-number">282</span>,<span class="hljs-number">96</span>):<span class="hljs-number">373</span>,(<span class="hljs-number">282</span>,<span class="hljs-number">104</span>):<span class="hljs-number">375</span>,(<span class="hljs-number">289</span>,<span class="hljs-number">60</span>):<span class="hljs-number">339</span>,(<span class="hljs-number">289</span>,<span class="hljs-number">42</span>):<span class="hljs-number">328</span>}[(mid,bug)]
+nav=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> nav[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-built_in">str</span>(expected_opening)), <span class="hljs-string">&#x27;This forest obstacle is already open; no Honey spent&#x27;</span>
+<span class="hljs-keyword">if</span> (mid,bug)==(<span class="hljs-number">283</span>,<span class="hljs-number">114</span>):<span class="hljs-keyword">assert</span> nav[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;310&#x27;</span>), <span class="hljs-string">&#x27;Route1 log310 must open before this Pinsir can break log370&#x27;</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(name+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--choice-open&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:run(<span class="hljs-string">&#x27;eventq&#x27;</span>,mid,tree,<span class="hljs-string">&#x27;talk&#x27;</span>)
+t=read().lower()
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;honey&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> re.search(<span class="hljs-string">r&#x27;\b(?:yes|tes)\b&#x27;</span>,t),<span class="hljs-string">&#x27;Honey choice not visible&#x27;</span>
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>)
+clear=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">12</span>):
+ r=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(z[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> r).lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;spread honey&#x27;</span>,<span class="hljs-string">&#x27;flocked&#x27;</span>,<span class="hljs-string">&#x27;across the tree&#x27;</span>]):act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);clear=<span class="hljs-number">0</span>
+ <span class="hljs-keyword">elif</span> <span class="hljs-string">&#x27;yes&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(z[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.73</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(z[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">18</span> <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> r):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Honey dialogue review&#x27;</span>)
+ <span class="hljs-keyword">else</span>:
+  clear+=<span class="hljs-number">1</span>
+  <span class="hljs-keyword">if</span> clear&gt;=<span class="hljs-number">3</span>:<span class="hljs-keyword">break</span>
+  act(<span class="hljs-string">&#x27;wait:.8&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Honey transition timeout&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label+<span class="hljs-string">&#x27;-Spawn&#x27;</span>)
+encounter_epoch=time.time()
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,mid,bug,<span class="hljs-string">&#x27;talk&#x27;</span>)
+t=read().lower();<span class="hljs-keyword">assert</span> foe.lower() <span class="hljs-keyword">in</span> re.sub(<span class="hljs-string">r&#x27;\s+&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;attacked&#x27;</span> <span class="hljs-keyword">in</span> re.sub(<span class="hljs-string">r&#x27;\s+&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t),<span class="hljs-string">&#x27;Expected forest encounter not visible&#x27;</span>
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:4&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,foe,<span class="hljs-string">&#x27;--wild&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">6</span>)
+run(<span class="hljs-string">&#x27;forest_tail245&#x27;</span>)
+run(<span class="hljs-string">&#x27;close_wild_music&#x27;</span>,foe,<span class="hljs-string">&#x27;--since&#x27;</span>,encounter_epoch)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+
+verified=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> verified[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-built_in">str</span>(expected_opening)), <span class="hljs-string">f&#x27;Forest opening <span class="hljs-subst">{expected_opening}</span> did not activate; review prerequisites&#x27;</span>
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PERMANENT OPENING VERIFIED&#x27;</span>,expected_opening,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

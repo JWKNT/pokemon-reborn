@@ -1,0 +1,31 @@
+{
+  "scope": "Source-only plan; no fight started",
+  "chain": [
+    "Colin0+Matthew0 doubles",
+    "Eustace0 singles"
+  ],
+  "attempts_started": 1,
+  "entry_six_proposal": [
+    "Excadrill",
+    "Mienshao",
+    "Swampert",
+    "Arcanine",
+    "Hexan",
+    "Sylveon"
+  ],
+  "opening_proposal": [
+    "Turn1 Excadrill Swords Dance; Mienshao Fake Out into publicly identified Weezing",
+    "Turn2 Excadrill Earthquake; Mienshao Wide Guard if both remain healthy and no disruptive condition observed"
+  ],
+  "rationale": "Mold Breaker bypasses enemy Levitate. Fake Out prevents first-turn Destiny Bond while Excadrill sets Swords Dance. Wide Guard then protects Mienshao from boosted allied Earthquake (installed Battler.rb4439). Review Muk Minimize and subsequent Tsareena; use X Accuracy only if needed, never repeat an unreviewed miss/DB sequence. Preserve Swampert/Arcanine for singles.",
+  "guards": "No promises based on opponent action. Stop on faint/DB/unknown foe or unsafe HP. No save or heal between fights. Ordinary quest chain, full journey only.",
+  "route_correction": "Santiago page2 variable47 reads current event X, not player X. First talk at eventX8 moves him aside; talk again at new position to set713. Do not assume initial conversation unlocked roof.",
+  "entry_checkpoint": "League220-RoofFloor",
+  "entry_roster_evidence": "notes/League220-RooftopTeam-status.json",
+  "entry_epoch": 1791341374.083421,
+  "status": "Both battles won first chain attempt;714True saved",
+  "doubles_result": "Won attempt1 in five turns, no bag items. Mienshao fainted to Zangoose QuickAttack after Tsareena PowerWhip; Excadrill301/420, all other team full. Replacement Hexan used FreezeDry with ExcadrillRockSmash to finish Lickilicky.",
+  "mold_breaker_warning": "MoldBreaker also bypasses allied Levitate. NEVER use ExcadrillEarthquake beside Hexan without separate protection. Caught before any such selection.",
+  "completed_checkpoint": "League220-RooftopWon",
+  "bag_items_used": 0
+}

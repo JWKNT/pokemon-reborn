@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>adrienn_cemetery_finish.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of adrienn_cemetery_finish.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">r</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/s),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+r(<span class="hljs-string">&#x27;connected_walk.py&#x27;</span>,<span class="hljs-number">544</span>,<span class="hljs-number">525</span>,<span class="hljs-number">21</span>,<span class="hljs-number">23</span>);r(<span class="hljs-string">&#x27;connected_walk.py&#x27;</span>,<span class="hljs-number">525</span>,<span class="hljs-number">551</span>,<span class="hljs-number">15</span>,<span class="hljs-number">12</span>);r(<span class="hljs-string">&#x27;recruit_volunteer.py&#x27;</span>,<span class="hljs-number">551</span>,<span class="hljs-number">18</span>)
+r(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Adrienn-all-volunteers&#x27;</span>)
+<span class="hljs-keyword">assert</span> json.loads((ROOT/<span class="hljs-string">&#x27;notes/Adrienn-all-volunteers-navigation.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;339&#x27;</span>]==<span class="hljs-number">65</span>
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

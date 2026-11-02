@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>bag_scan_policy.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of bag_scan_policy.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure visible-viewport policy for a bounded seven-row bag scan.
+
+No controls, game/save/runtime reads or hidden item indexes. A four-step scan can
+wrap over unseen tail rows; it therefore needs a rendered end-page backfill
+unless CLOSE BAG was already visible. Selection/use stays caller-owned.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> re
+
+ROWS = <span class="hljs-number">7</span>
+STRIDE = <span class="hljs-number">4</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">installed_stride_supported</span>(<span class="hljs-params">game_scripts=Path(<span class="hljs-params"><span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Scripts&#x27;</span></span>)</span>):
+    <span class="hljs-keyword">try</span>:
+        bag = (game_scripts / <span class="hljs-string">&#x27;Bag.rb&#x27;</span>).read_text()
+        window = (game_scripts / <span class="hljs-string">&#x27;SW Subclasses.rb&#x27;</span>).read_text()
+    <span class="hljs-keyword">except</span> OSError:
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+    compact = re.sub(<span class="hljs-string">r&#x27;\s+&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, window)
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">bool</span>(re.search(<span class="hljs-string">r&#x27;ITEMSVISIBLE\s*=\s*7\b&#x27;</span>, bag)) <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(token <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">for</span> token <span class="hljs-keyword">in</span> [
+        <span class="hljs-string">&#x27;@index=(@index+@column_max)%@item_max&#x27;</span>,
+        <span class="hljs-string">&#x27;@index=(@index-@column_max+@item_max)%@item_max&#x27;</span>,
+        <span class="hljs-string">&#x27;self.top_row=row-(self.page_row_max-1)&#x27;</span>,
+        <span class="hljs-string">&#x27;self.top_row=[self.top_row,self.row_max-self.page_row_max].min&#x27;</span>,
+    ])
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">viewport</span>(<span class="hljs-params">names, current, normalize</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Require seven core rows; allow the source&#x27;s extra clipped draw row.&quot;&quot;&quot;</span>
+    ordered = <span class="hljs-built_in">sorted</span>(names, key=<span class="hljs-keyword">lambda</span> v: <span class="hljs-built_in">float</span>(v[<span class="hljs-string">&#x27;y&#x27;</span>]) + <span class="hljs-built_in">float</span>(v[<span class="hljs-string">&#x27;h&#x27;</span>])/<span class="hljs-number">2</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(ordered) <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [ROWS, ROWS+<span class="hljs-number">1</span>]:
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+    observed_labels = [normalize(v[<span class="hljs-string">&#x27;text&#x27;</span>]) <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> ordered]
+    centers = [<span class="hljs-built_in">float</span>(v[<span class="hljs-string">&#x27;y&#x27;</span>]) + <span class="hljs-built_in">float</span>(v[<span class="hljs-string">&#x27;h&#x27;</span>])/<span class="hljs-number">2</span> <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> ordered]
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(<span class="hljs-keyword">not</span> label <span class="hljs-keyword">for</span> label <span class="hljs-keyword">in</span> observed_labels) <span class="hljs-keyword">or</span> <span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(observed_labels)) != <span class="hljs-built_in">len</span>(ordered) <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(
+            <span class="hljs-keyword">not</span> <span class="hljs-number">.055</span> &lt;= b-a &lt;= <span class="hljs-number">.087</span> <span class="hljs-keyword">for</span> a, b <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(centers, centers[<span class="hljs-number">1</span>:])):
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+    <span class="hljs-comment"># Bag.rb refresh/itemRect draws through top+page_item_max (the eighth edge</span>
+    <span class="hljs-comment"># text). Cursor scrolling still guarantees the FIRST7, independently of</span>
+    <span class="hljs-comment"># whether OCR recovers that clipped extra text on successive captures.</span>
+    core = ordered[:ROWS]
+    labels = observed_labels[:ROWS]
+    selected = <span class="hljs-built_in">next</span>((i <span class="hljs-keyword">for</span> i, row <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(core) <span class="hljs-keyword">if</span> row <span class="hljs-keyword">is</span> current), <span class="hljs-literal">None</span>)
+    <span class="hljs-keyword">if</span> selected <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;labels&#x27;</span>: labels, <span class="hljs-string">&#x27;selected_row&#x27;</span>: selected,
+            <span class="hljs-string">&#x27;observed_labels&#x27;</span>: observed_labels,
+            <span class="hljs-string">&#x27;tail_visible&#x27;</span>: <span class="hljs-built_in">any</span>(label == <span class="hljs-string">&#x27;closebag&#x27;</span> <span class="hljs-keyword">for</span> label <span class="hljs-keyword">in</span> observed_labels)}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">transition</span>(<span class="hljs-params">previous, observed</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Prove an ordinary &lt;=4-row advance, or require an actual end-page probe.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">if</span> previous <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> observed <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;uncertain&#x27;</span>
+    old, new = previous[<span class="hljs-string">&#x27;labels&#x27;</span>], observed[<span class="hljs-string">&#x27;labels&#x27;</span>]
+    offsets = {i-new.index(label) <span class="hljs-keyword">for</span> i, label <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(old) <span class="hljs-keyword">if</span> label <span class="hljs-keyword">in</span> new}
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(offsets) &gt; <span class="hljs-number">1</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;uncertain&#x27;</span>
+    <span class="hljs-keyword">if</span> offsets:
+        offset = <span class="hljs-built_in">next</span>(<span class="hljs-built_in">iter</span>(offsets))
+        advance = offset + observed[<span class="hljs-string">&#x27;selected_row&#x27;</span>] - previous[<span class="hljs-string">&#x27;selected_row&#x27;</span>]
+        <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &lt;= offset &lt;= STRIDE <span class="hljs-keyword">and</span> <span class="hljs-number">0</span> &lt;= advance &lt;= STRIDE:
+            <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;forward-covered&#x27;</span>
+        <span class="hljs-keyword">if</span> offset &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> advance &lt; <span class="hljs-number">0</span>:
+            <span class="hljs-keyword">if</span> observed[<span class="hljs-string">&#x27;selected_row&#x27;</span>] &gt;= STRIDE:
+                <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;uncertain&#x27;</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;wrap-covered&#x27;</span> <span class="hljs-keyword">if</span> previous[<span class="hljs-string">&#x27;tail_visible&#x27;</span>] <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;backfill-tail&#x27;</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;uncertain&#x27;</span>
+    <span class="hljs-comment"># Disjoint complete pages after &lt;=4 normal taps can be a large-pocket wrap.</span>
+    <span class="hljs-comment"># Never infer tail item names: UP4 must render CLOSE BAG before continuing.</span>
+    <span class="hljs-keyword">if</span> observed[<span class="hljs-string">&#x27;selected_row&#x27;</span>] &gt;= STRIDE:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;uncertain&#x27;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;wrap-covered&#x27;</span> <span class="hljs-keyword">if</span> previous[<span class="hljs-string">&#x27;tail_visible&#x27;</span>] <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;backfill-tail&#x27;</span>
+</code></pre>
+  </body>
+</html>

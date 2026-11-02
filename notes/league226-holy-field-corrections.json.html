@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Use Arcanine Intimidate, XDefend2 and MorningSun as needed, then XSpAtk2 and Flamethrower. Monitor actual damage: Cofagrigus contact may…">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="league226-holy-field-corrections.json">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/league226-holy-field-corrections.json.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/league226-holy-field-corrections.json.html">
+    <title>league226-holy-field-corrections.json · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">league226-holy-field-corrections.json</h1>
+        <p class="task-meta">JSON · 1.2 KB · <a href="/pokemon-reborn/reasoning/23/">Task 23</a> · first used Oct 7 04:44</p>
+      </header>
+      <article class="note-body" data-fragment>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="Contents of league226-holy-field-corrections.json"><code class="hljs language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;reviewed_epoch&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1791362688.20716</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;sources&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-string">&quot;/Applications/Reborn.app/Contents/Game/Scripts/Reborn/fieldtext.rb:1674&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;/Applications/Reborn.app/Contents/Game/Scripts/Battle_Move.rb:457&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;/Applications/Reborn.app/Contents/Game/Scripts/Battle.rb:5607&quot;</span>
+  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;rules&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-string">&quot;Holy Field Return receives1.5 move boost; normal special moves separately receive1.5 type boost.&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;Normal attacks are super effective against Ghost and Dark on Holy Field. Cofagrigus is not a safe Return switch.&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;Curse is cleared at the first turn end on Holy Field, though that first turn still applies25% HP damage.&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;Kangaskhan can FullRestore burn and damage; do not assume it stays burned.&quot;</span>
+  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;observed&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-string">&quot;Cofagrigus fainted on switch into Return from235HP; chain not lost.&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;Arcanine Intimidate plus XDefend2 reduced Return to65-75damage; MorningSun safely restored HP.&quot;</span>
+  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;retry_recommendation&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Use Arcanine Intimidate, XDefend2 and MorningSun as needed, then XSpAtk2 and Flamethrower. Monitor actual damage: Cofagrigus contact may have removed ParentalBond in this attempt. Do not assume the same damage or hardcode the recorded turn sequence on a fresh run. Avoid Cofagrigus Curse stall on Holy.&quot;</span>
+<span class="hljs-punctuation">}</span></code></pre>
+      </article>
+    </main>
+  </body>
+</html>

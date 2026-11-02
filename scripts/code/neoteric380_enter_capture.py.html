@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>neoteric380_enter_capture.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of neoteric380_enter_capture.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Enter only the source-reviewed, separate legendary capture after a saved victory.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+species=sys.argv[<span class="hljs-number">1</span>];<span class="hljs-keyword">assert</span> species <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Mewtwo&#x27;</span>,<span class="hljs-string">&#x27;Mew&#x27;</span>]
+event=<span class="hljs-number">130</span> <span class="hljs-keyword">if</span> species==<span class="hljs-string">&#x27;Mewtwo&#x27;</span><span class="hljs-keyword">else</span> <span class="hljs-number">126</span>
+(ROOT/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>).write_text(json.dumps(<span class="hljs-built_in">dict</span>(stop=<span class="hljs-literal">False</span>,expected_foes=[species]),indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+p=ROOT/<span class="hljs-string">f&#x27;work/380-<span class="hljs-subst">{species.lower()}</span>-capture.json&#x27;</span>;<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> p.exists(),<span class="hljs-string">&#x27;Encounter already registered; review before retry&#x27;</span>
+p.write_text(json.dumps(<span class="hljs-built_in">dict</span>(species=species,session=<span class="hljs-number">380</span>,start_epoch=time.time(),event=event),indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-string">&#x27;895&#x27;</span>,<span class="hljs-built_in">str</span>(event),<span class="hljs-string">&#x27;talk&#x27;</span>],check=<span class="hljs-literal">True</span>)
+t=read();<span class="hljs-keyword">assert</span> species.lower() <span class="hljs-keyword">in</span> t.lower().replace(<span class="hljs-string">&#x27;meutwo&#x27;</span>,<span class="hljs-string">&#x27;mewtwo&#x27;</span>).replace(<span class="hljs-string">&#x27;meш&#x27;</span>,<span class="hljs-string">&#x27;mew&#x27;</span>),t
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:3&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

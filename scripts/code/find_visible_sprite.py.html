@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>find_visible_sprite.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of find_visible_sprite.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Match installed character artwork against recorded pixels; no game state access.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> cv2,numpy <span class="hljs-keyword">as</span> np
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">find</span>(<span class="hljs-params">name</span>):
+ a=np.asarray(Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>).resize((<span class="hljs-number">512</span>,<span class="hljs-number">384</span>),Image.Resampling.NEAREST))
+ im=Image.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Graphics/Characters/&#x27;</span>+name+<span class="hljs-string">&#x27;.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>);w,h=im.width//<span class="hljs-number">4</span>,im.height//<span class="hljs-number">4</span>
+ best=<span class="hljs-literal">None</span>
+ <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  <span class="hljs-keyword">for</span> col <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+   t=np.asarray(im.crop((col*w,row*h,(col+<span class="hljs-number">1</span>)*w,(row+<span class="hljs-number">1</span>)*h)))
+   mask=t[:,:,<span class="hljs-number">3</span>];r=cv2.matchTemplate(a,t[:,:,:<span class="hljs-number">3</span>],cv2.TM_SQDIFF_NORMED,mask=mask)
+   r=np.nan_to_num(r,nan=<span class="hljs-number">100</span>,posinf=<span class="hljs-number">100</span>,neginf=<span class="hljs-number">100</span>);_,_,xy,_=cv2.minMaxLoc(r);score=<span class="hljs-built_in">float</span>(r[xy[<span class="hljs-number">1</span>],xy[<span class="hljs-number">0</span>]])
+   v=(score,xy[<span class="hljs-number">0</span>]+w//<span class="hljs-number">2</span>,xy[<span class="hljs-number">1</span>]+h,row,col)
+   <span class="hljs-keyword">if</span> best <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> v&lt;best:best=v
+ <span class="hljs-keyword">return</span> best
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ <span class="hljs-keyword">import</span> sys
+ <span class="hljs-built_in">print</span>(find(sys.argv[<span class="hljs-number">1</span>]))
+</code></pre>
+  </body>
+</html>

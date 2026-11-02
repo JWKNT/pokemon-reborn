@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>box_brief.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of box_brief.rb"><code class="hljs language-ruby">require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+v=load_rgss(<span class="hljs-string">&#x27;/Users/jw/Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>)
+s=v[<span class="hljs-symbol">:PokemonStorage</span>]
+<span class="hljs-keyword">if</span> !s
+ puts v.keys.inspect
+<span class="hljs-keyword">else</span>
+ puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(plain(s))
+<span class="hljs-keyword">end</span>
+</code></pre>
+  </body>
+</html>

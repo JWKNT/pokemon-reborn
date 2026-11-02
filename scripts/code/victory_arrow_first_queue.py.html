@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_arrow_first_queue.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_arrow_first_queue.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal, guarded six-action corridor opening; starts in Party with Strength active.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,sys,json,subprocess
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>];start=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>])<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+plan=json.loads((R/<span class="hljs-string">&#x27;work/196-arrow-first-boulders-plan.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;pushes&#x27;</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/args[<span class="hljs-number">0</span>]),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args[<span class="hljs-number">1</span>:])],check=<span class="hljs-literal">True</span>,env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>))
+<span class="hljs-keyword">for</span> i,p <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(plan,<span class="hljs-number">1</span>):
+ <span class="hljs-keyword">if</span> i&lt;start:<span class="hljs-keyword">continue</span>
+ e=p[<span class="hljs-string">&#x27;event&#x27;</span>];label=<span class="hljs-string">f&#x27;Arrow197-first-<span class="hljs-subst">{i}</span>&#x27;</span>
+ <span class="hljs-keyword">if</span> p.get(<span class="hljs-string">&#x27;kind&#x27;</span>)==<span class="hljs-string">&#x27;smash&#x27;</span>:run(<span class="hljs-string">&#x27;victory_arrow_smash_fast.py&#x27;</span>,e,label)
+ <span class="hljs-keyword">else</span>:
+  n=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());dx,dy={<span class="hljs-string">&#x27;up&#x27;</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;down&#x27;</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;left&#x27;</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;right&#x27;</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)}[p[<span class="hljs-string">&#x27;direction&#x27;</span>]]
+  <span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;787&#x27;</span>][<span class="hljs-built_in">str</span>(e)]==[p[<span class="hljs-string">&#x27;box_to&#x27;</span>][<span class="hljs-number">0</span>]-dx,p[<span class="hljs-string">&#x27;box_to&#x27;</span>][<span class="hljs-number">1</span>]-dy]
+  run(<span class="hljs-string">&#x27;arrow_retry.py&#x27;</span>,<span class="hljs-string">&#x27;victory_arrow_boulder_fast.py&#x27;</span>,e,p[<span class="hljs-string">&#x27;direction&#x27;</span>],label)
+  <span class="hljs-keyword">assert</span> json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;787&#x27;</span>][<span class="hljs-built_in">str</span>(e)]==p[<span class="hljs-string">&#x27;box_to&#x27;</span>]
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ARROW ACTION VERIFIED&#x27;</span>,i,p,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

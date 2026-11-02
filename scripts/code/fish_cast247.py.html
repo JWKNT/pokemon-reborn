@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>fish_cast247.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of fish_cast247.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One normal registered-rod cast, reacting only to fresh captured UI text.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> (ROOT/<span class="hljs-string">&quot;notes/fishing247-stop&quot;</span>).exists(), <span class="hljs-string">&quot;Fishing pause requested before cast&quot;</span>
+began=time.time();last=<span class="hljs-string">&#x27;&#x27;</span>;hooked=<span class="hljs-literal">False</span>
+out=ROOT/<span class="hljs-string">&#x27;work/fishing247&#x27;</span>;out.mkdir(exist_ok=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;s:.10&#x27;</span>)
+box=(<span class="hljs-number">48</span>,<span class="hljs-number">565</span>,<span class="hljs-number">229</span>,<span class="hljs-number">612</span>)
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> ImageChops,ImageStat
+reference=Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;work/fishing247/bite-1791452328.182.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>).crop(box)
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1200</span>):
+ h=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+ <span class="hljs-keyword">assert</span> h.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">and</span> time.time()-h[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;Capture stopped&#x27;</span>
+ im=Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+ delta=<span class="hljs-built_in">sum</span>(ImageStat.Stat(ImageChops.difference(im.crop(box),reference)).mean)/<span class="hljs-number">3</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> hooked <span class="hljs-keyword">and</span> delta&lt;<span class="hljs-number">4</span>:
+  im.save(out/<span class="hljs-string">f&#x27;bite-<span class="hljs-subst">{began:<span class="hljs-number">.3</span>f}</span>.png&#x27;</span>)
+  <span class="hljs-comment"># The framed capture was verified at cast entry. The same timed driver</span>
+  <span class="hljs-comment"># enforces heartbeat, releases the key and logs its timestamps here.</span>
+  subprocess.run([KEY,<span class="hljs-string">&#x27;c:.08&#x27;</span>],check=<span class="hljs-literal">True</span>)
+  hooked=<span class="hljs-literal">True</span>;<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FAST_HOOK&#x27;</span>,delta,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> hooked <span class="hljs-keyword">and</span> time.time()-began&lt;<span class="hljs-number">10</span>:
+  time.sleep(<span class="hljs-number">.015</span>);<span class="hljs-keyword">continue</span>
+ crop=out/<span class="hljs-string">&#x27;dialog.png&#x27;</span>;im.crop((<span class="hljs-number">0</span>,<span class="hljs-number">480</span>,<span class="hljs-number">852</span>,<span class="hljs-number">640</span>)).save(crop)
+ rows=json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>),<span class="hljs-built_in">str</span>(crop)]))
+ t=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows).lower()
+ <span class="hljs-keyword">if</span> t!=last:
+  <span class="hljs-keyword">with</span> (out/<span class="hljs-string">&#x27;casts.jsonl&#x27;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>) <span class="hljs-keyword">as</span> f:f.write(json.dumps({<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;cast_start&#x27;</span>:began,<span class="hljs-string">&#x27;text&#x27;</span>:t})+<span class="hljs-string">&#x27;\n&#x27;</span>)
+  last=t
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;landed a pok&#x27;</span>,<span class="hljs-string">&#x27;landedapok&#x27;</span>]):
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;LANDED&#x27;</span>,read(),flush=<span class="hljs-literal">True</span>);act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:3&#x27;</span>)
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CAST_BATTLE&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">elif</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;not even&#x27;</span>,<span class="hljs-string">&#x27;noteven&#x27;</span>,<span class="hljs-string">&#x27;got away&#x27;</span>,<span class="hljs-string">&quot;use that here&quot;</span>]):
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CAST_EMPTY&#x27;</span>,read(),flush=<span class="hljs-literal">True</span>);act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">elif</span> <span class="hljs-string">&#x27;register&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;instant use&#x27;</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Registered rod missing&#x27;</span>)
+ time.sleep(<span class="hljs-number">.04</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Cast timed out; inspect screen before more input&#x27;</span>)
+</code></pre>
+  </body>
+</html>

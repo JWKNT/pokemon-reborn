@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>larvitar_crystal_route.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of larvitar_crystal_route.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute an explicit static-map Larvitar solution using normal crystal buttons.
+Each approach is checked against the in-game coordinate display; stop on dialogue.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+mid=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);first,last=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">2</span>:<span class="hljs-number">4</span>]);<span class="hljs-keyword">assert</span> mid <span class="hljs-keyword">in</span> (<span class="hljs-number">619</span>,<span class="hljs-number">620</span>,<span class="hljs-number">621</span>)
+solution=json.loads((ROOT/<span class="hljs-string">f&#x27;work/277-rock<span class="hljs-subst">{mid}</span>-solution.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;=first&lt;last&lt;=<span class="hljs-built_in">len</span>(solution)
+controls={<span class="hljs-number">621</span>:{<span class="hljs-string">&#x27;up&#x27;</span>:<span class="hljs-number">42</span>,<span class="hljs-string">&#x27;down&#x27;</span>:<span class="hljs-number">45</span>,<span class="hljs-string">&#x27;left&#x27;</span>:<span class="hljs-number">43</span>,<span class="hljs-string">&#x27;right&#x27;</span>:<span class="hljs-number">44</span>},<span class="hljs-number">620</span>:{<span class="hljs-string">&#x27;up&#x27;</span>:<span class="hljs-number">24</span>,<span class="hljs-string">&#x27;down&#x27;</span>:<span class="hljs-number">41</span>,<span class="hljs-string">&#x27;left&#x27;</span>:<span class="hljs-number">42</span>,<span class="hljs-string">&#x27;right&#x27;</span>:<span class="hljs-number">43</span>},<span class="hljs-number">619</span>:{<span class="hljs-string">&#x27;up&#x27;</span>:<span class="hljs-number">41</span>,<span class="hljs-string">&#x27;down&#x27;</span>:<span class="hljs-number">44</span>,<span class="hljs-string">&#x27;left&#x27;</span>:<span class="hljs-number">42</span>,<span class="hljs-string">&#x27;right&#x27;</span>:<span class="hljs-number">43</span>}}
+<span class="hljs-keyword">assert</span> locate(mid)[<span class="hljs-number">0</span>]==mid
+<span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(first,last):
+ step=solution[n];<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CRYSTAL STEP&#x27;</span>,n,step,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(controls[mid][step[<span class="hljs-string">&#x27;direction&#x27;</span>]]),<span class="hljs-string">&#x27;talk&#x27;</span>],check=<span class="hljs-literal">True</span>)
+ act(<span class="hljs-string">&#x27;wait:3&#x27;</span> <span class="hljs-keyword">if</span> n+<span class="hljs-number">1</span>&lt;<span class="hljs-built_in">len</span>(solution) <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;wait:6&#x27;</span>)
+ rows=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows).lower()
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\bhp\b|\bfight\b|\bwild\b|pp:&#x27;</span>,text),<span class="hljs-string">&#x27;Unexpected battle&#x27;</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(v[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.73</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(v[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">18</span> <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows),<span class="hljs-string">&#x27;Unexpected dialogue&#x27;</span>
+ shutil.copy2(STATE,ROOT/<span class="hljs-string">f&#x27;work/277-crystal-<span class="hljs-subst">{mid}</span>-<span class="hljs-subst">{n:02}</span>.png&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CRYSTAL ANIMATION SETTLED&#x27;</span>,n,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PLANNED CRYSTAL RANGE COMPLETE; verify visible Larvitar and end state&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

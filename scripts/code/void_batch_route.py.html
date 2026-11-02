@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>void_batch_route.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of void_batch_route.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Guarded normal controls: post-Glass Void story to the safe Hypno approach.
+
+Development is source-only; importing this module sends no input. At runtime all
+controls use play.act and the existing capture/session guards. Never starts a
+battle. Movement stops at the first meaningful touch event; unknown events,
+choices, battles, capture failures, and coordinate disagreements stop the run.
+
+Examples (run only with the game recorded, in the observed Void overworld):
+  python3 scripts/void_batch_route.py --stop-phase ame
+  python3 scripts/void_batch_route.py
+  python3 scripts/void_batch_route.py --from-phase florinia
+
+Automatic map resume takes one normal checkpoint to refresh source conditions
+when not at the initial754 spawn. Explicit phases have the same prerequisite.
+Two normal checkpoints during a fresh run verify shard healing and the final
+safe approach. Planning-note updates describe completed observed source events;
+there is no direct game/save/runtime editing.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> difflib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> pathlib
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> time
+
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT, STATE, act, read, snap
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate, capture_ready
+<span class="hljs-keyword">from</span> void_static_paths <span class="hljs-keyword">import</span> path
+
+
+<span class="hljs-comment"># name, map, event, player endpoint, facing, next map (if the event transfers)</span>
+PHASES = [
+    (<span class="hljs-string">&#x27;shard&#x27;</span>, <span class="hljs-number">754</span>, <span class="hljs-number">5</span>, (<span class="hljs-number">16</span>, <span class="hljs-number">12</span>), <span class="hljs-string">&#x27;right&#x27;</span>, <span class="hljs-literal">None</span>),
+    (<span class="hljs-string">&#x27;conductor&#x27;</span>, <span class="hljs-number">754</span>, <span class="hljs-number">2</span>, (<span class="hljs-number">14</span>, <span class="hljs-number">78</span>), <span class="hljs-string">&#x27;down&#x27;</span>, <span class="hljs-literal">None</span>),
+    (<span class="hljs-string">&#x27;ame&#x27;</span>, <span class="hljs-number">754</span>, <span class="hljs-number">3</span>, (<span class="hljs-number">58</span>, <span class="hljs-number">80</span>), <span class="hljs-literal">None</span>, <span class="hljs-number">755</span>),
+    (<span class="hljs-string">&#x27;mudkip&#x27;</span>, <span class="hljs-number">755</span>, <span class="hljs-number">24</span>, (<span class="hljs-number">62</span>, <span class="hljs-number">64</span>), <span class="hljs-string">&#x27;down&#x27;</span>, <span class="hljs-number">756</span>),
+    (<span class="hljs-string">&#x27;cain-first&#x27;</span>, <span class="hljs-number">756</span>, <span class="hljs-number">3</span>, (<span class="hljs-number">99</span>, <span class="hljs-number">69</span>), <span class="hljs-string">&#x27;right&#x27;</span>, <span class="hljs-literal">None</span>),
+    (<span class="hljs-string">&#x27;julia&#x27;</span>, <span class="hljs-number">756</span>, <span class="hljs-number">2</span>, (<span class="hljs-number">119</span>, <span class="hljs-number">44</span>), <span class="hljs-string">&#x27;up&#x27;</span>, <span class="hljs-literal">None</span>),
+    (<span class="hljs-string">&#x27;fern&#x27;</span>, <span class="hljs-number">756</span>, <span class="hljs-number">4</span>, (<span class="hljs-number">102</span>, <span class="hljs-number">20</span>), <span class="hljs-string">&#x27;up&#x27;</span>, <span class="hljs-number">757</span>),
+    (<span class="hljs-string">&#x27;florinia&#x27;</span>, <span class="hljs-number">757</span>, <span class="hljs-number">2</span>, (<span class="hljs-number">132</span>, <span class="hljs-number">16</span>), <span class="hljs-string">&#x27;up&#x27;</span>, <span class="hljs-literal">None</span>),
+    (<span class="hljs-string">&#x27;anna&#x27;</span>, <span class="hljs-number">757</span>, <span class="hljs-number">14</span>, (<span class="hljs-number">164</span>, <span class="hljs-number">188</span>), <span class="hljs-string">&#x27;left&#x27;</span>, <span class="hljs-literal">None</span>),
+    (<span class="hljs-string">&#x27;cain-second&#x27;</span>, <span class="hljs-number">757</span>, <span class="hljs-number">16</span>, (<span class="hljs-number">138</span>, <span class="hljs-number">157</span>), <span class="hljs-string">&#x27;right&#x27;</span>, <span class="hljs-literal">None</span>),
+    (<span class="hljs-string">&#x27;kiki&#x27;</span>, <span class="hljs-number">757</span>, <span class="hljs-number">17</span>, (<span class="hljs-number">132</span>, <span class="hljs-number">108</span>), <span class="hljs-string">&#x27;up&#x27;</span>, <span class="hljs-literal">None</span>),
+    (<span class="hljs-string">&#x27;lin&#x27;</span>, <span class="hljs-number">757</span>, <span class="hljs-number">24</span>, (<span class="hljs-number">121</span>, <span class="hljs-number">81</span>), <span class="hljs-string">&#x27;down&#x27;</span>, <span class="hljs-literal">None</span>),
+    (<span class="hljs-string">&#x27;radomus&#x27;</span>, <span class="hljs-number">757</span>, <span class="hljs-number">26</span>, (<span class="hljs-number">107</span>, <span class="hljs-number">145</span>), <span class="hljs-string">&#x27;down&#x27;</span>, <span class="hljs-literal">None</span>),
+    (<span class="hljs-string">&#x27;zina&#x27;</span>, <span class="hljs-number">757</span>, <span class="hljs-number">27</span>, (<span class="hljs-number">120</span>, <span class="hljs-number">158</span>), <span class="hljs-string">&#x27;down&#x27;</span>, <span class="hljs-number">758</span>),
+    (<span class="hljs-string">&#x27;hypno-approach&#x27;</span>, <span class="hljs-number">758</span>, <span class="hljs-literal">None</span>, (<span class="hljs-number">28</span>, <span class="hljs-number">106</span>), <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>),
+]
+PHASE_NAMES = [p[<span class="hljs-number">0</span>] <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> PHASES]
+TOUCHES = {<span class="hljs-number">754</span>: {<span class="hljs-number">6</span>, <span class="hljs-number">3</span>}, <span class="hljs-number">755</span>: {<span class="hljs-number">11</span>}, <span class="hljs-number">756</span>: <span class="hljs-built_in">set</span>(),
+           <span class="hljs-number">757</span>: {<span class="hljs-number">3</span>, <span class="hljs-number">29</span>, <span class="hljs-number">6</span>, <span class="hljs-number">34</span>, <span class="hljs-number">54</span>, <span class="hljs-number">55</span>, <span class="hljs-number">13</span>, <span class="hljs-number">56</span>, <span class="hljs-number">57</span>, <span class="hljs-number">65</span>, <span class="hljs-number">76</span>, <span class="hljs-number">84</span>},
+           <span class="hljs-number">758</span>: {<span class="hljs-number">17</span>}}
+STATE_FILE = ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>
+RECEIPTS = ROOT/<span class="hljs-string">&#x27;work/void-batch-progress.json&#x27;</span>
+SOURCE_FILE = ROOT/<span class="hljs-string">&#x27;work/void-source-event-index.json&#x27;</span>
+BASE_PP = <span class="hljs-literal">None</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script, *args</span>):
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{script}</span>.py&#x27;</span>),
+                    *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, args)], check=<span class="hljs-literal">True</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">source_event</span>(<span class="hljs-params">mid, eid</span>):
+    events = json.loads(SOURCE_FILE.read_text())
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">next</span>(e <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> events <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;map&#x27;</span>] == mid
+                <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> m[<span class="hljs-string">&#x27;events&#x27;</span>] <span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;id&#x27;</span>] == eid)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">model</span>(<span class="hljs-params">mid, xy</span>):
+    value = json.loads(subprocess.check_output(
+        [<span class="hljs-string">&#x27;ruby&#x27;</span>, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>), <span class="hljs-built_in">str</span>(mid),
+         <span class="hljs-built_in">str</span>(xy[<span class="hljs-number">0</span>]), <span class="hljs-built_in">str</span>(xy[<span class="hljs-number">1</span>])], stderr=subprocess.DEVNULL))
+    <span class="hljs-keyword">if</span> mid == <span class="hljs-number">758</span>:
+        <span class="hljs-comment"># Even if an alternate route is shorter, the boss tile is forbidden.</span>
+        value[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-string">&#x27;122&#x27;</span>].update(x=<span class="hljs-number">28</span>, y=<span class="hljs-number">105</span>, character=<span class="hljs-string">&#x27;FORBIDDEN_BOSS&#x27;</span>,
+                                      through=<span class="hljs-literal">False</span>)
+    <span class="hljs-keyword">return</span> value
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">meaningful</span>(<span class="hljs-params">event</span>):
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>, <span class="hljs-number">108</span>, <span class="hljs-number">408</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> event.get(<span class="hljs-string">&#x27;list&#x27;</span>, []))
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">normalized</span>(<span class="hljs-params">text</span>):
+    <span class="hljs-keyword">return</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, text.lower()).replace(<span class="hljs-string">&#x27;pokemonreborn&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">textbox</span>():
+    im = Image.<span class="hljs-built_in">open</span>(STATE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+    w, h = im.size
+    box = im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.08</span>), <span class="hljs-built_in">int</span>(h*<span class="hljs-number">.75</span>), <span class="hljs-built_in">int</span>(w*<span class="hljs-number">.90</span>), <span class="hljs-built_in">int</span>(h*<span class="hljs-number">.87</span>)))
+    white = <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">min</span>(p)&gt;<span class="hljs-number">235</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">max</span>(p)-<span class="hljs-built_in">min</span>(p)&lt;<span class="hljs-number">5</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> box.getdata())
+    white /= box.width*box.height
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">border</span>(<span class="hljs-params">y</span>):
+        px = [im.getpixel((x, <span class="hljs-built_in">int</span>(h*y)))
+              <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.08</span>), <span class="hljs-built_in">int</span>(w*<span class="hljs-number">.90</span>))]
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">max</span>(p)&lt;<span class="hljs-number">95</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> px)/<span class="hljs-built_in">len</span>(px)
+    <span class="hljs-keyword">return</span> white&gt;<span class="hljs-number">.35</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">max</span>(border(y) <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> [<span class="hljs-number">.721</span>,<span class="hljs-number">.725</span>,<span class="hljs-number">.729</span>,<span class="hljs-number">.733</span>])&gt;<span class="hljs-number">.8</span> \
+        <span class="hljs-keyword">and</span> <span class="hljs-built_in">max</span>(border(y) <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> [<span class="hljs-number">.895</span>,<span class="hljs-number">.900</span>,<span class="hljs-number">.905</span>,<span class="hljs-number">.910</span>])&gt;<span class="hljs-number">.8</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">world_guard</span>(<span class="hljs-params">rows=<span class="hljs-literal">None</span>, fade_retries=<span class="hljs-number">2</span></span>):
+    rows = snap() <span class="hljs-keyword">if</span> rows <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> rows
+    text = <span class="hljs-string">&#x27;\n&#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows).lower()
+    compact = re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, text)
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;repel&#x27;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;woreoff&#x27;</span> <span class="hljs-keyword">in</span> compact:
+        <span class="hljs-comment"># Void maps have no wild encounters; decline normal renewal instead</span>
+        <span class="hljs-comment"># of spending another Repel. Reinspect before sending any movement.</span>
+        run(<span class="hljs-string">&#x27;renew_repel&#x27;</span>, <span class="hljs-string">&#x27;--cancel&#x27;</span>)
+        rows = snap()
+        text = <span class="hljs-string">&#x27;\n&#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows).lower()
+    choices = {r[<span class="hljs-string">&#x27;text&#x27;</span>].strip().lower() <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows}
+    <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;\bhp\b|\bfight\b|\bwild\b|\bpp:&#x27;</span>, text) \
+            <span class="hljs-keyword">or</span> choices &amp; {<span class="hljs-string">&#x27;yes&#x27;</span>, <span class="hljs-string">&#x27;no&#x27;</span>} <span class="hljs-keyword">or</span> textbox():
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Void overworld required; resolve/review screen: &#x27;</span>+text)
+    <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;[,.;]\s*map\s*[0-9oq]+&#x27;</span>, text):
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Coordinate popup remained open; movement stopped&#x27;</span>)
+    im = Image.<span class="hljs-built_in">open</span>(STATE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+    w, h = im.size
+    px = <span class="hljs-built_in">list</span>(im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.06</span>), <span class="hljs-built_in">int</span>(h*<span class="hljs-number">.08</span>), <span class="hljs-built_in">int</span>(w*<span class="hljs-number">.94</span>), <span class="hljs-built_in">int</span>(h*<span class="hljs-number">.88</span>))).getdata())
+    <span class="hljs-comment"># The animated Void floor is mostly black even after its arrival has</span>
+    <span class="hljs-comment"># completed. Its bright speckles vary from gray to blue with the animation.</span>
+    <span class="hljs-comment"># Require missing terrain texture as well before</span>
+    <span class="hljs-comment"># treating the frame as a black transition; coordinates remain guarded.</span>
+    void_texture = <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">max</span>(p)&gt;<span class="hljs-number">70</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> px)/<span class="hljs-built_in">len</span>(px)
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">max</span>(p)&lt;<span class="hljs-number">25</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> px)/<span class="hljs-built_in">len</span>(px)&gt;<span class="hljs-number">.997</span> <span class="hljs-keyword">and</span> void_texture&lt;<span class="hljs-number">.0005</span>:
+        <span class="hljs-keyword">if</span> fade_retries:
+            act(<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+            <span class="hljs-keyword">return</span> world_guard(snap(), fade_retries-<span class="hljs-number">1</span>)
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Void fade/animation still active; no movement sent&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">record</span>(<span class="hljs-params">kind, **data</span>):
+    value = json.loads(RECEIPTS.read_text()) <span class="hljs-keyword">if</span> RECEIPTS.exists() <span class="hljs-keyword">else</span> {<span class="hljs-string">&#x27;events&#x27;</span>: []}
+    value[<span class="hljs-string">&#x27;events&#x27;</span>].append({<span class="hljs-string">&#x27;epoch&#x27;</span>: time.time(), <span class="hljs-string">&#x27;kind&#x27;</span>: kind, **data})
+    RECEIPTS.write_text(json.dumps(value, indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">mirror_completed</span>(<span class="hljs-params">mid, eid</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Only unconditional effects after the observed scene has finished.&quot;&quot;&quot;</span>
+    event = source_event(mid, eid)
+    state = json.loads(STATE_FILE.read_text())
+    <span class="hljs-keyword">for</span> page <span class="hljs-keyword">in</span> event[<span class="hljs-string">&#x27;pages&#x27;</span>]:
+        <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> page[<span class="hljs-string">&#x27;list&#x27;</span>]:
+            <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;indent&#x27;</span>] != <span class="hljs-number">0</span>:
+                <span class="hljs-keyword">continue</span>
+            a = c[<span class="hljs-string">&#x27;parameters&#x27;</span>]
+            <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>] == <span class="hljs-number">123</span>:
+                state.setdefault(<span class="hljs-string">&#x27;self_switches&#x27;</span>, {})[<span class="hljs-string">f&#x27;<span class="hljs-subst">{mid}</span>,<span class="hljs-subst">{eid}</span>,<span class="hljs-subst">{a[<span class="hljs-number">0</span>]}</span>&#x27;</span>] = a[<span class="hljs-number">1</span>] == <span class="hljs-number">0</span>
+            <span class="hljs-keyword">elif</span> c[<span class="hljs-string">&#x27;code&#x27;</span>] == <span class="hljs-number">121</span> <span class="hljs-keyword">and</span> a[<span class="hljs-number">0</span>] == a[<span class="hljs-number">1</span>]:
+                state.setdefault(<span class="hljs-string">&#x27;switches&#x27;</span>, {})[<span class="hljs-built_in">str</span>(a[<span class="hljs-number">0</span>])] = a[<span class="hljs-number">2</span>] == <span class="hljs-number">0</span>
+            <span class="hljs-keyword">elif</span> c[<span class="hljs-string">&#x27;code&#x27;</span>] == <span class="hljs-number">122</span> <span class="hljs-keyword">and</span> a[<span class="hljs-number">0</span>] == a[<span class="hljs-number">1</span>] <span class="hljs-keyword">and</span> a[<span class="hljs-number">2</span>:<span class="hljs-number">4</span>] == [<span class="hljs-number">0</span>, <span class="hljs-number">0</span>]:
+                <span class="hljs-comment"># Progress setters in approved story events; never source reads</span>
+                <span class="hljs-comment"># of player coordinates or the conditional Mudkip choice body.</span>
+                state.setdefault(<span class="hljs-string">&#x27;variables&#x27;</span>, {})[<span class="hljs-built_in">str</span>(a[<span class="hljs-number">0</span>])] = a[<span class="hljs-number">4</span>]
+    STATE_FILE.write_text(json.dumps(state)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+    <span class="hljs-keyword">if</span> (mid, eid) == (<span class="hljs-number">757</span>, <span class="hljs-number">24</span>):
+        <span class="hljs-comment"># Lin&#x27;s runtime move route removes her; the installed single page keeps</span>
+        <span class="hljs-comment"># a sprite. Self-A is written only at the scene&#x27;s end. Planner-only.</span>
+        p = ROOT/<span class="hljs-string">&#x27;notes/navigation-overrides.json&#x27;</span>
+        v = json.loads(p.read_text()) <span class="hljs-keyword">if</span> p.exists() <span class="hljs-keyword">else</span> {}
+        <span class="hljs-keyword">if</span> <span class="hljs-number">24</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> v.setdefault(<span class="hljs-string">&#x27;757&#x27;</span>, []):
+            v[<span class="hljs-string">&#x27;757&#x27;</span>].append(<span class="hljs-number">24</span>)
+        p.write_text(json.dumps(v)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">settle</span>(<span class="hljs-params">mid, eid</span>):
+    event = source_event(mid, eid)
+    cs = [c <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> event[<span class="hljs-string">&#x27;pages&#x27;</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> p[<span class="hljs-string">&#x27;list&#x27;</span>]]
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">102</span>,<span class="hljs-number">103</span>,<span class="hljs-number">104</span>,<span class="hljs-number">301</span>] <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(
+            k <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>]) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span>
+            [<span class="hljs-string">&#x27;pbTrainerBattle&#x27;</span>,<span class="hljs-string">&#x27;pbDoubleTrainerBattle&#x27;</span>,<span class="hljs-string">&#x27;pbWildBattle&#x27;</span>]) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs):
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">f&#x27;Unapproved choice/battle source <span class="hljs-subst">{mid}</span>E<span class="hljs-subst">{eid}</span>&#x27;</span>)
+    text = read()
+    <span class="hljs-keyword">if</span> textbox():
+        blocks = []
+        <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs:
+            <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>] == <span class="hljs-number">101</span>:
+                blocks.append(<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]))
+            <span class="hljs-keyword">elif</span> c[<span class="hljs-string">&#x27;code&#x27;</span>] == <span class="hljs-number">401</span> <span class="hljs-keyword">and</span> blocks:
+                blocks[-<span class="hljs-number">1</span>] += <span class="hljs-string">&#x27; &#x27;</span>+<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>])
+        n = normalized(text)
+        matches = [difflib.SequenceMatcher(<span class="hljs-literal">None</span>, n, normalized(b)).ratio()
+                   <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> blocks]
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(n)&gt;<span class="hljs-number">4</span> <span class="hljs-keyword">and</span> (<span class="hljs-keyword">not</span> matches <span class="hljs-keyword">or</span> <span class="hljs-built_in">max</span>(matches)&lt;<span class="hljs-number">.52</span>):
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">f&#x27;Visible dialogue does not match <span class="hljs-subst">{mid}</span>E<span class="hljs-subst">{eid}</span>: &#x27;</span>+text)
+    long = (mid,eid) <span class="hljs-keyword">in</span> {(<span class="hljs-number">754</span>,<span class="hljs-number">3</span>),(<span class="hljs-number">757</span>,<span class="hljs-number">6</span>),(<span class="hljs-number">757</span>,<span class="hljs-number">34</span>),(<span class="hljs-number">757</span>,<span class="hljs-number">54</span>),(<span class="hljs-number">757</span>,<span class="hljs-number">55</span>),
+                        (<span class="hljs-number">757</span>,<span class="hljs-number">57</span>),(<span class="hljs-number">757</span>,<span class="hljs-number">26</span>)}
+    args = [<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--world-settle&#x27;</span>,<span class="hljs-number">30</span> <span class="hljs-keyword">if</span> long <span class="hljs-keyword">else</span> <span class="hljs-number">12</span>]
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">241</span>,<span class="hljs-number">242</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs):
+        args.append(<span class="hljs-string">&#x27;--log-scripted-bgm&#x27;</span>)
+    run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>, mid, eid, *args)
+    world_guard()
+    mirror_completed(mid, eid)
+    record(<span class="hljs-string">&#x27;scene-completed&#x27;</span>, <span class="hljs-built_in">map</span>=mid, event=eid)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">walk</span>(<span class="hljs-params">mid, goal, chunk_limit, transfer=<span class="hljs-literal">None</span></span>):
+    seen = []
+    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">120</span>):
+        world_guard()
+        actual, x, y = locate(mid)
+        <span class="hljs-keyword">if</span> actual != mid:
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">f&#x27;Unexpected map before movement: <span class="hljs-subst">{actual}</span>, wanted<span class="hljs-subst">{mid}</span>&#x27;</span>)
+        world_guard()
+        <span class="hljs-keyword">if</span> (x,y) == goal:
+            <span class="hljs-keyword">return</span> actual, x, y
+        seen.append((x,y))
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(seen)&gt;=<span class="hljs-number">3</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(seen[-<span class="hljs-number">3</span>:]))==<span class="hljs-number">1</span>:
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Repeated Void coordinate; obstacle/timing review&#x27;</span>)
+        v = model(mid, (x,y))
+        keys, nodes = path(v, (x,y), goal)
+        keys, nodes = keys[:chunk_limit], nodes[:chunk_limit+<span class="hljs-number">1</span>]
+        stop = <span class="hljs-literal">None</span>
+        <span class="hljs-keyword">for</span> i, xy <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(nodes[<span class="hljs-number">1</span>:], <span class="hljs-number">1</span>):
+            at = [(<span class="hljs-built_in">int</span>(eid), e) <span class="hljs-keyword">for</span> eid,e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items()
+                  <span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>] <span class="hljs-keyword">and</span> (e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]) == xy
+                  <span class="hljs-keyword">and</span> meaningful(e)]
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> at:
+                <span class="hljs-keyword">continue</span>
+            <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(at)!=<span class="hljs-number">1</span>:
+                <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">f&#x27;Ambiguous Void touch at <span class="hljs-subst">{mid}</span><span class="hljs-subst">{xy}</span>: <span class="hljs-subst">{at}</span>&#x27;</span>)
+            eid, event = at[<span class="hljs-number">0</span>]
+            <span class="hljs-keyword">if</span> eid <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> TOUCHES.get(mid,<span class="hljs-built_in">set</span>()):
+                <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">f&#x27;Unplanned touch <span class="hljs-subst">{mid}</span>E<span class="hljs-subst">{eid}</span><span class="hljs-subst">{xy}</span>; no batch sent&#x27;</span>)
+            <span class="hljs-keyword">if</span> (mid,eid)==(<span class="hljs-number">754</span>,<span class="hljs-number">3</span>) <span class="hljs-keyword">and</span> transfer!=<span class="hljs-number">755</span>:
+                <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Ame transfer reached outside its approved phase&#x27;</span>)
+            keys, nodes, stop = keys[:i], nodes[:i+<span class="hljs-number">1</span>], eid
+            <span class="hljs-keyword">break</span>
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> keys:
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Empty Void path away from target&#x27;</span>)
+        seq = []
+        <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> keys:
+            <span class="hljs-keyword">if</span> key.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):
+                seq.extend([key[<span class="hljs-number">5</span>:]+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.9&#x27;</span>])
+            <span class="hljs-keyword">else</span>:
+                seq.append(key+<span class="hljs-string">&#x27;:.12&#x27;</span>)
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VOID SEGMENT&#x27;</span>,mid,(x,y),<span class="hljs-string">&#x27;-&gt;&#x27;</span>,nodes[-<span class="hljs-number">1</span>],<span class="hljs-built_in">len</span>(keys),<span class="hljs-string">&#x27;touch&#x27;</span>,stop,flush=<span class="hljs-literal">True</span>)
+        <span class="hljs-comment"># Never replay after a capture failure. Existing guards release keys;</span>
+        <span class="hljs-comment"># explicit/map resume will inspect actual state rather than guessing.</span>
+        <span class="hljs-keyword">try</span>:
+            act(*seq)
+        <span class="hljs-keyword">except</span> subprocess.CalledProcessError <span class="hljs-keyword">as</span> error:
+            <span class="hljs-keyword">if</span> error.returncode != <span class="hljs-number">2</span>:
+                <span class="hljs-keyword">raise</span>
+            capture_ready()
+            world_guard()
+            record(<span class="hljs-string">&#x27;capture-recovered-replan&#x27;</span>, <span class="hljs-built_in">map</span>=mid)
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CAPTURE RECOVERED; replanning from observed coordinates&#x27;</span>, flush=<span class="hljs-literal">True</span>)
+            <span class="hljs-keyword">continue</span>
+        <span class="hljs-keyword">if</span> stop <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+            settle(mid, stop)
+            actual, x, y = locate(transfer <span class="hljs-keyword">if</span> (mid,stop)==(<span class="hljs-number">754</span>,<span class="hljs-number">3</span>) <span class="hljs-keyword">else</span> mid)
+            <span class="hljs-keyword">if</span> (mid,stop)==(<span class="hljs-number">754</span>,<span class="hljs-number">3</span>):
+                <span class="hljs-keyword">if</span> actual!=transfer:
+                    <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Ame scene did not reach its expected map&#x27;</span>)
+                <span class="hljs-keyword">return</span> actual,x,y
+            <span class="hljs-keyword">if</span> actual != mid:
+                <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected story transfer after touch&#x27;</span>)
+        <span class="hljs-keyword">else</span>:
+            world_guard()
+    <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Void route segment limit&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">native</span>():
+    value = json.loads(subprocess.check_output(
+        [<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/map_state.rb&#x27;</span>)],stderr=subprocess.DEVNULL))
+    <span class="hljs-comment"># map_state.rb&#x27;s selected party fields retain Ruby instance-variable names;</span>
+    <span class="hljs-comment"># nested PBMove fields pass through plain(), which already strips the prefix.</span>
+    value[<span class="hljs-string">&#x27;party&#x27;</span>] = [{key.removeprefix(<span class="hljs-string">&#x27;@&#x27;</span>): field <span class="hljs-keyword">for</span> key,field <span class="hljs-keyword">in</span> member.items()}
+                      <span class="hljs-keyword">for</span> member <span class="hljs-keyword">in</span> value[<span class="hljs-string">&#x27;party&#x27;</span>]]
+    <span class="hljs-keyword">return</span> value
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">full_pp</span>(<span class="hljs-params">member</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Installed compiled move data plus PBMove.rb&#x27;s PP-Up calculation.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">global</span> BASE_PP
+    <span class="hljs-keyword">if</span> BASE_PP <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+        code = (<span class="hljs-string">&quot;require_relative &#x27;scripts/read_rgss&#x27;; &quot;</span>
+                <span class="hljs-string">&quot;h=load_rgss(&#x27;/Applications/Reborn.app/Contents/Game/Data/moves.dat&#x27;); &quot;</span>
+                <span class="hljs-string">&quot;puts JSON.generate(h.transform_values{|m|m.instance_variable_get(:@maxpp)})&quot;</span>)
+        BASE_PP = json.loads(subprocess.check_output(
+            [<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;-e&#x27;</span>,code],cwd=ROOT,stderr=subprocess.DEVNULL))
+    <span class="hljs-keyword">for</span> move <span class="hljs-keyword">in</span> member[<span class="hljs-string">&#x27;moves&#x27;</span>]:
+        base = BASE_PP.get(move[<span class="hljs-string">&#x27;move&#x27;</span>])
+        ups = move.get(<span class="hljs-string">&#x27;ppup&#x27;</span>,<span class="hljs-number">0</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">isinstance</span>(base,<span class="hljs-built_in">int</span>) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> <span class="hljs-number">0</span>&lt;=ups&lt;=<span class="hljs-number">3</span> \
+                <span class="hljs-keyword">or</span> move[<span class="hljs-string">&#x27;pp&#x27;</span>] != base*(<span class="hljs-number">5</span>+ups)//<span class="hljs-number">5</span>:
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">hypno_prepared_pp</span>(<span class="hljs-params">member</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Final Hypno readiness only; preserve the strict shard/full-PP test.
+
+    Normal TM teaching caps new current PP at the replaced move&#x27;s current PP
+    (Items.rb pbLearnMove, bymachine=True). The healed ExtremeSpeed slot had8;
+    its newly taught Safeguard is therefore8/25, PP-Up0, not full. This exact
+    recorded Arcanine90 slot is enough for the reviewed short Hypno plan.
+    Every other move/member must still have its actual installed maximum PP.
+    &quot;&quot;&quot;</span>
+    <span class="hljs-keyword">if</span> full_pp(member):
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+    moves = member.get(<span class="hljs-string">&#x27;moves&#x27;</span>, [])
+    <span class="hljs-keyword">if</span> member.get(<span class="hljs-string">&#x27;species&#x27;</span>) != <span class="hljs-string">&#x27;ARCANINE&#x27;</span> <span class="hljs-keyword">or</span> member.get(<span class="hljs-string">&#x27;level&#x27;</span>) != <span class="hljs-number">90</span> \
+            <span class="hljs-keyword">or</span> <span class="hljs-built_in">len</span>(moves) != <span class="hljs-number">4</span> <span class="hljs-keyword">or</span> [m[<span class="hljs-string">&#x27;move&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> moves] != [
+                <span class="hljs-string">&#x27;SAFEGUARD&#x27;</span>, <span class="hljs-string">&#x27;FLAMETHROWER&#x27;</span>, <span class="hljs-string">&#x27;CRUNCH&#x27;</span>, <span class="hljs-string">&#x27;MORNINGSUN&#x27;</span>] \
+            <span class="hljs-keyword">or</span> moves[<span class="hljs-number">0</span>].get(<span class="hljs-string">&#x27;ppup&#x27;</span>) != <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> moves[<span class="hljs-number">0</span>].get(<span class="hljs-string">&#x27;pp&#x27;</span>) != <span class="hljs-number">8</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+    source = pathlib.Path(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Scripts/Items.rb&#x27;</span>).read_text()
+    <span class="hljs-keyword">if</span> BASE_PP.get(<span class="hljs-string">&#x27;SAFEGUARD&#x27;</span>) != <span class="hljs-number">25</span> <span class="hljs-keyword">or</span> BASE_PP.get(<span class="hljs-string">&#x27;EXTREMESPEED&#x27;</span>) != <span class="hljs-number">5</span> \
+            <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;oldmovepp = pokemon.moves[forgetmove].pp&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> source \
+            <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;pokemon.moves[forgetmove].pp = [oldmovepp, pokemon.moves[forgetmove].totalpp].min if bymachine&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> source:
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+    <span class="hljs-comment"># Arithmetic validation of a COPY; this neither heals nor edits game/native</span>
+    <span class="hljs-comment"># evidence. Only the exact known TM carryover is exempted from full_pp().</span>
+    checked = <span class="hljs-built_in">dict</span>(member, moves=[<span class="hljs-built_in">dict</span>(m) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> moves])
+    checked[<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;pp&#x27;</span>] = <span class="hljs-number">25</span>
+    <span class="hljs-keyword">return</span> full_pp(checked)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">prepare_safeguard</span>(<span class="hljs-params">saved</span>):
+    arc = <span class="hljs-built_in">next</span>((p <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> saved[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> p[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;ARCANINE&#x27;</span>),<span class="hljs-literal">None</span>)
+    <span class="hljs-keyword">if</span> arc <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">len</span>(saved[<span class="hljs-string">&#x27;party&#x27;</span>])!=<span class="hljs-number">6</span>:
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Fixed six/Arcanine native build review&#x27;</span>)
+    moves = [m[<span class="hljs-string">&#x27;move&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> arc[<span class="hljs-string">&#x27;moves&#x27;</span>]]
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;SAFEGUARD&#x27;</span> <span class="hljs-keyword">in</span> moves:
+        <span class="hljs-keyword">return</span>
+    <span class="hljs-keyword">if</span> moves[<span class="hljs-number">0</span>]!=<span class="hljs-string">&#x27;EXTREMESPEED&#x27;</span> <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> {<span class="hljs-string">&#x27;CRUNCH&#x27;</span>,<span class="hljs-string">&#x27;MORNINGSUN&#x27;</span>,<span class="hljs-string">&#x27;FLAMETHROWER&#x27;</span>} &lt;= <span class="hljs-built_in">set</span>(moves):
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Arcanine replacement slot changed; no TM input sent&#x27;</span>)
+    <span class="hljs-keyword">if</span> saved[<span class="hljs-string">&#x27;bag&#x27;</span>].get(<span class="hljs-string">&#x27;TM20&#x27;</span>,<span class="hljs-number">0</span>)&lt;<span class="hljs-number">1</span>:
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Owned TM20 missing; Safeguard preparation stopped&#x27;</span>)
+    run(<span class="hljs-string">&#x27;teach_machine&#x27;</span>,<span class="hljs-string">&#x27;TM20&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Safeguard&#x27;</span>,<span class="hljs-number">0</span>)
+    world_guard()
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">sync_lin_override</span>():
+    <span class="hljs-string">&quot;&quot;&quot;Freshly synchronized self-A supersedes an old planner removal.&quot;&quot;&quot;</span>
+    state = json.loads(STATE_FILE.read_text())
+    <span class="hljs-keyword">if</span> state.get(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;757,24,A&#x27;</span>):
+        mirror_completed(<span class="hljs-number">757</span>,<span class="hljs-number">24</span>)
+        <span class="hljs-keyword">return</span>
+    p = ROOT/<span class="hljs-string">&#x27;notes/navigation-overrides.json&#x27;</span>
+    <span class="hljs-keyword">if</span> p.exists():
+        value = json.loads(p.read_text())
+        <span class="hljs-keyword">if</span> <span class="hljs-number">24</span> <span class="hljs-keyword">in</span> value.get(<span class="hljs-string">&#x27;757&#x27;</span>,[]):
+            value[<span class="hljs-string">&#x27;757&#x27;</span>].remove(<span class="hljs-number">24</span>)
+            p.write_text(json.dumps(value)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">phase_done</span>(<span class="hljs-params">phase, value</span>):
+    name, mid, eid, goal, facing, transfer = phase
+    <span class="hljs-keyword">if</span> eid <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> transfer <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+    state = json.loads(STATE_FILE.read_text())
+    <span class="hljs-keyword">if</span> name==<span class="hljs-string">&#x27;lin&#x27;</span>:
+        <span class="hljs-keyword">if</span> state.get(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;757,24,A&#x27;</span>):
+            mirror_completed(<span class="hljs-number">757</span>,<span class="hljs-number">24</span>)
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+    e = value[<span class="hljs-string">&#x27;events&#x27;</span>].get(<span class="hljs-built_in">str</span>(eid))
+    <span class="hljs-keyword">return</span> e <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> meaningful(e)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument(<span class="hljs-string">&#x27;--from-phase&#x27;</span>,choices=PHASE_NAMES)
+    p.add_argument(<span class="hljs-string">&#x27;--stop-phase&#x27;</span>,choices=PHASE_NAMES,default=<span class="hljs-string">&#x27;hypno-approach&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--chunk&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,default=<span class="hljs-number">56</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--list-phases&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>)
+    a = p.parse_args()
+    <span class="hljs-keyword">if</span> a.list_phases:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;\n&#x27;</span>.join(PHASE_NAMES));<span class="hljs-keyword">return</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-number">1</span>&lt;=a.chunk&lt;=<span class="hljs-number">84</span>:
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Void chunk must be1..84&#x27;</span>)
+    <span class="hljs-comment"># Only if this source-specific optional prompt is already on screen. It can</span>
+    <span class="hljs-comment"># be unlocked by another file; never activate it or skip the recorded story.</span>
+    initial = read()
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;skipcutscenesonthisfile&#x27;</span> <span class="hljs-keyword">in</span> normalized(initial):
+        skip = source_event(<span class="hljs-number">754</span>,<span class="hljs-number">14</span>)[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;list&#x27;</span>]
+        <span class="hljs-keyword">if</span> [c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> skip <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">102</span>] != [[<span class="hljs-string">&#x27;Yes&#x27;</span>,<span class="hljs-string">&#x27;No&#x27;</span>]]:
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Void skip prompt source changed; no choice sent&#x27;</span>)
+        run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;No&#x27;</span>)
+        run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">754</span>,<span class="hljs-number">14</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>)
+    world_guard()
+    mid,x,y = locate()
+    <span class="hljs-keyword">if</span> mid <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">754</span>,<span class="hljs-number">759</span>):
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Observed game is not in the pre-Hypno Void maps&#x27;</span>)
+    world_guard()
+    <span class="hljs-comment"># On resume, refresh actual page conditions and runtime actor state once.</span>
+    <span class="hljs-comment"># A new run at754spawn instead verifies its save after the normal shard heal.</span>
+    <span class="hljs-keyword">if</span> (mid,x,y)!=(<span class="hljs-number">754</span>,<span class="hljs-number">31</span>,<span class="hljs-number">12</span>):
+        run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Void-route-resume&#x27;</span>)
+        sync_lin_override()
+        <span class="hljs-keyword">if</span> mid==<span class="hljs-number">758</span> <span class="hljs-keyword">and</span> json.loads(STATE_FILE.read_text()).get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;1874&#x27;</span>):
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Hypno already defeated; this helper is only pre-boss&#x27;</span>)
+    start = PHASE_NAMES.index(a.from_phase) <span class="hljs-keyword">if</span> a.from_phase <span class="hljs-keyword">else</span> <span class="hljs-built_in">next</span>(
+        i <span class="hljs-keyword">for</span> i,phase <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(PHASES) <span class="hljs-keyword">if</span> phase[<span class="hljs-number">1</span>]==mid)
+    stop = PHASE_NAMES.index(a.stop_phase)
+    <span class="hljs-keyword">if</span> start&gt;stop <span class="hljs-keyword">or</span> PHASES[start][<span class="hljs-number">1</span>]!=mid:
+        <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Requested phase does not match observed map/stop boundary&#x27;</span>)
+    <span class="hljs-comment"># Map entrance autoruns may already be complete; no dialogues or choices.</span>
+    <span class="hljs-keyword">if</span> mid==<span class="hljs-number">754</span>:
+        settle(<span class="hljs-number">754</span>,<span class="hljs-number">8</span>)
+    <span class="hljs-keyword">elif</span> mid==<span class="hljs-number">755</span>:
+        settle(<span class="hljs-number">755</span>,<span class="hljs-number">5</span>)
+    <span class="hljs-keyword">for</span> phase <span class="hljs-keyword">in</span> PHASES[start:stop+<span class="hljs-number">1</span>]:
+        name, expected, eid, goal, facing, transfer = phase
+        world_guard()
+        actual,x,y = locate(expected)
+        <span class="hljs-keyword">if</span> actual!=expected:
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">f&#x27;Phase<span class="hljs-subst">{name}</span> expected<span class="hljs-subst">{expected}</span>, observed<span class="hljs-subst">{actual}</span>&#x27;</span>)
+        <span class="hljs-keyword">if</span> name!=<span class="hljs-string">&#x27;shard&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> json.loads(STATE_FILE.read_text()).get(
+                <span class="hljs-string">&#x27;self_switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;754,5,A&#x27;</span>):
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Mandatory Light Shard not consumed; resume at shard&#x27;</span>)
+        v = model(expected,(x,y))
+        <span class="hljs-keyword">if</span> phase_done(phase,v):
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VOID SOURCE-CONFIRMED DONE&#x27;</span>,name,flush=<span class="hljs-literal">True</span>)
+            <span class="hljs-keyword">continue</span>
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VOID PHASE&#x27;</span>,name,flush=<span class="hljs-literal">True</span>)
+        actual,x,y = walk(expected,goal,a.chunk,transfer)
+        <span class="hljs-keyword">if</span> facing <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+            world_guard()
+            e = v[<span class="hljs-string">&#x27;events&#x27;</span>].get(<span class="hljs-built_in">str</span>(eid))
+            <span class="hljs-keyword">if</span> e <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+                <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Target event missing before interaction&#x27;</span>)
+            <span class="hljs-comment"># .12 matches the existing calibrated route tap. No walking after C.</span>
+            <span class="hljs-keyword">if</span> name==<span class="hljs-string">&#x27;shard&#x27;</span>:
+                act(facing+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+                settle(expected,eid)
+            <span class="hljs-keyword">elif</span> name==<span class="hljs-string">&#x27;mudkip&#x27;</span>:
+                fresh = model(expected,(x,y))[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)][<span class="hljs-string">&#x27;list&#x27;</span>]
+                <span class="hljs-keyword">if</span> [c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> fresh <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">102</span>] != [[<span class="hljs-string">&#x27;Yes&#x27;</span>,<span class="hljs-string">&#x27;No&#x27;</span>]]:
+                    <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Mudkip starter choice source is not active&#x27;</span>)
+                act(facing+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+                run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>,<span class="hljs-string">&#x27;--source&#x27;</span>,expected,eid)
+                run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,expected,eid,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>)
+            <span class="hljs-keyword">else</span>:
+                act(facing+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+                settle(expected,eid)
+            actual,x,y = locate(transfer <span class="hljs-keyword">or</span> expected)
+        <span class="hljs-keyword">if</span> actual != (transfer <span class="hljs-keyword">or</span> expected):
+            <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Phase transfer mismatch after source dialogue&#x27;</span>)
+        <span class="hljs-keyword">if</span> transfer==<span class="hljs-number">755</span>:
+            settle(<span class="hljs-number">755</span>,<span class="hljs-number">5</span>)
+        record(<span class="hljs-string">&#x27;phase-completed&#x27;</span>,phase=name,position=[actual,x,y])
+        <span class="hljs-keyword">if</span> name==<span class="hljs-string">&#x27;shard&#x27;</span>:
+            run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Void-shard-healed&#x27;</span>)
+            sync_lin_override()
+            saved = native()
+            <span class="hljs-keyword">if</span> saved[<span class="hljs-string">&#x27;map&#x27;</span>]!=<span class="hljs-number">754</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">len</span>(saved[<span class="hljs-string">&#x27;party&#x27;</span>])!=<span class="hljs-number">6</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(
+                    member[<span class="hljs-string">&#x27;hp&#x27;</span>]!=member[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">or</span> member[<span class="hljs-string">&#x27;status&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>
+                    <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> full_pp(member) <span class="hljs-keyword">for</span> member <span class="hljs-keyword">in</span> saved[<span class="hljs-string">&#x27;party&#x27;</span>]):
+                <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Native Light Shard healing verification failed&#x27;</span>)
+            prepare_safeguard(saved)
+        <span class="hljs-keyword">if</span> name==<span class="hljs-string">&#x27;hypno-approach&#x27;</span>:
+            <span class="hljs-keyword">if</span> (actual,x,y)!=(<span class="hljs-number">758</span>,<span class="hljs-number">28</span>,<span class="hljs-number">106</span>):
+                <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Hypno safe endpoint mismatch&#x27;</span>)
+            run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Void-Hypno-ready&#x27;</span>)
+            saved = native()
+            <span class="hljs-keyword">if</span> saved[<span class="hljs-string">&#x27;map&#x27;</span>]!=<span class="hljs-number">758</span> <span class="hljs-keyword">or</span> saved[<span class="hljs-string">&#x27;position&#x27;</span>]!=[<span class="hljs-number">28</span>,<span class="hljs-number">106</span>]:
+                <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Native Hypno safe position mismatch&#x27;</span>)
+            prepare_safeguard(saved)
+            <span class="hljs-comment"># If teaching was needed on a resume, save that normal move change.</span>
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(m[<span class="hljs-string">&#x27;move&#x27;</span>]==<span class="hljs-string">&#x27;SAFEGUARD&#x27;</span> <span class="hljs-keyword">for</span> member <span class="hljs-keyword">in</span> saved[<span class="hljs-string">&#x27;party&#x27;</span>]
+                       <span class="hljs-keyword">if</span> member[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;ARCANINE&#x27;</span> <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> member[<span class="hljs-string">&#x27;moves&#x27;</span>]):
+                run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Void-Hypno-ready&#x27;</span>)
+            ready = native()
+            arc = <span class="hljs-built_in">next</span>((member <span class="hljs-keyword">for</span> member <span class="hljs-keyword">in</span> ready[<span class="hljs-string">&#x27;party&#x27;</span>]
+                        <span class="hljs-keyword">if</span> member[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;ARCANINE&#x27;</span>),<span class="hljs-literal">None</span>)
+            <span class="hljs-keyword">if</span> ready[<span class="hljs-string">&#x27;position&#x27;</span>]!=[<span class="hljs-number">28</span>,<span class="hljs-number">106</span>] <span class="hljs-keyword">or</span> <span class="hljs-built_in">len</span>(ready[<span class="hljs-string">&#x27;party&#x27;</span>])!=<span class="hljs-number">6</span> <span class="hljs-keyword">or</span> arc <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> \
+                    <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> {<span class="hljs-string">&#x27;SAFEGUARD&#x27;</span>,<span class="hljs-string">&#x27;CRUNCH&#x27;</span>,<span class="hljs-string">&#x27;MORNINGSUN&#x27;</span>} &lt;= {
+                        m[<span class="hljs-string">&#x27;move&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> arc[<span class="hljs-string">&#x27;moves&#x27;</span>]} <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(
+                        member[<span class="hljs-string">&#x27;hp&#x27;</span>]!=member[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">or</span> member[<span class="hljs-string">&#x27;status&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>
+                        <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> hypno_prepared_pp(member) <span class="hljs-keyword">for</span> member <span class="hljs-keyword">in</span> ready[<span class="hljs-string">&#x27;party&#x27;</span>]):
+                <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Final native Hypno preparation verification failed&#x27;</span>)
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> full_pp(arc):
+                record(<span class="hljs-string">&#x27;hypno-ready-normal-TM-PP-carryover&#x27;</span>, species=<span class="hljs-string">&#x27;ARCANINE&#x27;</span>, slot=<span class="hljs-number">0</span>,
+                       move=<span class="hljs-string">&#x27;SAFEGUARD&#x27;</span>, current_pp=<span class="hljs-number">8</span>, maximum_pp=<span class="hljs-number">25</span>, ppup=<span class="hljs-number">0</span>,
+                       full_pp=<span class="hljs-literal">False</span>, evidence=<span class="hljs-string">&#x27;Installed Items.rb pbLearnMove bymachine preserves min(old currentPP,new totalPP)&#x27;</span>)
+                <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;HYPNO READY: Safeguard8/25 (normal TM carryover); all other moves full PP&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SAFE HYPNO APPROACH758[28,106]; BOSS NOT STARTED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VOID BATCH STOPPED AT REQUESTED PHASE&#x27;</span>,a.stop_phase,flush=<span class="hljs-literal">True</span>)
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+    main()
+</code></pre>
+  </body>
+</html>

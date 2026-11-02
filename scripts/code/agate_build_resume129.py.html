@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>agate_build_resume129.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of agate_build_resume129.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Resume after the publicly verified normal Timid Mint; never replay consumed steps.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,json,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+os.environ[<span class="hljs-string">&#x27;REBORN_COORD_CACHE&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read,act,ROOT
+<span class="hljs-keyword">from</span> agate_prep_phase <span class="hljs-keyword">import</span> plan,execute
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;cofagrigus becomes timid&#x27;</span> <span class="hljs-keyword">in</span> read().lower(),<span class="hljs-string">&#x27;Expected live mint-effect receipt&#x27;</span>
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/overworld.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+before=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Circus-Cofa-after-shopping-129-status.json&#x27;</span>).read_text())
+commands=plan(<span class="hljs-string">&#x27;build&#x27;</span>,before)
+<span class="hljs-keyword">assert</span> commands[<span class="hljs-number">2</span>]=={<span class="hljs-string">&#x27;internal&#x27;</span>:<span class="hljs-string">&#x27;timid-mint&#x27;</span>}
+<span class="hljs-keyword">assert</span> commands[<span class="hljs-number">3</span>][<span class="hljs-string">&#x27;script&#x27;</span>]==<span class="hljs-string">&#x27;berry_batch&#x27;</span>
+execute(<span class="hljs-string">&#x27;build&#x27;</span>,before,commands[<span class="hljs-number">3</span>:])
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;COFA BUILD RESUME COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

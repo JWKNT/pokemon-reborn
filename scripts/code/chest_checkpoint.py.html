@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>chest_checkpoint.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of chest_checkpoint.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal in-game save between defense battles, then restore the actual Bag pause.
+The user explicitly authorized intermediate saves/reloads on October 5.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> chest_safe_pause <span class="hljs-keyword">import</span> classify
+<span class="hljs-keyword">from</span> hashlib <span class="hljs-keyword">import</span> sha256
+name=sys.argv[<span class="hljs-number">1</span>];<span class="hljs-keyword">assert</span> name.replace(<span class="hljs-string">&#x27;-&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).isalnum()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--prompt-open&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:<span class="hljs-keyword">assert</span> classify(snap())==<span class="hljs-string">&#x27;bag&#x27;</span>,<span class="hljs-string">&#x27;Start from actual Bag&#x27;</span>
+savepath=pathlib.Path.home()/<span class="hljs-string">&#x27;Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>
+before=savepath.stat().st_mtime
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--prompt-open&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>,<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;d:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+r=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> r).lower()
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;would you like to save the game&#x27;</span> <span class="hljs-keyword">in</span> t,<span class="hljs-string">&#x27;Normal save permission prompt required: &#x27;</span>+t
+act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>);r=snap();<span class="hljs-keyword">assert</span> savepath.stat().st_mtime&gt;before,<span class="hljs-string">&#x27;Native save did not advance&#x27;</span>
+act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>,<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>,<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>)
+r=snap();<span class="hljs-keyword">assert</span> classify(r)==<span class="hljs-string">&#x27;bag&#x27;</span>,<span class="hljs-string">&#x27;Saved but Bag re-entry requires immediate review&#x27;</span>
+shutil.copy2(savepath,ROOT/<span class="hljs-string">&#x27;backups&#x27;</span>/<span class="hljs-string">f&#x27;Aster-<span class="hljs-subst">{name}</span>.rxdata&#x27;</span>)
+raw=subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/status_full.rb&#x27;</span>)],stderr=subprocess.DEVNULL)
+(ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>-status.json&#x27;</span>).write_bytes(raw)
+subprocess.run([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/sync_navigation.rb&#x27;</span>)],stderr=subprocess.DEVNULL,check=<span class="hljs-literal">True</span>)
+shutil.copy2(ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>,ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>-navigation.json&#x27;</span>)
+<span class="hljs-comment"># The snapshot is owned party/bag/player data, never active battle internals.</span>
+c=json.loads((ROOT/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>).read_text());p=ROOT/c[<span class="hljs-string">&#x27;active_gauntlet_journal&#x27;</span>];j=json.loads(p.read_text());j.setdefault(<span class="hljs-string">&#x27;checkpoints&#x27;</span>,[]).append({<span class="hljs-string">&#x27;label&#x27;</span>:name,<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;native_sha256&#x27;</span>:sha256(savepath.read_bytes()).hexdigest(),<span class="hljs-string">&#x27;completed_waves&#x27;</span>:[w[<span class="hljs-string">&#x27;wave&#x27;</span>]<span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> j[<span class="hljs-string">&#x27;waves&#x27;</span>]],<span class="hljs-string">&#x27;authorization&#x27;</span>:<span class="hljs-string">&#x27;notes/user-save-reload-steer-2026-10-05.md&#x27;</span>});p.write_text(json.dumps(j,indent=<span class="hljs-number">2</span>));c[<span class="hljs-string">&#x27;native_checkpoint&#x27;</span>]=name;(ROOT/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>).write_text(json.dumps(c,indent=<span class="hljs-number">2</span>))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NORMAL INTERMEDIATE SAVE VERIFIED; BAG PAUSED&#x27;</span>,name,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

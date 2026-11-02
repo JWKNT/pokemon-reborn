@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>wheel_select_three.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of wheel_select_three.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Choose exactly three named, publicly observed party cards for Battle Wheel.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> party_cursor <span class="hljs-keyword">import</span> selected_card
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">selection_path</span>(<span class="hljs-params">start,target</span>):
+ q=deque([(start,[])]);seen={start}
+ <span class="hljs-keyword">while</span> q:
+  slot,keys=q.popleft()
+  <span class="hljs-keyword">if</span> slot==target:<span class="hljs-keyword">return</span> keys
+  up=<span class="hljs-number">7</span> <span class="hljs-keyword">if</span> slot&lt;<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> slot-<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> slot&lt;<span class="hljs-number">6</span> <span class="hljs-keyword">else</span> slot-<span class="hljs-number">1</span>
+  down=(slot+<span class="hljs-number">1</span>)%<span class="hljs-number">8</span> <span class="hljs-keyword">if</span> slot&gt;=<span class="hljs-number">5</span> <span class="hljs-keyword">else</span> slot+<span class="hljs-number">2</span>
+  <span class="hljs-keyword">for</span> key,nxt <span class="hljs-keyword">in</span> [(<span class="hljs-string">&quot;right&quot;</span>,(slot+<span class="hljs-number">1</span>)%<span class="hljs-number">8</span>),(<span class="hljs-string">&quot;left&quot;</span>,(slot-<span class="hljs-number">1</span>)%<span class="hljs-number">8</span>),(<span class="hljs-string">&quot;up&quot;</span>,up),(<span class="hljs-string">&quot;down&quot;</span>,down)]:
+   <span class="hljs-keyword">if</span> nxt <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> seen:seen.add(nxt);q.append((nxt,keys+[key+<span class="hljs-string">&quot;:.12&quot;</span>,<span class="hljs-string">&quot;wait:.12&quot;</span>]))
+ <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&quot;No multiselect route&quot;</span>)
+<span class="hljs-keyword">import</span> difflib
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">read_ordinals</span>(<span class="hljs-params">expected</span>):
+ <span class="hljs-keyword">for</span> attempt <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  t=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">all</span>(w <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> expected):<span class="hljs-keyword">return</span> t
+  <span class="hljs-comment"># Pixel-font OCR can merge the middle-left status into the sprite. Isolate</span>
+  <span class="hljs-comment"># the six public status labels, without moving the current selection.</span>
+  <span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+  im=Image.<span class="hljs-built_in">open</span>(NATIVE);w,h=im.size;canvas=Image.new(<span class="hljs-string">&#x27;RGB&#x27;</span>,(<span class="hljs-number">1024</span>,<span class="hljs-number">840</span>),(<span class="hljs-number">30</span>,<span class="hljs-number">30</span>,<span class="hljs-number">30</span>))
+  <span class="hljs-keyword">for</span> slot <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">6</span>):
+   col=slot%<span class="hljs-number">2</span>;row=slot//<span class="hljs-number">2</span>;x=<span class="hljs-number">.20</span> <span class="hljs-keyword">if</span> col==<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-number">.64</span>;y=(<span class="hljs-number">.20</span> <span class="hljs-keyword">if</span> col==<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-number">.24</span>)+<span class="hljs-number">.211</span>*row
+   crop=im.crop((<span class="hljs-built_in">int</span>(w*x),<span class="hljs-built_in">int</span>(h*y),<span class="hljs-built_in">int</span>(w*(x+<span class="hljs-number">.29</span>)),<span class="hljs-built_in">int</span>(h*(y+<span class="hljs-number">.085</span>))))
+   canvas.paste(crop.resize((<span class="hljs-number">1024</span>,<span class="hljs-number">140</span>)),(<span class="hljs-number">0</span>,slot*<span class="hljs-number">140</span>))
+  cropfile=ROOT/<span class="hljs-string">&#x27;work/wheel-ordinal-labels.png&#x27;</span>;canvas.save(cropfile)
+  labels=json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>),<span class="hljs-built_in">str</span>(cropfile)]))
+  t+=<span class="hljs-string">&#x27; &#x27;</span>+ <span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>].lower() <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> labels)
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">all</span>(w <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> expected):<span class="hljs-keyword">return</span> t
+  act(<span class="hljs-string">&#x27;wait:.25&#x27;</span>)
+ <span class="hljs-keyword">raise</span> RuntimeError((<span class="hljs-string">&#x27;Entry ordinals not observed&#x27;</span>,expected,t))
+
+parser=argparse.ArgumentParser();parser.add_argument(<span class="hljs-string">&#x27;names&#x27;</span>,nargs=<span class="hljs-number">3</span>);parser.add_argument(<span class="hljs-string">&#x27;--start&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,default=<span class="hljs-number">0</span>,choices=[<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>]);args=parser.parse_args();names=args.names;<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(names))==<span class="hljs-number">3</span>
+<span class="hljs-keyword">if</span> args.start:
+ t=read_ordinals([<span class="hljs-string">&#x27;first&#x27;</span>,<span class="hljs-string">&#x27;second&#x27;</span>][:args.start]);<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;third&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t
+<span class="hljs-keyword">for</span> order,name <span class="hljs-keyword">in</span> <span class="hljs-built_in">list</span>(<span class="hljs-built_in">enumerate</span>(names))[args.start:]:
+ rows=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows).lower()
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;confirm&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;entered&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;first&#x27;</span> <span class="hljs-keyword">in</span> text),<span class="hljs-string">&#x27;Tournament selection screen required&#x27;</span>
+ hits=[]
+ <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows:
+  word=re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,v[<span class="hljs-string">&#x27;text&#x27;</span>].lower())
+  score=difflib.SequenceMatcher(<span class="hljs-literal">None</span>,name.lower(),word).ratio()
+  <span class="hljs-keyword">if</span> score&gt;=<span class="hljs-number">.78</span> <span class="hljs-keyword">and</span> <span class="hljs-number">.1</span>&lt;v[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.7</span>:hits.append((score,v))
+ <span class="hljs-keyword">assert</span> hits,(<span class="hljs-string">&#x27;Named card missing&#x27;</span>,name,text)
+ v=<span class="hljs-built_in">max</span>(hits,key=<span class="hljs-keyword">lambda</span> a:a[<span class="hljs-number">0</span>])[<span class="hljs-number">1</span>];col=<span class="hljs-built_in">int</span>(v[<span class="hljs-string">&#x27;x&#x27;</span>]&gt;<span class="hljs-number">.5</span>);row=<span class="hljs-built_in">round</span>((v[<span class="hljs-string">&#x27;y&#x27;</span>]-(<span class="hljs-number">.15</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> col <span class="hljs-keyword">else</span> <span class="hljs-number">.195</span>))/<span class="hljs-number">.21</span>);<span class="hljs-keyword">assert</span> row <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>]
+ slot=row*<span class="hljs-number">2</span>+col;keys=selection_path(selected_card(STATE),slot)
+ <span class="hljs-keyword">if</span> keys:act(*keys,<span class="hljs-string">&#x27;wait:.3&#x27;</span>);snap()
+ <span class="hljs-keyword">assert</span> selected_card(STATE)==slot
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;entry&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;summary&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;no entry&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t.lower()
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,name.lower(),w.lower()).ratio()&gt;=<span class="hljs-number">.78</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> re.findall(<span class="hljs-string">&#x27;[a-z]+&#x27;</span>,t,re.I)),(<span class="hljs-string">&#x27;Wrong named menu&#x27;</span>,name,t)
+ <span class="hljs-comment"># Verified fresh three-option menu; normal clamped arrows select Entry.</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t.lower()
+ act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.12&#x27;</span>,<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.12&#x27;</span>,<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+ t=read().lower();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;WHEEL ENTERED&#x27;</span>,name,t,flush=<span class="hljs-literal">True</span>)
+ ordinal=[<span class="hljs-string">&#x27;first&#x27;</span>,<span class="hljs-string">&#x27;second&#x27;</span>,<span class="hljs-string">&#x27;third&#x27;</span>][order]
+ <span class="hljs-keyword">if</span> ordinal <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:t=read_ordinals([ordinal])
+t=read_ordinals([<span class="hljs-string">&#x27;first&#x27;</span>,<span class="hljs-string">&#x27;second&#x27;</span>,<span class="hljs-string">&#x27;third&#x27;</span>,<span class="hljs-string">&#x27;confirm&#x27;</span>])
+<span class="hljs-comment"># Installed Party.rb automatically selects Confirm after the third entry.</span>
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "status": "Source-reviewed proposal; not yet attempted",
+  "field_change": "Dragon Den field counter increases1 per Surf; >1 transforms to Cave. Swampert already owns Surf slot3. Verify actual field change message and backdrop.",
+  "sources": [
+    "Scripts/Reborn/fieldtext.rb:1876",
+    "Scripts/Battle_Field.rb:953",
+    "Scripts/Battle_Field.rb:587",
+    "Scripts/Battle_Move.rb:559"
+  ],
+  "benefits": [
+    "Removes Dragon and Fire1.5, Water/Ice0.5, Dragon defenses1.3 and special Dragonite Multiscale weakness neutralization",
+    "Dragon Dance returns to ordinary+1 Attack/Speed. Cave Rock1.5 helps Gigalith."
+  ],
+  "cave_risk": "Every second qualifying Earthquake/Bulldoze/Magnitude/Fissure/Z quake causes ceiling collapse, dealing total HP to most active Pokemon including flyers. Sturdy subtracts1 from total-HP damage, not a guarantee if already injured. Count observed falling-rock/ceiling text; do not spam Ground moves. Enemy quakes also count.",
+  "candidate_opening": "Healthy Swampert lead: X SpDef before attack, Surf once, Max Potion if needed, Surf again. Need actual damage calc before commitment. Then Sylveon can absorb Dragon Pulse and finish Noivern. Set Stealth Rock with Gigalith AFTER Noivern is gone; adapt to actual Mence setup.",
+  "Gyarados": "Brave planned252Attack252Speed gives about198Speed at95; three ordinary Cave Dragon Dances reach495, above installed Scarf Garchomp about486. Two doubled dances in DragonDen give+4 and594. Always use current field.",
+  "rejected_assumptions": [
+    "Do not assume Crunch+4 OHKOs untouched Noivern in DragonDen with1.3 defenses.",
+    "Dragonite Multiscale in DragonDen also neutralizes Dragon weakness, not just a simple half-damage calculation.",
+    "Do not predict AI stays Choice-locked without switching; only public moves/state."
+  ],
+  "epoch": 1791226035.772316,
+  "damage_estimates": "notes/saphira182-explicit-damage-estimates.json",
+  "alternative_gyarados_setup": "Consider preserving Dragon Den and three doubled Dragon Dances for +6 Attack/+6 Speed (792Speed), outspeeding a single doubled DD from sash Salamence/Haxorus. +6 Outrage still needs two hits on full Multiscale Dragonite. With Persim and Full Heals, monitor confusion between Outrage locks. X SpDef boosts help ordinary Noivern damage but crit bypasses them; heal based on observed HP. No assumption of Stealth Rock surviving Defog. Evaluate actual trained stats and supplies before a bounded attempt."
+}

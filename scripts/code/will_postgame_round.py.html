@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>will_postgame_round.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of will_postgame_round.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One reviewed repeatable Will v4 fight, reward, heal, and ordinary saved checkpoint.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> subprocess,sys,json,os,re
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+label=sys.argv[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">assert</span> re.fullmatch(<span class="hljs-string">r&#x27;Postgame\d+-Will\d+&#x27;</span>,label), <span class="hljs-string">&#x27;Explicit unique postgame training checkpoint required&#x27;</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> (R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).exists(), <span class="hljs-string">&#x27;Checkpoint already exists&#x27;</span>
+e=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Will ROUND&#x27;</span>,s,*args,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],env=e,check=<span class="hljs-literal">True</span>)
+control_path=R/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>
+control=json.loads(control_path.read_text());control.update(stop=<span class="hljs-literal">False</span>,expected_foes=[<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;Sceptile&#x27;</span>,<span class="hljs-string">&#x27;Charizard&#x27;</span>,<span class="hljs-string">&#x27;Gardevoir&#x27;</span>]);control_path.write_text(json.dumps(control,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Amoonguss&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">45</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,<span class="hljs-string">&#x27;TechNerd&#x27;</span>,<span class="hljs-string">&#x27;Will&#x27;</span>,<span class="hljs-string">&#x27;--map&#x27;</span>,<span class="hljs-number">38</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">45</span>,<span class="hljs-string">&#x27;TechNerd&#x27;</span>,<span class="hljs-string">&#x27;Will&#x27;</span>,<span class="hljs-string">&#x27;--expand-common&#x27;</span>,<span class="hljs-string">&#x27;--active-dialogue&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>,<span class="hljs-string">&#x27;--resume-intro&#x27;</span>)
+run(<span class="hljs-string">&#x27;will_postgame_training&#x27;</span>)
+run(<span class="hljs-string">&#x27;grandhall_reward&#x27;</span>)
+run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>,<span class="hljs-string">&#x27;--world-verified&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+s=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">38</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(m[<span class="hljs-string">&#x27;hp&#x27;</span>]==m[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">and</span> m[<span class="hljs-string">&#x27;status&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>])
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Will ROUND VERIFIED&#x27;</span>,label,<span class="hljs-string">&#x27;XL&#x27;</span>,s[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>].get(<span class="hljs-string">&#x27;EXPCANDYXL&#x27;</span>),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>emerald211_arrow_cross.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of emerald211_arrow_cross.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal arrow bait/dodge, with recorded public frames and endpoint verification.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">&#x27;805,27,54&#x27;</span>],check=<span class="hljs-literal">True</span>,env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;112&#x27;</span>))
+out=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">f&#x27;emerald-arrow-<span class="hljs-subst">{<span class="hljs-built_in">int</span>(time.time())}</span>&#x27;</span>;out.mkdir()
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">frame</span>(<span class="hljs-params">name</span>):
+ shutil.copyfile(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>,out/(name+<span class="hljs-string">&#x27;.png&#x27;</span>))
+act(<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>);frame(<span class="hljs-string">&#x27;bait&#x27;</span>)
+act(<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.45&#x27;</span>);frame(<span class="hljs-string">&#x27;dodged&#x27;</span>)
+act(<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;up:1.28&#x27;</span>,<span class="hljs-string">&#x27;left:.2&#x27;</span>,<span class="hljs-string">&#x27;wait:1.5&#x27;</span>);frame(<span class="hljs-string">&#x27;crossed&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FRAMES&#x27;</span>,out,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ENDPOINT&#x27;</span>,locate(<span class="hljs-number">805</span>),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

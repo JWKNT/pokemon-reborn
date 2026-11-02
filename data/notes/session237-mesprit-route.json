@@ -1,0 +1,15 @@
+{
+  "source": "https://pokemon-reborn.fandom.com/wiki/Azurine_Cave",
+  "critical": "From Apophyll WESTERN shoreline, continue north THROUGH Azurine Lake538 to Peridot522 on WEST shoreline, then right around rocks and south back into MAIN basin of538. City pier enters wrong enclosed cove. Do not approach via city again.",
+  "route": [
+    "Fly564; connected_walk564567",
+    "surface_event56734enter\u219253813,69",
+    "surface_event53870enter\u219252212,86",
+    "surface_walk52225,87; down\u219253827,7",
+    "follow work/dive-route-538.json: Dive33,17\u2192558, Surface38,17\u2192538, end54,26",
+    "left\u219260447,22; Blizzard in a Surf battle changes field toIcy and world to605",
+    "605 cave entrance26,13/14\u219232,62/63; Mesprit19,59"
+  ],
+  "capture": "Defeat Mesprit; Cresselia role redundant. Walrein51 utility Blizzard/Dive/Surf/Rest now evolved fromSealeo.",
+  "epoch": 1791408088.3000908
+}

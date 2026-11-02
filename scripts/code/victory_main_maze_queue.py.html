@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_main_maze_queue.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_main_maze_queue.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute the reviewed static maze solution, verifying every normal push/save.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,sys,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+planfile=Path(sys.argv[<span class="hljs-number">2</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> R/<span class="hljs-string">&#x27;work/189-main-maze-plan.json&#x27;</span>
+prefix=sys.argv[<span class="hljs-number">3</span>] <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">3</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Maze190&#x27;</span>
+p=json.loads(planfile.read_text())[<span class="hljs-string">&#x27;pushes&#x27;</span>]+[<span class="hljs-built_in">dict</span>(event=<span class="hljs-number">80</span>,direction=<span class="hljs-string">&#x27;left&#x27;</span>,box_to=[<span class="hljs-number">55</span>,<span class="hljs-number">42</span>])]
+start=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+<span class="hljs-keyword">for</span> i,step <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(p,<span class="hljs-number">1</span>):
+ <span class="hljs-keyword">if</span> i&lt;start:<span class="hljs-keyword">continue</span>
+ state=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+ dx,dy={<span class="hljs-string">&#x27;left&#x27;</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;right&#x27;</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;up&#x27;</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;down&#x27;</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>)}[step[<span class="hljs-string">&#x27;direction&#x27;</span>]]
+ <span class="hljs-keyword">assert</span> state[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;784&#x27;</span>][<span class="hljs-built_in">str</span>(step[<span class="hljs-string">&#x27;event&#x27;</span>])]==[step[<span class="hljs-string">&#x27;box_to&#x27;</span>][<span class="hljs-number">0</span>]-dx,step[<span class="hljs-string">&#x27;box_to&#x27;</span>][<span class="hljs-number">1</span>]-dy],(<span class="hljs-string">&#x27;Unexpected box before step&#x27;</span>,i)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/victory_hazard_boulder.py&#x27;</span>),<span class="hljs-built_in">str</span>(step[<span class="hljs-string">&#x27;event&#x27;</span>]),step[<span class="hljs-string">&#x27;direction&#x27;</span>],<span class="hljs-string">f&#x27;<span class="hljs-subst">{prefix}</span>-<span class="hljs-subst">{i}</span>&#x27;</span>],check=<span class="hljs-literal">True</span>,env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MAIN MAZE COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

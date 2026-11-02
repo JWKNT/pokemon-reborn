@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>heatran294_lower.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of heatran294_lower.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Source-reviewed normal Rock Climb and connected ice-map approach.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;surface_event&#x27;</span>,<span class="hljs-number">387</span>,<span class="hljs-number">32</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+t=read();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;yes&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;no&#x27;</span> <span class="hljs-keyword">in</span> t.lower(),t
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>);act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:5&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CLIMB LANDING&#x27;</span>,locate(),flush=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;play&#x27;</span>,<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Heatran294-LowerIce&#x27;</span>)
+</code></pre>
+  </body>
+</html>

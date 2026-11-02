@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_arrow_final_queue.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_arrow_final_queue.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute reviewed straight pushes using ordinary controls and fresh save guards.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,sys,os,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+groups=json.loads((R/<span class="hljs-string">&#x27;work/197-arrow-final-groups.json&#x27;</span>).read_text())
+start=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);end=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>])
+<span class="hljs-keyword">for</span> index <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(start,end+<span class="hljs-number">1</span>):
+ g=groups[index-<span class="hljs-number">1</span>];e=<span class="hljs-built_in">str</span>(g[<span class="hljs-string">&#x27;event&#x27;</span>]);dx,dy={<span class="hljs-string">&#x27;up&#x27;</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;down&#x27;</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;left&#x27;</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;right&#x27;</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)}[g[<span class="hljs-string">&#x27;direction&#x27;</span>]];target=g[<span class="hljs-string">&#x27;box_to&#x27;</span>]
+ <span class="hljs-keyword">for</span> attempt <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  n=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());cur=n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;787&#x27;</span>][e]
+  <span class="hljs-keyword">if</span> cur==target:<span class="hljs-keyword">break</span>
+  delta=[target[<span class="hljs-number">0</span>]-cur[<span class="hljs-number">0</span>],target[<span class="hljs-number">1</span>]-cur[<span class="hljs-number">1</span>]];count=delta[<span class="hljs-number">0</span>]*dx+delta[<span class="hljs-number">1</span>]*dy
+  <span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=count&lt;=<span class="hljs-number">10</span> <span class="hljs-keyword">and</span> delta==[dx*count,dy*count],(cur,target)
+  before=n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;787&#x27;</span>];label=<span class="hljs-string">f&#x27;Arrow197-final-<span class="hljs-subst">{index}</span>-try<span class="hljs-subst">{attempt+<span class="hljs-number">1</span>}</span>&#x27;</span>;began=time.time()
+  rc=subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/victory_arrow_push_steps.py&#x27;</span>),e,g[<span class="hljs-string">&#x27;direction&#x27;</span>],label,<span class="hljs-built_in">str</span>(count)],env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>))
+  p=R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-navigation.json&#x27;</span>;<span class="hljs-keyword">assert</span> p.exists() <span class="hljs-keyword">and</span> p.stat().st_mtime&gt;began,<span class="hljs-string">&#x27;No fresh normal save; inspect UI&#x27;</span>
+  after=json.loads(p.read_text())[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;787&#x27;</span>];<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(after[i]==before[i]<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;58&#x27;</span>,<span class="hljs-string">&#x27;59&#x27;</span>,<span class="hljs-string">&#x27;60&#x27;</span>,<span class="hljs-string">&#x27;61&#x27;</span>,<span class="hljs-string">&#x27;65&#x27;</span>,<span class="hljs-string">&#x27;69&#x27;</span>,<span class="hljs-string">&#x27;73&#x27;</span>,<span class="hljs-string">&#x27;74&#x27;</span>]<span class="hljs-keyword">if</span> i!=e),<span class="hljs-string">&#x27;Other boulder moved&#x27;</span>
+  <span class="hljs-keyword">if</span> rc:
+   text=subprocess.check_output([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/play.py&#x27;</span>)],text=<span class="hljs-literal">True</span>).lower()
+   <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> text.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;Not safely in Party&#x27;</span>
+  <span class="hljs-keyword">if</span> after[e]==target:<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Four tries exhausted&#x27;</span>)
+ <span class="hljs-keyword">assert</span> json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;787&#x27;</span>][e]==target
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STRAIGHT GROUP VERIFIED&#x27;</span>,index,target,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>event_brief.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of event_brief.py"><code class="hljs language-python"><span class="hljs-keyword">import</span> subprocess,json,sys
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;scripts/event_dump.rb&#x27;</span>,*sys.argv[<span class="hljs-number">1</span>:]],stderr=subprocess.DEVNULL))
+<span class="hljs-keyword">for</span> i,p <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(v[<span class="hljs-string">&#x27;pages&#x27;</span>]):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PAGE&#x27;</span>,i,<span class="hljs-string">&#x27;at&#x27;</span>,v[<span class="hljs-string">&#x27;x&#x27;</span>],v[<span class="hljs-string">&#x27;y&#x27;</span>],<span class="hljs-string">&#x27;COND&#x27;</span>,p[<span class="hljs-string">&#x27;condition&#x27;</span>])
+ <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> p[<span class="hljs-string">&#x27;list&#x27;</span>]:
+  <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">101</span>,<span class="hljs-number">401</span>,<span class="hljs-number">102</span>,<span class="hljs-number">111</span>,<span class="hljs-number">121</span>,<span class="hljs-number">122</span>,<span class="hljs-number">123</span>,<span class="hljs-number">201</span>,<span class="hljs-number">355</span>,<span class="hljs-number">655</span>]:<span class="hljs-built_in">print</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>],c[<span class="hljs-string">&#x27;parameters&#x27;</span>])
+</code></pre>
+  </body>
+</html>

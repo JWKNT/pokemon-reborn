@@ -1,0 +1,7 @@
+{
+  "epoch": 1791245938.670128,
+  "source": "Installed map784 touch stair events and normal recorded inputs",
+  "observed": "Continuous left-up-left from eastern stair approach descended to784[31,18]. Prior coordinate pauses suffered icicle knockback.",
+  "fix": "nav.py follows automatic touch-stair chain through landings;36,14 left resolves31,18. Outgoing passability retains bump-versus-enter distinction.",
+  "planned_route": "84normal control steps from Jonathan187-won43,19 to firstcart45,55"
+}

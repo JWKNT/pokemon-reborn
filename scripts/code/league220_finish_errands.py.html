@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>league220_finish_errands.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of league220_finish_errands.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal-controls Mega Ring errands, ending before any unreviewed battle.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,os,json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):
+ e=<span class="hljs-built_in">dict</span>(os.environ,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+ <span class="hljs-keyword">if</span> n!=<span class="hljs-string">&#x27;fly_to&#x27;</span>:e[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+ <span class="hljs-keyword">else</span>:e.pop(<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>,<span class="hljs-literal">None</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,n,*a,flush=<span class="hljs-literal">True</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],env=e,check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;league220_headphones&#x27;</span>)
+run(<span class="hljs-string">&#x27;league220_santiago_guide&#x27;</span>)
+run(<span class="hljs-string">&#x27;league220_rooftop_prep&#x27;</span>)
+</code></pre>
+  </body>
+</html>

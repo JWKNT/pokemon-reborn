@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ricardo_static_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ricardo_static_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded Ricardo1 static team/geometry proof; no gameplay or native access.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> collections
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> math
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+<span class="hljs-keyword">from</span> glass_damage_review <span class="hljs-keyword">import</span> damage
+
+ROOT = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    source = json.loads((ROOT / <span class="hljs-string">&quot;work/ricardo-static-source.json&quot;</span>).read_text())
+    opponents = []
+    rows = []
+    <span class="hljs-keyword">for</span> mon <span class="hljs-keyword">in</span> source[<span class="hljs-string">&quot;team&quot;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&quot;mons&quot;</span>]:
+        forms = [(name, data) <span class="hljs-keyword">for</span> name, data <span class="hljs-keyword">in</span> source[<span class="hljs-string">&quot;species&quot;</span>][mon[<span class="hljs-string">&quot;species&quot;</span>]].items()
+                 <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(data, <span class="hljs-built_in">dict</span>) <span class="hljs-keyword">and</span> name != <span class="hljs-string">&quot;OnCreation&quot;</span>]
+        <span class="hljs-comment"># Battler.rb1489/2355: full-HP ShieldsDown Minior changes to Meteor7</span>
+        <span class="hljs-comment"># on activation; the trainer&#x27;s original YellowCore5 returns at halfHP.</span>
+        selected = <span class="hljs-number">7</span> <span class="hljs-keyword">if</span> mon[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;MINIOR&quot;</span> <span class="hljs-keyword">else</span> mon.get(<span class="hljs-string">&quot;form&quot;</span>, <span class="hljs-number">0</span>)
+        base = <span class="hljs-built_in">dict</span>(forms[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>])
+        base.update(forms[selected][<span class="hljs-number">1</span>])
+        level = mon[<span class="hljs-string">&quot;level&quot;</span>]
+        stats = [math.floor((<span class="hljs-number">2</span> * b + <span class="hljs-number">10</span> + <span class="hljs-number">21</span>) * level / <span class="hljs-number">100</span>)
+                 + (level + <span class="hljs-number">10</span> <span class="hljs-keyword">if</span> i == <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-number">5</span>)
+                 <span class="hljs-keyword">for</span> i, b <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(base[<span class="hljs-string">&quot;BaseStats&quot;</span>])]
+        opponents.append(<span class="hljs-built_in">dict</span>(mon, form_name=forms[selected][<span class="hljs-number">0</span>], stats=stats))
+        effectiveness = <span class="hljs-number">2</span> <span class="hljs-keyword">if</span> mon[<span class="hljs-string">&quot;species&quot;</span>] <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;MINIOR&quot;</span>, <span class="hljs-string">&quot;AGGRON&quot;</span>, <span class="hljs-string">&quot;BLAZIKEN&quot;</span>) <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+        rows.append(<span class="hljs-built_in">dict</span>(target=mon[<span class="hljs-string">&quot;species&quot;</span>], move=<span class="hljs-string">&quot;Swamp+2Waterfall&quot;</span>,
+                         damage=damage(<span class="hljs-number">90</span>, <span class="hljs-number">80</span>, <span class="hljs-number">528</span>, stats[<span class="hljs-number">2</span>], base_modifier=<span class="hljs-number">1.2</span>,
+                                       modifier=<span class="hljs-number">1.5</span> * effectiveness), hp=stats[<span class="hljs-number">0</span>]))
+        <span class="hljs-keyword">if</span> mon[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;AGGRON&quot;</span>:
+            rows.append(<span class="hljs-built_in">dict</span>(target=<span class="hljs-string">&quot;AGGRON&quot;</span>, move=<span class="hljs-string">&quot;Swamp+2Earthquake&quot;</span>,
+                             damage=damage(<span class="hljs-number">90</span>, <span class="hljs-number">100</span>, <span class="hljs-number">528</span>, stats[<span class="hljs-number">2</span>], modifier=<span class="hljs-number">1.5</span> * <span class="hljs-number">4</span>),
+                             hp=stats[<span class="hljs-number">0</span>]))
+        moves = {
+            <span class="hljs-string">&quot;SLURPUFF&quot;</span>: [(<span class="hljs-string">&quot;PLAYROUGH&quot;</span>, <span class="hljs-number">90</span>, <span class="hljs-string">&quot;physical&quot;</span>, <span class="hljs-number">1.5</span>, <span class="hljs-number">1</span>),
+                         (<span class="hljs-string">&quot;SURF&quot;</span>, <span class="hljs-number">90</span>, <span class="hljs-string">&quot;special&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>)],
+            <span class="hljs-string">&quot;SCOLIPEDE&quot;</span>: [(<span class="hljs-string">&quot;MEGAHORN&quot;</span>, <span class="hljs-number">120</span>, <span class="hljs-string">&quot;physical&quot;</span>, <span class="hljs-number">1.5</span>, <span class="hljs-number">1</span>),
+                          (<span class="hljs-string">&quot;POISONJAB&quot;</span>, <span class="hljs-number">80</span>, <span class="hljs-string">&quot;physical&quot;</span>, <span class="hljs-number">1.5</span>, <span class="hljs-number">.5</span>),
+                          (<span class="hljs-string">&quot;ROCKSLIDE&quot;</span>, <span class="hljs-number">75</span>, <span class="hljs-string">&quot;physical&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">.5</span>)],
+            <span class="hljs-string">&quot;BLAZIKEN&quot;</span>: [(<span class="hljs-string">&quot;HIJUMPKICK&quot;</span>, <span class="hljs-number">130</span>, <span class="hljs-string">&quot;physical&quot;</span>, <span class="hljs-number">1.5</span>, <span class="hljs-number">1</span>),
+                         (<span class="hljs-string">&quot;FLAREBLITZ&quot;</span>, <span class="hljs-number">120</span>, <span class="hljs-string">&quot;physical&quot;</span>, <span class="hljs-number">1.5</span>, <span class="hljs-number">.5</span>),
+                         (<span class="hljs-string">&quot;BRAVEBIRD&quot;</span>, <span class="hljs-number">120</span>, <span class="hljs-string">&quot;physical&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>),
+                         (<span class="hljs-string">&quot;ROCKSLIDE&quot;</span>, <span class="hljs-number">75</span>, <span class="hljs-string">&quot;physical&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">.5</span>)],
+        }.get(mon[<span class="hljs-string">&quot;species&quot;</span>], [])
+        <span class="hljs-keyword">for</span> move, power, category, stab, eff <span class="hljs-keyword">in</span> moves:
+            attack = stats[<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> category == <span class="hljs-string">&quot;physical&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">3</span>]
+            defense = <span class="hljs-number">190</span> <span class="hljs-keyword">if</span> category == <span class="hljs-string">&quot;physical&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">183</span>
+            <span class="hljs-keyword">for</span> critical <span class="hljs-keyword">in</span> (<span class="hljs-literal">False</span>, <span class="hljs-literal">True</span>):
+                rows.append(<span class="hljs-built_in">dict</span>(enemy=mon[<span class="hljs-string">&quot;species&quot;</span>], move=move, target=<span class="hljs-string">&quot;SWAMPERT&quot;</span>,
+                                 critical=critical, damage=damage(
+                                     level, power, attack, defense,
+                                     modifier=stab * eff * (<span class="hljs-number">1.5</span> <span class="hljs-keyword">if</span> critical <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>))))
+
+    <span class="hljs-comment"># Conservative union of all page obstacles/sightlines, never live flags.</span>
+    grid = source[<span class="hljs-string">&quot;map&quot;</span>]
+    width, height = grid[<span class="hljs-string">&quot;width&quot;</span>], grid[<span class="hljs-string">&quot;height&quot;</span>]
+    data, passages, priorities = (grid[k][<span class="hljs-string">&quot;data&quot;</span>] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;data&quot;</span>, <span class="hljs-string">&quot;passages&quot;</span>, <span class="hljs-string">&quot;priorities&quot;</span>))
+    blocked, tile_events = <span class="hljs-built_in">set</span>(), {}
+    <span class="hljs-keyword">for</span> event <span class="hljs-keyword">in</span> grid[<span class="hljs-string">&quot;events&quot;</span>].values():
+        pos = (event[<span class="hljs-string">&quot;x&quot;</span>], event[<span class="hljs-string">&quot;y&quot;</span>])
+        <span class="hljs-keyword">for</span> page <span class="hljs-keyword">in</span> event[<span class="hljs-string">&quot;pages&quot;</span>]:
+            graphic, commands = page[<span class="hljs-string">&quot;graphic&quot;</span>], page[<span class="hljs-string">&quot;list&quot;</span>]
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> page[<span class="hljs-string">&quot;through&quot;</span>] <span class="hljs-keyword">and</span> graphic[<span class="hljs-string">&quot;character_name&quot;</span>]:
+                blocked.add(pos)
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> page[<span class="hljs-string">&quot;through&quot;</span>] <span class="hljs-keyword">and</span> graphic[<span class="hljs-string">&quot;tile_id&quot;</span>] &gt; <span class="hljs-number">0</span>:
+                tile_events.setdefault(pos, <span class="hljs-built_in">set</span>()).add(graphic[<span class="hljs-string">&quot;tile_id&quot;</span>])
+            <span class="hljs-keyword">if</span> page[<span class="hljs-string">&quot;trigger&quot;</span>] <span class="hljs-keyword">in</span> (<span class="hljs-number">1</span>, <span class="hljs-number">2</span>) <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&quot;code&quot;</span>] <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> (<span class="hljs-number">0</span>, <span class="hljs-number">108</span>, <span class="hljs-number">408</span>)
+                                               <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> commands):
+                blocked.add(pos)
+            <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;Trainer(&quot;</span> <span class="hljs-keyword">in</span> event[<span class="hljs-string">&quot;name&quot;</span>] <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(<span class="hljs-string">&quot;pbTrainerBattle&quot;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(c[<span class="hljs-string">&quot;parameters&quot;</span>])
+                                                  <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> commands):
+                count = <span class="hljs-built_in">int</span>(event[<span class="hljs-string">&quot;name&quot;</span>].split(<span class="hljs-string">&quot;(&quot;</span>)[<span class="hljs-number">1</span>].split(<span class="hljs-string">&quot;)&quot;</span>)[<span class="hljs-number">0</span>])
+                dx, dy = {<span class="hljs-number">2</span>: (<span class="hljs-number">0</span>, <span class="hljs-number">1</span>), <span class="hljs-number">4</span>: (-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>), <span class="hljs-number">6</span>: (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>), <span class="hljs-number">8</span>: (<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>)}[graphic[<span class="hljs-string">&quot;direction&quot;</span>]]
+                blocked.update((event[<span class="hljs-string">&quot;x&quot;</span>] + dx * i, event[<span class="hljs-string">&quot;y&quot;</span>] + dy * i)
+                               <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, count + <span class="hljs-number">1</span>))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">passable</span>(<span class="hljs-params">x, y, direction</span>):
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (<span class="hljs-number">0</span> &lt;= x &lt; width <span class="hljs-keyword">and</span> <span class="hljs-number">0</span> &lt;= y &lt; height):
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+        bit = <span class="hljs-number">1</span> &lt;&lt; (direction // <span class="hljs-number">2</span> - <span class="hljs-number">1</span>)
+        <span class="hljs-keyword">for</span> tile <span class="hljs-keyword">in</span> tile_events.get((x, y), ()):
+            <span class="hljs-keyword">if</span> passages[tile] &amp; bit <span class="hljs-keyword">or</span> passages[tile] &amp; <span class="hljs-number">15</span> == <span class="hljs-number">15</span>:
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+            <span class="hljs-keyword">if</span> priorities[tile] == <span class="hljs-number">0</span>:
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+        <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> (<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>):
+            tile = data[x + width * y + width * height * z]
+            <span class="hljs-keyword">if</span> passages[tile] &amp; bit <span class="hljs-keyword">or</span> passages[tile] &amp; <span class="hljs-number">15</span> == <span class="hljs-number">15</span>:
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+            <span class="hljs-keyword">if</span> priorities[tile] == <span class="hljs-number">0</span>:
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+
+    start, goal = (<span class="hljs-number">13</span>, <span class="hljs-number">54</span>), (<span class="hljs-number">33</span>, <span class="hljs-number">61</span>)
+    queue = collections.deque([start])
+    previous, directions = {start: <span class="hljs-literal">None</span>}, {}
+    <span class="hljs-keyword">while</span> queue:
+        pos = queue.popleft()
+        <span class="hljs-keyword">if</span> pos == goal:
+            <span class="hljs-keyword">break</span>
+        <span class="hljs-keyword">for</span> dx, dy, direction, key <span class="hljs-keyword">in</span> ((<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-string">&quot;down&quot;</span>), (-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">4</span>, <span class="hljs-string">&quot;left&quot;</span>),
+                                       (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">6</span>, <span class="hljs-string">&quot;right&quot;</span>), (<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-string">&quot;up&quot;</span>)):
+            dest = (pos[<span class="hljs-number">0</span>] + dx, pos[<span class="hljs-number">1</span>] + dy)
+            <span class="hljs-keyword">if</span> (dest <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> previous <span class="hljs-keyword">and</span> dest <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> blocked <span class="hljs-keyword">and</span> passable(*pos, direction)
+                    <span class="hljs-keyword">and</span> passable(*dest, <span class="hljs-number">10</span>-direction)):
+                previous[dest] = pos
+                directions[dest] = key
+                queue.append(dest)
+    path = []
+    <span class="hljs-keyword">if</span> goal <span class="hljs-keyword">in</span> previous:
+        pos = goal
+        <span class="hljs-keyword">while</span> previous[pos] <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+            path.append(<span class="hljs-built_in">dict</span>(position=<span class="hljs-built_in">list</span>(pos), key=directions[pos]))
+            pos = previous[pos]
+        path.reverse()
+    result = <span class="hljs-built_in">dict</span>(proposal_only=<span class="hljs-literal">True</span>, executed=<span class="hljs-literal">False</span>, assumptions=(
+        <span class="hljs-string">&quot;Static installed Ricardo1, Hardy nature/10IV/85EV defaults. NoField, &quot;</span>
+        <span class="hljs-string">&quot;no AI, weather, drops, accuracy, or enemy future order prediction. &quot;</span>
+        <span class="hljs-string">&quot;Swamp90 295HP/264Atk/190Def/183SpDef/145Speed/WaveIncense.&quot;</span>),
+        opponents=opponents, damage=rows, route=<span class="hljs-built_in">dict</span>(
+            conservative_union_obstacles=<span class="hljs-literal">True</span>, found=<span class="hljs-built_in">bool</span>(path), start=[<span class="hljs-number">763</span>, *start],
+            stop=[<span class="hljs-number">763</span>, *goal], path=path, facing=<span class="hljs-string">&quot;down&quot;</span>,
+            forbidden=[[<span class="hljs-number">763</span>, x, <span class="hljs-number">62</span>] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> (<span class="hljs-number">30</span>, <span class="hljs-number">31</span>, <span class="hljs-number">32</span>)]
+            + [[<span class="hljs-number">763</span>, x, <span class="hljs-number">52</span>] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">43</span>, <span class="hljs-number">49</span>)]))
+    (ROOT / <span class="hljs-string">&quot;work/ricardo-static-plan-proposal.json&quot;</span>).write_text(json.dumps(result, indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&quot;\n&quot;</span>)
+    <span class="hljs-built_in">print</span>(json.dumps(result, indent=<span class="hljs-number">2</span>))
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    main()
+</code></pre>
+  </body>
+</html>

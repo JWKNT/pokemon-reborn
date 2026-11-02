@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g9_train.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g9_train.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Apply the reviewed latest-save level65 candy plan through ordinary bag menus.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+plan=json.loads((ROOT/<span class="hljs-string">&#x27;work/g9-candy-plan.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">sum</span>(p[<span class="hljs-string">&#x27;candies&#x27;</span>] <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> plan)&lt;=<span class="hljs-number">37</span>
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:0.5&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.6&#x27;</span>);t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> t.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>:act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:1.6&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.6&#x27;</span>);t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;field notes&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;pulse dex&#x27;</span> <span class="hljs-keyword">in</span> t:act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:1.6&#x27;</span>,<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.6&#x27;</span>);t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;sort&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Bag entry review&#x27;</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;medicine&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:
+ act(<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);t=read().lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;medicine&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Medicine pocket review&#x27;</span>)
+<span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> plan:
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> p[<span class="hljs-string">&#x27;candies&#x27;</span>]:<span class="hljs-keyword">continue</span>
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TRAIN&#x27;</span>,p[<span class="hljs-string">&#x27;name&#x27;</span>],p[<span class="hljs-string">&#x27;candies&#x27;</span>],flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/candy_batch.py&#x27;</span>),p[<span class="hljs-string">&#x27;name&#x27;</span>],<span class="hljs-built_in">str</span>(p[<span class="hljs-string">&#x27;candies&#x27;</span>]),<span class="hljs-string">&#x27;L&#x27;</span>],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/overworld.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;LEVEL65 CANDY PLAN COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

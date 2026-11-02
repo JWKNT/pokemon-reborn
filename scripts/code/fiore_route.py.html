@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>fiore_route.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of fiore_route.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute one explicit, source-reviewed Fiore route; stop on any mismatch.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+plan=json.loads(pathlib.Path(sys.argv[<span class="hljs-number">1</span>]).read_text())
+begin=<span class="hljs-built_in">int</span>(sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--from&#x27;</span>)+<span class="hljs-number">1</span>])<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--from&#x27;</span><span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+<span class="hljs-keyword">if</span> begin==<span class="hljs-number">0</span>:<span class="hljs-keyword">assert</span> locate(plan[<span class="hljs-string">&#x27;start&#x27;</span>][<span class="hljs-number">0</span>])==<span class="hljs-built_in">tuple</span>(plan[<span class="hljs-string">&#x27;start&#x27;</span>])
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">for</span> i,s <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(plan[<span class="hljs-string">&#x27;segments&#x27;</span>][begin:],begin):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FIORE SEGMENT&#x27;</span>,i,s,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> s[<span class="hljs-string">&#x27;kind&#x27;</span>]==<span class="hljs-string">&#x27;walk&#x27;</span>:
+  <span class="hljs-keyword">if</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]<span class="hljs-keyword">in</span>[<span class="hljs-number">678</span>,<span class="hljs-number">679</span>]:run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,s[<span class="hljs-string">&#x27;map&#x27;</span>],*s[<span class="hljs-string">&#x27;target&#x27;</span>],<span class="hljs-string">&#x27;--hold-straights&#x27;</span>)
+  <span class="hljs-keyword">else</span>:
+   <span class="hljs-keyword">try</span>:run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;,&#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,[s[<span class="hljs-string">&#x27;map&#x27;</span>],*s[<span class="hljs-string">&#x27;target&#x27;</span>]])))
+   <span class="hljs-keyword">except</span> subprocess.CalledProcessError:
+    actual=locate(s[<span class="hljs-string">&#x27;map&#x27;</span>]);<span class="hljs-keyword">assert</span> actual==(s[<span class="hljs-string">&#x27;map&#x27;</span>],*s[<span class="hljs-string">&#x27;target&#x27;</span>]),actual
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;WALK ENDPOINT VERIFIED AFTER OCR INTERRUPTION&#x27;</span>,actual,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">elif</span> s[<span class="hljs-string">&#x27;kind&#x27;</span>]==<span class="hljs-string">&#x27;portal&#x27;</span>:
+  run(<span class="hljs-string">&#x27;surface_event&#x27;</span><span class="hljs-keyword">if</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]<span class="hljs-keyword">in</span>[<span class="hljs-number">678</span>,<span class="hljs-number">679</span>]<span class="hljs-keyword">else</span><span class="hljs-string">&#x27;eventq&#x27;</span>,s[<span class="hljs-string">&#x27;map&#x27;</span>],s[<span class="hljs-string">&#x27;event&#x27;</span>],<span class="hljs-string">&#x27;enter&#x27;</span>)
+  run(<span class="hljs-string">&#x27;settle_arrival&#x27;</span>,s[<span class="hljs-string">&#x27;arrival&#x27;</span>][<span class="hljs-number">0</span>]);<span class="hljs-keyword">assert</span> locate(s[<span class="hljs-string">&#x27;arrival&#x27;</span>][<span class="hljs-number">0</span>])==<span class="hljs-built_in">tuple</span>(s[<span class="hljs-string">&#x27;arrival&#x27;</span>])
+ <span class="hljs-keyword">elif</span> s[<span class="hljs-string">&#x27;kind&#x27;</span>]==<span class="hljs-string">&#x27;dive&#x27;</span>:run(<span class="hljs-string">&#x27;dive_transition&#x27;</span>,*s[<span class="hljs-string">&#x27;from&#x27;</span>],s[<span class="hljs-string">&#x27;arrival&#x27;</span>][<span class="hljs-number">0</span>])
+ <span class="hljs-keyword">elif</span> s[<span class="hljs-string">&#x27;kind&#x27;</span>]==<span class="hljs-string">&#x27;waterfall&#x27;</span>:run(<span class="hljs-string">&#x27;waterfall_step&#x27;</span>,s[<span class="hljs-string">&#x27;map&#x27;</span>],*s[<span class="hljs-string">&#x27;from&#x27;</span>],s[<span class="hljs-string">&#x27;direction&#x27;</span>],*s[<span class="hljs-string">&#x27;arrival&#x27;</span>])
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unreviewed Fiore segment&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate(plan[<span class="hljs-string">&#x27;goal&#x27;</span>][<span class="hljs-number">0</span>])==<span class="hljs-built_in">tuple</span>(plan[<span class="hljs-string">&#x27;goal&#x27;</span>]);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FIORE ROUTE COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

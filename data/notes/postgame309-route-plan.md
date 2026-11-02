@@ -1,0 +1,5 @@
+Resume authorized after disk cleanup. Recording309/video26 active. Core six trained to130 and fully healed; 12XL remain. Randall accepted,636=1 confirmed in Mewtwo309-Quest. Linear dialogue crossed Yes choice without observing labels; subsequent explicit choice helper stopped on empty overworld; no extra choice selected.
+
+Prepared normal UI scripts: postgame309_quest_travel.py reaches273; wasteland309_approach.py crystal+275(two right pushes E2)+276(right E1,E2) then277; wall309_execute.py uses23push offline plan with saved verification everypush and3canisters; wasteland309_ladders.py reviewed279guide sequence. All untested until run and must stop on mismatch.
+
+CORRECTION to308handoff: anomaly Mewtwo is874E5 (Fern4), notE4. E4 is eventualportal to875. Anomaly is transformed Mew, no catch in initial phase. After anomaly, chase disguises and freeFern promptly to finish current quest leg. Actual legendary catches later. Source evidence work/309-anomaly-mewtwo-event.json and work/309-anomaly-mewtwo-roster.json. Major183Fern prepared config work/major-183.json; must fresh checkpoint before280entry and bind attempt/music before dialogue.

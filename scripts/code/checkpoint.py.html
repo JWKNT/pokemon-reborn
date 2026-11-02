@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>checkpoint.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of checkpoint.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Verified short-D quicksave; optional named backup and full read-only evidence.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> shutil,re,difflib
+<span class="hljs-comment"># User&#x27;s hard-route League rule: the entire seven-fight chain has no saves.</span>
+league_guard=ROOT/<span class="hljs-string">&#x27;notes/active-league-chain.json&#x27;</span>
+<span class="hljs-keyword">if</span> league_guard.exists():
+ league=json.loads(league_guard.read_text())
+ <span class="hljs-keyword">if</span> league.get(<span class="hljs-string">&#x27;status&#x27;</span>) <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;active&#x27;</span>,<span class="hljs-string">&#x27;failed&#x27;</span>]:
+  <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;League no-save guard: complete the entire winning chain or restore its pre-entry save after a loss before saving&#x27;</span>)
+savepath=pathlib.Path.home()/<span class="hljs-string">&#x27;Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>
+screen_before=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;keyboard&#x27;</span> <span class="hljs-keyword">in</span> screen_before <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;what is it&#x27;</span> <span class="hljs-keyword">in</span> screen_before:
+ <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Text-entry screen: finish the quest answer before saving&#x27;</span>)
+before=savepath.stat().st_mtime
+act(<span class="hljs-string">&#x27;d:0.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);t=read().lower()
+<span class="hljs-comment"># Hazard hit animations occasionally consume the initial short-D input.</span>
+<span class="hljs-comment"># Only retry while the public screen is empty overworld, never a dialog.</span>
+<span class="hljs-keyword">for</span> retry <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>):
+ <span class="hljs-keyword">if</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t) <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27;pokemonreborn&#x27;</span>]:<span class="hljs-keyword">break</span>
+ act(<span class="hljs-string">&#x27;wait:.4&#x27;</span>,<span class="hljs-string">&#x27;d:0.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);t=read().lower()
+compact=re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t)
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (re.search(<span class="hljs-string">r&#x27;\b(?:would|hould|wouid) you like to save&#x27;</span>,t) <span class="hljs-keyword">or</span> (<span class="hljs-string">&#x27;yes&#x27;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;no&#x27;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;savethegame&#x27;</span> <span class="hljs-keyword">in</span> compact)):
+ <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Quicksave prompt review: &#x27;</span>+t)
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);t=read().lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> savepath.stat().st_mtime&lt;=before:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Save timestamp did not advance: &#x27;</span>+t)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;saved the game&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;sawed the game&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SAVE TIMESTAMP VERIFIED; fragmented confirmation OCR&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+<span class="hljs-keyword">if</span> savepath.stat().st_mtime&lt;=before:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Save timestamp did not advance&#x27;</span>)
+subprocess.run([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/sync_navigation.rb&#x27;</span>)],stderr=subprocess.DEVNULL,check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span>:
+ name=sys.argv[<span class="hljs-number">1</span>];<span class="hljs-keyword">assert</span> name.replace(<span class="hljs-string">&#x27;-&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).replace(<span class="hljs-string">&#x27;_&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).isalnum()
+ shutil.copy2(savepath,ROOT/<span class="hljs-string">&#x27;backups&#x27;</span>/<span class="hljs-string">f&#x27;Aster-<span class="hljs-subst">{name}</span>.rxdata&#x27;</span>)
+ raw=subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/status_full.rb&#x27;</span>)],stderr=subprocess.DEVNULL)
+ (ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>-status.json&#x27;</span>).write_bytes(raw)
+ shutil.copy2(ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>,ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>-navigation.json&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;QUICKSAVE VERIFIED&#x27;</span>,time.time(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

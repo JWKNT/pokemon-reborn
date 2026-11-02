@@ -1,0 +1,73 @@
+{
+  "epoch": 1791248160.090763,
+  "guide": "https://bigjra.github.io/reborn/#victory-road",
+  "diagram": "https://bigjra.github.io/assets/images/reborn/vr_mines_1.png",
+  "labels": {
+    "A": 22,
+    "B": 35,
+    "C": 24,
+    "D": 36,
+    "E": 26,
+    "F": 20
+  },
+  "carts": {
+    "9": [
+      34,
+      0,
+      [
+        64,
+        45
+      ]
+    ],
+    "10": [
+      34,
+      1,
+      [
+        48,
+        58
+      ]
+    ],
+    "11": [
+      33,
+      0,
+      [
+        48,
+        60
+      ]
+    ],
+    "12": [
+      33,
+      1,
+      [
+        64,
+        63
+      ]
+    ],
+    "13": [
+      34,
+      2,
+      [
+        58,
+        45
+      ]
+    ],
+    "14": [
+      31,
+      3,
+      [
+        62,
+        41
+      ]
+    ],
+    "15": [
+      31,
+      4,
+      [
+        47,
+        30
+      ]
+    ]
+  },
+  "source_verification": "Normal event branches and route deltas inspected. No live battle internals. Ground push plan uses installed directional passability and normal keyboard bump pushes.",
+  "phase": "Boulder40 solved; north carts solved; boulder41 at53,25; Tyranitarite acquired; ReturnRails189 running."
+}

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>arrow_retry.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of arrow_retry.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Retry only an unchanged, normally saved hazard attempt from verified Party.
+No hidden runtime reads. A changed result or an unverified screen stops the queue.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,sys,subprocess,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+helper,*args=sys.argv[<span class="hljs-number">1</span>:]
+<span class="hljs-keyword">assert</span> helper <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;victory_arrow_boulder_fast.py&#x27;</span>]
+eid=args[<span class="hljs-number">0</span>];label=args[<span class="hljs-number">2</span>]<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;boulder&#x27;</span><span class="hljs-keyword">in</span> helper <span class="hljs-keyword">else</span> args[<span class="hljs-number">1</span>]
+initial=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+source=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;787&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],stderr=subprocess.DEVNULL))
+tracked={i <span class="hljs-keyword">for</span> i,e <span class="hljs-keyword">in</span> source[<span class="hljs-string">&#x27;events&#x27;</span>].items()<span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Boulder&#x27;</span>}
+<span class="hljs-keyword">for</span> attempt <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+ began=time.time()
+ rc=subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/helper),*args],env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>))
+ <span class="hljs-keyword">if</span> rc==<span class="hljs-number">0</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-number">0</span>)
+ checkpoint=R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-navigation.json&#x27;</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> checkpoint.exists()<span class="hljs-keyword">or</span> checkpoint.stat().st_mtime&lt;began:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Retry refused: no fresh normal checkpoint&#x27;</span>)
+ now=json.loads(checkpoint.read_text())
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(now[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;787&#x27;</span>].get(i)!=initial[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;787&#x27;</span>].get(i)<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> tracked):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Retry refused: an event moved; inspect result before replanning&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(now[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-built_in">str</span>(i))!=initial[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-built_in">str</span>(i))<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">475</span>,*<span class="hljs-built_in">range</span>(<span class="hljs-number">490</span>,<span class="hljs-number">501</span>)]) <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(now[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-built_in">str</span>(i))!=initial[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-built_in">str</span>(i))<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1100</span>,<span class="hljs-number">1161</span>)):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Retry refused: puzzle state changed&#x27;</span>)
+ out=subprocess.check_output([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/play.py&#x27;</span>)],text=<span class="hljs-literal">True</span>).lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span>(<span class="hljs-string">&#x27;cancel&#x27;</span><span class="hljs-keyword">in</span> out <span class="hljs-keyword">and</span> out.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Retry refused: Party not visible&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;UNCHANGED NORMAL-SAVE ATTEMPT; RETRY&#x27;</span>,attempt+<span class="hljs-number">2</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Four unchanged attempts: manual route review needed&#x27;</span>)
+</code></pre>
+  </body>
+</html>

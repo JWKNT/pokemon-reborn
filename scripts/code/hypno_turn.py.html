@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>hypno_turn.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of hypno_turn.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Run one explicitly requested Hypno action through existing ordinary UI helpers.
+
+No action selection, native battle state, battle logs, or unseen-outcome inference.
+Importing this module is safe; only main() captures a public screen or sends inputs.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> __future__ <span class="hljs-keyword">import</span> annotations
+
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> difflib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> pathlib
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> time
+<span class="hljs-keyword">import</span> unicodedata
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+SCREEN_JOURNAL = ROOT / <span class="hljs-string">&quot;recordings/screens.jsonl&quot;</span>
+OUTPUT_DIR = ROOT / <span class="hljs-string">&quot;work/hypno-public-turns&quot;</span>
+SELF_ITEMS = {<span class="hljs-string">&quot;xattack&quot;</span>, <span class="hljs-string">&quot;xdefend&quot;</span>, <span class="hljs-string">&quot;xspatk&quot;</span>, <span class="hljs-string">&quot;xspdef&quot;</span>, <span class="hljs-string">&quot;xspeed&quot;</span>, <span class="hljs-string">&quot;xaccuracy&quot;</span>, <span class="hljs-string">&quot;direhit&quot;</span>, <span class="hljs-string">&quot;guardspec&quot;</span>}
+MESSAGE_PATTERN = re.<span class="hljs-built_in">compile</span>(
+    <span class="hljs-string">r&quot;used|fainted|critical|super effective|not very effective|missed|avoided|&quot;</span>
+    <span class="hljs-string">r&quot;hypnosis|safeguard|protected|calm mind|dark pulse|dream eater|crunch|&quot;</span>
+    <span class="hljs-string">r&quot;fell|rose|raised|sharply|asleep|sleep|woke|restored|recovered|healed|&quot;</span>
+    <span class="hljs-string">r&quot;wore off|no longer|failed|flinch|defeated|for winning|out of usable&quot;</span>, re.I)
+<span class="hljs-comment"># Public pixel-font OCR substitutes these visually identical Cyrillic letters</span>
+<span class="hljs-comment"># inside otherwise Latin names (observed Hypnо and Нурnо). This is a small glyph</span>
+<span class="hljs-comment"># alias table, not general transliteration or a relaxed species-name matcher.</span>
+NAME_CONFUSABLES = <span class="hljs-built_in">str</span>.maketrans({
+    <span class="hljs-string">&quot;Н&quot;</span>: <span class="hljs-string">&quot;H&quot;</span>, <span class="hljs-string">&quot;н&quot;</span>: <span class="hljs-string">&quot;h&quot;</span>, <span class="hljs-string">&quot;У&quot;</span>: <span class="hljs-string">&quot;Y&quot;</span>, <span class="hljs-string">&quot;у&quot;</span>: <span class="hljs-string">&quot;y&quot;</span>, <span class="hljs-string">&quot;Р&quot;</span>: <span class="hljs-string">&quot;P&quot;</span>, <span class="hljs-string">&quot;р&quot;</span>: <span class="hljs-string">&quot;p&quot;</span>, <span class="hljs-string">&quot;О&quot;</span>: <span class="hljs-string">&quot;O&quot;</span>, <span class="hljs-string">&quot;о&quot;</span>: <span class="hljs-string">&quot;o&quot;</span>,
+    <span class="hljs-string">&quot;А&quot;</span>: <span class="hljs-string">&quot;A&quot;</span>, <span class="hljs-string">&quot;а&quot;</span>: <span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-string">&quot;С&quot;</span>: <span class="hljs-string">&quot;C&quot;</span>, <span class="hljs-string">&quot;с&quot;</span>: <span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-string">&quot;Е&quot;</span>: <span class="hljs-string">&quot;E&quot;</span>, <span class="hljs-string">&quot;е&quot;</span>: <span class="hljs-string">&quot;e&quot;</span>, <span class="hljs-string">&quot;І&quot;</span>: <span class="hljs-string">&quot;I&quot;</span>, <span class="hljs-string">&quot;і&quot;</span>: <span class="hljs-string">&quot;i&quot;</span>,
+})
+RUN_LABEL_ALIASES = {<span class="hljs-string">&quot;run&quot;</span>, <span class="hljs-string">&quot;riun&quot;</span>}
+RUN_I_CONFUSABLES = <span class="hljs-built_in">str</span>.maketrans({<span class="hljs-string">&quot;Ι&quot;</span>: <span class="hljs-string">&quot;I&quot;</span>, <span class="hljs-string">&quot;ι&quot;</span>: <span class="hljs-string">&quot;i&quot;</span>, <span class="hljs-string">&quot;І&quot;</span>: <span class="hljs-string">&quot;I&quot;</span>, <span class="hljs-string">&quot;і&quot;</span>: <span class="hljs-string">&quot;i&quot;</span>})
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">canonical</span>(<span class="hljs-params">value: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+    plain = unicodedata.normalize(<span class="hljs-string">&quot;NFKD&quot;</span>, value).encode(<span class="hljs-string">&quot;ascii&quot;</span>, <span class="hljs-string">&quot;ignore&quot;</span>).decode()
+    <span class="hljs-keyword">return</span> re.sub(<span class="hljs-string">r&quot;[^a-z0-9]&quot;</span>, <span class="hljs-string">&quot;&quot;</span>, plain.lower())
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">normalized_name_text</span>(<span class="hljs-params">text: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+    value = unicodedata.normalize(<span class="hljs-string">&quot;NFKD&quot;</span>, text).translate(NAME_CONFUSABLES)
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;&quot;</span>.join(c <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> value <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> unicodedata.combining(c)).lower()
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">name_matches</span>(<span class="hljs-params">text: <span class="hljs-built_in">str</span>, name: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+    <span class="hljs-comment"># A HUD row can contain its name, gender sign and level together. Match a</span>
+    <span class="hljs-comment"># complete word only, allowing one ordinary OCR substitution in long names.</span>
+    <span class="hljs-comment"># Unicode word boundaries prevent accepting a Latin-name fragment embedded</span>
+    <span class="hljs-comment"># in a larger unrecognized-script word. Unmapped letters remain uncertain.</span>
+    normalized = normalized_name_text(text)
+    <span class="hljs-keyword">if</span> name.lower()==<span class="hljs-string">&#x27;klinklang&#x27;</span>:
+        <span class="hljs-comment"># Public Xavier134 HUD rendered the same installed name as two OCR</span>
+        <span class="hljs-comment"># words, while its independent current-actor prompt retained Klinklang.</span>
+        normalized=re.sub(<span class="hljs-string">r&#x27;(?&lt;!\w)klink\s+lang(?!\w)&#x27;</span>,<span class="hljs-string">&#x27;klinklang&#x27;</span>,normalized)
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;-&#x27;</span> <span class="hljs-keyword">in</span> name:
+        <span class="hljs-comment"># Preserve the COMPLETE named species token. Splitting Kommo-o into</span>
+        <span class="hljs-comment"># &quot;Kommo&quot;/&quot;o&quot; previously rejected even an exact public HUD. This is</span>
+        <span class="hljs-comment"># punctuation handling, not a fuzzy match for a different species.</span>
+        parts = name.lower().split(<span class="hljs-string">&#x27;-&#x27;</span>)
+        pattern = <span class="hljs-string">r&#x27;(?&lt;!\w)&#x27;</span> + <span class="hljs-string">r&#x27;(?:\s*[-\u2010\u2011]\s*|\s+)&#x27;</span>.join(<span class="hljs-built_in">map</span>(re.escape, parts)) + <span class="hljs-string">r&#x27;(?!\w)&#x27;</span>
+        <span class="hljs-keyword">return</span> re.search(pattern, normalized) <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>
+    words = re.findall(<span class="hljs-string">r&quot;[^\W\d_]+&quot;</span>, normalized)
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">any</span>(word.isascii() <span class="hljs-keyword">and</span> (word == name.lower() <span class="hljs-keyword">or</span>
+               (<span class="hljs-built_in">len</span>(word) &gt;= <span class="hljs-number">5</span> <span class="hljs-keyword">and</span> difflib.SequenceMatcher(<span class="hljs-literal">None</span>, word, name.lower()).ratio() &gt;= <span class="hljs-number">.87</span>))
+               <span class="hljs-keyword">for</span> word <span class="hljs-keyword">in</span> words)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run_command_row</span>(<span class="hljs-params">row: <span class="hljs-built_in">dict</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Exact standalone RUN/observed RIUN in the lower-right command cell.&quot;&quot;&quot;</span>
+    label = unicodedata.normalize(<span class="hljs-string">&quot;NFKC&quot;</span>, <span class="hljs-built_in">str</span>(row.get(<span class="hljs-string">&quot;text&quot;</span>, <span class="hljs-string">&quot;&quot;</span>))).translate(RUN_I_CONFUSABLES)
+    label = label.strip(<span class="hljs-string">&quot; \t\r\n›&gt;•&quot;</span>).lower()
+    <span class="hljs-keyword">return</span> label <span class="hljs-keyword">in</span> RUN_LABEL_ALIASES <span class="hljs-keyword">and</span> <span class="hljs-number">.70</span> &lt;= <span class="hljs-built_in">float</span>(row.get(<span class="hljs-string">&quot;x&quot;</span>, -<span class="hljs-number">1</span>)) &lt;= <span class="hljs-number">.98</span> \
+        <span class="hljs-keyword">and</span> <span class="hljs-number">.80</span> &lt;= <span class="hljs-built_in">float</span>(row.get(<span class="hljs-string">&quot;y&quot;</span>, -<span class="hljs-number">1</span>)) &lt;= <span class="hljs-number">.95</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">command_guard</span>(<span class="hljs-params">rows: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">dict</span>], *, captured_at: <span class="hljs-built_in">float</span>, now: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-built_in">dict</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Pure, conservative fresh-command/actor/foe guard for the singles fight.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (-<span class="hljs-number">2</span> &lt;= now - captured_at &lt;= <span class="hljs-number">15</span>):
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Public command capture is not fresh&quot;</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> rows <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(<span class="hljs-string">&quot;text&quot;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> row <span class="hljs-keyword">or</span> <span class="hljs-string">&quot;y&quot;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> row <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows):
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Public OCR positions are required for the command guard&quot;</span>)
+    low = <span class="hljs-string">&quot;\n&quot;</span>.join(<span class="hljs-built_in">str</span>(row[<span class="hljs-string">&quot;text&quot;</span>]) <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows).lower()
+    <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&quot;de.?feated|for winning|out of usable|choose a pok|switch in|change pok|switch your&quot;</span>, low):
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Victory, replacement, or unexpected input screen; no action sent&quot;</span>)
+    bottom = <span class="hljs-string">&quot; &quot;</span>.join(<span class="hljs-built_in">str</span>(row[<span class="hljs-string">&quot;text&quot;</span>]).lower() <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> <span class="hljs-built_in">float</span>(row[<span class="hljs-string">&quot;y&quot;</span>]) &gt;= <span class="hljs-number">.65</span>)
+    <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&quot;pp\s*[:.]|pp.?\s*\d+\s*[/0]\s*\d+&quot;</span>, bottom):
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Move grid is open; no action sent&quot;</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">all</span>(re.search(<span class="hljs-string">r&quot;\b&quot;</span> + label + <span class="hljs-string">r&quot;\b&quot;</span>, bottom) <span class="hljs-keyword">for</span> label <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;fight&quot;</span>, <span class="hljs-string">&quot;bag&quot;</span>)) \
+            <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(run_command_row(row) <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows):
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Fresh battle command labels Fight/Bag/Run are required&quot;</span>)
+    foe_rows = [row <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> <span class="hljs-built_in">float</span>(row[<span class="hljs-string">&quot;y&quot;</span>]) &lt; <span class="hljs-number">.37</span> <span class="hljs-keyword">and</span> name_matches(<span class="hljs-built_in">str</span>(row[<span class="hljs-string">&quot;text&quot;</span>]), <span class="hljs-string">&quot;Hypno&quot;</span>)]
+    actor_rows = [row <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> <span class="hljs-number">.37</span> &lt;= <span class="hljs-built_in">float</span>(row[<span class="hljs-string">&quot;y&quot;</span>]) &lt; <span class="hljs-number">.70</span> <span class="hljs-keyword">and</span> name_matches(<span class="hljs-built_in">str</span>(row[<span class="hljs-string">&quot;text&quot;</span>]), <span class="hljs-string">&quot;Arcanine&quot;</span>)]
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> foe_rows <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> actor_rows:
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Expected visible Hypno foe HUD and Arcanine actor HUD&quot;</span>)
+    <span class="hljs-comment"># A contradictory actor in a visible command prompt must not pass merely</span>
+    <span class="hljs-comment"># because Arcanine appears elsewhere on the image.</span>
+    prompt = re.search(<span class="hljs-string">r&quot;\bwhat\s+will\s+([^\W\d_]+)\s+do\b&quot;</span>, normalized_name_text(bottom))
+    <span class="hljs-keyword">if</span> prompt <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> name_matches(prompt.group(<span class="hljs-number">1</span>), <span class="hljs-string">&quot;Arcanine&quot;</span>):
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Command prompt names a different acting Pokemon&quot;</span>)
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&quot;actor&quot;</span>: <span class="hljs-string">&quot;Arcanine&quot;</span>, <span class="hljs-string">&quot;foe&quot;</span>: <span class="hljs-string">&quot;Hypno&quot;</span>, <span class="hljs-string">&quot;capture_epoch&quot;</span>: captured_at,
+            <span class="hljs-string">&quot;guard_age_seconds&quot;</span>: <span class="hljs-built_in">round</span>(now - captured_at, <span class="hljs-number">3</span>),
+            <span class="hljs-string">&quot;actor_hud&quot;</span>: actor_rows, <span class="hljs-string">&quot;foe_hud&quot;</span>: foe_rows,
+            <span class="hljs-string">&quot;observed_command_text&quot;</span>: bottom}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">final_classification</span>(<span class="hljs-params">rows: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">dict</span>], *, captured_at: <span class="hljs-built_in">float</span>, now: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+    text = <span class="hljs-string">&quot;\n&quot;</span>.join(<span class="hljs-built_in">str</span>(row[<span class="hljs-string">&quot;text&quot;</span>]) <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows).lower()
+    <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&quot;de.?feated|for winning&quot;</span>, text):
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;visible_victory_message&quot;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;out of usable&quot;</span> <span class="hljs-keyword">in</span> text:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;visible_no_usable_pokemon_message&quot;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;choose a pok&quot;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">or</span> (<span class="hljs-string">&quot;cancel&quot;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> text.count(<span class="hljs-string">&quot;hp&quot;</span>) &gt;= <span class="hljs-number">5</span>):
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;visible_replacement_menu&quot;</span>
+    <span class="hljs-keyword">try</span>:
+        command_guard(rows, captured_at=captured_at, now=now)
+    <span class="hljs-keyword">except</span> ValueError:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;review_required&quot;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;fresh_arcanine_hypno_command&quot;</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">helper_argv</span>(<span class="hljs-params">args: argparse.Namespace, root: pathlib.Path = ROOT</span>) -&gt; <span class="hljs-built_in">list</span>[<span class="hljs-built_in">str</span>]:
+    <span class="hljs-keyword">if</span> args.item <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+        cmd = [sys.executable, <span class="hljs-built_in">str</span>(root / <span class="hljs-string">&quot;scripts/battle_item.py&quot;</span>), args.item, <span class="hljs-string">&quot;Arcanine&quot;</span>]
+        <span class="hljs-keyword">if</span> canonical(args.item) <span class="hljs-keyword">in</span> SELF_ITEMS:
+            cmd.append(<span class="hljs-string">&quot;--active&quot;</span>)
+        <span class="hljs-keyword">return</span> cmd
+    <span class="hljs-keyword">return</span> [sys.executable, <span class="hljs-built_in">str</span>(root / <span class="hljs-string">&quot;scripts/battle_move.py&quot;</span>), <span class="hljs-built_in">str</span>(args.move_slot), <span class="hljs-string">&quot;--watch&quot;</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">read_generated_screens</span>(<span class="hljs-params">path: pathlib.Path, offset: <span class="hljs-built_in">int</span>, start: <span class="hljs-built_in">float</span>, end: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-built_in">tuple</span>[<span class="hljs-built_in">list</span>[<span class="hljs-built_in">dict</span>], <span class="hljs-built_in">list</span>[<span class="hljs-built_in">str</span>]]:
+    <span class="hljs-string">&quot;&quot;&quot;Read only appended public OCR records within this invocation&#x27;s timespan.
+
+    The existing journal has no caller ID. Ordinary input/capture helpers must
+    be run sequentially; unrelated concurrent public captures cannot be proven
+    to belong to this wrapper and are not silently attributed as turn outcomes.
+    &quot;&quot;&quot;</span>
+    issues = []
+    records = []
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> path.exists():
+        <span class="hljs-keyword">return</span> records, [<span class="hljs-string">&quot;Public screen journal is missing&quot;</span>]
+    <span class="hljs-keyword">if</span> path.stat().st_size &lt; offset:
+        <span class="hljs-keyword">return</span> records, [<span class="hljs-string">&quot;Public screen journal was truncated during the wrapper&quot;</span>]
+    <span class="hljs-keyword">with</span> path.<span class="hljs-built_in">open</span>(<span class="hljs-string">&quot;rb&quot;</span>) <span class="hljs-keyword">as</span> stream:
+        stream.seek(offset)
+        lines = stream.read().splitlines()
+    <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> lines:
+        <span class="hljs-keyword">try</span>:
+            value = json.loads(line)
+            epoch = <span class="hljs-built_in">float</span>(value[<span class="hljs-string">&quot;epoch&quot;</span>])
+            <span class="hljs-keyword">if</span> start &lt;= epoch &lt;= end <span class="hljs-keyword">and</span> <span class="hljs-built_in">isinstance</span>(value.get(<span class="hljs-string">&quot;text&quot;</span>), <span class="hljs-built_in">list</span>):
+                records.append({<span class="hljs-string">&quot;epoch&quot;</span>: epoch, <span class="hljs-string">&quot;ocr_complete_epoch&quot;</span>: value.get(<span class="hljs-string">&quot;ocr_complete_epoch&quot;</span>),
+                                <span class="hljs-string">&quot;text&quot;</span>: [<span class="hljs-built_in">str</span>(text) <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> value[<span class="hljs-string">&quot;text&quot;</span>]]})
+        <span class="hljs-keyword">except</span> (ValueError, KeyError, TypeError, json.JSONDecodeError) <span class="hljs-keyword">as</span> exc:
+            issues.append(<span class="hljs-string">&quot;Unparsed appended public OCR line: &quot;</span> + <span class="hljs-built_in">str</span>(exc))
+    <span class="hljs-keyword">return</span> records, issues
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">deduplicate_screens</span>(<span class="hljs-params">records: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">dict</span>]</span>) -&gt; <span class="hljs-built_in">list</span>[<span class="hljs-built_in">dict</span>]:
+    <span class="hljs-string">&quot;&quot;&quot;Merge only adjacent identical OCR frames; repeated later events survive.&quot;&quot;&quot;</span>
+    result = []
+    <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> records:
+        signature = <span class="hljs-built_in">tuple</span>(<span class="hljs-string">&quot; &quot;</span>.join(line.split()).lower() <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> row[<span class="hljs-string">&quot;text&quot;</span>])
+        <span class="hljs-keyword">if</span> result <span class="hljs-keyword">and</span> signature == result[-<span class="hljs-number">1</span>][<span class="hljs-string">&quot;_signature&quot;</span>]:
+            result[-<span class="hljs-number">1</span>][<span class="hljs-string">&quot;last_epoch&quot;</span>] = row[<span class="hljs-string">&quot;epoch&quot;</span>]
+            result[-<span class="hljs-number">1</span>][<span class="hljs-string">&quot;captures&quot;</span>] += <span class="hljs-number">1</span>
+        <span class="hljs-keyword">else</span>:
+            result.append({<span class="hljs-string">&quot;first_epoch&quot;</span>: row[<span class="hljs-string">&quot;epoch&quot;</span>], <span class="hljs-string">&quot;last_epoch&quot;</span>: row[<span class="hljs-string">&quot;epoch&quot;</span>],
+                           <span class="hljs-string">&quot;captures&quot;</span>: <span class="hljs-number">1</span>, <span class="hljs-string">&quot;text&quot;</span>: row[<span class="hljs-string">&quot;text&quot;</span>], <span class="hljs-string">&quot;_signature&quot;</span>: signature})
+    <span class="hljs-keyword">return</span> [{key: value <span class="hljs-keyword">for</span> key, value <span class="hljs-keyword">in</span> row.items() <span class="hljs-keyword">if</span> key != <span class="hljs-string">&quot;_signature&quot;</span>} <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> result]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">message_candidates</span>(<span class="hljs-params">screens: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">dict</span>]</span>) -&gt; <span class="hljs-built_in">list</span>[<span class="hljs-built_in">dict</span>]:
+    <span class="hljs-comment"># These are literal OCR lines, not certified move events or complete turns.</span>
+    <span class="hljs-comment"># Bag descriptions and move names may match; retain context via screen index.</span>
+    result = []
+    previous = ()
+    <span class="hljs-keyword">for</span> index, screen <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(screens):
+        selected = <span class="hljs-built_in">tuple</span>(text <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> screen[<span class="hljs-string">&quot;text&quot;</span>] <span class="hljs-keyword">if</span> MESSAGE_PATTERN.search(text))
+        <span class="hljs-keyword">if</span> selected <span class="hljs-keyword">and</span> selected != previous:
+            result.append({<span class="hljs-string">&quot;screen_index&quot;</span>: index, <span class="hljs-string">&quot;epoch&quot;</span>: screen[<span class="hljs-string">&quot;first_epoch&quot;</span>], <span class="hljs-string">&quot;lines&quot;</span>: <span class="hljs-built_in">list</span>(selected)})
+        previous = selected
+    <span class="hljs-keyword">return</span> result
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">report_text</span>(<span class="hljs-params">report: <span class="hljs-built_in">dict</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+    action = report[<span class="hljs-string">&quot;explicit_action&quot;</span>]
+    lines = [<span class="hljs-string">f&quot;Hypno public turn <span class="hljs-subst">{report[<span class="hljs-string">&#x27;turn&#x27;</span>]}</span> — explicitly requested <span class="hljs-subst">{action}</span>&quot;</span>,
+             <span class="hljs-string">&quot;Observed OCR only. No unseen outcome, completed-turn count, enemy choice, HP/stage or Safeguard inference.&quot;</span>,
+             <span class="hljs-string">f&quot;Result: <span class="hljs-subst">{report[<span class="hljs-string">&#x27;result&#x27;</span>]}</span>; final screen: <span class="hljs-subst">{report.get(<span class="hljs-string">&#x27;final_classification&#x27;</span>, <span class="hljs-string">&#x27;not captured&#x27;</span>)}</span>&quot;</span>]
+    <span class="hljs-keyword">if</span> report.get(<span class="hljs-string">&quot;error&quot;</span>):
+        lines.append(<span class="hljs-string">&quot;Stopped for review: &quot;</span> + report[<span class="hljs-string">&quot;error&quot;</span>])
+    lines.append(<span class="hljs-string">&quot;\nObserved message candidates (literal OCR; inspect context for menus/descriptions):&quot;</span>)
+    <span class="hljs-keyword">for</span> group <span class="hljs-keyword">in</span> report[<span class="hljs-string">&quot;message_candidates&quot;</span>]:
+        lines.append(<span class="hljs-string">f&quot;[<span class="hljs-subst">{group[<span class="hljs-string">&#x27;epoch&#x27;</span>]:<span class="hljs-number">.3</span>f}</span>; screen <span class="hljs-subst">{group[<span class="hljs-string">&#x27;screen_index&#x27;</span>]}</span>] &quot;</span> + <span class="hljs-string">&quot; | &quot;</span>.join(group[<span class="hljs-string">&quot;lines&quot;</span>]))
+    lines.append(<span class="hljs-string">&quot;\nFresh final public screen:&quot;</span>)
+    lines.extend(<span class="hljs-built_in">str</span>(row[<span class="hljs-string">&quot;text&quot;</span>]) <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> report.get(<span class="hljs-string">&quot;final_rows&quot;</span>, []))
+    lines.append(<span class="hljs-string">&quot;\nAll public OCR frames, adjacent duplicates collapsed:&quot;</span>)
+    <span class="hljs-keyword">for</span> index, frame <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(report[<span class="hljs-string">&quot;public_screens&quot;</span>]):
+        lines.append(<span class="hljs-string">f&quot;\nScreen <span class="hljs-subst">{index}</span> [<span class="hljs-subst">{frame[<span class="hljs-string">&#x27;first_epoch&#x27;</span>]:<span class="hljs-number">.3</span>f}</span>–<span class="hljs-subst">{frame[<span class="hljs-string">&#x27;last_epoch&#x27;</span>]:<span class="hljs-number">.3</span>f}</span>; <span class="hljs-subst">{frame[<span class="hljs-string">&#x27;captures&#x27;</span>]}</span> capture(s)]&quot;</span>)
+        lines.extend(frame[<span class="hljs-string">&quot;text&quot;</span>])
+    <span class="hljs-keyword">for</span> issue <span class="hljs-keyword">in</span> report[<span class="hljs-string">&quot;journal_issues&quot;</span>]:
+        lines.append(<span class="hljs-string">&quot;Journal issue: &quot;</span> + issue)
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;\n&quot;</span>.join(lines) + <span class="hljs-string">&quot;\n&quot;</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>(<span class="hljs-params">argv: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">str</span>] | <span class="hljs-literal">None</span> = <span class="hljs-literal">None</span></span>) -&gt; <span class="hljs-built_in">int</span>:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(<span class="hljs-string">&quot;--turn&quot;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, required=<span class="hljs-literal">True</span>, <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;Explicit ledger number, positive and never overwritten&quot;</span>)
+    action = parser.add_mutually_exclusive_group(required=<span class="hljs-literal">True</span>)
+    action.add_argument(<span class="hljs-string">&quot;--item&quot;</span>, <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;Exact named Medicine-pocket item; target is Arcanine, X items use --active&quot;</span>)
+    action.add_argument(<span class="hljs-string">&quot;--move-slot&quot;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, choices=<span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>), <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;Explicit currently reviewed move slot, 0..3&quot;</span>)
+    args = parser.parse_args(argv)
+    <span class="hljs-keyword">if</span> args.turn &lt; <span class="hljs-number">1</span> <span class="hljs-keyword">or</span> (args.item <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> args.item.strip()):
+        parser.error(<span class="hljs-string">&quot;A positive turn number and a nonempty explicit action are required&quot;</span>)
+    OUTPUT_DIR.mkdir(parents=<span class="hljs-literal">True</span>, exist_ok=<span class="hljs-literal">True</span>)
+    json_path = OUTPUT_DIR / <span class="hljs-string">f&quot;turn-<span class="hljs-subst">{args.turn}</span>.json&quot;</span>
+    txt_path = OUTPUT_DIR / <span class="hljs-string">f&quot;turn-<span class="hljs-subst">{args.turn}</span>.txt&quot;</span>
+    <span class="hljs-comment"># Reserve first: a typo/repeated invocation must never execute another turn.</span>
+    <span class="hljs-keyword">try</span>:
+        reservation = json_path.<span class="hljs-built_in">open</span>(<span class="hljs-string">&quot;x&quot;</span>)
+    <span class="hljs-keyword">except</span> FileExistsError:
+        parser.error(<span class="hljs-string">f&quot;Turn <span class="hljs-subst">{args.turn}</span> already has a report; use a new explicit number after review&quot;</span>)
+    <span class="hljs-keyword">if</span> txt_path.exists():
+        reservation.close()
+        json_path.unlink()
+        parser.error(<span class="hljs-string">f&quot;Turn <span class="hljs-subst">{args.turn}</span> already has a text report&quot;</span>)
+    start = time.time()
+    offset = SCREEN_JOURNAL.stat().st_size <span class="hljs-keyword">if</span> SCREEN_JOURNAL.exists() <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+    report = {<span class="hljs-string">&quot;kind&quot;</span>: <span class="hljs-string">&quot;public_hypno_one_action&quot;</span>, <span class="hljs-string">&quot;turn&quot;</span>: args.turn, <span class="hljs-string">&quot;start_epoch&quot;</span>: start,
+              <span class="hljs-string">&quot;explicit_action&quot;</span>: {<span class="hljs-string">&quot;item&quot;</span>: args.item, <span class="hljs-string">&quot;target&quot;</span>: <span class="hljs-string">&quot;Arcanine&quot;</span>} <span class="hljs-keyword">if</span> args.item <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> {<span class="hljs-string">&quot;move_slot&quot;</span>: args.move_slot},
+              <span class="hljs-string">&quot;result&quot;</span>: <span class="hljs-string">&quot;not_started&quot;</span>, <span class="hljs-string">&quot;helpers&quot;</span>: [], <span class="hljs-string">&quot;input_policy&quot;</span>: <span class="hljs-string">&quot;existing ordinary-input helpers only; no automatic action selection&quot;</span>,
+              <span class="hljs-string">&quot;observation_policy&quot;</span>: <span class="hljs-string">&quot;public screenshots/OCR only; gaps and unseen outcomes remain unknown&quot;</span>,
+              <span class="hljs-string">&quot;journal_binding&quot;</span>: <span class="hljs-string">&quot;appended byte offset plus capture timespan; run UI helpers sequentially because screens.jsonl has no caller ID&quot;</span>}
+    <span class="hljs-keyword">try</span>:
+        <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> snap
+        captured = time.time()
+        rows = snap()
+        report[<span class="hljs-string">&quot;initial_rows&quot;</span>] = rows
+        report[<span class="hljs-string">&quot;initial_guard&quot;</span>] = command_guard(rows, captured_at=captured, now=time.time())
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Public guard passed: Arcanine/Hypno command; executing explicit turn <span class="hljs-subst">{args.turn}</span>.&quot;</span>, flush=<span class="hljs-literal">True</span>)
+        <span class="hljs-keyword">for</span> cmd <span class="hljs-keyword">in</span> [helper_argv(args), [sys.executable, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&quot;scripts/battle_ready.py&quot;</span>)]]:
+            stage = {<span class="hljs-string">&quot;argv&quot;</span>: cmd, <span class="hljs-string">&quot;start_epoch&quot;</span>: time.time()}
+            report[<span class="hljs-string">&quot;helpers&quot;</span>].append(stage)
+            <span class="hljs-keyword">try</span>:
+                run = subprocess.run(cmd, capture_output=<span class="hljs-literal">True</span>, text=<span class="hljs-literal">True</span>, timeout=<span class="hljs-number">180</span>, cwd=ROOT)
+                stage.update(returncode=run.returncode, stdout=run.stdout, stderr=run.stderr, end_epoch=time.time())
+            <span class="hljs-keyword">except</span> subprocess.TimeoutExpired <span class="hljs-keyword">as</span> exc:
+                stage.update(returncode=<span class="hljs-literal">None</span>, stdout=<span class="hljs-built_in">str</span>(exc.stdout <span class="hljs-keyword">or</span> <span class="hljs-string">&quot;&quot;</span>), stderr=<span class="hljs-built_in">str</span>(exc.stderr <span class="hljs-keyword">or</span> <span class="hljs-string">&quot;&quot;</span>), end_epoch=time.time())
+                <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&quot;Existing input helper timed out; inspect the public screen before another action&quot;</span>) <span class="hljs-keyword">from</span> exc
+            <span class="hljs-keyword">if</span> run.returncode:
+                <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">f&quot;<span class="hljs-subst">{pathlib.Path(cmd[<span class="hljs-number">1</span>]).name}</span> stopped with code <span class="hljs-subst">{run.returncode}</span>: <span class="hljs-subst">{run.stderr.strip() <span class="hljs-keyword">or</span> run.stdout[-<span class="hljs-number">500</span>:].strip()}</span>&quot;</span>)
+        report[<span class="hljs-string">&quot;result&quot;</span>] = <span class="hljs-string">&quot;helpers_returned&quot;</span>
+    <span class="hljs-keyword">except</span> Exception <span class="hljs-keyword">as</span> exc:
+        report.update(result=<span class="hljs-string">&quot;stopped_for_review&quot;</span>, error=<span class="hljs-string">f&quot;<span class="hljs-subst">{<span class="hljs-built_in">type</span>(exc).__name__}</span>: <span class="hljs-subst">{exc}</span>&quot;</span>)
+    <span class="hljs-keyword">finally</span>:
+        <span class="hljs-comment"># Capture even a guard/helper failure without sending any further input.</span>
+        <span class="hljs-keyword">try</span>:
+            <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> snap
+            captured = time.time()
+            report[<span class="hljs-string">&quot;final_rows&quot;</span>] = snap()
+            report[<span class="hljs-string">&quot;final_capture_epoch&quot;</span>] = captured
+            report[<span class="hljs-string">&quot;final_classification&quot;</span>] = final_classification(report[<span class="hljs-string">&quot;final_rows&quot;</span>], captured_at=captured, now=time.time())
+        <span class="hljs-keyword">except</span> Exception <span class="hljs-keyword">as</span> exc:
+            report[<span class="hljs-string">&quot;final_capture_error&quot;</span>] = <span class="hljs-string">f&quot;<span class="hljs-subst">{<span class="hljs-built_in">type</span>(exc).__name__}</span>: <span class="hljs-subst">{exc}</span>&quot;</span>
+        report[<span class="hljs-string">&quot;end_epoch&quot;</span>] = time.time()
+        records, issues = read_generated_screens(SCREEN_JOURNAL, offset, start, report[<span class="hljs-string">&quot;end_epoch&quot;</span>])
+        report[<span class="hljs-string">&quot;journal_issues&quot;</span>] = issues
+        report[<span class="hljs-string">&quot;public_capture_count&quot;</span>] = <span class="hljs-built_in">len</span>(records)
+        report[<span class="hljs-string">&quot;public_screens&quot;</span>] = deduplicate_screens(records)
+        report[<span class="hljs-string">&quot;message_candidates&quot;</span>] = message_candidates(report[<span class="hljs-string">&quot;public_screens&quot;</span>])
+        reservation.write(json.dumps(report, indent=<span class="hljs-number">2</span>, ensure_ascii=<span class="hljs-literal">False</span>) + <span class="hljs-string">&quot;\n&quot;</span>)
+        reservation.close()
+        <span class="hljs-keyword">with</span> txt_path.<span class="hljs-built_in">open</span>(<span class="hljs-string">&quot;x&quot;</span>) <span class="hljs-keyword">as</span> stream:
+            stream.write(report_text(report))
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">{report[<span class="hljs-string">&#x27;result&#x27;</span>]}</span>; final public screen: <span class="hljs-subst">{report.get(<span class="hljs-string">&#x27;final_classification&#x27;</span>, <span class="hljs-string">&#x27;unavailable&#x27;</span>)}</span>&quot;</span>, flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">for</span> group <span class="hljs-keyword">in</span> report[<span class="hljs-string">&quot;message_candidates&quot;</span>]:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;PUBLIC OCR: &quot;</span> + <span class="hljs-string">&quot; | &quot;</span>.join(group[<span class="hljs-string">&quot;lines&quot;</span>]), flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;FRESH FINAL SCREEN:\n&quot;</span> + <span class="hljs-string">&quot;\n&quot;</span>.join(row[<span class="hljs-string">&quot;text&quot;</span>] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> report.get(<span class="hljs-string">&quot;final_rows&quot;</span>, [])), flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Observed ledger: <span class="hljs-subst">{json_path}</span>\nReadable ledger: <span class="hljs-subst">{txt_path}</span>&quot;</span>, flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span> <span class="hljs-keyword">if</span> report[<span class="hljs-string">&quot;result&quot;</span>] == <span class="hljs-string">&quot;helpers_returned&quot;</span> <span class="hljs-keyword">and</span> report.get(<span class="hljs-string">&quot;final_classification&quot;</span>) <span class="hljs-keyword">in</span> {<span class="hljs-string">&quot;fresh_arcanine_hypno_command&quot;</span>, <span class="hljs-string">&quot;visible_victory_message&quot;</span>} <span class="hljs-keyword">and</span> <span class="hljs-string">&quot;final_capture_error&quot;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> report <span class="hljs-keyword">else</span> <span class="hljs-number">2</span>
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    <span class="hljs-keyword">raise</span> SystemExit(main())
+</code></pre>
+  </body>
+</html>

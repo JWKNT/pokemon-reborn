@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>pc_open_reviewed.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of pc_open_reviewed.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Advance the inspected Circus PC menus into Box1; never touch passwords.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> unicodedata
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">10</span>):
+ t=unicodedata.normalize(<span class="hljs-string">&#x27;NFKD&#x27;</span>,read().lower()).encode(<span class="hljs-string">&#x27;ascii&#x27;</span>,<span class="hljs-string">&#x27;ignore&#x27;</span>).decode();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;\bbox\s+\d+\b&#x27;</span>,t) <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;rattata&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;lu.&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;party&#x27;</span> <span class="hljs-keyword">in</span> t):<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;deposit pok&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;move pok&#x27;</span>,<span class="hljs-string">&#x27;hove pok&#x27;</span>,<span class="hljs-string">&#x27;organize&#x27;</span>]):act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;boo?r?ted up the pc&#x27;</span>,t) <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;storagesystem&#x27;</span> <span class="hljs-keyword">in</span> t.replace(<span class="hljs-string">&#x27; &#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>) <span class="hljs-keyword">or</span> (<span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> t.replace(<span class="hljs-string">&#x27; &#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>) <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;logoff&#x27;</span>,<span class="hljs-string">&#x27;loguff&#x27;</span>,<span class="hljs-string">&#x27;log0ff&#x27;</span>]) <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;add password&#x27;</span>,<span class="hljs-string">&#x27;add paseword&#x27;</span>])):
+  act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;PC entry review: &#x27;</span>+t)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;PC menu limit&#x27;</span>)
+<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

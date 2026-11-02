@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>emerald213_crystal87.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of emerald213_crystal87.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bait the recorded warning beside a narrow corridor, then cross with normal keys.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">&#x27;805,50,67&#x27;</span>],check=<span class="hljs-literal">True</span>)
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;805&#x27;</span>,<span class="hljs-string">&#x27;50&#x27;</span>,<span class="hljs-string">&#x27;67&#x27;</span>],stderr=subprocess.DEVNULL));p=route(v,(<span class="hljs-number">46</span>,<span class="hljs-number">64</span>));seq=[]
+<span class="hljs-keyword">for</span> d,g <span class="hljs-keyword">in</span> groupby(p):
+ n=<span class="hljs-built_in">len</span>(<span class="hljs-built_in">list</span>(g));seq.extend([d+<span class="hljs-string">&#x27;:.12&#x27;</span>]*n <span class="hljs-keyword">if</span> n&lt;<span class="hljs-number">3</span> <span class="hljs-keyword">else</span> [d+<span class="hljs-string">&#x27;:&#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">round</span>(<span class="hljs-number">.1</span>*n+<span class="hljs-number">.02</span>,<span class="hljs-number">3</span>))])
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;APPROACH&#x27;</span>,p,flush=<span class="hljs-literal">True</span>);act(*seq)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">*keys</span>):subprocess.run([KEY,*keys],check=<span class="hljs-literal">True</span>)
+out=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">f&#x27;emerald-corridor-<span class="hljs-subst">{<span class="hljs-built_in">int</span>(time.time())}</span>&#x27;</span>;out.mkdir()
+t=time.time()
+<span class="hljs-keyword">while</span> time.time()-t&lt;<span class="hljs-number">9</span>:
+ a=np.asarray(Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)).astype(<span class="hljs-built_in">float</span>)
+ a=a[<span class="hljs-number">370</span>:<span class="hljs-number">600</span>,<span class="hljs-number">414</span>:<span class="hljs-number">438</span>]; n=<span class="hljs-built_in">int</span>(((a[:,:,<span class="hljs-number">0</span>]&gt;<span class="hljs-number">70</span>)&amp;(a[:,:,<span class="hljs-number">0</span>]&gt;a[:,:,<span class="hljs-number">1</span>]*<span class="hljs-number">1.4</span>)&amp;(a[:,:,<span class="hljs-number">0</span>]&gt;a[:,:,<span class="hljs-number">2</span>]*<span class="hljs-number">1.1</span>)).<span class="hljs-built_in">sum</span>())
+ <span class="hljs-keyword">if</span> n&gt;<span class="hljs-number">1700</span>:<span class="hljs-keyword">break</span>
+ time.sleep(<span class="hljs-number">.04</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No warning&#x27;</span>)
+shutil.copyfile(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>,out/<span class="hljs-string">&#x27;warning.png&#x27;</span>)
+send(<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;up:.92&#x27;</span>,<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;up:.62&#x27;</span>,<span class="hljs-string">&#x27;right:.18&#x27;</span>,<span class="hljs-string">&#x27;wait:.25&#x27;</span>)
+shutil.copyfile(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>,out/<span class="hljs-string">&#x27;alcove.png&#x27;</span>)
+<span class="hljs-comment"># Lure the next arrow into the one-tile alcove before returning to the corridor.</span>
+t=time.time()
+<span class="hljs-keyword">while</span> time.time()-t&lt;<span class="hljs-number">6</span>:
+ a=np.asarray(Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)).astype(<span class="hljs-built_in">float</span>)[<span class="hljs-number">370</span>:<span class="hljs-number">600</span>,<span class="hljs-number">414</span>:<span class="hljs-number">438</span>]
+ n=<span class="hljs-built_in">int</span>(((a[:,:,<span class="hljs-number">0</span>]&gt;<span class="hljs-number">70</span>)&amp;(a[:,:,<span class="hljs-number">0</span>]&gt;a[:,:,<span class="hljs-number">1</span>]*<span class="hljs-number">1.4</span>)&amp;(a[:,:,<span class="hljs-number">0</span>]&gt;a[:,:,<span class="hljs-number">2</span>]*<span class="hljs-number">1.1</span>)).<span class="hljs-built_in">sum</span>())
+ <span class="hljs-keyword">if</span> n&gt;<span class="hljs-number">1700</span>:<span class="hljs-keyword">break</span>
+ time.sleep(<span class="hljs-number">.04</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No alcove warning&#x27;</span>)
+shutil.copyfile(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>,out/<span class="hljs-string">&#x27;alcove-warning.png&#x27;</span>)
+send(<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;up:1.62&#x27;</span>,<span class="hljs-string">&#x27;right:.18&#x27;</span>)
+n=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> n[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;1235&#x27;</span>):send(<span class="hljs-string">&#x27;right:.18&#x27;</span>,<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>)
+send(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;up:.32&#x27;</span>,<span class="hljs-string">&#x27;left:.18&#x27;</span>,<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+shutil.copyfile(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>,out/<span class="hljs-string">&#x27;result.png&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FRAMES&#x27;</span>,out,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/dialog.py&#x27;</span>),<span class="hljs-string">&#x27;--story-burst&#x27;</span>,<span class="hljs-string">&#x27;--limit=20&#x27;</span>],check=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;wait:4&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/dialog.py&#x27;</span>),<span class="hljs-string">&#x27;--story-burst&#x27;</span>,<span class="hljs-string">&#x27;--limit=20&#x27;</span>],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),<span class="hljs-string">&#x27;Emerald213-Crystal87&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "epoch": 1791396399.942771,
+  "policy": "Catch one-time legendaries selectively when a clear future team role exists; defeat others to progress where event accepts either result.",
+  "zapdos": "Planned fast special Electric reserve; catch after HP/Defense Amoonguss preparation and Timer Ball restock. Discharge reminder needs Heart Scale; existing TM57 Charge Beam available.",
+  "articuno": "No planned unique role; existing Cryogonal already covers Ice/screens. Defeat unless future matchup evidence changes.",
+  "moltres": "No planned unique role yet; existing Arcanine covers Fire and Intimidate. Inspect event before fight.",
+  "future_supplies": {
+    "nightclub_map827_event100": "Static installed BP shop: Reborn Ball9BP,2 Heart Scales2BP,50XLcandies5BP,Ability Capsule1BP. Owned BP variable593 nil at HP224 checkpoint. Consider facility preparation if several future captures need it.",
+    "heart_scales": "work/235-heartscales.json lists uncollected source pickups; map579 AzurineLake E20[22,21] may fit upcoming LakeSpirit route."
+  },
+  "moltres_source": {
+    "map": 27,
+    "event": 3,
+    "position": [
+      18,
+      8
+    ],
+    "level": 100,
+    "moves": [
+      "Heat Wave",
+      "Sky Attack",
+      "Roost",
+      "Hurricane"
+    ],
+    "plan": "Defeat using Swampert Rock Slide; check VolcanicTop field and HP guards. No planned capture role."
+  }
+}

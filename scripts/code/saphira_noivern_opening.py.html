@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>saphira_noivern_opening.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of saphira_noivern_opening.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Two reviewed moves, each guarded by the actual actor/foe, HP and field.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>)
+<span class="hljs-keyword">for</span> slot,extra <span class="hljs-keyword">in</span> [(<span class="hljs-number">1</span>,[<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>]),(<span class="hljs-number">3</span>,[<span class="hljs-string">&#x27;--require-field&#x27;</span>,<span class="hljs-string">&#x27;misty&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.42&#x27;</span>])]:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/public_turn_capture.py&#x27;</span>),<span class="hljs-string">&#x27;battle_batch.py&#x27;</span>,<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-built_in">str</span>(slot),<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Noivern&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,*extra],check=<span class="hljs-literal">True</span>,env=env)
+</code></pre>
+  </body>
+</html>

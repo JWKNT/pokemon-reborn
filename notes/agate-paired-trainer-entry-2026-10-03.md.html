@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Paired ordinary trainer entry and opening">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="agate-paired-trainer-entry-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/agate-paired-trainer-entry-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/agate-paired-trainer-entry-2026-10-03.md.html">
+    <title>agate-paired-trainer-entry-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">agate-paired-trainer-entry-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 2.2 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · first used Oct 3 17:44</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Paired ordinary trainer entry and opening</h2>
+<p><code>trainer_enter.py</code> now safely imports without UI/runtime reads. Its default CLI
+keeps the existing normal controls and fresh-intro/choice refusals. The source
+extension accepts <code>--paired-event46</code> only when the two distinct same-map active
+lists each declare the exact named ordinary trainer and both are choice-free.
+Primary45 must be NWCultistF/Lyla; paired46 must be NWCultist/Ezra for the
+combined name <strong>Lyla &amp; Ezra</strong>. Defeated pages, wrong class/order/name, duplicate
+events and any102/103/104 choice reject before controls. The actual controller
+may use <code>--active-dialogue</code> only when that dialogue has already been publicly
+observed, as in the existing workflow.</p>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="sh example"><code class="hljs"># Pure installed-source proof only:
+python3 scripts/trainer_enter.py 763 45 NWCultistF 'Lyla &amp; Ezra' \
+  --paired-event 46 --dry-run
+# Root's actual normal entry, after route/public prerequisites:
+python3 scripts/trainer_enter.py 763 45 NWCultistF 'Lyla &amp; Ezra' \
+  --paired-event 46</code></pre>
+<p>Source waiting-trainer ordering is in
+<code>notes/agate-double-order-source-proof-2026-10-03.md</code>. For the reviewed
+simultaneous overlap, waitingLyla remains opponent0/Noivern@index1; currentEzra
+is opponent1/Ditto@index3. Ditto3 copies own0. Cryo first/Mien second is correct.
+Still observe the actual intro, Noivern/Ditto HUDs and Ditto→Hexan transformation
+before choosing a move; an old waiting trainer or changed encounter sequence
+needs fresh review.</p>
+<p><code>scripts/agate_double_opener_plan.py</code> is <strong>always source-only</strong>. Its default
+output is <code>work/agate-double-opener-source-proposal.json</code>. Optional explicit
+frozen <code>--status</code>/<code>--navigation</code> validate source-stage52, Antoine victory, both
+double opponents unbeaten, Cryo-first/Mien-second, fullHP/status-free Lv90,
+CryoSash/IceBeam slot1 and MienFakeOut slot2. It never executes the printed
+commands. Normal UI registration is Cryo IceBeam Noivern first, then Mien
+FakeOut Ditto; priority3 makes FakeOut resolve first. Root must verify each
+fresh actor and physical target separately and stop after the turn for actual
+public damage/status/foe results. Five paired-entry pure/source fixtures and
+syntax/default source dry-runs passed; no UI controls were used in development.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

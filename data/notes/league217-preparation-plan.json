@@ -1,0 +1,38 @@
+{
+  "status": "in_progress",
+  "fixed_six_proposal": [
+    "Cryogonal",
+    "Arcanine",
+    "Sylveon",
+    "Swampert",
+    "Cofagrigus",
+    "Kricketune"
+  ],
+  "completed": [
+    "Fern won attempt2",
+    "League Center visited and healed",
+    "FullRestore25 Revive22 MaxRepel20 verified",
+    "Kricketune retrieved; actual already knows StickyWeb and PerishSong",
+    "ExpShare removed before training",
+    "Kricketune level100 and unwanted EVs cleared",
+    "Cryogonal Reflect replaces Ice Beam"
+  ],
+  "remaining": [
+    "Finish Kricketune HP/Speed EVs",
+    "Reassess stronger whole-chain roster including Mega access",
+    "Acquire Light Clay and Focus Sash normally",
+    "Prepare full PP and supplies before one uninterrupted E4/champion attempt"
+  ],
+  "sash_correction": "Tourmaline694E34 is ALREADY COLLECTED: switch813True. Previous summary uncollected claim was incorrect. Charous932False confirmed; active749E7stillitem and static route38tiles from41,47.",
+  "league_entry": "None entered yet; do not allocate attempts until actual entry",
+  "candies_growth": "Both Kricketune and Klinklang MediumSlow, level100EXP1059860 verified installed montext",
+  "media216": "Botharchivespublished50majorwins; originals consumed only afterQA",
+  "sash_route_refinement": {
+    "source": "https://bigjra.github.io/reborn/",
+    "static_proof": "work/217-sash-climb713.json",
+    "detail": "713E3 currently goes727 because916False. Use ownedChatotHeatWave to meltSnowyMountain727, causingnormaltransfer719and916True. Layer_walk71914,16 groundTrue to19,11endsFalse; enter719E23to749/750. CaveIcyFieldalso mustmelt normally HeatWave/Scald beforepondSash. BringSurf Swampert. NormalNPC/fieldactions only; not yet executed."
+  },
+  "roster_decision": "Keep full-trained100Swampert for reliable Water/Ground/Rock physical coverage, including doubles Volcarona and Anna steels. Klinklang95 remains reserve; no candy expenditure now. FiveIndrawins gives27XL exactly forKricketune100.",
+  "save_and_archive_rule": "Latest explicit user rule: hard-route entire Elite Four and champion sequence, no saving between fights. Any loss resets the entire E4 to the pre-entry save. All major rounds must come from the same successful whole-chain attempt, with shared honest attempt count.",
+  "journey_boundary": "Video19 ends on completion of Victory Road. League arrival and preparation onward belong to video20. Session217 entirely20; split published session216 tail at verified Victory Road exit."
+}

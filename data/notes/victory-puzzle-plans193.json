@@ -1,0 +1,13 @@
+{
+  "sw": "work/191-sw-cart-solution.json",
+  "ne_main": "work/192-ne-cart-plan.json",
+  "ne_boulder": "work/192-ne-boulder-plan.json",
+  "nw_main": [
+    "work/192-nw-upper-plan.json",
+    "work/192-nw-lower-plan.json"
+  ],
+  "nw_rail": "work/193-nw-rail-guide-plan.json",
+  "status": "SW execution active; later source-reviewed plans require actual entry revalidation",
+  "capture_guard": "scripts/play.py checks actual window geometry before any action; recorder receipt saved at each capture start",
+  "media192": "Published verified; raw cleaned328905839bytes;193 active has noted framing defect"
+}

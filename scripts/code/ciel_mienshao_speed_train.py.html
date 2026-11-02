@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ciel_mienshao_speed_train.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ciel_mienshao_speed_train.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Two reviewed speed KOs with a Ghost pivot; normal game menus only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;party_take_named&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>)
+run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Anklet&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>);run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>)
+run(<span class="hljs-string">&#x27;train_wild_bulk&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;--hunter&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;--targets&#x27;</span>,<span class="hljs-string">&#x27;Meditite,Mienfoo&#x27;</span>,<span class="hljs-string">&#x27;--flex-targets&#x27;</span>,<span class="hljs-string">&#x27;--grass-pair&#x27;</span>,<span class="hljs-string">&#x27;--expire-repel&#x27;</span>,<span class="hljs-string">&#x27;--ev-ledger&#x27;</span>)
+run(<span class="hljs-string">&#x27;party_take_named&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>);run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TRAINING FINISHED — FREE NURSE HEAL AND SAVED STAT RECONCILIATION STILL REQUIRED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

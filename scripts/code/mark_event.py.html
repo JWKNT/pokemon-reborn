@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mark_event.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mark_event.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Record an observed completed event in navigation notes only; never edit game data.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,pathlib,sys
+m,e=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]);ch=sys.argv[<span class="hljs-number">3</span>] <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">3</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;A&#x27;</span>
+<span class="hljs-keyword">assert</span> ch <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27;ABCD&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(ch)==<span class="hljs-number">1</span>
+p=pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>
+s=json.loads(p.read_text());s.setdefault(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{})[<span class="hljs-string">f&#x27;<span class="hljs-subst">{m}</span>,<span class="hljs-subst">{e}</span>,<span class="hljs-subst">{ch}</span>&#x27;</span>]=<span class="hljs-literal">True</span>
+p.write_text(json.dumps(s));<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Navigation event marked&#x27;</span>,m,e,ch)
+</code></pre>
+  </body>
+</html>

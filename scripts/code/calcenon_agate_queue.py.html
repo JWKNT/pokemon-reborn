@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>calcenon_agate_queue.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of calcenon_agate_queue.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Source-bound Calcenon briefing/PC/Route4 queue; dry-run by default.
+
+Development and default invocation read installed event assets only. UI helpers,
+current planning notes and rendered screens are accessed only under --execute.
+No battle is intentionally started, no save/checkpoint is inserted, and no game
+state is edited. Stop715[65,17]; the new715E64 Scale route is a separate action.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> __future__ <span class="hljs-keyword">import</span> annotations
+
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> difflib
+<span class="hljs-keyword">import</span> functools
+<span class="hljs-keyword">import</span> hashlib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> pathlib
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> time
+
+ROOT = pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+STATE = ROOT / <span class="hljs-string">&quot;notes/navigation-state.json&quot;</span>
+PHASES = [<span class="hljs-string">&quot;briefing&quot;</span>, <span class="hljs-string">&quot;carrier&quot;</span>, <span class="hljs-string">&quot;approach&quot;</span>]
+CLIMBS = [(<span class="hljs-number">412</span>, <span class="hljs-number">1</span>, (<span class="hljs-number">710</span>, <span class="hljs-number">23</span>, <span class="hljs-number">49</span>)), (<span class="hljs-number">710</span>, <span class="hljs-number">2</span>, (<span class="hljs-number">711</span>, <span class="hljs-number">20</span>, <span class="hljs-number">58</span>)),
+          (<span class="hljs-number">711</span>, <span class="hljs-number">3</span>, (<span class="hljs-number">713</span>, <span class="hljs-number">17</span>, <span class="hljs-number">24</span>)), (<span class="hljs-number">713</span>, <span class="hljs-number">5</span>, (<span class="hljs-number">714</span>, <span class="hljs-number">17</span>, <span class="hljs-number">10</span>)),
+          (<span class="hljs-number">714</span>, <span class="hljs-number">3</span>, (<span class="hljs-number">715</span>, <span class="hljs-number">65</span>, <span class="hljs-number">17</span>))]
+PAGES = [(<span class="hljs-number">413</span>, <span class="hljs-number">46</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">413</span>, <span class="hljs-number">93</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">413</span>, <span class="hljs-number">67</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">417</span>, <span class="hljs-number">29</span>, <span class="hljs-number">0</span>),
+         (<span class="hljs-number">417</span>, <span class="hljs-number">30</span>, <span class="hljs-number">1</span>), (<span class="hljs-number">417</span>, <span class="hljs-number">6</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">413</span>, <span class="hljs-number">68</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">415</span>, <span class="hljs-number">4</span>, <span class="hljs-number">0</span>),
+         (<span class="hljs-number">415</span>, <span class="hljs-number">7</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">415</span>, <span class="hljs-number">8</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">413</span>, <span class="hljs-number">21</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">418</span>, <span class="hljs-number">2</span>, <span class="hljs-number">0</span>)]
+PAGES += [(mid, eid, <span class="hljs-number">0</span>) <span class="hljs-keyword">for</span> mid, eid, _ <span class="hljs-keyword">in</span> CLIMBS]
+BATTLE_WORDS = [<span class="hljs-string">&quot;pbTrainerBattle&quot;</span>, <span class="hljs-string">&quot;pbDoubleTrainerBattle&quot;</span>, <span class="hljs-string">&quot;pbWildBattle&quot;</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">need</span>(<span class="hljs-params">ok, message</span>):
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> ok:
+        <span class="hljs-keyword">raise</span> ValueError(message)
+
+
+<span class="hljs-meta">@functools.lru_cache(<span class="hljs-params">maxsize=<span class="hljs-literal">None</span></span>)</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">event</span>(<span class="hljs-params">mid, eid</span>):
+    <span class="hljs-keyword">return</span> json.loads(subprocess.check_output(
+        [<span class="hljs-string">&quot;ruby&quot;</span>, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&quot;scripts/event_dump.rb&quot;</span>), <span class="hljs-built_in">str</span>(mid), <span class="hljs-built_in">str</span>(eid)],
+        stderr=subprocess.DEVNULL))
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">source_proof</span>():
+    <span class="hljs-string">&quot;&quot;&quot;Pure installed-source validation. No native/save/planner inspection.&quot;&quot;&quot;</span>
+    proof = []
+    <span class="hljs-keyword">for</span> mid, eid, pi <span class="hljs-keyword">in</span> PAGES:
+        e = event(mid, eid)
+        page = e[<span class="hljs-string">&quot;pages&quot;</span>][pi]
+        cs = page[<span class="hljs-string">&quot;list&quot;</span>]
+        need(<span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&quot;code&quot;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">102</span>, <span class="hljs-number">103</span>, <span class="hljs-number">104</span>, <span class="hljs-number">301</span>] <span class="hljs-keyword">or</span>
+                     <span class="hljs-built_in">any</span>(k <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(c[<span class="hljs-string">&quot;parameters&quot;</span>]) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> BATTLE_WORDS)
+                     <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs), <span class="hljs-string">f&quot;Unapproved choice/battle in<span class="hljs-subst">{mid}</span>E<span class="hljs-subst">{eid}</span>p<span class="hljs-subst">{pi}</span>&quot;</span>)
+        proof.append({<span class="hljs-string">&quot;map&quot;</span>: mid, <span class="hljs-string">&quot;event&quot;</span>: eid, <span class="hljs-string">&quot;page&quot;</span>: pi,
+                      <span class="hljs-string">&quot;sha256&quot;</span>: hashlib.sha256(json.dumps(page, sort_keys=<span class="hljs-literal">True</span>).encode()).hexdigest()})
+    <span class="hljs-keyword">for</span> mid, eid, destination <span class="hljs-keyword">in</span> CLIMBS:
+        cs = event(mid, eid)[<span class="hljs-string">&quot;pages&quot;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&quot;list&quot;</span>]
+        need([c[<span class="hljs-string">&quot;parameters&quot;</span>][<span class="hljs-number">1</span>:<span class="hljs-number">4</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs <span class="hljs-keyword">if</span> c[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">201</span>] == [<span class="hljs-built_in">list</span>(destination)],
+             <span class="hljs-string">f&quot;Installed climb destination differs:<span class="hljs-subst">{mid}</span>E<span class="hljs-subst">{eid}</span>&quot;</span>)
+        need(<span class="hljs-built_in">any</span>(c[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">111</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&quot;parameters&quot;</span>] == [<span class="hljs-number">12</span>, <span class="hljs-string">&quot;Kernel.pbRockClimb&quot;</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs),
+             <span class="hljs-string">&quot;Expected ordinary RockClimb source&quot;</span>)
+    <span class="hljs-keyword">for</span> mid, eid, pi, stage <span class="hljs-keyword">in</span> [(<span class="hljs-number">413</span>, <span class="hljs-number">93</span>, <span class="hljs-number">0</span>, <span class="hljs-number">50</span>), (<span class="hljs-number">417</span>, <span class="hljs-number">29</span>, <span class="hljs-number">0</span>, <span class="hljs-number">51</span>), (<span class="hljs-number">417</span>, <span class="hljs-number">30</span>, <span class="hljs-number">1</span>, <span class="hljs-number">51</span>)]:
+        need(<span class="hljs-built_in">any</span>(c[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">122</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&quot;parameters&quot;</span>] == [<span class="hljs-number">391</span>, <span class="hljs-number">391</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, stage]
+                 <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> event(mid, eid)[<span class="hljs-string">&quot;pages&quot;</span>][pi][<span class="hljs-string">&quot;list&quot;</span>]), <span class="hljs-string">&quot;Missing exact story setter&quot;</span>)
+    need(event(<span class="hljs-number">417</span>, <span class="hljs-number">29</span>)[<span class="hljs-string">&quot;pages&quot;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&quot;trigger&quot;</span>] == <span class="hljs-number">3</span> <span class="hljs-keyword">and</span>
+         event(<span class="hljs-number">417</span>, <span class="hljs-number">30</span>)[<span class="hljs-string">&quot;pages&quot;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&quot;trigger&quot;</span>] == <span class="hljs-number">3</span>, <span class="hljs-string">&quot;House briefing must remain an autorun&quot;</span>)
+    need(event(<span class="hljs-number">415</span>, <span class="hljs-number">4</span>)[<span class="hljs-string">&quot;pages&quot;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&quot;list&quot;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&quot;parameters&quot;</span>] == [<span class="hljs-number">1</span>],
+         <span class="hljs-string">&quot;Nurse must call installed healing common event1&quot;</span>)
+    <span class="hljs-keyword">return</span> proof
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">selected_page</span>(<span class="hljs-params">e, nav, mid</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Pure RGSS page-condition selection from an explicit snapshot.&quot;&quot;&quot;</span>
+    sw, va, ss = [nav.get(k, {}) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;switches&quot;</span>, <span class="hljs-string">&quot;variables&quot;</span>, <span class="hljs-string">&quot;self_switches&quot;</span>]]
+    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(e[<span class="hljs-string">&quot;pages&quot;</span>]) - <span class="hljs-number">1</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>):
+        c = e[<span class="hljs-string">&quot;pages&quot;</span>][i][<span class="hljs-string">&quot;condition&quot;</span>]
+        <span class="hljs-keyword">if</span> ((<span class="hljs-keyword">not</span> c[<span class="hljs-string">&quot;switch1_valid&quot;</span>] <span class="hljs-keyword">or</span> sw.get(<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&quot;switch1_id&quot;</span>])) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>) <span class="hljs-keyword">and</span>
+            (<span class="hljs-keyword">not</span> c[<span class="hljs-string">&quot;switch2_valid&quot;</span>] <span class="hljs-keyword">or</span> sw.get(<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&quot;switch2_id&quot;</span>])) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>) <span class="hljs-keyword">and</span>
+            (<span class="hljs-keyword">not</span> c[<span class="hljs-string">&quot;variable_valid&quot;</span>] <span class="hljs-keyword">or</span> va.get(<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&quot;variable_id&quot;</span>]), <span class="hljs-number">0</span>) &gt;= c[<span class="hljs-string">&quot;variable_value&quot;</span>]) <span class="hljs-keyword">and</span>
+            (<span class="hljs-keyword">not</span> c[<span class="hljs-string">&quot;self_switch_valid&quot;</span>] <span class="hljs-keyword">or</span> ss.get(<span class="hljs-string">f&quot;<span class="hljs-subst">{mid}</span>,<span class="hljs-subst">{e[<span class="hljs-string">&#x27;id&#x27;</span>]}</span>,<span class="hljs-subst">{c[<span class="hljs-string">&#x27;self_switch_ch&#x27;</span>]}</span>&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>)):
+            <span class="hljs-keyword">return</span> i
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">frozen_party</span>(<span class="hljs-params">path, phase</span>):
+    path = path.resolve()
+    need(path.is_relative_to(ROOT), <span class="hljs-string">&quot;Use explicit frozen workspace party evidence&quot;</span>)
+    s = json.loads(path.read_text())
+    party = s.get(<span class="hljs-string">&quot;party&quot;</span>, [])
+    need(<span class="hljs-built_in">len</span>(party) == <span class="hljs-number">6</span> <span class="hljs-keyword">and</span> party[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;level&quot;</span>] == <span class="hljs-number">90</span>, <span class="hljs-string">&quot;Six members and level90 lead required&quot;</span>)
+    need(party[<span class="hljs-number">1</span>][<span class="hljs-string">&quot;species&quot;</span>] == (<span class="hljs-string">&quot;TRANQUILL&quot;</span> <span class="hljs-keyword">if</span> phase <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;approach&quot;</span>, <span class="hljs-string">&quot;fly-circus&quot;</span>] <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;KLINKLANG&quot;</span>),
+         <span class="hljs-string">&quot;Frozen party index1 differs; refresh evidence after any PC/party change&quot;</span>)
+    swamps = [p <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> party <span class="hljs-keyword">if</span> p[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;SWAMPERT&quot;</span>]
+    need(<span class="hljs-built_in">len</span>(swamps) == <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> {<span class="hljs-string">&quot;ROCKCLIMB&quot;</span>, <span class="hljs-string">&quot;SURF&quot;</span>} &lt;= {m[<span class="hljs-string">&quot;move&quot;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> swamps[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;moves&quot;</span>]},
+         <span class="hljs-string">&quot;Owned Swampert must already know RockClimb and Surf&quot;</span>)
+    <span class="hljs-keyword">if</span> phase <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;all&quot;</span>, <span class="hljs-string">&quot;approach&quot;</span>]:
+        need(s.get(<span class="hljs-string">&quot;bag&quot;</span>, {}).get(<span class="hljs-string">&quot;contents&quot;</span>, {}).get(<span class="hljs-string">&quot;SUPERREPEL&quot;</span>, <span class="hljs-number">0</span>) &gt;= <span class="hljs-number">3</span>,
+             <span class="hljs-string">&quot;Require at least3 owned SuperRepels for the ordinary approach&quot;</span>)
+    <span class="hljs-keyword">if</span> phase <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;approach&quot;</span>, <span class="hljs-string">&quot;fly-circus&quot;</span>]:
+        need(<span class="hljs-string">&quot;FLY&quot;</span> <span class="hljs-keyword">in</span> {m[<span class="hljs-string">&quot;move&quot;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> party[<span class="hljs-number">1</span>][<span class="hljs-string">&quot;moves&quot;</span>]}, <span class="hljs-string">&quot;Frozen Tranquill must know Fly&quot;</span>)
+        need(party[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;hp&quot;</span>] == party[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;totalhp&quot;</span>] <span class="hljs-keyword">and</span> party[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;status&quot;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>,
+             <span class="hljs-string">&quot;Heal level90 lead before standalone route&quot;</span>)
+    <span class="hljs-keyword">return</span> s, hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Runner</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, args, party, binding</span>):
+        <span class="hljs-variable language_">self</span>.args, <span class="hljs-variable language_">self</span>.party = args, party
+        <span class="hljs-variable language_">self</span>.path = args.journal.resolve()
+        need(<span class="hljs-variable language_">self</span>.path.is_relative_to(ROOT), <span class="hljs-string">&quot;Journal must be in the workspace&quot;</span>)
+        need(<span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.path.exists(), <span class="hljs-string">&quot;Existing journal: inspect partial inputs; use a NEW journal only after actual-state review&quot;</span>)
+        <span class="hljs-variable language_">self</span>.journal = {<span class="hljs-string">&quot;frozen_party_sha256&quot;</span>: binding, <span class="hljs-string">&quot;source_proof&quot;</span>: source_proof(),
+                        <span class="hljs-string">&quot;phase&quot;</span>: args.phase, <span class="hljs-string">&quot;events&quot;</span>: [], <span class="hljs-string">&quot;pending&quot;</span>: <span class="hljs-literal">None</span>}
+        <span class="hljs-variable language_">self</span>.write()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">write</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.path.write_text(json.dumps(<span class="hljs-variable language_">self</span>.journal, indent=<span class="hljs-number">2</span>) + <span class="hljs-string">&quot;\n&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">record</span>(<span class="hljs-params">self, kind, **data</span>):
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&quot;events&quot;</span>].append({<span class="hljs-string">&quot;epoch&quot;</span>: time.time(), <span class="hljs-string">&quot;kind&quot;</span>: kind, **data})
+        <span class="hljs-variable language_">self</span>.write()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">self, script, *args</span>):
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&quot;pending&quot;</span>] = {<span class="hljs-string">&quot;script&quot;</span>: script, <span class="hljs-string">&quot;args&quot;</span>: <span class="hljs-built_in">list</span>(args), <span class="hljs-string">&quot;epoch&quot;</span>: time.time()}
+        <span class="hljs-variable language_">self</span>.write()
+        subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&quot;scripts&quot;</span> / (script + <span class="hljs-string">&quot;.py&quot;</span>)),
+                        *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, args)], check=<span class="hljs-literal">True</span>)
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&quot;ordinary-helper-returned&quot;</span>, script=script, args=<span class="hljs-built_in">list</span>(args))
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&quot;pending&quot;</span>] = <span class="hljs-literal">None</span>
+        <span class="hljs-variable language_">self</span>.write()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">nav</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">return</span> json.loads(STATE.read_text())
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">stage</span>(<span class="hljs-params">self, expected</span>):
+        need(<span class="hljs-variable language_">self</span>.nav().get(<span class="hljs-string">&quot;variables&quot;</span>, {}).get(<span class="hljs-string">&quot;391&quot;</span>) == expected,
+             <span class="hljs-string">f&quot;Observed completed planning stage must be391=<span class="hljs-subst">{expected}</span>&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">world</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> snap, STATE <span class="hljs-keyword">as</span> IMAGE
+        <span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+        rows = snap()
+        text = <span class="hljs-string">&quot;\n&quot;</span>.join(r[<span class="hljs-string">&quot;text&quot;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows).lower()
+        compact = re.sub(<span class="hljs-string">&quot;[^a-z]&quot;</span>, <span class="hljs-string">&quot;&quot;</span>, text)
+        <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;repel&quot;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">and</span> (<span class="hljs-string">&quot;woreoff&quot;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">or</span> <span class="hljs-string">&quot;uoreoff&quot;</span> <span class="hljs-keyword">in</span> compact):
+            <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;renew_repel&quot;</span>)
+            <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.world()
+        need(<span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&quot;\bhp\b|\bfight\b|\bwild\b|\bpp:|\bvs\b&quot;</span>, text),
+             <span class="hljs-string">&quot;Battle/party screen interrupted queue; no further action&quot;</span>)
+        need(<span class="hljs-keyword">not</span> {r[<span class="hljs-string">&quot;text&quot;</span>].strip().lower() <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows} &amp; {<span class="hljs-string">&quot;yes&quot;</span>, <span class="hljs-string">&quot;no&quot;</span>, <span class="hljs-string">&quot;ves&quot;</span>, <span class="hljs-string">&quot;tes&quot;</span>, <span class="hljs-string">&quot;mo&quot;</span>, <span class="hljs-string">&quot;ro&quot;</span>},
+             <span class="hljs-string">&quot;Choice interrupted queue; no further action&quot;</span>)
+        im = Image.<span class="hljs-built_in">open</span>(IMAGE).convert(<span class="hljs-string">&quot;RGB&quot;</span>); w, h = im.size
+        box = im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.08</span>), <span class="hljs-built_in">int</span>(h*<span class="hljs-number">.75</span>), <span class="hljs-built_in">int</span>(w*<span class="hljs-number">.90</span>), <span class="hljs-built_in">int</span>(h*<span class="hljs-number">.87</span>)))
+        white = <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">min</span>(p)&gt;<span class="hljs-number">235</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">max</span>(p)-<span class="hljs-built_in">min</span>(p)&lt;<span class="hljs-number">5</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> box.getdata())/(box.width*box.height)
+        <span class="hljs-keyword">def</span> <span class="hljs-title function_">border</span>(<span class="hljs-params">y</span>):
+            px = [im.getpixel((x, <span class="hljs-built_in">int</span>(h*y))) <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.08</span>), <span class="hljs-built_in">int</span>(w*<span class="hljs-number">.90</span>))]
+            <span class="hljs-keyword">return</span> <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">max</span>(p)&lt;<span class="hljs-number">95</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> px)/<span class="hljs-built_in">len</span>(px)
+        need(<span class="hljs-keyword">not</span> (white&gt;<span class="hljs-number">.35</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">max</span>(border(y) <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> [<span class="hljs-number">.721</span>,<span class="hljs-number">.725</span>,<span class="hljs-number">.729</span>,<span class="hljs-number">.733</span>])&gt;<span class="hljs-number">.8</span> <span class="hljs-keyword">and</span>
+                  <span class="hljs-built_in">max</span>(border(y) <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> [<span class="hljs-number">.895</span>,<span class="hljs-number">.900</span>,<span class="hljs-number">.905</span>,<span class="hljs-number">.910</span>])&gt;<span class="hljs-number">.8</span>), <span class="hljs-string">&quot;Unresolved dialogue; no further action&quot;</span>)
+        need(<span class="hljs-keyword">not</span> (<span class="hljs-string">&quot;bag&quot;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(n <span class="hljs-keyword">in</span> text <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;options&quot;</span>,<span class="hljs-string">&quot;uptions&quot;</span>,<span class="hljs-string">&quot;controls&quot;</span>])), <span class="hljs-string">&quot;Main menu remained open&quot;</span>)
+        need(<span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&quot;[,.;]\s*map\s*[0-9oq]+&quot;</span>, text), <span class="hljs-string">&quot;Coordinate popup remained open&quot;</span>)
+        <span class="hljs-keyword">return</span> rows
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">position</span>(<span class="hljs-params">self, expected_map, exact=<span class="hljs-literal">None</span></span>):
+        <span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+        <span class="hljs-variable language_">self</span>.world()
+        actual = locate(expected_map)
+        need(actual[<span class="hljs-number">0</span>] == expected_map <span class="hljs-keyword">and</span> (exact <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> actual == <span class="hljs-built_in">tuple</span>(exact)),
+             <span class="hljs-string">f&quot;Observed arrival<span class="hljs-subst">{actual}</span> differs from expected<span class="hljs-subst">{exact <span class="hljs-keyword">or</span> expected_map}</span>&quot;</span>)
+        <span class="hljs-variable language_">self</span>.world()
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&quot;position-verified&quot;</span>, position=<span class="hljs-built_in">list</span>(actual))
+        <span class="hljs-keyword">return</span> actual
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">active_source</span>(<span class="hljs-params">self, mid, eid, pi</span>):
+        need(selected_page(event(mid, eid), <span class="hljs-variable language_">self</span>.nav(), mid) == pi,
+             <span class="hljs-string">f&quot;<span class="hljs-subst">{mid}</span>E<span class="hljs-subst">{eid}</span> does not have approved page<span class="hljs-subst">{pi}</span>; no event interaction&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">no_auto_battle</span>(<span class="hljs-params">self, mid</span>):
+        <span class="hljs-comment"># Reject a still-active auto-trigger trainer anywhere on this small map.</span>
+        <span class="hljs-comment"># Conservative by design: do not accidentally turn prep into a new fight.</span>
+        value = json.loads(subprocess.check_output(
+            [<span class="hljs-string">&quot;ruby&quot;</span>, <span class="hljs-built_in">str</span>(ROOT / <span class="hljs-string">&quot;scripts/route_map.rb&quot;</span>), <span class="hljs-built_in">str</span>(mid), <span class="hljs-string">&quot;0&quot;</span>, <span class="hljs-string">&quot;0&quot;</span>],
+            stderr=subprocess.DEVNULL))
+        hits = [eid <span class="hljs-keyword">for</span> eid, e <span class="hljs-keyword">in</span> value[<span class="hljs-string">&quot;events&quot;</span>].items() <span class="hljs-keyword">if</span> e[<span class="hljs-string">&quot;trigger&quot;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>] <span class="hljs-keyword">and</span>
+                <span class="hljs-built_in">any</span>(k <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(e.get(<span class="hljs-string">&quot;list&quot;</span>, [])) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> BATTLE_WORDS)]
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> hits:
+            <span class="hljs-keyword">return</span>
+        need(<span class="hljs-built_in">getattr</span>(<span class="hljs-variable language_">self</span>.args, <span class="hljs-string">&quot;allow_source_avoided_trainers&quot;</span>, <span class="hljs-literal">False</span>) <span class="hljs-keyword">and</span>
+             mid <span class="hljs-keyword">in</span> {m <span class="hljs-keyword">for</span> m, _, _ <span class="hljs-keyword">in</span> CLIMBS},
+             <span class="hljs-string">f&quot;Active automatic trainer/boss events on<span class="hljs-subst">{mid}</span>:<span class="hljs-subst">{hits}</span>; inspect a safe route separately&quot;</span>)
+        <span class="hljs-comment"># These reviewed Route4 trainers stand still. Exclude their complete</span>
+        <span class="hljs-comment"># source sightlines as HARD planner obstacles, rather than treating a</span>
+        <span class="hljs-comment"># trainer anywhere on this large map as an unavoidable encounter.</span>
+        hazards = <span class="hljs-built_in">set</span>()
+        <span class="hljs-keyword">for</span> eid <span class="hljs-keyword">in</span> hits:
+            e = value[<span class="hljs-string">&quot;events&quot;</span>][eid]
+            <span class="hljs-keyword">match</span> = re.fullmatch(<span class="hljs-string">r&quot;Trainer\((\d+)\)&quot;</span>, e[<span class="hljs-string">&quot;name&quot;</span>])
+            need(e[<span class="hljs-string">&quot;trigger&quot;</span>] == <span class="hljs-number">2</span> <span class="hljs-keyword">and</span> e[<span class="hljs-string">&quot;move_type&quot;</span>] == <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">match</span> <span class="hljs-keyword">and</span>
+                 e[<span class="hljs-string">&quot;direction&quot;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>, <span class="hljs-number">8</span>],
+                 <span class="hljs-string">f&quot;Unreviewed automatic battle geometry on<span class="hljs-subst">{mid}</span>E<span class="hljs-subst">{eid}</span>; stop&quot;</span>)
+            dx, dy = {<span class="hljs-number">2</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>), <span class="hljs-number">4</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>), <span class="hljs-number">6</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>), <span class="hljs-number">8</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)}[e[<span class="hljs-string">&quot;direction&quot;</span>]]
+            hazards.update((e[<span class="hljs-string">&quot;x&quot;</span>] + n*dx, e[<span class="hljs-string">&quot;y&quot;</span>] + n*dy)
+                           <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">int</span>(<span class="hljs-keyword">match</span>[<span class="hljs-number">1</span>]) + <span class="hljs-number">1</span>))
+        state = <span class="hljs-variable language_">self</span>.nav()
+        old = <span class="hljs-built_in">set</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">tuple</span>, state.get(<span class="hljs-string">&quot;avoid&quot;</span>, {}).get(<span class="hljs-built_in">str</span>(mid), [])))
+        state.setdefault(<span class="hljs-string">&quot;avoid&quot;</span>, {})[<span class="hljs-built_in">str</span>(mid)] = [<span class="hljs-built_in">list</span>(p) <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(old | hazards)]
+        STATE.write_text(json.dumps(state) + <span class="hljs-string">&quot;\n&quot;</span>)
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&quot;stationary-source-trainers-hard-excluded&quot;</span>, <span class="hljs-built_in">map</span>=mid,
+                    events=hits, tiles=[<span class="hljs-built_in">list</span>(p) <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(hazards)])
+        <span class="hljs-comment"># eventq&#x27;s fresh path search reads these exclusions before any walking</span>
+        <span class="hljs-comment"># input and refuses if no accessible climb face remains.</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">mirror</span>(<span class="hljs-params">self, mid, eid, pi</span>):
+        <span class="hljs-keyword">from</span> post_hypno_exit <span class="hljs-keyword">import</span> mirror_page
+        mirror_page(mid, eid, event(mid, eid)[<span class="hljs-string">&quot;pages&quot;</span>][pi])
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&quot;completed-source-effects-mirrored-to-planner&quot;</span>, <span class="hljs-built_in">map</span>=mid, event=eid, page=pi)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">transfer</span>(<span class="hljs-params">self, mid, eid, destination</span>):
+        <span class="hljs-variable language_">self</span>.position(mid)
+        <span class="hljs-variable language_">self</span>.no_auto_battle(mid)
+        <span class="hljs-variable language_">self</span>.active_source(mid, eid, <span class="hljs-number">0</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;eventq&quot;</span>, mid, eid, <span class="hljs-string">&quot;enter&quot;</span>)
+        <span class="hljs-variable language_">self</span>.position(destination[<span class="hljs-number">0</span>], destination)
+        <span class="hljs-variable language_">self</span>.mirror(mid, eid, <span class="hljs-number">0</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">linear</span>(<span class="hljs-params">self, mid, eid, pi, *, started=<span class="hljs-literal">False</span></span>):
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> started:
+            <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act, read
+            <span class="hljs-variable language_">self</span>.position(mid)
+            <span class="hljs-variable language_">self</span>.active_source(mid, eid, pi)
+            <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;eventq&quot;</span>, mid, eid, <span class="hljs-string">&quot;talk&quot;</span>)
+            blocks = [<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&quot;parameters&quot;</span>][<span class="hljs-number">0</span>]) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> event(mid, eid)[<span class="hljs-string">&quot;pages&quot;</span>][pi][<span class="hljs-string">&quot;list&quot;</span>]
+                      <span class="hljs-keyword">if</span> c[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">101</span>]
+            norm = <span class="hljs-keyword">lambda</span> s: re.sub(<span class="hljs-string">&quot;[^a-z]&quot;</span>, <span class="hljs-string">&quot;&quot;</span>, s.lower().replace(<span class="hljs-string">&quot;pokemon reborn&quot;</span>, <span class="hljs-string">&quot;&quot;</span>))
+            <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>):
+                visible = read()
+                need(<span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&quot;\bhp\b|\bfight\b|\bpp:&quot;</span>, visible.lower()), <span class="hljs-string">&quot;Battle interrupted story interaction&quot;</span>)
+                <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>, norm(visible), norm(b)).ratio() &gt;= <span class="hljs-number">.50</span>
+                       <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> blocks):
+                    <span class="hljs-keyword">break</span>
+                act(<span class="hljs-string">&quot;wait:.6&quot;</span>)
+            <span class="hljs-keyword">else</span>:
+                <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">f&quot;No installed dialogue observed for<span class="hljs-subst">{mid}</span>E<span class="hljs-subst">{eid}</span>p<span class="hljs-subst">{pi}</span>; no source effects credited&quot;</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;linear_dialog&quot;</span>, mid, eid, <span class="hljs-string">&quot;--source-page&quot;</span>, pi, <span class="hljs-string">&quot;--burst&quot;</span>, <span class="hljs-string">&quot;--world-settle&quot;</span>, <span class="hljs-number">12</span>)
+        <span class="hljs-variable language_">self</span>.position(mid)
+        <span class="hljs-variable language_">self</span>.mirror(mid, eid, pi)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">briefing</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act, read
+        stage = <span class="hljs-variable language_">self</span>.nav().get(<span class="hljs-string">&quot;variables&quot;</span>, {}).get(<span class="hljs-string">&quot;391&quot;</span>)
+        need(stage <span class="hljs-keyword">in</span> [<span class="hljs-number">49</span>, <span class="hljs-number">50</span>, <span class="hljs-number">51</span>], <span class="hljs-string">&quot;Briefing accepts only post-recovery39149..51&quot;</span>)
+        actual = <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">413</span>)
+        <span class="hljs-keyword">if</span> stage == <span class="hljs-number">49</span>:
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.args.skip_shelly <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.nav().get(<span class="hljs-string">&quot;switches&quot;</span>, {}).get(<span class="hljs-string">&quot;1023&quot;</span>):
+                <span class="hljs-variable language_">self</span>.linear(<span class="hljs-number">413</span>, <span class="hljs-number">46</span>, <span class="hljs-number">0</span>)
+            <span class="hljs-variable language_">self</span>.linear(<span class="hljs-number">413</span>, <span class="hljs-number">93</span>, <span class="hljs-number">0</span>)
+            <span class="hljs-comment"># This is the one inspected conditional source effect on Eve&#x27;s</span>
+            <span class="hljs-comment"># first page; her next page is a PULSE choice and is NOT replayed.</span>
+            state = <span class="hljs-variable language_">self</span>.nav()
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> state.get(<span class="hljs-string">&quot;switches&quot;</span>, {}).get(<span class="hljs-string">&quot;573&quot;</span>):
+                state.setdefault(<span class="hljs-string">&quot;switches&quot;</span>, {})[<span class="hljs-string">&quot;990&quot;</span>] = <span class="hljs-literal">True</span>
+                STATE.write_text(json.dumps(state) + <span class="hljs-string">&quot;\n&quot;</span>)
+            <span class="hljs-variable language_">self</span>.stage(<span class="hljs-number">50</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.nav().get(<span class="hljs-string">&quot;variables&quot;</span>, {}).get(<span class="hljs-string">&quot;391&quot;</span>) == <span class="hljs-number">50</span>:
+            <span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">413</span>, <span class="hljs-number">67</span>, <span class="hljs-number">0</span>)
+            eid, pi = (<span class="hljs-number">30</span>, <span class="hljs-number">1</span>) <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.nav().get(<span class="hljs-string">&quot;switches&quot;</span>, {}).get(<span class="hljs-string">&quot;878&quot;</span>) <span class="hljs-keyword">else</span> (<span class="hljs-number">29</span>, <span class="hljs-number">0</span>)
+            <span class="hljs-comment"># The house entrance starts this autorun. Do not open coordinate</span>
+            <span class="hljs-comment"># UI or send any movement between the transfer and its dialogue.</span>
+            <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;eventq&quot;</span>, <span class="hljs-number">413</span>, <span class="hljs-number">67</span>, <span class="hljs-string">&quot;enter&quot;</span>)
+            <span class="hljs-comment"># A returned movement helper is not itself transfer proof. Observe</span>
+            <span class="hljs-comment"># an installed house line before reflecting its entrance effects.</span>
+            blocks = [<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&quot;parameters&quot;</span>][<span class="hljs-number">0</span>]) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> event(<span class="hljs-number">417</span>, eid)[<span class="hljs-string">&quot;pages&quot;</span>][pi][<span class="hljs-string">&quot;list&quot;</span>]
+                      <span class="hljs-keyword">if</span> c[<span class="hljs-string">&quot;code&quot;</span>] == <span class="hljs-number">101</span>]
+            norm = <span class="hljs-keyword">lambda</span> s: re.sub(<span class="hljs-string">&quot;[^a-z]&quot;</span>, <span class="hljs-string">&quot;&quot;</span>, s.lower().replace(<span class="hljs-string">&quot;pokemon reborn&quot;</span>, <span class="hljs-string">&quot;&quot;</span>))
+            <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">6</span>):
+                visible = read()
+                need(<span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&quot;\bhp\b|\bfight\b|\bpp:&quot;</span>, visible.lower()), <span class="hljs-string">&quot;Unexpected battle during house transfer&quot;</span>)
+                <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>, norm(visible), norm(b)).ratio() &gt;= <span class="hljs-number">.50</span>
+                       <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> blocks):
+                    <span class="hljs-keyword">break</span>
+                act(<span class="hljs-string">&quot;wait:1&quot;</span>)
+            <span class="hljs-keyword">else</span>:
+                <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;House autorun line not observed; no dialogue tap or source mirror sent&quot;</span>)
+            <span class="hljs-variable language_">self</span>.mirror(<span class="hljs-number">413</span>, <span class="hljs-number">67</span>, <span class="hljs-number">0</span>)
+            <span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">417</span>, eid, pi)
+            <span class="hljs-variable language_">self</span>.linear(<span class="hljs-number">417</span>, eid, pi, started=<span class="hljs-literal">True</span>)
+            <span class="hljs-variable language_">self</span>.stage(<span class="hljs-number">51</span>)
+            <span class="hljs-variable language_">self</span>.transfer(<span class="hljs-number">417</span>, <span class="hljs-number">6</span>, (<span class="hljs-number">413</span>, <span class="hljs-number">28</span>, <span class="hljs-number">32</span>))
+        <span class="hljs-variable language_">self</span>.stage(<span class="hljs-number">51</span>)
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&quot;phase-completed&quot;</span>, phase=<span class="hljs-string">&quot;briefing&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">carrier</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act, read, snap
+        <span class="hljs-variable language_">self</span>.stage(<span class="hljs-number">51</span>)
+        actual = <span class="hljs-variable language_">self</span>.position(<span class="hljs-variable language_">self</span>.nav_start_map())
+        <span class="hljs-keyword">if</span> actual[<span class="hljs-number">0</span>] == <span class="hljs-number">413</span>:
+            <span class="hljs-variable language_">self</span>.transfer(<span class="hljs-number">413</span>, <span class="hljs-number">68</span>, (<span class="hljs-number">415</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>))
+        <span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">415</span>, <span class="hljs-number">4</span>, <span class="hljs-number">0</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;eventq&quot;</span>, <span class="hljs-number">415</span>, <span class="hljs-number">4</span>, <span class="hljs-string">&quot;talk&quot;</span>)
+        welcome = read().lower()
+        need(<span class="hljs-string">&quot;welcome&quot;</span> <span class="hljs-keyword">in</span> welcome <span class="hljs-keyword">or</span> <span class="hljs-string">&quot;rest&quot;</span> <span class="hljs-keyword">in</span> welcome, <span class="hljs-string">&quot;Expected nurse welcome&quot;</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;choose_dialog&quot;</span>, <span class="hljs-string">&quot;Yes|No&quot;</span>, <span class="hljs-string">&quot;Yes&quot;</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;heal&quot;</span>)
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">415</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;eventq&quot;</span>, <span class="hljs-number">415</span>, <span class="hljs-number">7</span>, <span class="hljs-string">&quot;talk&quot;</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;pc_open_reviewed&quot;</span>)
+        need(re.search(<span class="hljs-string">r&quot;\bbox\s*1\b&quot;</span>, read().lower()), <span class="hljs-string">&quot;Fresh Box1 required; no cursor move sent&quot;</span>)
+        <span class="hljs-comment"># Storage.rb pbStartBox resets selection0; this was just opened, never</span>
+        <span class="hljs-comment"># resumed from an old box cursor. The existing helper verifies both names.</span>
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;pc_exchange_named&quot;</span>, <span class="hljs-number">12</span>, <span class="hljs-number">1</span>, <span class="hljs-string">&quot;Tranquill&quot;</span>, <span class="hljs-string">&quot;Klinklang&quot;</span>)
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">415</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;party_open&quot;</span>)
+        rows = snap()
+        expected = [p[<span class="hljs-string">&quot;name&quot;</span>] <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.party]
+        expected[<span class="hljs-number">1</span>] = <span class="hljs-string">&quot;Tranquill&quot;</span>
+        <span class="hljs-keyword">for</span> slot, name <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(expected):
+            matches = []
+            <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows:
+                word = re.sub(<span class="hljs-string">&quot;[^a-z]&quot;</span>, <span class="hljs-string">&quot;&quot;</span>, r[<span class="hljs-string">&quot;text&quot;</span>].lower())
+                score = difflib.SequenceMatcher(<span class="hljs-literal">None</span>, name.lower(), word).ratio()
+                <span class="hljs-keyword">if</span> score &gt;= <span class="hljs-number">.78</span> <span class="hljs-keyword">and</span> <span class="hljs-number">.1</span> &lt; r[<span class="hljs-string">&quot;y&quot;</span>] &lt; <span class="hljs-number">.7</span>:
+                    col = <span class="hljs-built_in">int</span>(r[<span class="hljs-string">&quot;x&quot;</span>] &gt; <span class="hljs-number">.5</span>)
+                    row = <span class="hljs-built_in">round</span>((r[<span class="hljs-string">&quot;y&quot;</span>] - (<span class="hljs-number">.15</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> col <span class="hljs-keyword">else</span> <span class="hljs-number">.195</span>))/<span class="hljs-number">.21</span>)
+                    <span class="hljs-keyword">if</span> row <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>]:
+                        matches.append(row*<span class="hljs-number">2</span>+col)
+            need(matches == [slot], <span class="hljs-string">f&quot;Party card<span class="hljs-subst">{name}</span> is not uniquely in expected slot<span class="hljs-subst">{slot}</span>&quot;</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;party_pick&quot;</span>, <span class="hljs-string">&quot;Tranquill&quot;</span>, <span class="hljs-string">&quot;--single&quot;</span>)
+        text = read().lower()
+        need(<span class="hljs-string">&quot;summary&quot;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&quot;switch&quot;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span>
+             <span class="hljs-built_in">any</span>(s.strip().lower() <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;fly&quot;</span>, <span class="hljs-string">&quot;flu&quot;</span>, <span class="hljs-string">&quot;fiy&quot;</span>, <span class="hljs-string">&quot;flh&quot;</span>] <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> text.splitlines()),
+             <span class="hljs-string">&quot;Owned Tranquill Fly option not visible; stop before route&quot;</span>)
+        act(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-string">&quot;wait:.5&quot;</span>, <span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-string">&quot;wait:.6&quot;</span>)
+        <span class="hljs-comment"># Party cancellation returns to PauseMenu unless a hidden move was</span>
+        <span class="hljs-comment"># actually used (PauseMenu.rb199..212). Close that known menu once.</span>
+        labels = {s.strip().lower() <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> read().splitlines()}
+        need({<span class="hljs-string">&quot;bag&quot;</span>, <span class="hljs-string">&quot;options&quot;</span>} &lt;= labels, <span class="hljs-string">&quot;Expected main menu after inspecting Fly; no extra X sent&quot;</span>)
+        act(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-string">&quot;wait:.6&quot;</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;overworld&quot;</span>)
+        <span class="hljs-variable language_">self</span>.transfer(<span class="hljs-number">415</span>, <span class="hljs-number">8</span>, (<span class="hljs-number">413</span>, <span class="hljs-number">45</span>, <span class="hljs-number">28</span>))
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&quot;phase-completed&quot;</span>, phase=<span class="hljs-string">&quot;carrier&quot;</span>, swap={<span class="hljs-string">&quot;box&quot;</span>: <span class="hljs-number">1</span>, <span class="hljs-string">&quot;slot&quot;</span>: <span class="hljs-number">12</span>, <span class="hljs-string">&quot;party_index&quot;</span>: <span class="hljs-number">1</span>},
+                    fly_verified=<span class="hljs-literal">True</span>, nurse_yes=<span class="hljs-literal">True</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">nav_start_map</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+        <span class="hljs-variable language_">self</span>.world()
+        mid = locate()[<span class="hljs-number">0</span>]
+        need(mid <span class="hljs-keyword">in</span> [<span class="hljs-number">413</span>, <span class="hljs-number">415</span>], <span class="hljs-string">&quot;Carrier phase must start in Calcenon or its center&quot;</span>)
+        <span class="hljs-keyword">return</span> mid
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">approach</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.stage(<span class="hljs-number">51</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.args.climb_index <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+            <span class="hljs-variable language_">self</span>.transfer(<span class="hljs-number">413</span>, <span class="hljs-number">21</span>, (<span class="hljs-number">418</span>, <span class="hljs-number">17</span>, <span class="hljs-number">7</span>))
+            <span class="hljs-variable language_">self</span>.transfer(<span class="hljs-number">418</span>, <span class="hljs-number">2</span>, (<span class="hljs-number">412</span>, <span class="hljs-number">12</span>, <span class="hljs-number">18</span>))
+            <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;use_field_item&quot;</span>, <span class="hljs-string">&quot;Super Repel&quot;</span>)
+            <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">412</span>)
+            first = <span class="hljs-number">0</span>
+        <span class="hljs-keyword">else</span>:
+            first = <span class="hljs-variable language_">self</span>.args.climb_index
+            <span class="hljs-variable language_">self</span>.position(CLIMBS[first][<span class="hljs-number">0</span>])
+        <span class="hljs-keyword">for</span> mid, eid, destination <span class="hljs-keyword">in</span> CLIMBS[first:]:
+            <span class="hljs-variable language_">self</span>.position(mid)
+            <span class="hljs-variable language_">self</span>.no_auto_battle(mid)
+            <span class="hljs-variable language_">self</span>.active_source(mid, eid, <span class="hljs-number">0</span>)
+            <span class="hljs-keyword">if</span> mid == <span class="hljs-number">713</span>:
+                state = <span class="hljs-variable language_">self</span>.nav()
+                need(<span class="hljs-built_in">isinstance</span>(state.get(<span class="hljs-string">&quot;switches&quot;</span>, {}).get(<span class="hljs-string">&quot;410&quot;</span>), <span class="hljs-built_in">bool</span>), <span class="hljs-string">&quot;Observed410 layer proof required&quot;</span>)
+                <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;layer_walk&quot;</span>, <span class="hljs-number">713</span>, <span class="hljs-number">48</span>, <span class="hljs-number">36</span>, <span class="hljs-built_in">int</span>(state[<span class="hljs-string">&quot;switches&quot;</span>][<span class="hljs-string">&quot;410&quot;</span>]))
+                <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">713</span>, (<span class="hljs-number">713</span>, <span class="hljs-number">48</span>, <span class="hljs-number">36</span>))
+            <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;eventq&quot;</span>, mid, eid, <span class="hljs-string">&quot;talk&quot;</span>)
+            <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&quot;dialog&quot;</span>, <span class="hljs-string">&quot;--limit=10&quot;</span>)
+            <span class="hljs-variable language_">self</span>.position(destination[<span class="hljs-number">0</span>], destination)
+            <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&quot;ordinary-climb-verified&quot;</span>, <span class="hljs-built_in">map</span>=mid, event=eid, destination=<span class="hljs-built_in">list</span>(destination))
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&quot;phase-completed&quot;</span>, phase=<span class="hljs-string">&quot;approach&quot;</span>, stop=[<span class="hljs-number">715</span>, <span class="hljs-number">65</span>, <span class="hljs-number">17</span>],
+                    scale_collected=<span class="hljs-literal">False</span>, collected710_scale_not_replayed=<span class="hljs-literal">True</span>)
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;SAFE715[65,17]. Continue the reviewed715E64 dry-layer/Surf pickup separately; no Fly sent.&quot;</span>, flush=<span class="hljs-literal">True</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument(<span class="hljs-string">&quot;--execute&quot;</span>, action=<span class="hljs-string">&quot;store_true&quot;</span>)
+    p.add_argument(<span class="hljs-string">&quot;--phase&quot;</span>, choices=[<span class="hljs-string">&quot;all&quot;</span>, *PHASES, <span class="hljs-string">&quot;fly-circus&quot;</span>], default=<span class="hljs-string">&quot;all&quot;</span>)
+    p.add_argument(<span class="hljs-string">&quot;--stop-phase&quot;</span>, choices=PHASES, default=<span class="hljs-string">&quot;approach&quot;</span>)
+    p.add_argument(<span class="hljs-string">&quot;--skip-shelly&quot;</span>, action=<span class="hljs-string">&quot;store_true&quot;</span>)
+    p.add_argument(<span class="hljs-string">&quot;--allow-source-avoided-trainers&quot;</span>, action=<span class="hljs-string">&quot;store_true&quot;</span>)
+    p.add_argument(<span class="hljs-string">&quot;--climb-index&quot;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, choices=<span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>))
+    p.add_argument(<span class="hljs-string">&quot;--party-status&quot;</span>, <span class="hljs-built_in">type</span>=pathlib.Path)
+    p.add_argument(<span class="hljs-string">&quot;--journal&quot;</span>, <span class="hljs-built_in">type</span>=pathlib.Path, default=ROOT / <span class="hljs-string">&quot;work/calcenon-agate-queue-progress.json&quot;</span>)
+    args = p.parse_args()
+    need(args.climb_index <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> args.phase == <span class="hljs-string">&quot;approach&quot;</span>, <span class="hljs-string">&quot;Climb resume is only a standalone approach phase&quot;</span>)
+    <span class="hljs-built_in">print</span>(json.dumps({<span class="hljs-string">&quot;proposal&quot;</span>: <span class="hljs-literal">True</span>, <span class="hljs-string">&quot;source_proof&quot;</span>: source_proof(),
+                      <span class="hljs-string">&quot;phases&quot;</span>: PHASES, <span class="hljs-string">&quot;optional_shelly&quot;</span>: <span class="hljs-literal">True</span>, <span class="hljs-string">&quot;stop&quot;</span>: [<span class="hljs-number">715</span>, <span class="hljs-number">65</span>, <span class="hljs-number">17</span>],
+                      <span class="hljs-string">&quot;new_scale&quot;</span>: [<span class="hljs-number">715</span>, <span class="hljs-number">64</span>], <span class="hljs-string">&quot;replay710_scale&quot;</span>: <span class="hljs-literal">False</span>,
+                      <span class="hljs-string">&quot;climbs&quot;</span>: CLIMBS, <span class="hljs-string">&quot;no_automatic_save&quot;</span>: <span class="hljs-literal">True</span>}, indent=<span class="hljs-number">2</span>), flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> args.execute:
+        <span class="hljs-keyword">return</span>
+    need(args.party_status <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>, <span class="hljs-string">&quot;--execute requires explicit frozen --party-status&quot;</span>)
+    status, binding = frozen_party(args.party_status, args.phase)
+    runner = Runner(args, status[<span class="hljs-string">&quot;party&quot;</span>], binding)
+    <span class="hljs-keyword">try</span>:
+        <span class="hljs-keyword">if</span> args.phase == <span class="hljs-string">&quot;fly-circus&quot;</span>:
+            <span class="hljs-comment"># Root owns the Scale pickup. This separate phase requires an</span>
+            <span class="hljs-comment"># actual refreshed party+bag checkpoint after that normal pickup.</span>
+            need(status.get(<span class="hljs-string">&quot;bag&quot;</span>, {}).get(<span class="hljs-string">&quot;contents&quot;</span>, {}).get(<span class="hljs-string">&quot;HEARTSCALE&quot;</span>, <span class="hljs-number">0</span>) &gt;= <span class="hljs-number">1</span>,
+                 <span class="hljs-string">&quot;Frozen new HeartScale required before the optional Circus leg&quot;</span>)
+            need(status.get(<span class="hljs-string">&quot;map&quot;</span>) == <span class="hljs-number">715</span>, <span class="hljs-string">&quot;Fly phase expects actual715 outdoors&quot;</span>)
+            need(status.get(<span class="hljs-string">&quot;position&quot;</span>) == [<span class="hljs-number">57</span>, <span class="hljs-number">21</span>], <span class="hljs-string">&quot;Fly phase requires the reviewed dry715[57,21] Scale endpoint&quot;</span>)
+            runner.stage(<span class="hljs-number">51</span>)
+            runner.position(<span class="hljs-number">715</span>, (<span class="hljs-number">715</span>, *status[<span class="hljs-string">&quot;position&quot;</span>]))
+            runner.run(<span class="hljs-string">&quot;fly_to&quot;</span>, <span class="hljs-number">355</span>, <span class="hljs-string">&quot;--carrier&quot;</span>, <span class="hljs-string">&quot;Tranquill&quot;</span>)
+            runner.position(<span class="hljs-number">355</span>)
+            runner.record(<span class="hljs-string">&quot;phase-completed&quot;</span>, phase=<span class="hljs-string">&quot;fly-circus&quot;</span>)
+        <span class="hljs-keyword">else</span>:
+            phases = PHASES <span class="hljs-keyword">if</span> args.phase == <span class="hljs-string">&quot;all&quot;</span> <span class="hljs-keyword">else</span> [args.phase]
+            <span class="hljs-keyword">for</span> phase <span class="hljs-keyword">in</span> phases:
+                <span class="hljs-built_in">getattr</span>(runner, phase)()
+                <span class="hljs-keyword">if</span> phase == args.stop_phase:
+                    <span class="hljs-keyword">break</span>
+        runner.journal[<span class="hljs-string">&quot;status&quot;</span>] = <span class="hljs-string">&quot;completed-approved-stop&quot;</span>
+        runner.write()
+    <span class="hljs-keyword">except</span> BaseException <span class="hljs-keyword">as</span> error:
+        runner.journal[<span class="hljs-string">&quot;status&quot;</span>] = <span class="hljs-string">&quot;stopped-for-actual-state-review&quot;</span>
+        runner.record(<span class="hljs-string">&quot;stop&quot;</span>, error=<span class="hljs-built_in">type</span>(error).__name__, reason=<span class="hljs-built_in">str</span>(error))
+        <span class="hljs-keyword">raise</span>
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    main()
+</code></pre>
+  </body>
+</html>

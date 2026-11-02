@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_north_return189.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_north_return189.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed next stage of the first Victory Road rail puzzle, normal controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(name+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1116&#x27;</span>] <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;786&#x27;</span>][<span class="hljs-string">&#x27;40&#x27;</span>]==[<span class="hljs-number">60</span>,<span class="hljs-number">51</span>]
+run(<span class="hljs-string">&#x27;victory_rail_queue&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/189-north-rail-plan.json&#x27;</span>,<span class="hljs-string">&#x27;NorthRails189&#x27;</span>)
+run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+run(<span class="hljs-string">&#x27;victory_boulder_push&#x27;</span>,<span class="hljs-number">786</span>,<span class="hljs-number">41</span>,<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">2</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Boulder189-north-clear&#x27;</span>)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;786&#x27;</span>][<span class="hljs-string">&#x27;41&#x27;</span>]==[<span class="hljs-number">53</span>,<span class="hljs-number">25</span>]
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;786,44,45,up,c,wait:3&#x27;</span>)
+run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=5&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">786</span>,<span class="hljs-number">110</span>,<span class="hljs-string">&#x27;item&#x27;</span>)
+run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=6&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Tyranitarite189&#x27;</span>)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1284&#x27;</span>]
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;786,44,43,down,c,wait:3&#x27;</span>)
+run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=5&#x27;</span>)
+run(<span class="hljs-string">&#x27;victory_rail_queue&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/189-return-rail-plan.json&#x27;</span>,<span class="hljs-string">&#x27;ReturnRails189&#x27;</span>)
+</code></pre>
+  </body>
+</html>

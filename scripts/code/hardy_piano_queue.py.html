@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>hardy_piano_queue.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of hardy_piano_queue.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal initial-state Hardy tuner queue; source-only unless --execute.
+
+No UI, save, current planner/native or logs are inspected by import/default run.
+Execution requires an explicit fresh normal checkpoint after all three trainers,
+actual public player/tuner pixels, and a new journal. No blind mid-puzzle replay.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> __future__ <span class="hljs-keyword">import</span> annotations
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">from</span> datetime <span class="hljs-keyword">import</span> datetime
+<span class="hljs-keyword">import</span> hashlib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> time
+<span class="hljs-keyword">from</span> calcenon_agate_queue <span class="hljs-keyword">import</span> Runner <span class="hljs-keyword">as</span> Base, event, need
+
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+GAME=Path(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game&#x27;</span>)
+TARGETS=(<span class="hljs-number">3</span>,<span class="hljs-number">5</span>,<span class="hljs-number">7</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>)
+YS=(<span class="hljs-number">45</span>,<span class="hljs-number">41</span>,<span class="hljs-number">37</span>,<span class="hljs-number">33</span>,<span class="hljs-number">22</span>,<span class="hljs-number">18</span>,<span class="hljs-number">14</span>,<span class="hljs-number">10</span>)
+TRAINERS=(<span class="hljs-number">22</span>,<span class="hljs-number">35</span>,<span class="hljs-number">36</span>)
+PLAYER_SPRITES=(<span class="hljs-string">&#x27;boy_walk&#x27;</span>,<span class="hljs-string">&#x27;boy_run&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">source_proof</span>():
+    assets=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/hardy_piano_source.rb&#x27;</span>)],
+                                            stderr=subprocess.DEVNULL))
+    need((assets[<span class="hljs-string">&#x27;width&#x27;</span>],assets[<span class="hljs-string">&#x27;height&#x27;</span>],assets[<span class="hljs-string">&#x27;tileset_name&#x27;</span>])==(<span class="hljs-number">25</span>,<span class="hljs-number">60</span>,<span class="hljs-string">&#x27;Agate Gym&#x27;</span>),
+         <span class="hljs-string">&#x27;Installed tuner hall/tileset changed&#x27;</span>)
+    need(assets[<span class="hljs-string">&#x27;door_base_tiles&#x27;</span>]==[<span class="hljs-number">479</span>,<span class="hljs-number">573</span>,<span class="hljs-number">594</span>], <span class="hljs-string">&#x27;Installed closed-door overlay changed&#x27;</span>)
+    proof=[]
+    <span class="hljs-keyword">for</span> i,(y,note) <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(<span class="hljs-built_in">zip</span>(YS,TARGETS)):
+        e=event(<span class="hljs-number">739</span>,<span class="hljs-number">23</span>+i);p=e[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>];var=<span class="hljs-number">441</span>+i
+        need((e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])==(<span class="hljs-number">14</span>,y) <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(e[<span class="hljs-string">&#x27;pages&#x27;</span>])==<span class="hljs-number">1</span>,
+             <span class="hljs-string">&#x27;Installed initial tuner geometry changed&#x27;</span>)
+        need(p[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> p[<span class="hljs-string">&#x27;graphic&#x27;</span>][<span class="hljs-string">&#x27;tile_id&#x27;</span>]==<span class="hljs-number">604</span> <span class="hljs-keyword">and</span>
+             <span class="hljs-keyword">not</span> p[<span class="hljs-string">&#x27;graphic&#x27;</span>][<span class="hljs-string">&#x27;character_name&#x27;</span>] <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> p[<span class="hljs-string">&#x27;through&#x27;</span>],
+             <span class="hljs-string">&#x27;Tuner must remain ordinary blocked tile604 action event&#x27;</span>)
+        cs=p[<span class="hljs-string">&#x27;list&#x27;</span>]
+        need([c[<span class="hljs-string">&#x27;parameters&#x27;</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">122</span>]==
+             [[var,var,<span class="hljs-number">0</span>,<span class="hljs-number">6</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[var,var,<span class="hljs-number">2</span>,<span class="hljs-number">0</span>,<span class="hljs-number">14</span>]],<span class="hljs-string">&#x27;Tuner value is not actual event x minus14&#x27;</span>)
+        need([c[<span class="hljs-string">&#x27;parameters&#x27;</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">355</span>]==
+             [[<span class="hljs-string">&#x27;pbPushThisObject&#x27;</span>],[<span class="hljs-string">&#x27;pbPushThisObject&#x27;</span>]], <span class="hljs-string">&#x27;Unknown tuner script&#x27;</span>)
+        need(<span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">101</span>,<span class="hljs-number">102</span>,<span class="hljs-number">201</span>,<span class="hljs-number">301</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs), <span class="hljs-string">&#x27;Unexpected tuner dialogue/choice/battle&#x27;</span>)
+        proof.append({<span class="hljs-string">&#x27;event&#x27;</span>:<span class="hljs-number">23</span>+i,<span class="hljs-string">&#x27;initial&#x27;</span>:[<span class="hljs-number">14</span>,y],<span class="hljs-string">&#x27;target&#x27;</span>:[<span class="hljs-number">14</span>+note,y],
+                      <span class="hljs-string">&#x27;variable&#x27;</span>:var,<span class="hljs-string">&#x27;value&#x27;</span>:note,<span class="hljs-string">&#x27;sha256&#x27;</span>:hashlib.sha256(json.dumps(e,sort_keys=<span class="hljs-literal">True</span>).encode()).hexdigest()})
+    climb=event(<span class="hljs-number">739</span>,<span class="hljs-number">1</span>)[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>]
+    need([c[<span class="hljs-string">&#x27;parameters&#x27;</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> climb[<span class="hljs-number">404</span>:<span class="hljs-number">412</span>]]==
+         [[<span class="hljs-number">1</span>,<span class="hljs-number">441</span>+i,<span class="hljs-number">0</span>,v,<span class="hljs-number">0</span>] <span class="hljs-keyword">for</span> i,v <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(TARGETS)], <span class="hljs-string">&#x27;Installed eight-note solution changed&#x27;</span>)
+    need(climb[<span class="hljs-number">416</span>][<span class="hljs-string">&#x27;parameters&#x27;</span>]==[<span class="hljs-number">1022</span>,<span class="hljs-number">1022</span>,<span class="hljs-number">0</span>], <span class="hljs-string">&#x27;Installed solution door flag changed&#x27;</span>)
+    dx=dy=<span class="hljs-number">0</span>
+    <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> climb:
+        <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]!=<span class="hljs-number">209</span>:<span class="hljs-keyword">continue</span>
+        <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;list&#x27;</span>]:
+            mx,my={<span class="hljs-number">1</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-number">2</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">3</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">4</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)}.get(m[<span class="hljs-string">&#x27;code&#x27;</span>],(<span class="hljs-number">0</span>,<span class="hljs-number">0</span>))
+            <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">14</span>:mx,my=m[<span class="hljs-string">&#x27;parameters&#x27;</span>]
+            dx+=mx;dy+=my
+    need((dx,dy)==(<span class="hljs-number">0</span>,-<span class="hljs-number">38</span>),<span class="hljs-string">&#x27;Installed climb landing changed&#x27;</span>)
+    <span class="hljs-keyword">for</span> eid <span class="hljs-keyword">in</span> TRAINERS:
+        e=event(<span class="hljs-number">739</span>,eid)
+        need(e[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">2</span> <span class="hljs-keyword">and</span>
+             <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">123</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>]==[<span class="hljs-string">&#x27;A&#x27;</span>,<span class="hljs-number">0</span>] <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;indent&#x27;</span>]==<span class="hljs-number">1</span>
+                 <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>]), <span class="hljs-string">&#x27;Trainer completion source changed&#x27;</span>)
+    door=event(<span class="hljs-number">739</span>,<span class="hljs-number">31</span>)[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>]
+    need(door[<span class="hljs-string">&#x27;condition&#x27;</span>][<span class="hljs-string">&#x27;switch2_valid&#x27;</span>] <span class="hljs-keyword">and</span> door[<span class="hljs-string">&#x27;condition&#x27;</span>][<span class="hljs-string">&#x27;switch2_id&#x27;</span>]==<span class="hljs-number">1022</span> <span class="hljs-keyword">and</span>
+         door[<span class="hljs-string">&#x27;graphic&#x27;</span>][<span class="hljs-string">&#x27;tile_id&#x27;</span>]==<span class="hljs-number">573</span> <span class="hljs-keyword">and</span>
+         [c[<span class="hljs-string">&#x27;parameters&#x27;</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> door[<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span>]==[[<span class="hljs-number">0</span>,<span class="hljs-number">740</span>,<span class="hljs-number">9</span>,<span class="hljs-number">21</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>]],
+         <span class="hljs-string">&#x27;Open door source changed&#x27;</span>)
+    src=(GAME/<span class="hljs-string">&#x27;Scripts/Field.rb&#x27;</span>).read_text()
+    need(<span class="hljs-string">&#x27;event.move_direction(direction)&#x27;</span> <span class="hljs-keyword">in</span> src <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;pbPushThisEvent(&quot;strengthrock&quot;, direction)&#x27;</span> <span class="hljs-keyword">in</span> src,
+         <span class="hljs-string">&#x27;Installed push semantics changed&#x27;</span>)
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;assets&#x27;</span>:assets,<span class="hljs-string">&#x27;tuners&#x27;</span>:proof,<span class="hljs-string">&#x27;climb&#x27;</span>:[<span class="hljs-number">739</span>,<span class="hljs-number">5</span>,<span class="hljs-number">46</span>,<span class="hljs-number">5</span>,<span class="hljs-number">8</span>],<span class="hljs-string">&#x27;open_door&#x27;</span>:[<span class="hljs-number">739</span>,<span class="hljs-number">11</span>,<span class="hljs-number">4</span>,<span class="hljs-number">740</span>,<span class="hljs-number">9</span>,<span class="hljs-number">21</span>],
+            <span class="hljs-string">&#x27;stop&#x27;</span>:<span class="hljs-string">&#x27;740[9,21], before Hardy player-touch740[9,18]&#x27;</span>}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">preflight</span>(<span class="hljs-params">status,nav,*,now=<span class="hljs-literal">None</span>,start_tuner=<span class="hljs-number">0</span></span>):
+    need(<span class="hljs-built_in">type</span>(start_tuner) <span class="hljs-keyword">is</span> <span class="hljs-built_in">int</span> <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;=start_tuner&lt;=<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;Explicit next tuner index0..7 required&#x27;</span>)
+    need(status.get(<span class="hljs-string">&#x27;map&#x27;</span>)==<span class="hljs-number">739</span>,<span class="hljs-string">&#x27;Fresh checkpoint must be in the tuner hall739&#x27;</span>)
+    saved=datetime.fromisoformat(status[<span class="hljs-string">&#x27;save_mtime&#x27;</span>]).timestamp()
+    <span class="hljs-keyword">if</span> now <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:need(-<span class="hljs-number">5</span>&lt;=now-saved&lt;=<span class="hljs-number">120</span>,<span class="hljs-string">&#x27;Checkpoint must be freshly written, at most120s old&#x27;</span>)
+    party=status.get(<span class="hljs-string">&#x27;party&#x27;</span>,[])
+    need(<span class="hljs-built_in">len</span>(party)==<span class="hljs-number">6</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(<span class="hljs-string">&#x27;ROCKCLIMB&#x27;</span> <span class="hljs-keyword">in</span> {m[<span class="hljs-string">&#x27;move&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> p.get(<span class="hljs-string">&#x27;moves&#x27;</span>,[])} <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> party),
+         <span class="hljs-string">&#x27;Six-member party with an owned RockClimb user required&#x27;</span>)
+    need(nav.get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;1022&#x27;</span>,<span class="hljs-literal">False</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">False</span>,<span class="hljs-string">&#x27;Already-open puzzle is not the initial case&#x27;</span>)
+    need(nav.get(<span class="hljs-string">&#x27;variables&#x27;</span>,{}).get(<span class="hljs-string">&#x27;391&#x27;</span>,<span class="hljs-number">0</span>)&lt;<span class="hljs-number">61</span>,<span class="hljs-string">&#x27;Hardy is already completed&#x27;</span>)
+    <span class="hljs-keyword">for</span> eid <span class="hljs-keyword">in</span> TRAINERS:
+        need(nav.get(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{}).get(<span class="hljs-string">f&#x27;739,<span class="hljs-subst">{eid}</span>,A&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>,
+             <span class="hljs-string">f&#x27;Trainer739E<span class="hljs-subst">{eid}</span> must be actually defeated before this queue&#x27;</span>)
+    <span class="hljs-keyword">for</span> i,y <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(YS):
+        expected_x=<span class="hljs-number">14</span>+TARGETS[i] <span class="hljs-keyword">if</span> i&lt;start_tuner <span class="hljs-keyword">else</span> <span class="hljs-number">14</span>
+        need(nav.get(<span class="hljs-string">&#x27;positions&#x27;</span>,{}).get(<span class="hljs-string">&#x27;739&#x27;</span>,{}).get(<span class="hljs-built_in">str</span>(<span class="hljs-number">23</span>+i))==[expected_x,y],
+             <span class="hljs-string">&#x27;Completed tuners must match targets; every remaining tuner must be initial&#x27;</span>)
+        <span class="hljs-keyword">if</span> i&lt;start_tuner:
+            need(nav.get(<span class="hljs-string">&#x27;variables&#x27;</span>,{}).get(<span class="hljs-built_in">str</span>(<span class="hljs-number">441</span>+i))==TARGETS[i],
+                 <span class="hljs-string">&#x27;Fresh saved completed tuner value differs from its target&#x27;</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">group_keys</span>(<span class="hljs-params">count</span>):
+    need(<span class="hljs-built_in">isinstance</span>(count,<span class="hljs-built_in">int</span>) <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;count&lt;=<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;Only source-bounded positive tuner groups&#x27;</span>)
+    <span class="hljs-comment"># The push moves only the tuner. Follow into its vacated square after each</span>
+    <span class="hljs-comment"># C so the next interaction remains adjacent; never hold C or movement.</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">tuple</span>(k <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(count) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span>
+                 (<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.45&#x27;</span>,<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>))
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">tile_asset</span>(<span class="hljs-params">tile_id</span>):
+    <span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+    need(tile_id <span class="hljs-keyword">in</span> [<span class="hljs-number">573</span>,<span class="hljs-number">604</span>],<span class="hljs-string">&#x27;Only reviewed tuner/open-door tiles&#x27;</span>)
+    x=(tile_id-<span class="hljs-number">384</span>)%<span class="hljs-number">8</span>*<span class="hljs-number">32</span>;y=(tile_id-<span class="hljs-number">384</span>)//<span class="hljs-number">8</span>*<span class="hljs-number">32</span>
+    <span class="hljs-keyword">return</span> Image.<span class="hljs-built_in">open</span>(GAME/<span class="hljs-string">&#x27;Graphics/Tilesets/Agate Gym.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>).crop((x,y,x+<span class="hljs-number">32</span>,y+<span class="hljs-number">32</span>))
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">tile_score</span>(<span class="hljs-params">image,template,player_foot,player_xy,tile_xy,scale</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Pure exact source tile pixels at an actual player-relative map square.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+    need(scale <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>],<span class="hljs-string">&#x27;Unreviewed tile scale&#x27;</span>)
+    px,py=player_foot;x,y=player_xy;tx,ty=tile_xy
+    left=<span class="hljs-built_in">round</span>(px+(tx-x)*<span class="hljs-number">32</span>*scale-<span class="hljs-number">16</span>*scale)
+    top=<span class="hljs-built_in">round</span>(py+(ty-y)*<span class="hljs-number">32</span>*scale-<span class="hljs-number">32</span>*scale)
+    side=<span class="hljs-number">32</span>*scale
+    need(<span class="hljs-number">0</span>&lt;=left <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;=top <span class="hljs-keyword">and</span> left+side&lt;=image.width <span class="hljs-keyword">and</span> top+side&lt;=image.height,
+         <span class="hljs-string">&#x27;Expected source tile is outside the actual public frame&#x27;</span>)
+    target=template.resize((side,side),Image.Resampling.NEAREST)
+    crop=image.crop((left,top,left+side,top+side)).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+    pairs=[(p,q) <span class="hljs-keyword">for</span> p,q <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(crop.getdata(),target.getdata()) <span class="hljs-keyword">if</span> q[<span class="hljs-number">3</span>]&gt;<span class="hljs-number">250</span>]
+    need(<span class="hljs-built_in">len</span>(pairs)&gt;=<span class="hljs-number">500</span>*scale*scale,<span class="hljs-string">&#x27;Reviewed source tile has insufficient opaque proof&#x27;</span>)
+    score=<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">max</span>(<span class="hljs-built_in">abs</span>(p[i]-q[i]) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>))&lt;=<span class="hljs-number">3</span> <span class="hljs-keyword">for</span> p,q <span class="hljs-keyword">in</span> pairs)/<span class="hljs-built_in">len</span>(pairs)
+    need(score&gt;=<span class="hljs-number">.97</span>,<span class="hljs-string">&#x27;Actual tuner/door source tile mismatch; no position/effect credited&#x27;</span>)
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;score&#x27;</span>:score,<span class="hljs-string">&#x27;rect&#x27;</span>:[left,top,left+side,top+side]}
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Runner</span>(<span class="hljs-title class_ inherited__">Base</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self,args,status_binding,nav_binding</span>):
+        <span class="hljs-variable language_">self</span>.args=args;<span class="hljs-variable language_">self</span>.path=args.journal.resolve()
+        need(<span class="hljs-variable language_">self</span>.path.is_relative_to(ROOT) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.path.exists(),<span class="hljs-string">&#x27;A NEW workspace journal is required; no replay&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.work=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-variable language_">self</span>.path.stem
+        need(<span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.work.exists(),<span class="hljs-string">&#x27;Evidence directory exists; review instead of replay&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.work.mkdir()
+        <span class="hljs-variable language_">self</span>.journal={<span class="hljs-string">&#x27;frozen_status_sha256&#x27;</span>:status_binding,<span class="hljs-string">&#x27;frozen_navigation_sha256&#x27;</span>:nav_binding,
+                      <span class="hljs-string">&#x27;source_proof&#x27;</span>:source_proof(),<span class="hljs-string">&#x27;start_tuner&#x27;</span>:args.start_tuner,<span class="hljs-string">&#x27;events&#x27;</span>:[],<span class="hljs-string">&#x27;pending&#x27;</span>:<span class="hljs-literal">None</span>}
+        <span class="hljs-variable language_">self</span>.write()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">health</span>(<span class="hljs-params">self</span>):
+        h=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+        need(h.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span> <span class="hljs-keyword">and</span> time.time()-h.get(<span class="hljs-string">&#x27;epoch&#x27;</span>,<span class="hljs-number">0</span>)&lt;<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;Recording is not fresh; no input&#x27;</span>)
+        <span class="hljs-keyword">return</span> h
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">same_capture</span>(<span class="hljs-params">self,a,b</span>):
+        need(a.get(<span class="hljs-string">&#x27;pid&#x27;</span>)==b.get(<span class="hljs-string">&#x27;pid&#x27;</span>) <span class="hljs-keyword">and</span> a.get(<span class="hljs-string">&#x27;restart_count&#x27;</span>,<span class="hljs-number">0</span>)==b.get(<span class="hljs-string">&#x27;restart_count&#x27;</span>,<span class="hljs-number">0</span>),
+             <span class="hljs-string">&#x27;Capture restarted; stop and review actual endpoint, never replay&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">keys</span>(<span class="hljs-params">self,*keys</span>):
+        <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act
+        before=<span class="hljs-variable language_">self</span>.health();<span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>]={<span class="hljs-string">&#x27;keys&#x27;</span>:<span class="hljs-built_in">list</span>(keys),<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time()};<span class="hljs-variable language_">self</span>.write()
+        act(*keys);<span class="hljs-variable language_">self</span>.same_capture(before,<span class="hljs-variable language_">self</span>.health())
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;ordinary-keys-returned&#x27;</span>,keys=<span class="hljs-built_in">list</span>(keys));<span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>]=<span class="hljs-literal">None</span>;<span class="hljs-variable language_">self</span>.write()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">self,script,*args</span>):
+        serialized_args=<span class="hljs-built_in">list</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args))
+        before=<span class="hljs-variable language_">self</span>.health();<span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>]={<span class="hljs-string">&#x27;script&#x27;</span>:script,<span class="hljs-string">&#x27;args&#x27;</span>:serialized_args,<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time()};<span class="hljs-variable language_">self</span>.write()
+        result=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{script}</span>.py&#x27;</span>),*serialized_args],
+                              check=<span class="hljs-literal">True</span>,capture_output=<span class="hljs-literal">True</span>,text=<span class="hljs-literal">True</span>)
+        <span class="hljs-built_in">print</span>(result.stdout,flush=<span class="hljs-literal">True</span>);<span class="hljs-variable language_">self</span>.same_capture(before,<span class="hljs-variable language_">self</span>.health())
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;ordinary-helper-returned&#x27;</span>,script=script,args=serialized_args,stdout=result.stdout)
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;pending&#x27;</span>]=<span class="hljs-literal">None</span>;<span class="hljs-variable language_">self</span>.write();<span class="hljs-keyword">return</span> result.stdout
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pixels</span>(<span class="hljs-params">self,player_xy,*,tile_id=<span class="hljs-literal">None</span>,tile_xy=<span class="hljs-literal">None</span>,facing=<span class="hljs-literal">None</span></span>):
+        <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> snap,NATIVE
+        <span class="hljs-keyword">from</span> sprite_sensor <span class="hljs-keyword">import</span> detect
+        <span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image,ImageCms
+        <span class="hljs-keyword">import</span> io
+        <span class="hljs-variable language_">self</span>.health();snap();native=Image.<span class="hljs-built_in">open</span>(NATIVE);image=native.convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+        need(native.size==(<span class="hljs-number">2272</span>,<span class="hljs-number">1816</span>) <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.args.sprite_scale==<span class="hljs-number">4</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">True</span>,
+             <span class="hljs-string">&#x27;Expected calibrated shadowed retina frame; review scale&#x27;</span>)
+        <span class="hljs-keyword">if</span> native.info.get(<span class="hljs-string">&#x27;icc_profile&#x27;</span>):
+            image=ImageCms.profileToProfile(image,ImageCms.ImageCmsProfile(io.BytesIO(native.info[<span class="hljs-string">&#x27;icc_profile&#x27;</span>])),
+                                           ImageCms.createProfile(<span class="hljs-string">&#x27;sRGB&#x27;</span>),outputMode=<span class="hljs-string">&#x27;RGB&#x27;</span>)
+        seen=[(name,pose) <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> PLAYER_SPRITES <span class="hljs-keyword">for</span> pose <span class="hljs-keyword">in</span> detect(NATIVE,name,scale=<span class="hljs-variable language_">self</span>.args.sprite_scale)]
+        need(<span class="hljs-built_in">len</span>(seen)==<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Actual installed player sprite is not unique; stop for visual review&#x27;</span>)
+        name,pose=seen[<span class="hljs-number">0</span>]
+        <span class="hljs-keyword">if</span> facing <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:need(pose[<span class="hljs-string">&#x27;pose&#x27;</span>][<span class="hljs-number">0</span>]==facing,<span class="hljs-string">&#x27;Actual rendered player facing differs&#x27;</span>)
+        proof=tile_score(image,tile_asset(tile_id),pose[<span class="hljs-string">&#x27;foot&#x27;</span>],player_xy,tile_xy,<span class="hljs-variable language_">self</span>.args.sprite_scale) <span class="hljs-keyword">if</span> tile_id <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+        path=<span class="hljs-variable language_">self</span>.work/<span class="hljs-string">f&#x27;public-<span class="hljs-subst">{<span class="hljs-built_in">len</span>(self.journal[<span class="hljs-string">&quot;events&quot;</span>])}</span>.png&#x27;</span>;native.save(path)
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;public-rendered-pixels&#x27;</span>,image=<span class="hljs-built_in">str</span>(path),player_xy=<span class="hljs-built_in">list</span>(player_xy),sprite=name,
+                    player_pose=pose,tile_id=tile_id,tile_xy=<span class="hljs-built_in">list</span>(tile_xy) <span class="hljs-keyword">if</span> tile_xy <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>,tile_proof=proof)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">walk</span>(<span class="hljs-params">self,x,y</span>):
+        actual=<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">739</span>)
+        path=<span class="hljs-variable language_">self</span>.work/<span class="hljs-string">&#x27;route-next.json&#x27;</span>;path.write_text(json.dumps([[<span class="hljs-number">739</span>,actual[<span class="hljs-number">1</span>],actual[<span class="hljs-number">2</span>],x,y,[]]]))
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;queue_route&#x27;</span>,path,<span class="hljs-string">&#x27;--from-verified&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">739</span>,(<span class="hljs-number">739</span>,x,y))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">facing</span>(<span class="hljs-params">self,xy,direction,pose</span>):
+        <span class="hljs-variable language_">self</span>.keys(direction+<span class="hljs-string">&#x27;:.03&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">739</span>,(<span class="hljs-number">739</span>,*xy));<span class="hljs-variable language_">self</span>.pixels(xy,facing=pose)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">mirror_tuner</span>(<span class="hljs-params">self,eid,xy,var,value</span>):
+        <span class="hljs-comment"># Planner notes only, after observed coordinates and source tile pixels.</span>
+        state=<span class="hljs-variable language_">self</span>.nav();state.setdefault(<span class="hljs-string">&#x27;positions&#x27;</span>,{}).setdefault(<span class="hljs-string">&#x27;739&#x27;</span>,{})[<span class="hljs-built_in">str</span>(eid)]=<span class="hljs-built_in">list</span>(xy)
+        state.setdefault(<span class="hljs-string">&#x27;variables&#x27;</span>,{})[<span class="hljs-built_in">str</span>(var)]=value
+        (ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).write_text(json.dumps(state)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;witnessed-tuner-effects-mirrored-to-planner&#x27;</span>,event=eid,position=<span class="hljs-built_in">list</span>(xy),variable=var,value=value)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">solve</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">739</span>);<span class="hljs-variable language_">self</span>.no_auto_battle(<span class="hljs-number">739</span>)
+        <span class="hljs-keyword">for</span> i,(y,count) <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(<span class="hljs-built_in">zip</span>(YS,TARGETS)):
+            <span class="hljs-keyword">if</span> i&lt;<span class="hljs-variable language_">self</span>.args.start_tuner:<span class="hljs-keyword">continue</span>
+            eid=<span class="hljs-number">23</span>+i;<span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">739</span>,eid,<span class="hljs-number">0</span>)
+            need(<span class="hljs-variable language_">self</span>.nav()[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;739&#x27;</span>][<span class="hljs-built_in">str</span>(eid)]==[<span class="hljs-number">14</span>,y],<span class="hljs-string">&#x27;Planner tuner no longer initial; stop&#x27;</span>)
+            <span class="hljs-keyword">if</span> count:
+                <span class="hljs-variable language_">self</span>.walk(<span class="hljs-number">13</span>,y);<span class="hljs-variable language_">self</span>.facing((<span class="hljs-number">13</span>,y),<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-number">2</span>)
+                <span class="hljs-variable language_">self</span>.pixels((<span class="hljs-number">13</span>,y),tile_id=<span class="hljs-number">604</span>,tile_xy=(<span class="hljs-number">14</span>,y),facing=<span class="hljs-number">2</span>)
+                <span class="hljs-variable language_">self</span>.keys(*group_keys(count))
+                player=(<span class="hljs-number">13</span>+count,y);tuner=(<span class="hljs-number">14</span>+count,y)
+                <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">739</span>,(<span class="hljs-number">739</span>,*player));<span class="hljs-variable language_">self</span>.pixels(player,tile_id=<span class="hljs-number">604</span>,tile_xy=tuner,facing=<span class="hljs-number">2</span>)
+            <span class="hljs-keyword">else</span>:
+                <span class="hljs-comment"># Vertical interaction explicitly refreshes x−14=0 without a push.</span>
+                <span class="hljs-comment"># Stand above: the player&#x27;s tall sprite otherwise occludes the</span>
+                <span class="hljs-comment"># bottom of the source tile when inspecting from below.</span>
+                <span class="hljs-variable language_">self</span>.walk(<span class="hljs-number">14</span>,y-<span class="hljs-number">1</span>);<span class="hljs-variable language_">self</span>.facing((<span class="hljs-number">14</span>,y-<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-number">0</span>)
+                <span class="hljs-variable language_">self</span>.pixels((<span class="hljs-number">14</span>,y-<span class="hljs-number">1</span>),tile_id=<span class="hljs-number">604</span>,tile_xy=(<span class="hljs-number">14</span>,y),facing=<span class="hljs-number">0</span>)
+                <span class="hljs-variable language_">self</span>.keys(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+                <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">739</span>,(<span class="hljs-number">739</span>,<span class="hljs-number">14</span>,y-<span class="hljs-number">1</span>));<span class="hljs-variable language_">self</span>.pixels((<span class="hljs-number">14</span>,y-<span class="hljs-number">1</span>),tile_id=<span class="hljs-number">604</span>,tile_xy=(<span class="hljs-number">14</span>,y),facing=<span class="hljs-number">0</span>)
+                tuner=(<span class="hljs-number">14</span>,y)
+            <span class="hljs-variable language_">self</span>.mirror_tuner(eid,tuner,<span class="hljs-number">441</span>+i,count)
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;all-eight-tuners-verified&#x27;</span>,values=<span class="hljs-built_in">list</span>(TARGETS))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">climb_and_enter</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read
+        need([<span class="hljs-variable language_">self</span>.nav()[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-built_in">str</span>(<span class="hljs-number">441</span>+i)] <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">8</span>)]==<span class="hljs-built_in">list</span>(TARGETS),<span class="hljs-string">&#x27;Unproved eight-note values&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.walk(<span class="hljs-number">5</span>,<span class="hljs-number">46</span>);<span class="hljs-variable language_">self</span>.facing((<span class="hljs-number">5</span>,<span class="hljs-number">46</span>),<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">3</span>)
+        <span class="hljs-variable language_">self</span>.keys(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+        text=read();compact=re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,text.lower())
+        need(<span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\bfight\b|\bhp\b|\bpp:&#x27;</span>,text.lower()),<span class="hljs-string">&#x27;Unexpected battle during climb&#x27;</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;rockclimb&#x27;</span> <span class="hljs-keyword">in</span> compact:
+            need(<span class="hljs-string">&#x27;usedrockclimb&#x27;</span> <span class="hljs-keyword">in</span> compact,<span class="hljs-string">&#x27;RockClimb prerequisite/message requires review; no extra C&#x27;</span>)
+            <span class="hljs-variable language_">self</span>.keys(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+        <span class="hljs-keyword">else</span>:<span class="hljs-variable language_">self</span>.world()
+        <span class="hljs-variable language_">self</span>.keys(<span class="hljs-string">&#x27;wait:12&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">739</span>,(<span class="hljs-number">739</span>,<span class="hljs-number">5</span>,<span class="hljs-number">8</span>));<span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;actual-forced-climb-landing&#x27;</span>,position=[<span class="hljs-number">739</span>,<span class="hljs-number">5</span>,<span class="hljs-number">8</span>])
+        <span class="hljs-variable language_">self</span>.walk(<span class="hljs-number">11</span>,<span class="hljs-number">6</span>)
+        <span class="hljs-variable language_">self</span>.pixels((<span class="hljs-number">11</span>,<span class="hljs-number">6</span>),tile_id=<span class="hljs-number">573</span>,tile_xy=(<span class="hljs-number">11</span>,<span class="hljs-number">4</span>))
+        state=<span class="hljs-variable language_">self</span>.nav();state.setdefault(<span class="hljs-string">&#x27;switches&#x27;</span>,{})[<span class="hljs-string">&#x27;1022&#x27;</span>]=<span class="hljs-literal">True</span>
+        (ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).write_text(json.dumps(state)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;actual-open-door-proved-planner1022&#x27;</span>,source=<span class="hljs-string">&#x27;739E1 exact note branch + actual open-door tile573&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">739</span>,<span class="hljs-number">31</span>,<span class="hljs-number">0</span>);<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">739</span>,<span class="hljs-number">31</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">740</span>,(<span class="hljs-number">740</span>,<span class="hljs-number">9</span>,<span class="hljs-number">21</span>))
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;complete-stopped-before-Hardy&#x27;</span>,position=[<span class="hljs-number">740</span>,<span class="hljs-number">9</span>,<span class="hljs-number">21</span>],forbidden_trigger=[<span class="hljs-number">740</span>,<span class="hljs-number">9</span>,<span class="hljs-number">18</span>])
+        <span class="hljs-variable language_">self</span>.journal[<span class="hljs-string">&#x27;complete&#x27;</span>]=<span class="hljs-literal">True</span>;<span class="hljs-variable language_">self</span>.write()
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument(<span class="hljs-string">&#x27;--execute&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;--frozen-status&#x27;</span>,<span class="hljs-built_in">type</span>=Path)
+    p.add_argument(<span class="hljs-string">&#x27;--frozen-navigation&#x27;</span>,<span class="hljs-built_in">type</span>=Path);p.add_argument(<span class="hljs-string">&#x27;--journal&#x27;</span>,<span class="hljs-built_in">type</span>=Path)
+    p.add_argument(<span class="hljs-string">&#x27;--sprite-scale&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,choices=(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>),default=<span class="hljs-number">4</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--start-tuner&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,choices=<span class="hljs-built_in">range</span>(<span class="hljs-number">8</span>),default=<span class="hljs-number">0</span>,
+                   <span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;Reviewed next tuner index; earlier tuners require exact fresh saved targets/values&#x27;</span>)
+    args=p.parse_args();proof=source_proof()
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> args.execute:
+        <span class="hljs-built_in">print</span>(json.dumps({<span class="hljs-string">&#x27;status&#x27;</span>:<span class="hljs-string">&#x27;source-only; no UI inspected or input sent&#x27;</span>,**proof},indent=<span class="hljs-number">2</span>));<span class="hljs-keyword">return</span>
+    need(args.frozen_status <span class="hljs-keyword">and</span> args.frozen_navigation <span class="hljs-keyword">and</span> args.journal,
+         <span class="hljs-string">&#x27;--execute requires explicit fresh frozen status/navigation and a new journal&#x27;</span>)
+    paths=[path.resolve() <span class="hljs-keyword">for</span> path <span class="hljs-keyword">in</span> [args.frozen_status,args.frozen_navigation]]
+    need(<span class="hljs-built_in">all</span>(path.is_relative_to(ROOT) <span class="hljs-keyword">for</span> path <span class="hljs-keyword">in</span> paths),<span class="hljs-string">&#x27;Frozen evidence must be in workspace&#x27;</span>)
+    raw=[path.read_bytes() <span class="hljs-keyword">for</span> path <span class="hljs-keyword">in</span> paths];status,nav=<span class="hljs-built_in">map</span>(json.loads,raw)
+    preflight(status,nav,now=time.time(),start_tuner=args.start_tuner)
+    actual=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+    preflight(status,actual,now=time.time(),start_tuner=args.start_tuner)
+    need(actual[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;739&#x27;</span>]==nav[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;739&#x27;</span>],<span class="hljs-string">&#x27;Planner differs from fresh checkpoint positions&#x27;</span>)
+    runner=Runner(args,*[hashlib.sha256(b).hexdigest() <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> raw])
+    <span class="hljs-keyword">try</span>:runner.solve();runner.climb_and_enter()
+    <span class="hljs-keyword">except</span> BaseException <span class="hljs-keyword">as</span> error:
+        runner.record(<span class="hljs-string">&#x27;stopped-requires-actual-review&#x27;</span>,error=<span class="hljs-built_in">str</span>(error),pending=runner.journal[<span class="hljs-string">&#x27;pending&#x27;</span>]);<span class="hljs-keyword">raise</span>
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:main()
+</code></pre>
+  </body>
+</html>

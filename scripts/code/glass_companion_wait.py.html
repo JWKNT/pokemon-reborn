@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_companion_wait.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_companion_wait.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Wait an adjacent, visually verified Glass companion using its normal menu.
+The companion square is specified from the observed route&#x27;s final ordinary step.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> glass_positions <span class="hljs-keyword">import</span> refresh
+name,x,y,facing=sys.argv[<span class="hljs-number">1</span>],<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]),<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">3</span>]),sys.argv[<span class="hljs-number">4</span>]
+<span class="hljs-keyword">assert</span> name <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Glaceon&#x27;</span>,<span class="hljs-string">&#x27;Espeon&#x27;</span>];p=locate(<span class="hljs-number">732</span>)
+dx,dy={<span class="hljs-string">&#x27;up&#x27;</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;down&#x27;</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;left&#x27;</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;right&#x27;</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)}[facing]
+<span class="hljs-keyword">assert</span> (p[<span class="hljs-number">1</span>]+dx,p[<span class="hljs-number">2</span>]+dy)==(x,y)
+<span class="hljs-comment"># Verify the actual rendered player facing. A very short CGEvent turn can be</span>
+<span class="hljs-comment"># missed by gameplay polling; repeated guessing can accidentally talk elsewhere.</span>
+<span class="hljs-keyword">from</span> sprite_sensor <span class="hljs-keyword">import</span> detect
+expected_pose={<span class="hljs-string">&#x27;down&#x27;</span>:<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;left&#x27;</span>:<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;right&#x27;</span>:<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;up&#x27;</span>:<span class="hljs-number">3</span>}[facing]
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--facing-ready&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ <span class="hljs-keyword">for</span> turn_try <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">6</span>):
+  snap();poses=detect(NATIVE,<span class="hljs-string">&#x27;boy_walk&#x27;</span>,scale=<span class="hljs-number">4</span>)
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(poses)!=<span class="hljs-number">1</span>:
+   <span class="hljs-comment"># Opaque shading/foreground can defeat exact pixels. Use a bounded sprite</span>
+   <span class="hljs-comment"># match only when its error and direction separation are unambiguous.</span>
+   <span class="hljs-keyword">from</span> sprite_match <span class="hljs-keyword">import</span> <span class="hljs-keyword">match</span>
+   ranked=<span class="hljs-keyword">match</span>(NATIVE,(<span class="hljs-number">1000</span>,<span class="hljs-number">740</span>,<span class="hljs-number">1280</span>,<span class="hljs-number">1010</span>),sprite=<span class="hljs-string">&#x27;boy_walk&#x27;</span>,zoom=<span class="hljs-number">4</span>)
+   other=<span class="hljs-built_in">next</span>(z <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> ranked <span class="hljs-keyword">if</span> z[<span class="hljs-number">1</span>]!=ranked[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>])
+   <span class="hljs-keyword">assert</span> ranked[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>]&lt;<span class="hljs-number">700</span> <span class="hljs-keyword">and</span> other[<span class="hljs-number">0</span>]&gt;ranked[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>]*<span class="hljs-number">2</span>+<span class="hljs-number">100</span>,(<span class="hljs-string">&#x27;Player sprite facing needs visual review&#x27;</span>,ranked[:<span class="hljs-number">5</span>])
+   pose={<span class="hljs-number">2</span>:<span class="hljs-number">0</span>,<span class="hljs-number">4</span>:<span class="hljs-number">1</span>,<span class="hljs-number">6</span>:<span class="hljs-number">2</span>,<span class="hljs-number">8</span>:<span class="hljs-number">3</span>}[ranked[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]]
+  <span class="hljs-keyword">else</span>:pose=poses[<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;pose&#x27;</span>][<span class="hljs-number">0</span>]
+  <span class="hljs-keyword">if</span> pose==expected_pose:<span class="hljs-keyword">break</span>
+  act(facing+<span class="hljs-string">&#x27;:.03&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unable to verify short turning input&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">732</span>)==p, <span class="hljs-string">&#x27;Player moved while turning; review companion position before C&#x27;</span> 
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+opts=<span class="hljs-string">&#x27;Heal Bell|Wait here|Never mind&#x27;</span> <span class="hljs-keyword">if</span> name==<span class="hljs-string">&#x27;Glaceon&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Future Sight|Wait here|Never mind&#x27;</span>
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),opts,<span class="hljs-string">&#x27;Wait here&#x27;</span>],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/dialog.py&#x27;</span>),<span class="hljs-string">&#x27;--limit=6&#x27;</span>],check=<span class="hljs-literal">True</span>)
+n=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(n.read_text());vv=<span class="hljs-number">404</span> <span class="hljs-keyword">if</span> name==<span class="hljs-string">&#x27;Glaceon&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">406</span>;ss=<span class="hljs-number">946</span> <span class="hljs-keyword">if</span> name==<span class="hljs-string">&#x27;Glaceon&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">947</span>
+v[<span class="hljs-string">&#x27;variables&#x27;</span>].update({<span class="hljs-built_in">str</span>(vv):x,<span class="hljs-built_in">str</span>(vv+<span class="hljs-number">1</span>):y});v[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(ss)]=<span class="hljs-literal">False</span>
+n.write_text(json.dumps(refresh(v,json.loads((ROOT/<span class="hljs-string">&#x27;work/story-map-732-events.json&#x27;</span>).read_text()))))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NORMAL WAIT HERE VERIFIED; companion planner&#x27;</span>,name,x,y,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

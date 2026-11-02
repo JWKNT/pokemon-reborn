@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>agate_pc_resupply.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of agate_pc_resupply.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finite normal Agate PC→Dept8F→Agate supply trip; dry-run by default.
+
+Only explicit --execute uses public controls or makes the single final normal
+checkpoint. No battle is intentionally started; partial journals are not
+resumed/replayed. Use an explicit completed-street frozen checkpoint.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> __future__ <span class="hljs-keyword">import</span> annotations
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">from</span> copy <span class="hljs-keyword">import</span> deepcopy
+<span class="hljs-keyword">from</span> datetime <span class="hljs-keyword">import</span> datetime
+<span class="hljs-keyword">from</span> functools <span class="hljs-keyword">import</span> lru_cache
+<span class="hljs-keyword">import</span> hashlib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> time
+<span class="hljs-keyword">from</span> agate_party_assemble <span class="hljs-keyword">import</span> (Runner <span class="hljs-keyword">as</span> AssemblyRunner, FINAL, IDENTITY,
+    CF_EV, CF_MOVES, effective_nature, source_proof <span class="hljs-keyword">as</span> assembly_source)
+<span class="hljs-keyword">from</span> agate_archive_core <span class="hljs-keyword">import</span> full_pp
+<span class="hljs-keyword">from</span> agate_supply_queue <span class="hljs-keyword">import</span> vendor_ready_public
+<span class="hljs-keyword">from</span> calcenon_agate_queue <span class="hljs-keyword">import</span> event, need, selected_page
+
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+GAME=Path(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game&#x27;</span>)
+CART=((<span class="hljs-string">&#x27;XSPECIAL&#x27;</span>,<span class="hljs-string">&#x27;X Sp. Atk&#x27;</span>,<span class="hljs-number">4</span>,<span class="hljs-number">350</span>),(<span class="hljs-string">&#x27;XSPEED&#x27;</span>,<span class="hljs-string">&#x27;X Speed&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-number">350</span>),
+      (<span class="hljs-string">&#x27;XACCURACY&#x27;</span>,<span class="hljs-string">&#x27;X Accuracy&#x27;</span>,<span class="hljs-number">2</span>,<span class="hljs-number">950</span>))
+COST=<span class="hljs-built_in">sum</span>(q*p <span class="hljs-keyword">for</span> _,_,q,p <span class="hljs-keyword">in</span> CART)
+
+
+<span class="hljs-meta">@lru_cache(<span class="hljs-params">maxsize=<span class="hljs-number">1</span></span>)</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">source_event_geometry</span>():
+    <span class="hljs-comment"># Static asset metadata only, no route_map/native reads. Lists are omitted.</span>
+    code=<span class="hljs-string">&quot;&quot;&quot;require_relative &#x27;scripts/read_rgss&#x27;; m=load_rgss(&#x27;/Applications/Reborn.app/Contents/Game/Data/Map763.rxdata&#x27;); h=m.instance_variable_get(:@events); puts JSON.generate(h.transform_values{|e|q=plain(e); q[&#x27;pages&#x27;].each{|p|p.delete(&#x27;list&#x27;)}; q})&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">return</span> json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;-e&#x27;</span>,code],cwd=ROOT,stderr=subprocess.DEVNULL))
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">clear_completed_street_rays</span>(<span class="hljs-params">nav</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Pure, narrow stale-planner cleanup after all three proven victories.
+
+    Only original E45/46/49 source ray cells beyond each NPC are eligible.
+    Original NPC tiles, current saved visible NPC positions, commitment52 and
+    every other avoid remain.
+    This returns notes data only; no native/game/save changes are made.
+    &quot;&quot;&quot;</span>
+    need(nav.get(<span class="hljs-string">&#x27;variables&#x27;</span>,{}).get(<span class="hljs-string">&#x27;391&#x27;</span>)==<span class="hljs-number">52</span> <span class="hljs-keyword">and</span>
+         <span class="hljs-built_in">all</span>(nav.get(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{}).get(<span class="hljs-string">f&#x27;763,<span class="hljs-subst">{e}</span>,A&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span> <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> [<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-number">49</span>]),
+         <span class="hljs-string">&#x27;Completed-street cleanup requires actual52 + all45/46/49victories&#x27;</span>)
+    positions=nav.get(<span class="hljs-string">&#x27;positions&#x27;</span>,{}).get(<span class="hljs-string">&#x27;763&#x27;</span>,{})
+    need(<span class="hljs-built_in">all</span>(<span class="hljs-built_in">str</span>(e) <span class="hljs-keyword">in</span> positions <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> [<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-number">49</span>]),
+         <span class="hljs-string">&#x27;Frozen/current normal checkpoint must include actual street NPC positions&#x27;</span>)
+    protected=<span class="hljs-built_in">set</span>()
+    <span class="hljs-keyword">for</span> key,e <span class="hljs-keyword">in</span> source_event_geometry().items():
+        pi=selected_page(e,nav,<span class="hljs-number">763</span>)
+        <span class="hljs-keyword">if</span> pi <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<span class="hljs-keyword">continue</span>
+        page=e[<span class="hljs-string">&#x27;pages&#x27;</span>][pi];graphic=page[<span class="hljs-string">&#x27;graphic&#x27;</span>]
+        <span class="hljs-keyword">if</span> (graphic.get(<span class="hljs-string">&#x27;character_name&#x27;</span>) <span class="hljs-keyword">or</span> graphic.get(<span class="hljs-string">&#x27;tile_id&#x27;</span>)) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> page.get(<span class="hljs-string">&#x27;through&#x27;</span>):
+            protected.add(<span class="hljs-built_in">tuple</span>(positions.get(key,[e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]])))
+    eligible=<span class="hljs-built_in">set</span>()
+    <span class="hljs-keyword">for</span> eid,xy,direction <span class="hljs-keyword">in</span> [(<span class="hljs-number">45</span>,(<span class="hljs-number">42</span>,<span class="hljs-number">60</span>),<span class="hljs-number">8</span>),(<span class="hljs-number">46</span>,(<span class="hljs-number">42</span>,<span class="hljs-number">55</span>),<span class="hljs-number">2</span>),(<span class="hljs-number">49</span>,(<span class="hljs-number">37</span>,<span class="hljs-number">63</span>),<span class="hljs-number">8</span>)]:
+        e=event(<span class="hljs-number">763</span>,eid);p=e[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>]
+        need((e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])==xy <span class="hljs-keyword">and</span> e[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Trainer(4)&#x27;</span> <span class="hljs-keyword">and</span> p[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">2</span>
+             <span class="hljs-keyword">and</span> p[<span class="hljs-string">&#x27;move_type&#x27;</span>]==<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> p[<span class="hljs-string">&#x27;graphic&#x27;</span>][<span class="hljs-string">&#x27;direction&#x27;</span>]==direction,
+             <span class="hljs-string">&#x27;Reviewed original street footprint changed&#x27;</span>)
+        active=selected_page(e,nav,<span class="hljs-number">763</span>)
+        need(active <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> e[<span class="hljs-string">&#x27;pages&#x27;</span>][active][<span class="hljs-string">&#x27;trigger&#x27;</span>]!=<span class="hljs-number">2</span>,
+             <span class="hljs-string">&#x27;An actual street trainer page is still active&#x27;</span>)
+        dy=-<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> direction==<span class="hljs-number">8</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+        eligible.update((xy[<span class="hljs-number">0</span>],xy[<span class="hljs-number">1</span>]+i*dy) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>,<span class="hljs-number">5</span>))
+    old=<span class="hljs-built_in">set</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">tuple</span>,nav.get(<span class="hljs-string">&#x27;avoid&#x27;</span>,{}).get(<span class="hljs-string">&#x27;763&#x27;</span>,[])))
+    removed=(old &amp; eligible)-protected
+    result=deepcopy(nav)
+    result.setdefault(<span class="hljs-string">&#x27;avoid&#x27;</span>,{})[<span class="hljs-string">&#x27;763&#x27;</span>]=<span class="hljs-built_in">sorted</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">list</span>,old-removed))
+    result[<span class="hljs-string">&#x27;agate_completed_street_guard_cleanup&#x27;</span>]={
+        <span class="hljs-string">&#x27;completed_events&#x27;</span>:[<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-number">49</span>],<span class="hljs-string">&#x27;removed&#x27;</span>:<span class="hljs-built_in">sorted</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">list</span>,removed)),
+        <span class="hljs-string">&#x27;retained_current_npc_positions&#x27;</span>:<span class="hljs-built_in">sorted</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">list</span>,protected &amp; eligible)),
+        <span class="hljs-string">&#x27;source_original_footprints&#x27;</span>:<span class="hljs-built_in">sorted</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">list</span>,eligible)),
+        <span class="hljs-string">&#x27;policy&#x27;</span>:<span class="hljs-string">&#x27;planning only; actual NPCs/other avoids/commitment preserved&#x27;</span>}
+    <span class="hljs-keyword">return</span> result,result[<span class="hljs-string">&#x27;agate_completed_street_guard_cleanup&#x27;</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">digest</span>(<span class="hljs-params">path</span>):<span class="hljs-keyword">return</span> hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">source_proof</span>():
+    facts=assembly_source()
+    shop=event(<span class="hljs-number">4</span>,<span class="hljs-number">4</span>)
+    need(<span class="hljs-built_in">len</span>(shop[<span class="hljs-string">&#x27;pages&#x27;</span>])==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> (shop[<span class="hljs-string">&#x27;x&#x27;</span>],shop[<span class="hljs-string">&#x27;y&#x27;</span>])==(<span class="hljs-number">5</span>,<span class="hljs-number">5</span>),
+         <span class="hljs-string">&#x27;Unreviewed Xitem merchant geometry/pages&#x27;</span>)
+    page=shop[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>]
+    need(<span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(page[<span class="hljs-string">&#x27;condition&#x27;</span>][k] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span>
+         [<span class="hljs-string">&#x27;switch1_valid&#x27;</span>,<span class="hljs-string">&#x27;switch2_valid&#x27;</span>,<span class="hljs-string">&#x27;variable_valid&#x27;</span>,<span class="hljs-string">&#x27;self_switch_valid&#x27;</span>]),
+         <span class="hljs-string">&#x27;Xitem merchant gained a gated page&#x27;</span>)
+    script=<span class="hljs-string">&#x27;\n&#x27;</span>.join(<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> page[<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">355</span>,<span class="hljs-number">655</span>])
+    need(<span class="hljs-string">&#x27;pbPokemonMart&#x27;</span> <span class="hljs-keyword">in</span> script <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(<span class="hljs-string">&#x27;:&#x27;</span>+k <span class="hljs-keyword">in</span> script <span class="hljs-keyword">for</span> k,_,_,_ <span class="hljs-keyword">in</span> CART)
+         <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">102</span>,<span class="hljs-number">301</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> page[<span class="hljs-string">&#x27;list&#x27;</span>]),
+         <span class="hljs-string">&#x27;Source Xitem stock/dialogue changed&#x27;</span>)
+    itemtext=(GAME/<span class="hljs-string">&#x27;Scripts/Reborn/itemtext.rb&#x27;</span>).read_text()
+    <span class="hljs-keyword">for</span> key,label,qty,price <span class="hljs-keyword">in</span> CART:
+        block=re.search(<span class="hljs-string">r&#x27;(?m)^\s*:&#x27;</span>+key+<span class="hljs-string">r&#x27;\s*=&gt;\s*\{(.*?)\n\s*\},&#x27;</span>,itemtext,re.S)
+        need(block <span class="hljs-keyword">and</span> re.search(<span class="hljs-string">r&#x27;:price\s*=&gt;\s*&#x27;</span>+<span class="hljs-built_in">str</span>(price)+<span class="hljs-string">r&#x27;\b&#x27;</span>,block[<span class="hljs-number">1</span>]),
+             <span class="hljs-string">&#x27;Installed item price changed: &#x27;</span>+label)
+    facts.update(cart=[{<span class="hljs-string">&#x27;item&#x27;</span>:k,<span class="hljs-string">&#x27;label&#x27;</span>:n,<span class="hljs-string">&#x27;quantity&#x27;</span>:q,<span class="hljs-string">&#x27;unit_price&#x27;</span>:p} <span class="hljs-keyword">for</span> k,n,q,p <span class="hljs-keyword">in</span> CART],
+                 cost=COST,box1_slot=<span class="hljs-number">11</span>,party_slot=<span class="hljs-number">5</span>,shop=[<span class="hljs-number">4</span>,<span class="hljs-number">4</span>],
+                 stop=[<span class="hljs-number">763</span>,<span class="hljs-number">46</span>,<span class="hljs-number">70</span>],source_only_no_controls=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">return</span> facts
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">preflight</span>(<span class="hljs-params">status,nav,*,now=<span class="hljs-literal">None</span></span>):
+    need(status.get(<span class="hljs-string">&#x27;map&#x27;</span>)==<span class="hljs-number">763</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(status.get(<span class="hljs-string">&#x27;position&#x27;</span>,[]))==<span class="hljs-number">2</span> <span class="hljs-keyword">and</span>
+         status[<span class="hljs-string">&#x27;position&#x27;</span>][<span class="hljs-number">1</span>]&gt;=<span class="hljs-number">53</span>,<span class="hljs-string">&#x27;Start from a frozen normal south-Agate checkpoint&#x27;</span>)
+    need(nav.get(<span class="hljs-string">&#x27;variables&#x27;</span>,{}).get(<span class="hljs-string">&#x27;391&#x27;</span>)==<span class="hljs-number">52</span>,<span class="hljs-string">&#x27;Only prechain story39152 accepted&#x27;</span>)
+    need(<span class="hljs-built_in">all</span>(nav.get(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{}).get(<span class="hljs-string">f&#x27;763,<span class="hljs-subst">{e}</span>,A&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span> <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> [<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-number">49</span>]),
+         <span class="hljs-string">&#x27;Explicit completed Lyla/Ezra/Antoine victory flags required&#x27;</span>)
+    need(nav.get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;5&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">False</span> <span class="hljs-keyword">and</span>
+         nav.get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).get(<span class="hljs-string">&#x27;988&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;Reviewed nurse/Agate entry flags required&#x27;</span>)
+    need(nav[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-string">&#x27;175&#x27;</span>,-<span class="hljs-number">1</span>)&gt;=<span class="hljs-number">7</span> <span class="hljs-keyword">and</span>
+         status[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>].get(<span class="hljs-string">&#x27;MEMBERSHIPCARD&#x27;</span>,<span class="hljs-number">0</span>)&gt;=<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Normal Dept8F membership required&#x27;</span>)
+    need(status[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;badges&#x27;</span>].count(<span class="hljs-literal">True</span>)==<span class="hljs-number">16</span>,<span class="hljs-string">&#x27;Expected16badges before Agate chain&#x27;</span>)
+    party=status.get(<span class="hljs-string">&#x27;party&#x27;</span>,[])
+    need(<span class="hljs-built_in">len</span>(party)==<span class="hljs-number">6</span> <span class="hljs-keyword">and</span> {m.get(<span class="hljs-string">&#x27;species&#x27;</span>) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> party}==<span class="hljs-built_in">set</span>(FINAL)
+         <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>({m[<span class="hljs-string">&#x27;name&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> party})==<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;Exact reviewed six with unique names required&#x27;</span>)
+    need(<span class="hljs-built_in">all</span>(m[<span class="hljs-string">&#x27;level&#x27;</span>]==<span class="hljs-number">90</span> <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;=m[<span class="hljs-string">&#x27;hp&#x27;</span>]&lt;=m[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> party),
+         <span class="hljs-string">&#x27;Reviewed six must remain Lv90 with valid frozen HP; normal nurse heals injuries&#x27;</span>)
+    cf=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> party <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span>)
+    need(cf[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Cofagrigus&#x27;</span> <span class="hljs-keyword">and</span> effective_nature(cf)==<span class="hljs-string">&#x27;TIMID&#x27;</span> <span class="hljs-keyword">and</span>
+         cf.get(<span class="hljs-string">&#x27;item&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> cf[<span class="hljs-string">&#x27;ev&#x27;</span>]==CF_EV <span class="hljs-keyword">and</span>
+         [m[<span class="hljs-string">&#x27;move&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> cf[<span class="hljs-string">&#x27;moves&#x27;</span>]]==CF_MOVES <span class="hljs-keyword">and</span>
+         [cf[k] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;totalhp&#x27;</span>,<span class="hljs-string">&#x27;attack&#x27;</span>,<span class="hljs-string">&#x27;defense&#x27;</span>,<span class="hljs-string">&#x27;spatk&#x27;</span>,<span class="hljs-string">&#x27;spdef&#x27;</span>,<span class="hljs-string">&#x27;speed&#x27;</span>]]==
+         [<span class="hljs-number">252</span>,<span class="hljs-number">93</span>,<span class="hljs-number">333</span>,<span class="hljs-number">210</span>,<span class="hljs-number">218</span>,<span class="hljs-number">68</span>],<span class="hljs-string">&#x27;Frozen normal Cofa build differs&#x27;</span>)
+    cryo=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> party <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span>)
+    need(cryo[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Hexan&#x27;</span> <span class="hljs-keyword">and</span> cryo.get(<span class="hljs-string">&#x27;item&#x27;</span>)==<span class="hljs-string">&#x27;FOCUSSASH&#x27;</span>,
+         <span class="hljs-string">&#x27;Actual Hexan must still hold Sash; no consumed item is re-created&#x27;</span>)
+    need(status[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]&gt;=COST,<span class="hljs-string">&#x27;Actual frozen money insufficient for4350cart&#x27;</span>)
+    <span class="hljs-keyword">if</span> now <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+        saved=datetime.fromisoformat(status[<span class="hljs-string">&#x27;save_mtime&#x27;</span>]).timestamp()
+        need(-<span class="hljs-number">5</span>&lt;=now-saved&lt;=<span class="hljs-number">300</span>,<span class="hljs-string">&#x27;Execution requires a fresh normal checkpoint≤300s old&#x27;</span>)
+    _,cleanup=clear_completed_street_rays(nav)
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;initial_stage&#x27;</span>:<span class="hljs-number">52</span>,<span class="hljs-string">&#x27;initial_party_order&#x27;</span>:[m[<span class="hljs-string">&#x27;species&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> party],
+            <span class="hljs-string">&#x27;temporary_carrier&#x27;</span>:<span class="hljs-string">&#x27;Tranquill&#x27;</span>,<span class="hljs-string">&#x27;box1_slot&#x27;</span>:<span class="hljs-number">11</span>,<span class="hljs-string">&#x27;party_slot&#x27;</span>:<span class="hljs-number">5</span>,
+            <span class="hljs-string">&#x27;total_cost&#x27;</span>:COST,<span class="hljs-string">&#x27;expected_money&#x27;</span>:status[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]-COST,
+            <span class="hljs-string">&#x27;final_position&#x27;</span>:[<span class="hljs-number">763</span>,<span class="hljs-number">46</span>,<span class="hljs-number">70</span>],<span class="hljs-string">&#x27;source_reviewed_stale_ray_cleanup&#x27;</span>:cleanup}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">final_proof</span>(<span class="hljs-params">before,after,nav,maxima,*,expected_position=(<span class="hljs-params"><span class="hljs-number">46</span>,<span class="hljs-number">70</span></span>)</span>):
+    need(<span class="hljs-built_in">tuple</span>(expected_position) <span class="hljs-keyword">in</span> {(<span class="hljs-number">46</span>,<span class="hljs-number">70</span>),(<span class="hljs-number">45</span>,<span class="hljs-number">53</span>)}, <span class="hljs-string">&#x27;Only reviewed south/prechain endpoints accepted&#x27;</span>)
+    need(after[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">763</span> <span class="hljs-keyword">and</span> after[<span class="hljs-string">&#x27;position&#x27;</span>]==<span class="hljs-built_in">list</span>(expected_position) <span class="hljs-keyword">and</span>
+         nav[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-string">&#x27;391&#x27;</span>)==<span class="hljs-number">52</span>,<span class="hljs-string">&#x27;Final safe southern coordinate/stage differs&#x27;</span>)
+    need(<span class="hljs-built_in">tuple</span>(m[<span class="hljs-string">&#x27;species&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> after[<span class="hljs-string">&#x27;party&#x27;</span>])==FINAL,<span class="hljs-string">&#x27;Final six order differs&#x27;</span>)
+    old={m[<span class="hljs-string">&#x27;species&#x27;</span>]:m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> before[<span class="hljs-string">&#x27;party&#x27;</span>]}
+    <span class="hljs-keyword">for</span> mon <span class="hljs-keyword">in</span> after[<span class="hljs-string">&#x27;party&#x27;</span>]:
+        prior=old[mon[<span class="hljs-string">&#x27;species&#x27;</span>]]
+        need(<span class="hljs-built_in">all</span>(mon.get(k)==prior.get(k) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> IDENTITY),
+             <span class="hljs-string">&#x27;Normal trip changed retained identity/held item: &#x27;</span>+mon[<span class="hljs-string">&#x27;name&#x27;</span>])
+        need([m[<span class="hljs-string">&#x27;move&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> mon[<span class="hljs-string">&#x27;moves&#x27;</span>]]==[m[<span class="hljs-string">&#x27;move&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> prior[<span class="hljs-string">&#x27;moves&#x27;</span>]],
+             <span class="hljs-string">&#x27;Retained moves changed: &#x27;</span>+mon[<span class="hljs-string">&#x27;name&#x27;</span>])
+        need([m.get(<span class="hljs-string">&#x27;ppup&#x27;</span>,<span class="hljs-number">0</span>) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> mon[<span class="hljs-string">&#x27;moves&#x27;</span>]]==
+             [m.get(<span class="hljs-string">&#x27;ppup&#x27;</span>,<span class="hljs-number">0</span>) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> prior[<span class="hljs-string">&#x27;moves&#x27;</span>]],
+             <span class="hljs-string">&#x27;Retained PP Up investment changed: &#x27;</span>+mon[<span class="hljs-string">&#x27;name&#x27;</span>])
+        need(mon[<span class="hljs-string">&#x27;level&#x27;</span>]==<span class="hljs-number">90</span> <span class="hljs-keyword">and</span> mon[<span class="hljs-string">&#x27;hp&#x27;</span>]==mon[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">and</span> mon[<span class="hljs-string">&#x27;status&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>,
+             <span class="hljs-string">&#x27;Final nurse must prove full HP/status-free Lv90 party&#x27;</span>)
+        need(<span class="hljs-built_in">all</span>(m[<span class="hljs-string">&#x27;pp&#x27;</span>]==full_pp(m,maxima) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> mon[<span class="hljs-string">&#x27;moves&#x27;</span>]),
+             <span class="hljs-string">&#x27;Final nurse full PP proof missing&#x27;</span>)
+    need(after[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]==before[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]-COST,
+         <span class="hljs-string">&#x27;Normal shop money does not reconcile4350&#x27;</span>)
+    expected=<span class="hljs-built_in">dict</span>(before[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>])
+    <span class="hljs-keyword">for</span> key,_,q,_ <span class="hljs-keyword">in</span> CART:expected[key]=expected.get(key,<span class="hljs-number">0</span>)+q
+    actual=after[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>]
+    need({k:v <span class="hljs-keyword">for</span> k,v <span class="hljs-keyword">in</span> expected.items() <span class="hljs-keyword">if</span> v}=={k:v <span class="hljs-keyword">for</span> k,v <span class="hljs-keyword">in</span> actual.items() <span class="hljs-keyword">if</span> v},
+         <span class="hljs-string">&#x27;Exact final bag delta must be purchases only; Sash stays with boxed Cryo&#x27;</span>)
+    need(actual.get(<span class="hljs-string">&#x27;XSPECIAL&#x27;</span>,<span class="hljs-number">0</span>)&gt;=<span class="hljs-number">6</span> <span class="hljs-keyword">and</span> actual.get(<span class="hljs-string">&#x27;XSPEED&#x27;</span>,<span class="hljs-number">0</span>)&gt;=<span class="hljs-number">3</span>,
+         <span class="hljs-string">&#x27;Insufficient restored chain setup stock&#x27;</span>)
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Runner</span>(<span class="hljs-title class_ inherited__">AssemblyRunner</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">self,script,*args</span>):
+        <span class="hljs-comment"># Base world() handles a visible expired-Repel prompt. This town-only</span>
+        <span class="hljs-comment"># trip needs no wild protection; cancel it normally so bag accounting</span>
+        <span class="hljs-comment"># remains exactly the reviewed shop cart.</span>
+        <span class="hljs-keyword">if</span> script==<span class="hljs-string">&#x27;renew_repel&#x27;</span>:
+            need(<span class="hljs-keyword">not</span> args,<span class="hljs-string">&#x27;Unexpected inherited Repel renewal arguments&#x27;</span>)
+            args=(<span class="hljs-string">&#x27;--cancel&#x27;</span>,)
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">super</span>().run(script,*args)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">exchange_carrier</span>(<span class="hljs-params">self,incoming,outgoing</span>):
+        <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">752</span>);<span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">752</span>,<span class="hljs-number">7</span>,<span class="hljs-number">0</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">752</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;pc_open_reviewed&#x27;</span>)
+        need(re.search(<span class="hljs-string">r&#x27;\bbox\s*1\b&#x27;</span>,read().lower()),<span class="hljs-string">&#x27;Fresh Box1 required; no swap keys sent&#x27;</span>)
+        out=<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;pc_exchange_named&#x27;</span>,<span class="hljs-number">11</span>,<span class="hljs-number">5</span>,incoming,outgoing)
+        need(<span class="hljs-string">&#x27;EXCHANGE COMPLETE &#x27;</span>+incoming+<span class="hljs-string">&#x27; &#x27;</span>+outgoing <span class="hljs-keyword">in</span> out,<span class="hljs-string">&#x27;Named exchange receipt missing&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.expected[<span class="hljs-number">5</span>]=incoming;<span class="hljs-variable language_">self</span>.settle();<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">752</span>);<span class="hljs-variable language_">self</span>.party_check()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">nurse</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">752</span>);<span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">752</span>,<span class="hljs-number">4</span>,<span class="hljs-number">0</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">752</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+        welcome=read().lower();need(<span class="hljs-string">&#x27;welcome&#x27;</span> <span class="hljs-keyword">in</span> welcome <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;rest&#x27;</span> <span class="hljs-keyword">in</span> welcome,<span class="hljs-string">&#x27;Normal nurse greeting required&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>);<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;heal&#x27;</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">752</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">trip</span>(<span class="hljs-params">self,nav,proposal</span>):
+        <span class="hljs-variable language_">self</span>.position(<span class="hljs-number">763</span>,(<span class="hljs-number">763</span>,*<span class="hljs-variable language_">self</span>.status[<span class="hljs-string">&#x27;position&#x27;</span>]));<span class="hljs-variable language_">self</span>.stage(<span class="hljs-number">52</span>)
+        <span class="hljs-variable language_">self</span>.party_check()
+        cleaned,proof=clear_completed_street_rays(<span class="hljs-variable language_">self</span>.nav())
+        (ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).write_text(json.dumps(cleaned)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.record(<span class="hljs-string">&#x27;completed-street-source-ray-guards-cleared&#x27;</span>,proof=proof)
+        <span class="hljs-variable language_">self</span>.hard_avoid(nav)
+        <span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">763</span>,<span class="hljs-number">79</span>,<span class="hljs-number">0</span>);<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">763</span>,<span class="hljs-number">79</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">752</span>,(<span class="hljs-number">752</span>,<span class="hljs-number">10</span>,<span class="hljs-number">10</span>))
+        <span class="hljs-variable language_">self</span>.nurse();<span class="hljs-variable language_">self</span>.arrange();<span class="hljs-variable language_">self</span>.exchange_carrier(<span class="hljs-string">&#x27;Tranquill&#x27;</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">752</span>,<span class="hljs-number">8</span>,<span class="hljs-number">0</span>);<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">752</span>,<span class="hljs-number">8</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">763</span>,(<span class="hljs-number">763</span>,<span class="hljs-number">46</span>,<span class="hljs-number">70</span>))
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">520</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">520</span>)
+        <span class="hljs-keyword">for</span> mid,eid,mode,dest <span class="hljs-keyword">in</span> [(<span class="hljs-number">520</span>,<span class="hljs-number">101</span>,<span class="hljs-string">&#x27;enter&#x27;</span>,<span class="hljs-number">112</span>),(<span class="hljs-number">112</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>,<span class="hljs-number">113</span>)]:
+            <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,mid,eid,mode);<span class="hljs-variable language_">self</span>.position(dest)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">113</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;dept_greet&#x27;</span>);<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;dept_floor&#x27;</span>,<span class="hljs-number">8</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">4</span>)
+        <span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">4</span>,<span class="hljs-number">4</span>,<span class="hljs-number">0</span>);<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">4</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);vendor_ready_public()
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;mart_open&#x27;</span>)
+        <span class="hljs-keyword">for</span> _,name,q,p <span class="hljs-keyword">in</span> CART:<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,name,q,p)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">4</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">4</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">113</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">113</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;dept_greet&#x27;</span>);<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;dept_floor&#x27;</span>,<span class="hljs-number">1</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">112</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">112</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">520</span>)
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">763</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">763</span>,(<span class="hljs-number">763</span>,<span class="hljs-number">46</span>,<span class="hljs-number">70</span>));<span class="hljs-variable language_">self</span>.stage(<span class="hljs-number">52</span>)
+        <span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">763</span>,<span class="hljs-number">79</span>,<span class="hljs-number">0</span>);<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">763</span>,<span class="hljs-number">79</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">752</span>,(<span class="hljs-number">752</span>,<span class="hljs-number">10</span>,<span class="hljs-number">10</span>))
+        <span class="hljs-variable language_">self</span>.exchange_carrier(<span class="hljs-string">&#x27;Hexan&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>);<span class="hljs-variable language_">self</span>.arrange();<span class="hljs-variable language_">self</span>.nurse()
+        <span class="hljs-variable language_">self</span>.active_source(<span class="hljs-number">752</span>,<span class="hljs-number">8</span>,<span class="hljs-number">0</span>);<span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">752</span>,<span class="hljs-number">8</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">763</span>,(<span class="hljs-number">763</span>,<span class="hljs-number">46</span>,<span class="hljs-number">70</span>))
+        <span class="hljs-variable language_">self</span>.party_check();<span class="hljs-variable language_">self</span>.stage(<span class="hljs-number">52</span>);<span class="hljs-variable language_">self</span>.position(<span class="hljs-number">763</span>,(<span class="hljs-number">763</span>,<span class="hljs-number">46</span>,<span class="hljs-number">70</span>))
+        <span class="hljs-variable language_">self</span>.run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-variable language_">self</span>.args.checkpoint)
+        sp=ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{self.args.checkpoint}</span>-status.json&#x27;</span>
+        np=ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{self.args.checkpoint}</span>-navigation.json&#x27;</span>
+        need(sp.stat().st_mtime&gt;=<span class="hljs-variable language_">self</span>.started <span class="hljs-keyword">and</span> np.stat().st_mtime&gt;=<span class="hljs-variable language_">self</span>.started,<span class="hljs-string">&#x27;Final evidence is stale&#x27;</span>)
+        code=<span class="hljs-string">&quot;require_relative &#x27;scripts/read_rgss&#x27;; h=load_rgss(&#x27;/Applications/Reborn.app/Contents/Game/Data/moves.dat&#x27;); puts JSON.generate(h.transform_values{|m|m.instance_variable_get(:@maxpp)})&quot;</span>
+        maxima=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;-e&#x27;</span>,code],cwd=ROOT,stderr=subprocess.DEVNULL))
+        final_proof(<span class="hljs-variable language_">self</span>.status,json.loads(sp.read_text()),json.loads(np.read_text()),maxima)
+        <span class="hljs-variable language_">self</span>.journal.update(status=<span class="hljs-string">&#x27;completed-safe-supply-trip&#x27;</span>,verified=<span class="hljs-literal">True</span>,
+                            final_status_sha256=digest(sp),final_navigation_sha256=digest(np));<span class="hljs-variable language_">self</span>.write()
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;AGATE RESTOCKED4350; fixed six fullHP/PP763[46,70] stage52. No chain commitment.&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument(<span class="hljs-string">&#x27;--status&#x27;</span>,<span class="hljs-built_in">type</span>=Path);p.add_argument(<span class="hljs-string">&#x27;--navigation&#x27;</span>,<span class="hljs-built_in">type</span>=Path)
+    p.add_argument(<span class="hljs-string">&#x27;--execute&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;--journal&#x27;</span>,<span class="hljs-built_in">type</span>=Path,
+        default=ROOT/<span class="hljs-string">&#x27;work/agate-pc-resupply.json&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--checkpoint&#x27;</span>,default=<span class="hljs-string">&#x27;Agate-restocked-south-ready131&#x27;</span>)
+    args=p.parse_args();args.phase=<span class="hljs-string">&#x27;agate-assemble&#x27;</span>
+    proposal={<span class="hljs-string">&#x27;proposal&#x27;</span>:<span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;executed&#x27;</span>:<span class="hljs-literal">False</span>,<span class="hljs-string">&#x27;source&#x27;</span>:source_proof(),
+              <span class="hljs-string">&#x27;sequence&#x27;</span>:[<span class="hljs-string">&#x27;require45/46/49victories39152&#x27;</span>,<span class="hljs-string">&#x27;normal752nurse&#x27;</span>,
+                <span class="hljs-string">&#x27;arrangefixedsix&#x27;</span>,<span class="hljs-string">&#x27;Box1slot11Tranquill→Cryoparty5 preservingSash&#x27;</span>,
+                <span class="hljs-string">&#x27;Fly520→normalDept8F&#x27;</span>,<span class="hljs-string">&#x27;buy4SpAtk3Speed2Acc4350&#x27;</span>,<span class="hljs-string">&#x27;Fly763south&#x27;</span>,
+                <span class="hljs-string">&#x27;restore exactCryoslot11→party5&#x27;</span>,<span class="hljs-string">&#x27;normalnurse&#x27;</span>,<span class="hljs-string">&#x27;single finalcheckpoint76346,70&#x27;</span>]}
+    status=nav=<span class="hljs-literal">None</span>
+    <span class="hljs-keyword">if</span> args.status <span class="hljs-keyword">or</span> args.navigation:
+        need(args.status <span class="hljs-keyword">and</span> args.navigation,<span class="hljs-string">&#x27;Pass both explicit frozen paths&#x27;</span>)
+        need(args.status.resolve().is_relative_to(ROOT) <span class="hljs-keyword">and</span> args.navigation.resolve().is_relative_to(ROOT),
+             <span class="hljs-string">&#x27;Frozen evidence must be workspace files&#x27;</span>)
+        status=json.loads(args.status.read_text());nav=json.loads(args.navigation.read_text())
+        proposal.update(preflight(status,nav,now=time.time() <span class="hljs-keyword">if</span> args.execute <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>))
+    <span class="hljs-built_in">print</span>(json.dumps(proposal,indent=<span class="hljs-number">2</span>),flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> args.execute:<span class="hljs-keyword">return</span>
+    need(status <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;--execute requires explicit completed-street frozen evidence&#x27;</span>)
+    need(re.fullmatch(<span class="hljs-string">r&#x27;[A-Za-z0-9_-]+&#x27;</span>,args.checkpoint),<span class="hljs-string">&#x27;Invalid checkpoint label&#x27;</span>)
+    need(<span class="hljs-keyword">not</span> (ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{args.checkpoint}</span>-status.json&#x27;</span>).exists() <span class="hljs-keyword">and</span>
+         <span class="hljs-keyword">not</span> (ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{args.checkpoint}</span>-navigation.json&#x27;</span>).exists(),
+         <span class="hljs-string">&#x27;Final checkpoint exists; no replay/overwrite&#x27;</span>)
+    runner=Runner(args,status,nav,proposal)
+    <span class="hljs-keyword">try</span>:runner.trip(nav,proposal)
+    <span class="hljs-keyword">except</span> BaseException <span class="hljs-keyword">as</span> error:
+        runner.journal.update(status=<span class="hljs-string">&#x27;stopped-for-actual-state-review&#x27;</span>,verified=<span class="hljs-literal">False</span>)
+        runner.record(<span class="hljs-string">&#x27;stop&#x27;</span>,reason=<span class="hljs-built_in">str</span>(error),error=<span class="hljs-built_in">type</span>(error).__name__);<span class="hljs-keyword">raise</span>
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:main()
+</code></pre>
+  </body>
+</html>

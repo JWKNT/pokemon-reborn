@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>rail198_exit.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of rail198_exit.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Exit the completed final rail puzzle through its normally blasted tunnel.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,sys,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+n=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1166&#x27;</span>]
+steps=[(<span class="hljs-string">&#x27;rail_cart198.py&#x27;</span>,<span class="hljs-number">41</span>,<span class="hljs-string">&#x27;Rail198-exit-cart41-right&#x27;</span>),(<span class="hljs-string">&#x27;rail_lever198.py&#x27;</span>,<span class="hljs-number">33</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Rail198-exit-A-on&#x27;</span>),(<span class="hljs-string">&#x27;rail_cart198.py&#x27;</span>,<span class="hljs-number">41</span>,<span class="hljs-string">&#x27;Rail198-exit-cart41-upperright&#x27;</span>),(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">790</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;enter&#x27;</span>),(<span class="hljs-string">&#x27;dialog.py&#x27;</span>,<span class="hljs-string">&#x27;--story-burst&#x27;</span>,<span class="hljs-string">&#x27;--limit=90&#x27;</span>),(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Gem198-entry&#x27;</span>)]
+start=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>])<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+<span class="hljs-keyword">for</span> i,a <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(steps,<span class="hljs-number">1</span>):
+ <span class="hljs-keyword">if</span> i&lt;start:<span class="hljs-keyword">continue</span>
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/a[<span class="hljs-number">0</span>]),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a[<span class="hljs-number">1</span>:])],check=<span class="hljs-literal">True</span>,env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;112&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>))
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RAIL EXIT STEP&#x27;</span>,i,<span class="hljs-string">&#x27;DONE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

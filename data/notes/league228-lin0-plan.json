@@ -1,0 +1,20 @@
+{
+  "round": 5,
+  "trainer_key": [
+    "LIN",
+    "Lin",
+    0
+  ],
+  "field": "Map821 EliteB ordinary backdrop; check public entry for any field override",
+  "lead": "Mawile fullHP fullPP",
+  "intention": [
+    "Mega+SwordsDance, XSpDef twice with HP/foe guards. React promptly if Ninetales switches toDelphox.",
+    "IfNinetalesstays: XDefend1, XSpeed3, SDtotal3; heal when needed.",
+    "Reserve3XSpeed afterthisbattle forLin3 andChild. GarchompChoiceScarfSpeed499 remainsfasterthanMaw476; canuseSucker at+6 (neutral) or defensivelyPlayRough.",
+    "At+6Attack IronHead OHKOs allnonresisting targets; SuckerPunchforDelphox andAbra ifneeded. AuroraVeilhalvesdamage untilfaded.",
+    "Adapttoactualswitches; do not spend turns on completed setup blindly."
+  ],
+  "no_save": true,
+  "source": "Installed static trainer exports,montext andBattle_Move; frozen ownstats",
+  "epoch": 1791367843.437124
+}

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>candy_repeat.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of candy_repeat.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>])):
+ t=read().lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;choose a pok&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Party review&#x27;</span>)
+ act(<span class="hljs-string">&#x27;s&#x27;</span>,<span class="hljs-string">&#x27;wait:0.6&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.5&#x27;</span>)
+ t=read().lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;candy&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;moderate&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Candy selection review&#x27;</span>)
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.5&#x27;</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/candy_progress.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CANDY DONE&#x27;</span>,i+<span class="hljs-number">1</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

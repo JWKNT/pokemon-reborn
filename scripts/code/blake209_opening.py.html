@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>blake209_opening.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of blake209_opening.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded reviewed Blake opening; stop on every unexpected rendered matchup.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):
+ <span class="hljs-keyword">return</span> subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)])
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">state</span>(<span class="hljs-params">actor,foe,offer=<span class="hljs-literal">False</span></span>):
+ rows=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows).lower()
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">has</span>(<span class="hljs-params">name,text</span>):
+  <span class="hljs-keyword">return</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,name.lower(),w.strip(<span class="hljs-string">&#x27;.,!?&#x27;</span>)).ratio()&gt;=<span class="hljs-number">.8</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> text.split())
+ <span class="hljs-keyword">if</span> offer:
+  offers=[json.loads(line) <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> (ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).read_text().splitlines() <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;about to send in&#x27;</span> <span class="hljs-keyword">in</span> line.lower()]
+  latest=offers[-<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> offers <span class="hljs-keyword">else</span> {}
+  recent=<span class="hljs-string">&#x27; &#x27;</span>.join(latest.get(<span class="hljs-string">&#x27;text&#x27;</span>,[])).lower()
+  <span class="hljs-keyword">assert</span> (<span class="hljs-string">&#x27;change pok&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;switch your&#x27;</span> <span class="hljs-keyword">in</span> t) <span class="hljs-keyword">and</span> (has(foe,t) <span class="hljs-keyword">or</span> (time.time()-latest.get(<span class="hljs-string">&#x27;epoch&#x27;</span>,<span class="hljs-number">0</span>)&lt;<span class="hljs-number">120</span> <span class="hljs-keyword">and</span> has(foe,recent))),(<span class="hljs-string">&#x27;Expected named free switch&#x27;</span>,foe,t,recent)
+ <span class="hljs-keyword">else</span>:
+  own=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>].lower()<span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;x&#x27;</span>]&gt;<span class="hljs-number">.5</span> <span class="hljs-keyword">and</span> <span class="hljs-number">.4</span>&lt;v[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.71</span>)+<span class="hljs-string">&#x27; &#x27;</span>+<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>].lower()<span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span> <span class="hljs-keyword">and</span> v[<span class="hljs-string">&#x27;x&#x27;</span>]&lt;<span class="hljs-number">.5</span>)
+  enemy=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>].lower()<span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.37</span>)
+  <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> has(actor,own) <span class="hljs-keyword">and</span> has(foe,enemy),(<span class="hljs-string">&#x27;Unexpected opening state&#x27;</span>,actor,foe,t)
+ <span class="hljs-keyword">return</span> t
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">move</span>(<span class="hljs-params">actor,foe,slot</span>):
+ state(actor,foe);<span class="hljs-keyword">assert</span> run(<span class="hljs-string">&#x27;battle_move&#x27;</span>,slot,<span class="hljs-string">&#x27;--watch&#x27;</span>)==<span class="hljs-number">0</span>
+ rc=run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+ <span class="hljs-keyword">if</span> rc:
+  t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;change pok&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;switch your&#x27;</span> <span class="hljs-keyword">in</span> t,t
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">switch</span>(<span class="hljs-params">actor,foe</span>):
+ state(<span class="hljs-literal">None</span>,foe,<span class="hljs-literal">True</span>);<span class="hljs-keyword">assert</span> run(<span class="hljs-string">&#x27;battle_switch&#x27;</span>,actor)==<span class="hljs-number">0</span>;<span class="hljs-keyword">assert</span> run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)==<span class="hljs-number">0</span>;state(actor,foe)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--from-weavile&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ move(<span class="hljs-string">&#x27;Hexan&#x27;</span>,<span class="hljs-string">&#x27;Starmie&#x27;</span>,<span class="hljs-number">0</span>)
+ move(<span class="hljs-string">&#x27;Hexan&#x27;</span>,<span class="hljs-string">&#x27;Starmie&#x27;</span>,<span class="hljs-number">3</span>)
+ move(<span class="hljs-string">&#x27;Hexan&#x27;</span>,<span class="hljs-string">&#x27;Starmie&#x27;</span>,<span class="hljs-number">3</span>)
+switch(<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Weavile&#x27;</span>)
+move(<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Weavile&#x27;</span>,<span class="hljs-number">2</span>)
+move(<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Weavile&#x27;</span>,<span class="hljs-number">3</span>)
+switch(<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;Mamoswine&#x27;</span>)
+move(<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;Mamoswine&#x27;</span>,<span class="hljs-number">0</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OPENING COMPLETE: inspect Cofagrigus HP and Trick Room before burn&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

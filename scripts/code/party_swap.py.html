@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>party_swap.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of party_swap.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+_play_act=act
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">act</span>(<span class="hljs-params">*keys</span>):
+ <span class="hljs-comment"># Let repeated grid arrows settle, as in the verified PC/party picker helpers.</span>
+ _play_act(*[v <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> keys <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> ((k,<span class="hljs-string">&#x27;wait:.15&#x27;</span>) <span class="hljs-keyword">if</span> k.startswith((<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;left&#x27;</span>,<span class="hljs-string">&#x27;right&#x27;</span>)) <span class="hljs-keyword">else</span> (k,))])
+a,b=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]);<span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;=a&lt;<span class="hljs-number">6</span> <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;=b&lt;<span class="hljs-number">6</span> <span class="hljs-keyword">and</span> a!=b
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--party-open&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_open.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (<span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> t.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Party entry review&#x27;</span>)
+act(*([<span class="hljs-string">&#x27;down:0.12&#x27;</span>]*(a//<span class="hljs-number">2</span>)),*([<span class="hljs-string">&#x27;right:0.12&#x27;</span>] <span class="hljs-keyword">if</span> a%<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> []),<span class="hljs-string">&#x27;a&#x27;</span>,<span class="hljs-string">&#x27;wait:0.4&#x27;</span>)
+seq=[]
+<span class="hljs-keyword">if</span> b%<span class="hljs-number">2</span>!=a%<span class="hljs-number">2</span>:seq.append(<span class="hljs-string">&#x27;right&#x27;</span> <span class="hljs-keyword">if</span> b%<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;left&#x27;</span>)
+seq+=[<span class="hljs-string">&#x27;down&#x27;</span> <span class="hljs-keyword">if</span> b//<span class="hljs-number">2</span>&gt;a//<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;up&#x27;</span>]*<span class="hljs-built_in">abs</span>(b//<span class="hljs-number">2</span>-a//<span class="hljs-number">2</span>)
+act(*[k+<span class="hljs-string">&#x27;:0.12&#x27;</span> <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> seq],<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/overworld.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

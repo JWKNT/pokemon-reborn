@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mirage_postgame_execute.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mirage_postgame_execute.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute a reviewed static linked-block solution with per-push pixel checks.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> itertools,json,os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>];p=Path(sys.argv[<span class="hljs-number">1</span>]).resolve();v=json.loads(p.read_text());start=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]);label=sys.argv[<span class="hljs-number">3</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+at=start
+<span class="hljs-keyword">for</span> (eid,direction),seq <span class="hljs-keyword">in</span> itertools.groupby(v[<span class="hljs-string">&#x27;steps&#x27;</span>][start:],<span class="hljs-keyword">lambda</span> z:(z.get(<span class="hljs-string">&#x27;event&#x27;</span>,v[<span class="hljs-string">&#x27;event&#x27;</span>]),z[<span class="hljs-string">&#x27;direction&#x27;</span>])):
+ n=<span class="hljs-built_in">len</span>(<span class="hljs-built_in">list</span>(seq));<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUSH GROUP&#x27;</span>,at,eid,direction,n,flush=<span class="hljs-literal">True</span>)
+ run(<span class="hljs-string">&#x27;mirage_postgame_push&#x27;</span>,v[<span class="hljs-string">&#x27;map&#x27;</span>],eid,direction,n,<span class="hljs-string">&#x27;--plan-start&#x27;</span>,at,<span class="hljs-string">&#x27;--plan&#x27;</span>,p);at+=n
+<span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;event&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">23</span>,<span class="hljs-number">147</span>,<span class="hljs-number">149</span>]:
+ event,page,stage={<span class="hljs-number">23</span>:(<span class="hljs-number">244</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>),<span class="hljs-number">147</span>:(<span class="hljs-number">107</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>),<span class="hljs-number">149</span>:(<span class="hljs-number">245</span>,<span class="hljs-number">1</span>,<span class="hljs-number">3</span>)}[v[<span class="hljs-string">&#x27;event&#x27;</span>]]
+ run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">880</span>,event,<span class="hljs-string">&#x27;--source-page&#x27;</span>,page)
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+ n=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-navigation.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;646&#x27;</span>]==stage
+<span class="hljs-keyword">else</span>:
+ <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;event&#x27;</span>]==<span class="hljs-number">157</span>:run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">880</span>,<span class="hljs-number">246</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">3</span>)
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+ n=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-navigation.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>({<span class="hljs-number">157</span>:<span class="hljs-number">1760</span>,<span class="hljs-number">233</span>:<span class="hljs-number">1761</span>}[v[<span class="hljs-string">&#x27;event&#x27;</span>]])]
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUZZLE EXECUTION COMPLETE&#x27;</span>,label,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

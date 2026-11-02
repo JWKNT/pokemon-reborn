@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>hardy_reward_scene.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of hardy_reward_scene.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finish only the source-reviewed Hardy victory dialogue; stop in the arena.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+source=json.loads((ROOT/<span class="hljs-string">&#x27;work/Hardy137-event3-source.json&#x27;</span>).read_text())
+commands=source[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">355</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>]==[<span class="hljs-string">&#x27;$Trainer.badges[16]=true&#x27;</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> commands)
+attempt=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/major-fights/session-137-attempts.json&#x27;</span>).read_text())[-<span class="hljs-number">1</span>]
+<span class="hljs-keyword">assert</span> attempt[<span class="hljs-string">&#x27;id&#x27;</span>]==<span class="hljs-number">127</span> <span class="hljs-keyword">and</span> attempt[<span class="hljs-string">&#x27;result&#x27;</span>]==<span class="hljs-string">&#x27;victory&#x27;</span>
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">60</span>):
+ rows=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows);<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\bfight\b|out of usable|choose a pok|pp:&#x27;</span>,t,re.I)
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(r[<span class="hljs-string">&#x27;text&#x27;</span>].strip().lower()<span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;no&#x27;</span>]<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows),<span class="hljs-string">&#x27;Unexpected choice; no tap&#x27;</span>
+ bottom=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> r[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.67</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(r[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">2</span>)
+ im=Image.<span class="hljs-built_in">open</span>(STATE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=im.size
+ box=im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.08</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.75</span>),<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.90</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.87</span>)))
+ textbox=<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">min</span>(px)&gt;<span class="hljs-number">225</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">max</span>(px)-<span class="hljs-built_in">min</span>(px)&lt;<span class="hljs-number">15</span> <span class="hljs-keyword">for</span> px <span class="hljs-keyword">in</span> box.getdata())/(box.width*box.height)&gt;<span class="hljs-number">.5</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> bottom <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> textbox:
+  act(<span class="hljs-string">&#x27;wait:.7&#x27;</span>);check=snap()
+  <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(r[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.67</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(r[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">2</span> <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> check),<span class="hljs-string">&#x27;Arena transition still active&#x27;</span>
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;HARDY REWARD SCENE CLOSED; NO ROUTE INPUT&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">assert</span> textbox <span class="hljs-keyword">and</span> bottom,<span class="hljs-string">&#x27;Unexpected scene; stopped before tap&#x27;</span>
+ act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Bounded Hardy reward dialogue limit&#x27;</span>)
+</code></pre>
+  </body>
+</html>

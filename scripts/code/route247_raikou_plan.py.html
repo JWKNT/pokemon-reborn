@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>route247_raikou_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of route247_raikou_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure walking connectivity across installed Route 1 maps; no UI imports.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> route_readonly <span class="hljs-keyword">import</span> route,ROOT
+<span class="hljs-keyword">import</span> json,collections,sys
+mids=[<span class="hljs-number">290</span>,<span class="hljs-number">286</span>,<span class="hljs-number">285</span>,<span class="hljs-number">287</span>,<span class="hljs-number">291</span>,<span class="hljs-number">292</span>,<span class="hljs-number">289</span>,<span class="hljs-number">288</span>]
+maps={m:json.loads((ROOT/<span class="hljs-string">f&#x27;work/247-map<span class="hljs-subst">{m}</span>.json&#x27;</span>).read_text())<span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> mids}
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--mounted&#x27;</span> <span class="hljs-keyword">in</span> sys.argv:
+ <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> maps.values():v[<span class="hljs-string">&#x27;mounted&#x27;</span>]=<span class="hljs-literal">True</span>
+graphs={m:route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)<span class="hljs-keyword">for</span> m,v <span class="hljs-keyword">in</span> maps.items()}
+conns=collections.defaultdict(<span class="hljs-built_in">list</span>)
+<span class="hljs-keyword">for</span> a,ax,ay,b,bx,by <span class="hljs-keyword">in</span> json.loads((ROOT/<span class="hljs-string">&#x27;work/map-connections-reviewed.json&#x27;</span>).read_text()):
+ <span class="hljs-keyword">if</span> a <span class="hljs-keyword">in</span> maps <span class="hljs-keyword">and</span> b <span class="hljs-keyword">in</span> maps:
+  conns[a].append((b,ax,ay,bx,by));conns[b].append((a,bx,by,ax,ay))
+start=<span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--start&#x27;</span>)+<span class="hljs-number">1</span>].split(<span class="hljs-string">&#x27;,&#x27;</span>))) <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--start&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> ((<span class="hljs-number">286</span>,<span class="hljs-number">23</span>,<span class="hljs-number">26</span>) <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--mounted&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> (<span class="hljs-number">290</span>,<span class="hljs-number">20</span>,<span class="hljs-number">19</span>));goal=(<span class="hljs-number">287</span>,<span class="hljs-number">69</span>,<span class="hljs-number">13</span>)
+queue=collections.deque([start]);prev={start:<span class="hljs-literal">None</span>};move={}
+<span class="hljs-keyword">while</span> queue:
+ n=queue.popleft();mid,x,y=n;v=maps[mid]
+ <span class="hljs-keyword">if</span> n==goal:<span class="hljs-keyword">break</span>
+ opts=[((mid,*p),k)<span class="hljs-keyword">for</span> k,p <span class="hljs-keyword">in</span> graphs[mid].get((x,y),[])]
+ <span class="hljs-keyword">for</span> k,dx,dy <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),(<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),(<span class="hljs-string">&#x27;left&#x27;</span>,-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)]:
+  <span class="hljs-keyword">if</span> <span class="hljs-number">0</span>&lt;=x+dx&lt;v[<span class="hljs-string">&#x27;width&#x27;</span>] <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;=y+dy&lt;v[<span class="hljs-string">&#x27;height&#x27;</span>]:<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">for</span> dest,ax,ay,bx,by <span class="hljs-keyword">in</span> conns[mid]:
+   tx,ty=x+dx-ax+bx,y+dy-ay+by
+   <span class="hljs-keyword">if</span> graphs[dest].get((tx,ty)):opts.append(((dest,tx,ty),k))
+ <span class="hljs-keyword">for</span> dst,k <span class="hljs-keyword">in</span> opts:
+  <span class="hljs-keyword">if</span> dst <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> prev:prev[dst]=n;move[dst]=k;queue.append(dst)
+<span class="hljs-keyword">if</span> goal <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> prev:
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NO WALKING PATH&#x27;</span>,<span class="hljs-built_in">len</span>(prev),<span class="hljs-string">&#x27;reachable maps&#x27;</span>,collections.Counter(m <span class="hljs-keyword">for</span> m,x,y <span class="hljs-keyword">in</span> prev))
+<span class="hljs-keyword">else</span>:
+ seq=[];n=goal
+ <span class="hljs-keyword">while</span> prev[n] <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:seq.append({<span class="hljs-string">&#x27;from&#x27;</span>:prev[n],<span class="hljs-string">&#x27;to&#x27;</span>:n,<span class="hljs-string">&#x27;key&#x27;</span>:move[n]});n=prev[n]
+ seq.reverse();(ROOT/<span class="hljs-string">&#x27;work/247-raikou-walking-plan.json&#x27;</span>).write_text(json.dumps(seq,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;WALKING PATH&#x27;</span>,<span class="hljs-built_in">len</span>(seq),<span class="hljs-string">&#x27;crossings&#x27;</span>,[v <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> seq <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;from&#x27;</span>][<span class="hljs-number">0</span>]!=v[<span class="hljs-string">&#x27;to&#x27;</span>][<span class="hljs-number">0</span>]])
+</code></pre>
+  </body>
+</html>

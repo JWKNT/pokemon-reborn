@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mime_fairy_review.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mime_fairy_review.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure installed-source Mime/Fairy planning; no controls or live data imports.
+
+Reads named static species/trainer extracts plus frozen historical IVs only.
+Reports supplied field/stage modifiers, never predicts AI or random outcomes.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> fractions <span class="hljs-keyword">import</span> Fraction <span class="hljs-keyword">as</span> F
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+<span class="hljs-keyword">from</span> nonmega_saphira_review <span class="hljs-keyword">import</span> calc
+<span class="hljs-keyword">from</span> saphira_damage_review <span class="hljs-keyword">import</span> stats
+
+ROOT = Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">moonblast</span>(<span class="hljs-params">spa, mime_spdef, *, boost=<span class="hljs-number">2</span>, drop=-<span class="hljs-number">3</span>, gem=<span class="hljs-literal">True</span></span>):
+    <span class="hljs-keyword">return</span> calc(<span class="hljs-number">95</span>, <span class="hljs-number">95</span>, spa, mime_spdef, attack_stage=boost,
+                defense_stage=drop, power_multiplier=F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>) * (F(<span class="hljs-number">13</span>, <span class="hljs-number">10</span>) <span class="hljs-keyword">if</span> gem <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>),
+                stab=F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>), effectiveness=<span class="hljs-number">2</span>)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">aroma_incoming</span>(<span class="hljs-params">spd, *, stage=<span class="hljs-number">0</span></span>):
+    <span class="hljs-comment"># Aromatisse93 source Modest/31IV/252SpA =303, not314.</span>
+    moves = ((<span class="hljs-string">&quot;DAZZLINGGLEAM&quot;</span>, <span class="hljs-number">80</span>, F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>), <span class="hljs-number">1</span>, F(<span class="hljs-number">3</span>, <span class="hljs-number">4</span>), F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>)),
+             (<span class="hljs-string">&quot;PSYCHIC&quot;</span>, <span class="hljs-number">90</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>),
+             (<span class="hljs-string">&quot;FLASHCANNON&quot;</span>, <span class="hljs-number">80</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>),
+             (<span class="hljs-string">&quot;THUNDER&quot;</span>, <span class="hljs-number">120</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>))
+    <span class="hljs-keyword">return</span> {name: {
+        <span class="hljs-string">&quot;ordinary&quot;</span>: calc(<span class="hljs-number">93</span>, power, <span class="hljs-number">303</span>, spd, defense_stage=stage,
+                         defense_multiplier=F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>), power_multiplier=power_mult,
+                         stab=stab, effectiveness=effect, final_multiplier=spread),
+        <span class="hljs-string">&quot;critical&quot;</span>: calc(<span class="hljs-number">93</span>, power, <span class="hljs-number">303</span>, spd, defense_stage=stage,
+                         defense_multiplier=F(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>), power_multiplier=power_mult,
+                         stab=stab, effectiveness=effect, final_multiplier=spread,
+                         critical=<span class="hljs-literal">True</span>)}
+        <span class="hljs-keyword">for</span> name, power, stab, effect, spread, power_mult <span class="hljs-keyword">in</span> moves}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">build_report</span>():
+    installed = json.loads((ROOT / <span class="hljs-string">&quot;work/pulse-mime-installed-team-static.json&quot;</span>).read_text())
+    species = installed[<span class="hljs-string">&quot;species&quot;</span>]
+    species.update(json.loads((ROOT / <span class="hljs-string">&quot;work/saphira-capture-options-source.json&quot;</span>).read_text())[<span class="hljs-string">&quot;species&quot;</span>])
+    teams = {t[<span class="hljs-string">&quot;teamid&quot;</span>][<span class="hljs-number">1</span>]: t[<span class="hljs-string">&quot;mons&quot;</span>] <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> installed[<span class="hljs-string">&quot;teams&quot;</span>] <span class="hljs-keyword">if</span> t[<span class="hljs-string">&quot;teamid&quot;</span>][<span class="hljs-number">1</span>] <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;FRIEND&quot;</span>, <span class="hljs-string">&quot;MIME&quot;</span>)}
+    foes = {m[<span class="hljs-string">&quot;species&quot;</span>]: stats(m, species) <span class="hljs-keyword">for</span> mons <span class="hljs-keyword">in</span> teams.values() <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> mons}
+    foes[<span class="hljs-string">&quot;MEGAALAKAZAM&quot;</span>] = stats(<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> teams[<span class="hljs-string">&quot;FRIEND&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;ALAKAZAM&quot;</span>), species, <span class="hljs-string">&quot;Mega Form&quot;</span>)
+    <span class="hljs-comment"># HP/SpD EV training is504 total; no unowned SpeedWing is required.</span>
+    neutral = stats(<span class="hljs-built_in">dict</span>(species=<span class="hljs-string">&quot;SYLVEON&quot;</span>, level=<span class="hljs-number">95</span>, nature=<span class="hljs-string">&quot;HARDY&quot;</span>, iv=<span class="hljs-number">0</span>,
+                         ev=[<span class="hljs-number">252</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">252</span>, <span class="hljs-number">0</span>]), species)
+    calm = stats(<span class="hljs-built_in">dict</span>(species=<span class="hljs-string">&quot;SYLVEON&quot;</span>, level=<span class="hljs-number">95</span>, nature=<span class="hljs-string">&quot;CALM&quot;</span>, iv=<span class="hljs-number">0</span>,
+                      ev=[<span class="hljs-number">252</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">252</span>, <span class="hljs-number">0</span>]), species)
+    <span class="hljs-comment"># Independent all-nature stat minima are deliberately conservative.</span>
+    minimum = [neutral[<span class="hljs-number">0</span>], neutral[<span class="hljs-number">1</span>] * <span class="hljs-number">9</span> // <span class="hljs-number">10</span>, neutral[<span class="hljs-number">2</span>] * <span class="hljs-number">9</span> // <span class="hljs-number">10</span>,
+               neutral[<span class="hljs-number">3</span>] * <span class="hljs-number">9</span> // <span class="hljs-number">10</span>, neutral[<span class="hljs-number">4</span>] * <span class="hljs-number">9</span> // <span class="hljs-number">10</span>, neutral[<span class="hljs-number">5</span>] * <span class="hljs-number">9</span> // <span class="hljs-number">10</span>]
+    out = []
+    <span class="hljs-keyword">for</span> spa <span class="hljs-keyword">in</span> (<span class="hljs-number">193</span>, <span class="hljs-number">195</span>, <span class="hljs-number">214</span>):
+        <span class="hljs-keyword">for</span> drop <span class="hljs-keyword">in</span> (<span class="hljs-number">0</span>, -<span class="hljs-number">2</span>, -<span class="hljs-number">3</span>, -<span class="hljs-number">5</span>):
+            <span class="hljs-keyword">for</span> boost <span class="hljs-keyword">in</span> (<span class="hljs-number">0</span>, <span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>):
+                <span class="hljs-keyword">for</span> gem <span class="hljs-keyword">in</span> (<span class="hljs-literal">False</span>, <span class="hljs-literal">True</span>):
+                    out.append(<span class="hljs-built_in">dict</span>(spa=spa, mime_spdef_stage=drop, own_spatk_stage=boost,
+                                    gem=gem, damage=moonblast(spa, foes[<span class="hljs-string">&quot;MRMIME&quot;</span>][<span class="hljs-number">4</span>], boost=boost, drop=drop, gem=gem)))
+    incoming = {<span class="hljs-built_in">str</span>(spd): {<span class="hljs-built_in">str</span>(stage): aroma_incoming(spd, stage=stage)
+                           <span class="hljs-keyword">for</span> stage <span class="hljs-keyword">in</span> (-<span class="hljs-number">2</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>)} <span class="hljs-keyword">for</span> spd <span class="hljs-keyword">in</span> (<span class="hljs-number">279</span>, <span class="hljs-number">290</span>, <span class="hljs-number">311</span>, <span class="hljs-number">342</span>)}
+    middrop = {<span class="hljs-built_in">str</span>(spd): aroma_incoming(spd)[<span class="hljs-string">&quot;FLASHCANNON&quot;</span>][<span class="hljs-string">&quot;critical&quot;</span>][<span class="hljs-number">1</span>]
+                + aroma_incoming(spd, stage=-<span class="hljs-number">1</span>)[<span class="hljs-string">&quot;FLASHCANNON&quot;</span>][<span class="hljs-string">&quot;critical&quot;</span>][<span class="hljs-number">1</span>]
+               <span class="hljs-keyword">for</span> spd <span class="hljs-keyword">in</span> (<span class="hljs-number">279</span>, <span class="hljs-number">290</span>, <span class="hljs-number">311</span>, <span class="hljs-number">342</span>)}
+    frozen = json.loads((ROOT / <span class="hljs-string">&quot;notes/Agate-Ricardo-won130-status.json&quot;</span>).read_text())
+    sw = <span class="hljs-built_in">dict</span>(<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> frozen[<span class="hljs-string">&quot;party&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;SWAMPERT&quot;</span>), level=<span class="hljs-number">95</span>)
+    swamp = stats(sw, species)
+    ev_counter = {<span class="hljs-string">&quot;hypothetical_unchanged_swamp95&quot;</span>: swamp,
+                  <span class="hljs-string">&quot;electivire_critical_crosschop&quot;</span>: calc(<span class="hljs-number">95</span>,<span class="hljs-number">100</span>,<span class="hljs-number">328</span>,swamp[<span class="hljs-number">2</span>],power_multiplier=F(<span class="hljs-number">13</span>,<span class="hljs-number">10</span>),critical=<span class="hljs-literal">True</span>),
+                  <span class="hljs-string">&quot;electivire_critical_spread_earthquake&quot;</span>: calc(<span class="hljs-number">95</span>,<span class="hljs-number">100</span>,<span class="hljs-number">328</span>,swamp[<span class="hljs-number">2</span>],power_multiplier=F(<span class="hljs-number">13</span>,<span class="hljs-number">10</span>),final_multiplier=F(<span class="hljs-number">3</span>,<span class="hljs-number">4</span>),critical=<span class="hljs-literal">True</span>),
+                  <span class="hljs-string">&quot;electivire_critical_icepunch&quot;</span>: calc(<span class="hljs-number">95</span>,<span class="hljs-number">75</span>,<span class="hljs-number">328</span>,swamp[<span class="hljs-number">2</span>],power_multiplier=F(<span class="hljs-number">13</span>,<span class="hljs-number">10</span>),critical=<span class="hljs-literal">True</span>),
+                  <span class="hljs-string">&quot;plus2_wave_waterfall_vs_electivire&quot;</span>: calc(<span class="hljs-number">95</span>,<span class="hljs-number">80</span>,swamp[<span class="hljs-number">1</span>],foes[<span class="hljs-string">&quot;ELECTIVIRE&quot;</span>][<span class="hljs-number">2</span>],attack_stage=<span class="hljs-number">2</span>,power_multiplier=F(<span class="hljs-number">6</span>,<span class="hljs-number">5</span>),stab=F(<span class="hljs-number">3</span>,<span class="hljs-number">2</span>))}
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">dict</span>(scope=<span class="hljs-string">&quot;Hypothetical95 gift build, not current ownership/training&quot;</span>, stat_order=[<span class="hljs-string">&quot;HP&quot;</span>, <span class="hljs-string">&quot;Atk&quot;</span>, <span class="hljs-string">&quot;Def&quot;</span>, <span class="hljs-string">&quot;SpA&quot;</span>, <span class="hljs-string">&quot;SpD&quot;</span>, <span class="hljs-string">&quot;Spe&quot;</span>],
+                sylveon_minimum_iv_neutral=neutral, sylveon_minimum_iv_calm=calm,
+                independent_all_nature_minima=minimum, trainer_stats=foes,
+                misty_moonblast=out, misty_aromatisse_incoming=incoming,
+                two_critical_flashcannons_first_causes_one_spdef_drop=middrop,
+                electivire_swamp_counter=ev_counter,
+                hazards=[<span class="hljs-string">&quot;NightShade adds100 when Mime chooses it instead of Instruct.&quot;</span>,
+                         <span class="hljs-string">&quot;Instruct plus Aroma&#x27;s own move permits two attacks; do not add NightShade too.&quot;</span>,
+                         <span class="hljs-string">&quot;FlashCannon can lowerSpDef between those attacks; observed negative stages matter.&quot;</span>,
+                         <span class="hljs-string">&quot;PositiveXSpDef is ignored by crits; Misty&#x27;s Fairy defense remains.&quot;</span>,
+                         <span class="hljs-string">&quot;MetalSound is-3 onShortcircuit, -2 afterMisty;85accuracy,93.5withWideLens.&quot;</span>,
+                         <span class="hljs-string">&quot;No AI/move/target/crit prediction; field/HP/status/stages determine action eligibility.&quot;</span>])
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    <span class="hljs-built_in">print</span>(json.dumps(build_report(), indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

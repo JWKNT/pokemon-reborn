@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>postgame288_cap_entry.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of postgame288_cap_entry.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Record a normal Nightclub entry that activates the reviewed 120→125 tier.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os
+os.environ[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">826</span>)==(<span class="hljs-number">826</span>,<span class="hljs-number">10</span>,<span class="hljs-number">5</span>)
+pre=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Postgame287-NightclubLobby-navigation.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> pre[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;569&#x27;</span>]==<span class="hljs-number">28</span> <span class="hljs-keyword">and</span> pre[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;741&#x27;</span>]==<span class="hljs-number">4</span> <span class="hljs-keyword">and</span> pre[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1868&#x27;</span>]
+boundary={<span class="hljs-string">&#x27;session&#x27;</span>:<span class="hljs-number">288</span>,<span class="hljs-string">&#x27;before_video&#x27;</span>:<span class="hljs-number">24</span>,<span class="hljs-string">&#x27;after_video&#x27;</span>:<span class="hljs-number">25</span>,<span class="hljs-string">&#x27;before_cap&#x27;</span>:<span class="hljs-number">120</span>,<span class="hljs-string">&#x27;after_cap&#x27;</span>:<span class="hljs-number">125</span>,<span class="hljs-string">&#x27;before_save&#x27;</span>:<span class="hljs-string">&#x27;backups/Aster-Postgame287-NightclubLobby.rxdata&#x27;</span>,<span class="hljs-string">&#x27;entry_event&#x27;</span>:<span class="hljs-string">&#x27;826E6→827; installed CommonEvent76 tier handler&#x27;</span>,<span class="hljs-string">&#x27;entry_request_epoch&#x27;</span>:time.time()}
+p=ROOT/<span class="hljs-string">&#x27;work/288-cap-entry.json&#x27;</span>;p.write_text(json.dumps(boundary,indent=<span class="hljs-number">2</span>))
+act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:3&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),<span class="hljs-string">&#x27;Postgame288-Tier5&#x27;</span>],check=<span class="hljs-literal">True</span>)
+post=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Postgame288-Tier5-navigation.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> post[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;741&#x27;</span>]==<span class="hljs-number">5</span> <span class="hljs-keyword">and</span> post[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;595&#x27;</span>]==<span class="hljs-number">25</span>,post[<span class="hljs-string">&#x27;variables&#x27;</span>]
+boundary[<span class="hljs-string">&#x27;after_save&#x27;</span>]=<span class="hljs-string">&#x27;backups/Aster-Postgame288-Tier5.rxdata&#x27;</span>;boundary[<span class="hljs-string">&#x27;verified_epoch&#x27;</span>]=time.time();p.write_text(json.dumps(boundary,indent=<span class="hljs-number">2</span>));<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CAP125 VERIFIED; REVIEW RAW FADE FOR VIDEO SPLIT&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

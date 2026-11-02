@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>necrozma362_team.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of necrozma362_team.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal PC exchanges from reviewed Giratina postquest owned-box evidence.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os, subprocess, sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>, REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>, REBORN_ROUTE_STEP_PAUSE=<span class="hljs-string">&#x27;.10&#x27;</span>, REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;56&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NECROZMA TEAM&#x27;</span>,name,*args,flush=<span class="hljs-literal">True</span>)
+    subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">827</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;pc_open_reviewed&#x27;</span>)
+run(<span class="hljs-string">&#x27;pc_select_box&#x27;</span>,<span class="hljs-number">1</span>)
+run(<span class="hljs-string">&#x27;pc_exchange_named&#x27;</span>,<span class="hljs-number">23</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Mawile&#x27;</span>,<span class="hljs-string">&#x27;Heatran&#x27;</span>,<span class="hljs-string">&#x27;--box&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--stay-open&#x27;</span>)
+run(<span class="hljs-string">&#x27;pc_select_box&#x27;</span>,<span class="hljs-number">2</span>)
+run(<span class="hljs-string">&#x27;pc_exchange_named&#x27;</span>,<span class="hljs-number">25</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;Darkrai&#x27;</span>,<span class="hljs-string">&#x27;Volcanion&#x27;</span>,<span class="hljs-string">&#x27;--box&#x27;</span>,<span class="hljs-number">2</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Necrozma362-Roster&#x27;</span>)
+</code></pre>
+  </body>
+</html>

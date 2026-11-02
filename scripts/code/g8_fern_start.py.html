@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g8_fern_start.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g8_fern_start.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">285</span>)[<span class="hljs-number">0</span>]==<span class="hljs-number">285</span>
+save()
+raw=subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/status.rb&#x27;</span>)],stderr=subprocess.DEVNULL);(ROOT/<span class="hljs-string">&#x27;notes/g8-before-fern.json&#x27;</span>).write_bytes(raw)
+s=json.loads(raw);<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">285</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(p[<span class="hljs-string">&#x27;level&#x27;</span>]==<span class="hljs-number">60</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>])
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SAVED LEVEL60 PARTY&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">&#x27;285,5,37,up,wait:2&#x27;</span>],check=<span class="hljs-literal">True</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;n=json.loads(p.read_text());n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;150&#x27;</span>]=<span class="hljs-number">3</span>;p.write_text(json.dumps(n))
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_batch.py&#x27;</span>),<span class="hljs-string">&#x27;Klinklang&#x27;</span>,<span class="hljs-string">&#x27;3&#x27;</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;haxorus&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>chest_story_ready.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of chest_story_ready.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Advance reviewed Saphira instructions, stopping before the speed-up warning.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">35</span>):
+ t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>);lo=t.lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;speed-up&#x27;</span> <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;speed up&#x27;</span> <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;suggested&#x27;</span> <span class="hljs-keyword">in</span> lo:<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(r[<span class="hljs-string">&#x27;text&#x27;</span>].strip().lower() <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;no&#x27;</span>,<span class="hljs-string">&#x27;happiness&#x27;</span>,<span class="hljs-string">&#x27;money&#x27;</span>,<span class="hljs-string">&#x27;friends&#x27;</span>,<span class="hljs-string">&#x27;hp&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> snap()):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Choice/battle review&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(<span class="hljs-built_in">len</span>(r[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">3</span> <span class="hljs-keyword">and</span> r[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span> <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> snap()):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No dialogue&#x27;</span>)
+ act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.35&#x27;</span>)
+</code></pre>
+  </body>
+</html>

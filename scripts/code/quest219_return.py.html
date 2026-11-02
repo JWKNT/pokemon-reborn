@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>quest219_return.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of quest219_return.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Return one inspected quest Pokemon using the ordinary name-verified party selector.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> argparse
+p=argparse.ArgumentParser();p.add_argument(<span class="hljs-string">&#x27;map&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;event&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;page&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;name&#x27;</span>);a=p.parse_args()
+source=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/event_dump.rb&#x27;</span>),<span class="hljs-built_in">str</span>(a.<span class="hljs-built_in">map</span>),<span class="hljs-built_in">str</span>(a.event)],stderr=subprocess.DEVNULL))[<span class="hljs-string">&#x27;pages&#x27;</span>][a.page][<span class="hljs-string">&#x27;list&#x27;</span>]
+s=<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>]) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> source)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;pbChoosePokemon&#x27;</span> <span class="hljs-keyword">in</span> s <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;pbRemovePokemonAt&#x27;</span> <span class="hljs-keyword">in</span> s <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;pbTrainerBattle&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> s
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-built_in">str</span>(a.<span class="hljs-built_in">map</span>),<span class="hljs-built_in">str</span>(a.event),<span class="hljs-string">&#x27;talk&#x27;</span>],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/dialog.py&#x27;</span>),<span class="hljs-string">&#x27;--limit=35&#x27;</span>])
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;choose a pok&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> (<span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;able&#x27;</span> <span class="hljs-keyword">in</span> t),t
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_pick.py&#x27;</span>),a.name,<span class="hljs-string">&#x27;--single&#x27;</span>],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/dialog.py&#x27;</span>),<span class="hljs-string">&#x27;--limit=35&#x27;</span>],check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RETURN DIALOGUE FINISHED&#x27;</span>,a.name,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

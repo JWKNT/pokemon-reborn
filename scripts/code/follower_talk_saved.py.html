@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>follower_talk_saved.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of follower_talk_saved.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Talk to an adjacent follower using a fresh native checkpoint, never changing it.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+name=sys.argv[<span class="hljs-number">1</span>];savepath=pathlib.Path.home()/<span class="hljs-string">&#x27;Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>
+<span class="hljs-keyword">assert</span> time.time()-savepath.stat().st_mtime&lt;<span class="hljs-number">120</span>,<span class="hljs-string">&#x27;Fresh checkpoint required for follower coordinates&#x27;</span>
+src=<span class="hljs-string">&#x27;v=load_rgss(ARGV[0]);puts JSON.generate({position:v[:position],map:v[:map_id],followers:plain(v[:PokemonGlobal].instance_variable_get(:@dependentEvents))})&#x27;</span>
+s=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;-r&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/read_rgss.rb&#x27;</span>),<span class="hljs-string">&#x27;-e&#x27;</span>,src,<span class="hljs-built_in">str</span>(savepath)],stderr=subprocess.DEVNULL))
+x,y=s[<span class="hljs-string">&#x27;position&#x27;</span>][:<span class="hljs-number">2</span>];<span class="hljs-keyword">assert</span> locate(s[<span class="hljs-string">&#x27;map&#x27;</span>])==(s[<span class="hljs-string">&#x27;map&#x27;</span>],x,y)
+f=[f <span class="hljs-keyword">for</span> f <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;followers&#x27;</span>]<span class="hljs-keyword">if</span> f[<span class="hljs-number">8</span>]==name];<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(f)==<span class="hljs-number">1</span>,f
+f=f[<span class="hljs-number">0</span>];<span class="hljs-keyword">assert</span> f[<span class="hljs-number">2</span>]==s[<span class="hljs-string">&#x27;map&#x27;</span>];dx,dy=f[<span class="hljs-number">3</span>]-x,f[<span class="hljs-number">4</span>]-y
+key={(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>):<span class="hljs-string">&#x27;down&#x27;</span>,(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>):<span class="hljs-string">&#x27;up&#x27;</span>,(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>):<span class="hljs-string">&#x27;left&#x27;</span>,(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>):<span class="hljs-string">&#x27;right&#x27;</span>}[(dx,dy)]
+act(key+<span class="hljs-string">&#x27;:.03&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

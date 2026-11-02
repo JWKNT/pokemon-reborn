@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g9_iolia_first.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g9_iolia_first.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed red-crystal route to the Green Key, through normal game controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/script),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">variable</span>(<span class="hljs-params">k,v</span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;s=json.loads(p.read_text());s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-built_in">str</span>(k)]=v;p.write_text(json.dumps(s))
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">red</span>(<span class="hljs-params">m,e,rock,var</span>):
+ run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,m,e,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,m,e,<span class="hljs-string">&#x27;--active&#x27;</span>);variable(var,<span class="hljs-number">2</span>)
+ run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,m,rock,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;dialog.py&#x27;</span>,<span class="hljs-string">&#x27;--yes&#x27;</span>,<span class="hljs-string">&#x27;--limit=12&#x27;</span>);variable(var,<span class="hljs-number">3</span>)
+ run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,m,rock,<span class="hljs-string">&#x27;enter&#x27;</span>)
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ <span class="hljs-comment"># Begin in entry map336 after entering the Vanhanen tree.</span>
+ red(<span class="hljs-number">336</span>,<span class="hljs-number">8</span>,<span class="hljs-number">7</span>,<span class="hljs-number">162</span>)
+ run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">337</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;333,10,41,down:0.22,wait:1&#x27;</span>)
+ red(<span class="hljs-number">334</span>,<span class="hljs-number">4</span>,<span class="hljs-number">3</span>,<span class="hljs-number">167</span>)
+ run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;342,16,32,down:0.22,wait:1&#x27;</span>)
+ red(<span class="hljs-number">335</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">168</span>)
+ run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;344,10,27,down:0.22,wait:1&#x27;</span>)
+ run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">335</span>,<span class="hljs-number">157</span>,<span class="hljs-string">&#x27;item&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">335</span>,<span class="hljs-number">157</span>,<span class="hljs-string">&#x27;--active&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;GREEN KEY: inspect and save before planning return.&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

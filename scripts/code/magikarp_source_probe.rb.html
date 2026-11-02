@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>magikarp_source_probe.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of magikarp_source_probe.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Installed declarations only. No game/save/runtime writes.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+rows=[]
+<span class="hljs-title class_">Dir</span>[<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data/Map[0-9]*.rxdata&#x27;</span>].each <span class="hljs-keyword">do</span> |<span class="hljs-params">path</span>|
+ mid=<span class="hljs-title class_">File</span>.basename(path)[<span class="hljs-regexp">/\d+/</span>].to_i
+ map=load_rgss(path)
+ (map.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>)|<span class="hljs-params"></span>|{}).each <span class="hljs-keyword">do</span> |<span class="hljs-params">eid,ev</span>|
+  h=plain(ev); pages=h[<span class="hljs-string">&#x27;pages&#x27;</span>]|<span class="hljs-params"></span>|[]
+  hits=pages.each_with_index.filter_map <span class="hljs-keyword">do</span> |<span class="hljs-params">p,i</span>|
+   text=p[<span class="hljs-string">&#x27;list&#x27;</span>].map{|<span class="hljs-params">c</span>|c[<span class="hljs-string">&#x27;parameters&#x27;</span>].to_s}.join(<span class="hljs-string">&#x27; &#x27;</span>)
+   {<span class="hljs-string">&#x27;page&#x27;</span>=&gt;i,<span class="hljs-string">&#x27;condition&#x27;</span>=&gt;p[<span class="hljs-string">&#x27;condition&#x27;</span>],<span class="hljs-string">&#x27;list&#x27;</span>=&gt;p[<span class="hljs-string">&#x27;list&#x27;</span>]} <span class="hljs-keyword">if</span> text.match?(<span class="hljs-regexp">/Magikarp|MAGIKARP|Corin-Rouge|renowned by Dragon/i</span>) |<span class="hljs-params"></span>| (p[<span class="hljs-string">&#x27;condition&#x27;</span>][<span class="hljs-string">&#x27;variable_valid&#x27;</span>] &amp;&amp; p[<span class="hljs-string">&#x27;condition&#x27;</span>][<span class="hljs-string">&#x27;variable_id&#x27;</span>]==<span class="hljs-number">155</span>) |<span class="hljs-params"></span>| p[<span class="hljs-string">&#x27;list&#x27;</span>].any?{|<span class="hljs-params">c</span>| [<span class="hljs-number">111</span>,<span class="hljs-number">122</span>].<span class="hljs-keyword">include</span>?(c[<span class="hljs-string">&#x27;code&#x27;</span>]) &amp;&amp; c[<span class="hljs-string">&#x27;parameters&#x27;</span>].<span class="hljs-keyword">include</span>?(<span class="hljs-number">155</span>)}
+  <span class="hljs-keyword">end</span>
+  rows &lt;&lt; {<span class="hljs-string">&#x27;map&#x27;</span>=&gt;mid,<span class="hljs-string">&#x27;event&#x27;</span>=&gt;eid,<span class="hljs-string">&#x27;x&#x27;</span>=&gt;h[<span class="hljs-string">&#x27;x&#x27;</span>],<span class="hljs-string">&#x27;y&#x27;</span>=&gt;h[<span class="hljs-string">&#x27;y&#x27;</span>],<span class="hljs-string">&#x27;pages&#x27;</span>=&gt;hits} <span class="hljs-keyword">unless</span> hits.empty?
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+<span class="hljs-title class_">File</span>.write(<span class="hljs-string">&#x27;work/magikarp-installed-events.json&#x27;</span>,<span class="hljs-variable constant_">JSON</span>.pretty_generate(rows))
+puts <span class="hljs-variable constant_">JSON</span>.generate(rows.map{|<span class="hljs-params">e</span>|e.reject{|<span class="hljs-params">k,v</span>|k==<span class="hljs-string">&#x27;pages&#x27;</span>}.merge(<span class="hljs-string">&#x27;pages&#x27;</span>=&gt;e[<span class="hljs-string">&#x27;pages&#x27;</span>].map{|<span class="hljs-params">p</span>|p[<span class="hljs-string">&#x27;page&#x27;</span>]})})
+</code></pre>
+  </body>
+</html>

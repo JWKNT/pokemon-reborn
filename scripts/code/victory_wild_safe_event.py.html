@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_wild_safe_event.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_wild_safe_event.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Resume an ordinary route after explicitly identified wild encounters only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+mid,eid,kind=sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">4</span>]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">int</span>(mid) <span class="hljs-keyword">in</span> [<span class="hljs-number">809</span>]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">int</span>(eid) <span class="hljs-keyword">in</span> [<span class="hljs-number">24</span>,<span class="hljs-number">25</span>,<span class="hljs-number">26</span>,<span class="hljs-number">47</span>,<span class="hljs-number">48</span>,<span class="hljs-number">53</span>]
+<span class="hljs-keyword">for</span> attempt <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">8</span>):
+ r=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/victory_gem_cliff_event.py&#x27;</span>),mid,eid,kind],capture_output=<span class="hljs-literal">True</span>,text=<span class="hljs-literal">True</span>)
+ <span class="hljs-built_in">print</span>(r.stdout,flush=<span class="hljs-literal">True</span>);<span class="hljs-built_in">print</span>(r.stderr,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> r.returncode==<span class="hljs-number">0</span>:<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;wild&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> r.stdout.lower():<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Non-wild route interruption; review&#x27;</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>),<span class="hljs-string">&#x27;--since&#x27;</span>,<span class="hljs-string">&#x27;1791315272.411097&#x27;</span>],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Eight route interruptions; stop for review&#x27;</span>)
+</code></pre>
+  </body>
+</html>

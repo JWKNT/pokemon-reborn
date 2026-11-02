@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_cart_interact.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_cart_interact.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Continuous normal walking and immediate interaction at the first cart/levers.
+
+Only source-reviewed map784 cart74, levers114/116 and RockClimbs56/120 are allowed. Avoid the
+destination coordinate pause that lets an icicle knock Aster out of reach.
+The caller verifies resulting puzzle state at a legitimate normal save.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+
+eid=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);<span class="hljs-keyword">assert</span> eid <span class="hljs-keyword">in</span> [<span class="hljs-number">56</span>,<span class="hljs-number">74</span>,<span class="hljs-number">114</span>,<span class="hljs-number">116</span>,<span class="hljs-number">120</span>]
+mid,sx,sy=locate(<span class="hljs-number">784</span>);<span class="hljs-keyword">assert</span> mid==<span class="hljs-number">784</span>
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;784&#x27;</span>,<span class="hljs-built_in">str</span>(sx),<span class="hljs-built_in">str</span>(sy)],stderr=subprocess.DEVNULL))
+e=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)];options=[]
+<span class="hljs-keyword">for</span> dx,dy,k <span class="hljs-keyword">in</span> [(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;up&#x27;</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;down&#x27;</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;left&#x27;</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;right&#x27;</span>)]:
+ p=(e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy)
+ <span class="hljs-keyword">try</span>:options.append((<span class="hljs-built_in">len</span>(route(v,p)),p,k,route(v,p)))
+ <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">pass</span>
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> options:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No cart/lever approach&#x27;</span>)
+_,goal,facing,path=<span class="hljs-built_in">min</span>(options);<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(path)&lt;=<span class="hljs-number">100</span>
+graph=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);cursor=(sx,sy);seq=[]
+<span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> path:
+ target=<span class="hljs-built_in">next</span>(p <span class="hljs-keyword">for</span> kk,p <span class="hljs-keyword">in</span> graph[cursor] <span class="hljs-keyword">if</span> kk==k)
+ <span class="hljs-keyword">if</span> k.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):
+  seq += [k[<span class="hljs-number">5</span>:]+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:&#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">max</span>(<span class="hljs-number">.9</span>,<span class="hljs-number">.2</span>*(<span class="hljs-built_in">abs</span>(target[<span class="hljs-number">0</span>]-cursor[<span class="hljs-number">0</span>])+<span class="hljs-built_in">abs</span>(target[<span class="hljs-number">1</span>]-cursor[<span class="hljs-number">1</span>]))))]
+ <span class="hljs-keyword">else</span>:seq.append(k+<span class="hljs-string">&#x27;:.12&#x27;</span>)
+ cursor=target
+<span class="hljs-keyword">assert</span> cursor==goal
+seq += [facing+<span class="hljs-string">&#x27;:.3&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:&#x27;</span>+(<span class="hljs-string">&#x27;10&#x27;</span> <span class="hljs-keyword">if</span> eid==<span class="hljs-number">74</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;1&#x27;</span>)]
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CONTINUOUS CART ACTION&#x27;</span>,eid,[sx,sy],goal,<span class="hljs-built_in">len</span>(path),flush=<span class="hljs-literal">True</span>)
+start=time.time();act(*seq);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">with</span> (ROOT/<span class="hljs-string">&#x27;notes/victory-cart-actions.jsonl&#x27;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>) <span class="hljs-keyword">as</span> f:
+ f.write(json.dumps({<span class="hljs-string">&#x27;start_epoch&#x27;</span>:start,<span class="hljs-string">&#x27;end_epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;event&#x27;</span>:eid,<span class="hljs-string">&#x27;from&#x27;</span>:[sx,sy],<span class="hljs-string">&#x27;planned_approach&#x27;</span>:goal,<span class="hljs-string">&#x27;path&#x27;</span>:path,<span class="hljs-string">&#x27;verification&#x27;</span>:<span class="hljs-string">&#x27;Pending normal save puzzle flags&#x27;</span>})+<span class="hljs-string">&#x27;\n&#x27;</span>)
+</code></pre>
+  </body>
+</html>

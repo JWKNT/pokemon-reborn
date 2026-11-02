@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>surface_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of surface_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only mountain path model: walking, surfing, landing, and ice slides.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> copy
+WATER={<span class="hljs-number">5</span>,<span class="hljs-number">6</span>,<span class="hljs-number">7</span>,<span class="hljs-number">9</span>}
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">tag</span>(<span class="hljs-params">v,p</span>):
+ w,h=v[<span class="hljs-string">&#x27;width&#x27;</span>],v[<span class="hljs-string">&#x27;height&#x27;</span>];x,y=p
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (<span class="hljs-number">0</span>&lt;=x&lt;w <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;=y&lt;h):<span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>
+ <span class="hljs-keyword">return</span> <span class="hljs-built_in">next</span>((v[<span class="hljs-string">&#x27;terrain&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][v[<span class="hljs-string">&#x27;data&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][x+w*y+w*h*z]] <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>] <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;terrain&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][v[<span class="hljs-string">&#x27;data&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][x+w*y+w*h*z]] <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">13</span>]),<span class="hljs-number">0</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">surface_plan</span>(<span class="hljs-params">v,goal</span>):
+ g0=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);sv=copy.deepcopy(v)
+ <span class="hljs-keyword">for</span> i,t <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(v[<span class="hljs-string">&#x27;terrain&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>]):
+  <span class="hljs-keyword">if</span> t <span class="hljs-keyword">in</span> WATER:sv[<span class="hljs-string">&#x27;passages&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][i]=<span class="hljs-number">0</span>;sv[<span class="hljs-string">&#x27;priorities&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][i]=<span class="hljs-number">0</span>
+ g1=route(sv,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);graphs={<span class="hljs-literal">False</span>:g0,<span class="hljs-literal">True</span>:g1}
+ <span class="hljs-comment"># route(..., return_graph=True) returns unweighted adjacency, so carry the</span>
+ <span class="hljs-comment"># ordinary planner&#x27;s trainer sight-line penalty into this surface search.</span>
+ hazards=<span class="hljs-built_in">set</span>()
+ <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values():
+  <span class="hljs-keyword">match</span>=re.search(<span class="hljs-string">r&#x27;Trainer\((\d+)\)&#x27;</span>,e.get(<span class="hljs-string">&#x27;name&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>))
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">match</span> <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(k <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(e.get(<span class="hljs-string">&#x27;list&#x27;</span>,[])) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;pbTrainerBattle&#x27;</span>,<span class="hljs-string">&#x27;pbDoubleTrainerBattle&#x27;</span>]):<span class="hljs-keyword">continue</span>
+  direction=e.get(<span class="hljs-string">&#x27;direction&#x27;</span>,<span class="hljs-number">0</span>)
+  <span class="hljs-keyword">if</span> direction <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">2</span>,<span class="hljs-number">4</span>,<span class="hljs-number">6</span>,<span class="hljs-number">8</span>]:<span class="hljs-keyword">continue</span>
+  dx,dy={<span class="hljs-number">2</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-number">4</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">6</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">8</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)}[direction]
+  hazards.update((e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx*i,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy*i) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>,<span class="hljs-built_in">int</span>(<span class="hljs-keyword">match</span>[<span class="hljs-number">1</span>])+<span class="hljs-number">1</span>))
+ start=(*v[<span class="hljs-string">&#x27;position&#x27;</span>],tag(v,<span class="hljs-built_in">tuple</span>(v[<span class="hljs-string">&#x27;position&#x27;</span>])) <span class="hljs-keyword">in</span> WATER)
+ q=[(<span class="hljs-number">0</span>,start)];dist={start:<span class="hljs-number">0</span>};prev={start:<span class="hljs-literal">None</span>};end=<span class="hljs-literal">None</span>
+ <span class="hljs-keyword">while</span> q:
+  cost,p=heapq.heappop(q)
+  <span class="hljs-keyword">if</span> cost!=dist[p]:<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">if</span> p[:<span class="hljs-number">2</span>]==goal:end=p;<span class="hljs-keyword">break</span>
+  pos=p[:<span class="hljs-number">2</span>];surf=p[<span class="hljs-number">2</span>]
+  choices=<span class="hljs-built_in">list</span>(graphs[surf].get(pos,[]))
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> surf:
+   choices.extend((k,n) <span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> g1.get(pos,[]) <span class="hljs-keyword">if</span> tag(v,n) <span class="hljs-keyword">in</span> WATER <span class="hljs-keyword">and</span> tag(v,pos) <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> WATER)
+  <span class="hljs-keyword">for</span> key,n <span class="hljs-keyword">in</span> choices:
+   <span class="hljs-comment"># Ground touch-jump events can skip their forced movement while Surfing.</span>
+   <span class="hljs-comment"># Do not treat those event jumps as traversable water edges (Fiore679).</span>
+   <span class="hljs-keyword">if</span> surf <span class="hljs-keyword">and</span> key.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):<span class="hljs-keyword">continue</span>
+   mode=tag(v,n) <span class="hljs-keyword">in</span> WATER;extra=<span class="hljs-number">1</span>
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> surf <span class="hljs-keyword">and</span> mode:key=<span class="hljs-string">&#x27;surf:&#x27;</span>+key;extra=<span class="hljs-number">8</span>
+   <span class="hljs-keyword">elif</span> surf <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> mode:
+    <span class="hljs-comment"># A walking graph can hop a ledge over two tiles. A Surf exit must</span>
+    <span class="hljs-comment"># reach the adjacent shore; that artificial jump cannot disembark.</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(n[<span class="hljs-number">0</span>]-pos[<span class="hljs-number">0</span>])+<span class="hljs-built_in">abs</span>(n[<span class="hljs-number">1</span>]-pos[<span class="hljs-number">1</span>])!=<span class="hljs-number">1</span>:<span class="hljs-keyword">continue</span>
+    key=<span class="hljs-string">&#x27;land:&#x27;</span>+key
+   <span class="hljs-keyword">elif</span> <span class="hljs-keyword">not</span> mode <span class="hljs-keyword">and</span> tag(v,n)==<span class="hljs-number">12</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> key.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):
+    direction=key;walkgraph=g0
+    <span class="hljs-keyword">while</span> tag(v,n)==<span class="hljs-number">12</span>:
+     farther=<span class="hljs-built_in">next</span>((nn <span class="hljs-keyword">for</span> kk,nn <span class="hljs-keyword">in</span> walkgraph.get(n,[]) <span class="hljs-keyword">if</span> kk==direction),<span class="hljs-literal">None</span>)
+     <span class="hljs-keyword">if</span> farther <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<span class="hljs-keyword">break</span>
+     n=farther;extra+=<span class="hljs-number">1</span>
+    key=<span class="hljs-string">&#x27;slide:&#x27;</span>+direction
+   np=(*n,mode);nc=cost+extra+(<span class="hljs-number">500</span> <span class="hljs-keyword">if</span> n <span class="hljs-keyword">in</span> hazards <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>)
+   <span class="hljs-keyword">if</span> nc&lt;dist.get(np,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):
+    dist[np]=nc;prev[np]=(p,key);heapq.heappush(q,(nc,np))
+ <span class="hljs-keyword">if</span> end <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;No mountain surface route&#x27;</span>)
+ steps=[]
+ <span class="hljs-keyword">while</span> prev[end]:
+  old,k=prev[end];steps.append({<span class="hljs-string">&#x27;from&#x27;</span>:old,<span class="hljs-string">&#x27;to&#x27;</span>:end,<span class="hljs-string">&#x27;key&#x27;</span>:k});end=old
+ <span class="hljs-keyword">return</span> steps[::-<span class="hljs-number">1</span>]
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ mid,sx,sy,tx,ty=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">6</span>])
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(sx),<span class="hljs-built_in">str</span>(sy)],stderr=subprocess.DEVNULL))
+ r=surface_plan(v,(tx,ty));<span class="hljs-built_in">print</span>(json.dumps(r,indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

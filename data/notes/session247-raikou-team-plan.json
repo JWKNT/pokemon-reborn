@@ -1,0 +1,12 @@
+{
+  "source": "Installed trainer146 version0; no live enemy internals",
+  "lead": "Sylveon",
+  "setup": "Misty Terrain first, then Calm Mind, refresh Misty when expired. Draining Kiss maintains HP. Target +6 SpA before Porygon-Z: its Psyshock uses physical Defense and can hit about270\u2013290 despite Calm Mind. Use public health and damage before each action.",
+  "physical_counter": "Prefer fresh Mega Mawile on Alolan Sandslash: Intimidate reduces its Band attack, Mega Iron Head should leave it in Sucker Punch range. Sucker Punch priority can finish before a second Earthquake. Keep fullHP Aegislash as fallback (Shield form can survive one BandEQ, SacredSword4x).",
+  "porygon_counter": "FullHP Aegislash: Normal immune, Psychic resisted, SacredSword2x KO. Thunder is its main danger; do not switch a damaged blade-form Aegislash in blindly.",
+  "togekiss": "Hustle, notSereneGrace. AuraSphere/OminousWind/AirSlash/Roost; potential second Sylveon setup target.",
+  "field": "Misty givesFairySpD1.5 andMoonblastdamage1.5, blocksgroundedstatus; DrainingKiss gets noadditionalfieldboost. Blizzard doesnotchangeMisty perfieldtext. Refresh5turn duration; do not assumepermanent.",
+  "wild": "Immediatecapturechain. No trainer-log reading until chaincomplete. AmooSpore/Synthesis/Regenerator+MawFalseSwipe+SwampElectricimmunity. Do not apply paralysis or Misty if relying onSpore. RestsleepdoesnotadvanceonBagturns;avoidRest captureloops.",
+  "held": "Sylveon can use one of2ownedFairyGems (once-onlyboost), consider butnotyetgiven. NoLeftovers/BigRoot/PixiePlateowned.",
+  "status": "Preliminary; adapt to public battle damage and actual entrant order, not a scripted guarantee."
+}

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>post_hardy138_recovery.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of post_hardy138_recovery.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finite normal gym exit and nurse recovery; never replay stopped steps.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,sys,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+ journal=ROOT/<span class="hljs-string">&#x27;work/PostHardy138-recovery.json&#x27;</span>;<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> journal.exists()
+ steps=[(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">740</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;enter&#x27;</span>),(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">739</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;enter&#x27;</span>),(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">763</span>,<span class="hljs-number">79</span>,<span class="hljs-string">&#x27;enter&#x27;</span>),(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">752</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;talk&#x27;</span>),(<span class="hljs-string">&#x27;heal&#x27;</span>,),(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;PostHardy138-healed&#x27;</span>)]
+ events=[]
+ <span class="hljs-keyword">for</span> i,step <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(steps):
+  events.append({<span class="hljs-string">&#x27;step&#x27;</span>:i,<span class="hljs-string">&#x27;helper&#x27;</span>:step[<span class="hljs-number">0</span>],<span class="hljs-string">&#x27;args&#x27;</span>:step[<span class="hljs-number">1</span>:],<span class="hljs-string">&#x27;started_epoch&#x27;</span>:time.time()});journal.write_text(json.dumps(events,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+  r=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(step[<span class="hljs-number">0</span>]+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,step[<span class="hljs-number">1</span>:])],cwd=ROOT)
+  events[-<span class="hljs-number">1</span>].update(returncode=r.returncode,ended_epoch=time.time());journal.write_text(json.dumps(events,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+  <span class="hljs-keyword">if</span> r.returncode:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Stopped after partial step; inspect actual screen before any continuation&#x27;</span>)
+ s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/PostHardy138-healed-status.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;badges&#x27;</span>].count(<span class="hljs-literal">True</span>)==<span class="hljs-number">17</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(m[<span class="hljs-string">&#x27;hp&#x27;</span>]==m[<span class="hljs-string">&#x27;totalhp&#x27;</span>]<span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>]);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;HEALED AT AGATE CENTER&#x27;</span>,s[<span class="hljs-string">&#x27;map&#x27;</span>],s[<span class="hljs-string">&#x27;position&#x27;</span>])
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:main()
+</code></pre>
+  </body>
+</html>

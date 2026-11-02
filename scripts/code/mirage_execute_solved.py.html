@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mirage_execute_solved.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mirage_execute_solved.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute one source-solved puzzle with public block checks and a final save.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,sys,subprocess,time,itertools
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>];idx=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);start=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>])<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+plan=json.loads((R/<span class="hljs-string">&#x27;work/243-mirage-solved.json&#x27;</span>).read_text())[idx];steps=plan[<span class="hljs-string">&#x27;steps&#x27;</span>];<span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;=start&lt;<span class="hljs-built_in">len</span>(steps)
+E=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MIRAGE ACTION&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],env=E,check=<span class="hljs-literal">True</span>)
+at=start
+<span class="hljs-keyword">for</span> direction,seq <span class="hljs-keyword">in</span> itertools.groupby(steps[start:],<span class="hljs-keyword">lambda</span> z:z[<span class="hljs-string">&#x27;direction&#x27;</span>]):
+ n=<span class="hljs-built_in">len</span>(<span class="hljs-built_in">list</span>(seq));run(<span class="hljs-string">&#x27;mirage_push_group&#x27;</span>,plan[<span class="hljs-string">&#x27;map&#x27;</span>],plan[<span class="hljs-string">&#x27;event&#x27;</span>],direction,n,<span class="hljs-string">&#x27;--plan-start&#x27;</span>,at);at+=n
+ <span class="hljs-keyword">with</span> (R/<span class="hljs-string">&#x27;work/mirage243-progress.jsonl&#x27;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>)<span class="hljs-keyword">as</span> f:f.write(json.dumps({<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;puzzle&#x27;</span>:idx+<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;next_step&#x27;</span>:at})+<span class="hljs-string">&#x27;\n&#x27;</span>)
+label=<span class="hljs-string">f&#x27;Postgame243-MiragePuzzle<span class="hljs-subst">{idx+<span class="hljs-number">1</span>}</span>&#x27;</span>;run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+n=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;377&#x27;</span>]==idx+<span class="hljs-number">1</span>,(<span class="hljs-string">&#x27;Completion variable not set&#x27;</span>,n[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-string">&#x27;377&#x27;</span>))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUZZLE VERIFIED&#x27;</span>,idx+<span class="hljs-number">1</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

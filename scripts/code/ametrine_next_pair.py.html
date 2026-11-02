@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ametrine_next_pair.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ametrine_next_pair.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Close reviewed completed pair, move to next fixed mountain pair, and stop in battle.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> argparse
+p=argparse.ArgumentParser();p.add_argument(<span class="hljs-string">&#x27;finished&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;next&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;lead&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;names&#x27;</span>);a=p.parse_args()
+<span class="hljs-keyword">assert</span> (a.finished,a.<span class="hljs-built_in">next</span>) <span class="hljs-keyword">in</span> [(<span class="hljs-number">124</span>,<span class="hljs-number">130</span>),(<span class="hljs-number">130</span>,<span class="hljs-number">152</span>)]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/s),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;trainer_music.py&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">439</span>,a.finished,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-battle&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+state_path=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>
+state=json.loads(state_path.read_text());state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;193&#x27;</span>]={<span class="hljs-number">124</span>:<span class="hljs-number">25</span>,<span class="hljs-number">130</span>:<span class="hljs-number">26</span>}[a.finished];state_path.write_text(json.dumps(state))
+run(<span class="hljs-string">&#x27;party_lead.py&#x27;</span>,a.lead)
+run(<span class="hljs-string">&#x27;trainer_music.py&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,<span class="hljs-string">&#x27;MeteorAceM&#x27;</span>,a.names)
+e=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/event_dump.rb&#x27;</span>),<span class="hljs-string">&#x27;439&#x27;</span>,<span class="hljs-built_in">str</span>(a.<span class="hljs-built_in">next</span>)],stderr=subprocess.DEVNULL))
+run(<span class="hljs-string">&#x27;surface_walk.py&#x27;</span>,<span class="hljs-number">439</span>,e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])
+run(<span class="hljs-string">&#x27;battle_batch.py&#x27;</span>,[<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>][a.<span class="hljs-built_in">next</span>==<span class="hljs-number">152</span>],<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Jellicent,Mamoswine,Slurpuff,Druddigon&#x27;</span>,<span class="hljs-string">&#x27;--double&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">0</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NEXT PAIR READY&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

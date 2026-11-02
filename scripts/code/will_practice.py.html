@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>will_practice.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of will_practice.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded normal-UI policy for the reviewed Friday Will version4 team.
+
+Never inspects live AI logs. Requires the established five-member core and an
+Arcanine lead. Accepts losses; all attempts remain in the journey recording.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+
+foes=[<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;Gardevoir&#x27;</span>,<span class="hljs-string">&#x27;Charizard&#x27;</span>,<span class="hljs-string">&#x27;Sceptile&#x27;</span>]
+party=[<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;Klinklang&#x27;</span>,<span class="hljs-string">&#x27;Ampharos&#x27;</span>,<span class="hljs-string">&#x27;Drilbur&#x27;</span>]
+statepath=ROOT/<span class="hljs-string">&#x27;work/will-practice-state.json&#x27;</span>
+saved=json.loads(statepath.read_text()) <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--resume&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> {}
+counts={<span class="hljs-built_in">tuple</span>(k.split(<span class="hljs-string">&#x27;|&#x27;</span>)):v <span class="hljs-keyword">for</span> k,v <span class="hljs-keyword">in</span> saved.get(<span class="hljs-string">&#x27;counts&#x27;</span>,{}).items()};opener=saved.get(<span class="hljs-string">&#x27;opener&#x27;</span>,<span class="hljs-literal">False</span>);foe=saved.get(<span class="hljs-string">&#x27;foe&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>);actor=saved.get(<span class="hljs-string">&#x27;actor&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>);limit=time.time()+<span class="hljs-number">900</span>
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script,*args</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;POLICY&#x27;</span>,script,*args,flush=<span class="hljs-literal">True</span>)
+ rc=subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(script+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)])
+ <span class="hljs-keyword">if</span> rc <span class="hljs-keyword">and</span> script==<span class="hljs-string">&#x27;battle_ready&#x27;</span>:
+  current=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;change pok&#x27;</span> <span class="hljs-keyword">in</span> current <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;switch your&#x27;</span> <span class="hljs-keyword">in</span> current:<span class="hljs-keyword">return</span>
+ <span class="hljs-keyword">if</span> rc:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Helper stopped for review: &#x27;</span>+script)
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">name_in</span>(<span class="hljs-params">text,names</span>):
+ text=text.lower().replace(<span class="hljs-string">&#x27;klink lang&#x27;</span>,<span class="hljs-string">&#x27;klinklang&#x27;</span>).replace(<span class="hljs-string">&#x27;suampert&#x27;</span>,<span class="hljs-string">&#x27;swampert&#x27;</span>)
+ scores=[(<span class="hljs-built_in">max</span>([difflib.SequenceMatcher(<span class="hljs-literal">None</span>,n.lower(),w.strip(<span class="hljs-string">&#x27;.,!?&#x27;</span>)).ratio() <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> text.split()] <span class="hljs-keyword">or</span> [<span class="hljs-number">0</span>]),n) <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> names]
+ score,n=<span class="hljs-built_in">max</span>(scores)
+ <span class="hljs-keyword">return</span> n <span class="hljs-keyword">if</span> score&gt;=<span class="hljs-number">.78</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">move</span>(<span class="hljs-params">slot</span>):run(<span class="hljs-string">&#x27;battle_move&#x27;</span>,slot,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+
+<span class="hljs-keyword">for</span> turn <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">60</span>):
+ <span class="hljs-keyword">assert</span> time.time()&lt;limit,<span class="hljs-string">&#x27;Practice time budget reached; inspect current UI&#x27;</span>
+ rows=snap();t=<span class="hljs-string">&#x27;\n&#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows);low=t.lower()
+ statepath.write_text(json.dumps({<span class="hljs-string">&#x27;counts&#x27;</span>:{<span class="hljs-string">&#x27;|&#x27;</span>.join(k):v <span class="hljs-keyword">for</span> k,v <span class="hljs-keyword">in</span> counts.items()},<span class="hljs-string">&#x27;opener&#x27;</span>:opener,<span class="hljs-string">&#x27;foe&#x27;</span>:foe,<span class="hljs-string">&#x27;actor&#x27;</span>:actor,<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time()},indent=<span class="hljs-number">2</span>))
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STATE&#x27;</span>,turn,t.replace(<span class="hljs-string">&#x27;\n&#x27;</span>,<span class="hljs-string">&#x27; | &#x27;</span>),flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;de.?feated|for winning&#x27;</span>,low):
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VICTORY ANCHOR&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;out of usable&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;blacked out&#x27;</span> <span class="hljs-keyword">in</span> low:
+  <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Practice loss: keep recording and review recovery&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;trying to learn&#x27;</span> <span class="hljs-keyword">in</span> low:
+  run(<span class="hljs-string">&#x27;learning&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;\ble[vw]el\s*\d+\s*[!i]&#x27;</span>, <span class="hljs-string">&#x27; &#x27;</span>.join(low.split())) <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;max. hp&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;max.hp&#x27;</span> <span class="hljs-keyword">in</span> low:
+  act(<span class="hljs-string">&#x27;c:0.08&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;about to send in&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(low.split()) <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;change pok&#x27;</span> <span class="hljs-keyword">in</span> low:
+  nextfoe=name_in(<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span>),foes)
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> nextfoe:
+   recent=[json.loads(l) <span class="hljs-keyword">for</span> l <span class="hljs-keyword">in</span> (ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).read_text().splitlines()][-<span class="hljs-number">60</span>:]
+   hint=<span class="hljs-built_in">next</span>((r <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> <span class="hljs-built_in">reversed</span>(recent) <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;about to send in&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]).lower()),<span class="hljs-literal">None</span>)
+   <span class="hljs-keyword">if</span> hint:nextfoe=name_in(<span class="hljs-string">&#x27; &#x27;</span>.join(hint[<span class="hljs-string">&#x27;text&#x27;</span>]).lower().split(<span class="hljs-string">&#x27;about to send in&#x27;</span>,<span class="hljs-number">1</span>)[<span class="hljs-number">1</span>],foes)
+  <span class="hljs-keyword">assert</span> nextfoe,<span class="hljs-string">&#x27;Next foe needs review&#x27;</span>
+  foe=nextfoe
+  wanted={<span class="hljs-string">&#x27;Gardevoir&#x27;</span>:<span class="hljs-string">&#x27;Ampharos&#x27;</span>,<span class="hljs-string">&#x27;Charizard&#x27;</span>:<span class="hljs-string">&#x27;Klinklang&#x27;</span> <span class="hljs-keyword">if</span> counts.get((<span class="hljs-string">&#x27;Ampharos&#x27;</span>,<span class="hljs-string">&#x27;Gardevoir&#x27;</span>),<span class="hljs-number">0</span>)&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Ampharos&#x27;</span>,<span class="hljs-string">&#x27;Sceptile&#x27;</span>:<span class="hljs-string">&#x27;Arcanine&#x27;</span>}.get(foe)
+  <span class="hljs-keyword">assert</span> wanted,<span class="hljs-string">&#x27;Unexpected free-switch foe&#x27;</span>
+  <span class="hljs-keyword">if</span> wanted==actor:run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;No&#x27;</span>);run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+  <span class="hljs-keyword">else</span>:run(<span class="hljs-string">&#x27;battle_switch&#x27;</span>,wanted);actor=wanted
+  <span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;cancel&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> low.count(<span class="hljs-string">&#x27;hp&#x27;</span>)&gt;=<span class="hljs-number">5</span>:
+  wanted={<span class="hljs-string">&#x27;Swampert&#x27;</span>:<span class="hljs-string">&#x27;Swampert&#x27;</span> <span class="hljs-keyword">if</span> actor==<span class="hljs-string">&#x27;Mienshao&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Gardevoir&#x27;</span>:<span class="hljs-string">&#x27;Klinklang&#x27;</span> <span class="hljs-keyword">if</span> actor==<span class="hljs-string">&#x27;Ampharos&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Ampharos&#x27;</span>,<span class="hljs-string">&#x27;Charizard&#x27;</span>:<span class="hljs-string">&#x27;Ampharos&#x27;</span> <span class="hljs-keyword">if</span> actor==<span class="hljs-string">&#x27;Klinklang&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Sceptile&#x27;</span>:<span class="hljs-string">&#x27;Arcanine&#x27;</span>}[foe]
+  run(<span class="hljs-string">&#x27;party_pick&#x27;</span>,wanted);actor=wanted;<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> low:
+  run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>);<span class="hljs-keyword">continue</span>
+ actor=name_in(<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.72</span> <span class="hljs-keyword">and</span> v[<span class="hljs-string">&#x27;x&#x27;</span>]&lt;<span class="hljs-number">.5</span>),party)
+ enemy=name_in(<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.37</span>),foes)
+ <span class="hljs-keyword">assert</span> actor <span class="hljs-keyword">and</span> enemy,(<span class="hljs-string">&#x27;Command matchup needs review&#x27;</span>,t)
+ foe=enemy;key=(actor,foe);n=counts.get(key,<span class="hljs-number">0</span>);counts[key]=n+<span class="hljs-number">1</span>
+ <span class="hljs-keyword">assert</span> n&lt;<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;Matchup action budget reached&#x27;</span>
+ <span class="hljs-keyword">if</span> foe==<span class="hljs-string">&#x27;Swampert&#x27;</span>:
+  <span class="hljs-keyword">if</span> actor==<span class="hljs-string">&#x27;Arcanine&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> opener:
+   opener=<span class="hljs-literal">True</span>;run(<span class="hljs-string">&#x27;battle_switch&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>);actor=<span class="hljs-string">&#x27;Mienshao&#x27;</span>
+  <span class="hljs-keyword">elif</span> actor==<span class="hljs-string">&#x27;Mienshao&#x27;</span>:move(<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> n==<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>)
+  <span class="hljs-keyword">elif</span> actor==<span class="hljs-string">&#x27;Swampert&#x27;</span>:move(<span class="hljs-number">1</span>)
+  <span class="hljs-keyword">elif</span> actor==<span class="hljs-string">&#x27;Arcanine&#x27;</span>:move(<span class="hljs-number">0</span>)
+  <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Swampert actor review&#x27;</span>)
+ <span class="hljs-keyword">elif</span> foe==<span class="hljs-string">&#x27;Gardevoir&#x27;</span>:
+  <span class="hljs-keyword">if</span> actor==<span class="hljs-string">&#x27;Ampharos&#x27;</span>:
+   <span class="hljs-keyword">if</span> n==<span class="hljs-number">0</span>:move(<span class="hljs-number">0</span>)
+   <span class="hljs-keyword">elif</span> n==<span class="hljs-number">1</span>:move(<span class="hljs-number">1</span>)
+   <span class="hljs-keyword">else</span>:run(<span class="hljs-string">&#x27;battle_switch&#x27;</span>,<span class="hljs-string">&#x27;Klinklang&#x27;</span>);actor=<span class="hljs-string">&#x27;Klinklang&#x27;</span>
+  <span class="hljs-keyword">elif</span> actor==<span class="hljs-string">&#x27;Klinklang&#x27;</span>:move(<span class="hljs-number">0</span>)
+  <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Gardevoir actor review&#x27;</span>)
+ <span class="hljs-keyword">elif</span> foe==<span class="hljs-string">&#x27;Charizard&#x27;</span>:
+  <span class="hljs-keyword">if</span> actor==<span class="hljs-string">&#x27;Klinklang&#x27;</span>:
+   <span class="hljs-keyword">if</span> n==<span class="hljs-number">0</span>:run(<span class="hljs-string">&#x27;battle_item&#x27;</span>,<span class="hljs-string">&#x27;Hyper Potion&#x27;</span>,<span class="hljs-string">&#x27;Ampharos&#x27;</span>)
+   <span class="hljs-keyword">else</span>:move(<span class="hljs-number">0</span>)
+  <span class="hljs-keyword">elif</span> actor==<span class="hljs-string">&#x27;Ampharos&#x27;</span>:move(<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> n==<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-number">2</span>)
+  <span class="hljs-keyword">elif</span> actor==<span class="hljs-string">&#x27;Arcanine&#x27;</span>:move(<span class="hljs-number">0</span>)
+  <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Charizard actor review&#x27;</span>)
+ <span class="hljs-keyword">elif</span> foe==<span class="hljs-string">&#x27;Sceptile&#x27;</span>:
+  <span class="hljs-keyword">assert</span> actor==<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Sceptile actor review&#x27;</span>
+  hp=re.search(<span class="hljs-string">r&#x27;(\d+)\s*/\s*(\d+)&#x27;</span>,t)
+  <span class="hljs-keyword">assert</span> hp,<span class="hljs-string">&#x27;Arcanine HP needs review&#x27;</span>
+  move(<span class="hljs-number">3</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">int</span>(hp[<span class="hljs-number">1</span>])&lt;<span class="hljs-number">140</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Practice action budget reached&#x27;</span>)
+</code></pre>
+  </body>
+</html>

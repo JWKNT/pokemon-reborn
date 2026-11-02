@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>relearn247_finish.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of relearn247_finish.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Spend the two earned scales on the reviewed recovery moves.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,subprocess,sys,json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+E=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RECOVERY BUILD&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],env=E,check=<span class="hljs-literal">True</span>)
+owned=json.loads((R/<span class="hljs-string">&#x27;notes/Postgame247-FarmEnd17-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> owned[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>].get(<span class="hljs-string">&#x27;HEARTSCALE&#x27;</span>,<span class="hljs-number">0</span>)&gt;=<span class="hljs-number">2</span>
+run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">521</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>)
+run(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">521</span>,<span class="hljs-number">116</span>)
+run(<span class="hljs-string">&#x27;onyx_relearn_one&#x27;</span>,<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-string">&#x27;Draining Kiss&#x27;</span>,<span class="hljs-number">11</span>,<span class="hljs-number">0</span>)
+run(<span class="hljs-string">&#x27;onyx_relearn_one&#x27;</span>,<span class="hljs-string">&#x27;Amoonguss&#x27;</span>,<span class="hljs-string">&#x27;Synthesis&#x27;</span>,<span class="hljs-number">9</span>,<span class="hljs-number">1</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Postgame247-RecoveryMoves&#x27;</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>recruit_search.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of recruit_search.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded encounter search in a reviewed safe walking corridor; UI only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> argparse,re
+p=argparse.ArgumentParser();p.add_argument(<span class="hljs-string">&#x27;--targets&#x27;</span>,default=<span class="hljs-string">&#x27;skorupi,drapion&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;--cycles&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>,default=<span class="hljs-number">90</span>);p.add_argument(<span class="hljs-string">&#x27;--vertical&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>);a=p.parse_args();walk=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(a.cycles):
+ r=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> r);lo=t.lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(n <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> a.targets.split(<span class="hljs-string">&#x27;,&#x27;</span>)):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TARGET FOUND&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> lo:
+  <span class="hljs-keyword">if</span> subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>)]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Escape needs review&#x27;</span>)
+  <span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;pp:&#x27;</span> <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">or</span> re.search(<span class="hljs-string">r&#x27;pp.?\s*\d+[/0]\d+&#x27;</span>,lo):act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:0.4&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fainted&#x27;</span> <span class="hljs-keyword">in</span> lo:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Faint review&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;hp&#x27;</span>,<span class="hljs-string">&#x27;wild &#x27;</span>,<span class="hljs-string">&#x27;appeared&#x27;</span>]):act(<span class="hljs-string">&#x27;wait:1&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;repel&#x27;</span> <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;wore off&#x27;</span> <span class="hljs-keyword">in</span> lo:
+  act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.4&#x27;</span>);z=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;another&#x27;</span> <span class="hljs-keyword">in</span> z:act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:0.4&#x27;</span>)
+  <span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(r)&gt;<span class="hljs-number">4</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> lo <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;yes&#x27;</span>,<span class="hljs-string">&#x27;no&#x27;</span>,<span class="hljs-string">&#x27;choose&#x27;</span>,<span class="hljs-string">&#x27;menu&#x27;</span>]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected screen&#x27;</span>)
+ seq=[]
+ <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  direction=(<span class="hljs-string">&#x27;up&#x27;</span> <span class="hljs-keyword">if</span> walk%<span class="hljs-number">2</span>==<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;down&#x27;</span>) <span class="hljs-keyword">if</span> a.vertical <span class="hljs-keyword">else</span> (<span class="hljs-string">&#x27;left&#x27;</span> <span class="hljs-keyword">if</span> walk%<span class="hljs-number">2</span>==<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;right&#x27;</span>)
+  seq.append(direction+<span class="hljs-string">&#x27;:0.62&#x27;</span>);walk+=<span class="hljs-number">1</span>
+ act(*seq,<span class="hljs-string">&#x27;wait:0.2&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Search limit reached&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>tier251_virizion.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of tier251_virizion.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Cross inspected Virizion arrow section with ordinary paced inputs, then verify.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,sys,subprocess,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> itertools <span class="hljs-keyword">import</span> groupby
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act,ROOT
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> route_readonly <span class="hljs-keyword">import</span> route
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">835</span>)==(<span class="hljs-number">835</span>,<span class="hljs-number">37</span>,<span class="hljs-number">28</span>)
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;835&#x27;</span>,<span class="hljs-string">&#x27;37&#x27;</span>,<span class="hljs-string">&#x27;29&#x27;</span>,json.dumps({<span class="hljs-string">&#x27;variables&#x27;</span>:{<span class="hljs-string">&#x27;586&#x27;</span>:<span class="hljs-number">4</span>}})],stderr=subprocess.DEVNULL))
+path=route(v,(<span class="hljs-number">23</span>,<span class="hljs-number">48</span>));<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(k.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> path),path
+journal=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">f&#x27;251-virizion-<span class="hljs-subst">{<span class="hljs-built_in">int</span>(time.time())}</span>.json&#x27;</span>
+journal.write_text(json.dumps({<span class="hljs-string">&#x27;start_epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;route&#x27;</span>:path,<span class="hljs-string">&#x27;source&#x27;</span>:<span class="hljs-string">&#x27;installed map geometry, normal public start coordinate&#x27;</span>},indent=<span class="hljs-number">2</span>))
+act(<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1.6&#x27;</span>)
+<span class="hljs-keyword">for</span> key,n <span class="hljs-keyword">in</span> groupby(path):
+ seq=[]
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> n:seq.extend([key+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.06&#x27;</span>])
+ act(*seq)
+act(<span class="hljs-string">&#x27;wait:3&#x27;</span>)
+actual=locate(<span class="hljs-number">835</span>);<span class="hljs-keyword">assert</span> actual==(<span class="hljs-number">835</span>,<span class="hljs-number">23</span>,<span class="hljs-number">48</span>),actual
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),<span class="hljs-string">&#x27;Postgame251-VirizionCleared&#x27;</span>],check=<span class="hljs-literal">True</span>)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Postgame251-VirizionCleared-navigation.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;586&#x27;</span>]==<span class="hljs-number">6</span>,s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;586&#x27;</span>]
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VIRIZION ARROWS COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

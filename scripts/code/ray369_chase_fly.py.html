@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ray369_chase_fly.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ray369_chase_fly.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One reviewed visible-map interception flight, leaving a fresh map marker.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Reborn Region&#x27;</span> <span class="hljs-keyword">in</span> read()
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>)
+t=read();<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(t.replace(<span class="hljs-string">&#x27;Pokemon Reborn&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).strip())&lt;<span class="hljs-number">8</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\b(?:hp|yes|no|fight)\b&#x27;</span>,t.lower()),t
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/fly_to.py&#x27;</span>),sys.argv[<span class="hljs-number">1</span>],<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/ray369_map_after_fly.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

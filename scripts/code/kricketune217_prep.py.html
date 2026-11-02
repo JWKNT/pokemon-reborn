@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>kricketune217_prep.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of kricketune217_prep.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal Kricketune preparation; bounded UI phases, frozen-state verification.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+ env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+ <span class="hljs-keyword">if</span> s!=<span class="hljs-string">&#x27;fly_to&#x27;</span>:env[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+ <span class="hljs-keyword">else</span>:env.pop(<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>,<span class="hljs-literal">None</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,s,*args,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>,env=env)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">check</span>(<span class="hljs-params">label,ev=<span class="hljs-literal">None</span></span>):
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+ s=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text());m=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;KRICKETUNE&#x27;</span>)
+ <span class="hljs-keyword">if</span> ev <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:<span class="hljs-keyword">assert</span> m[<span class="hljs-string">&#x27;ev&#x27;</span>]==ev,(m[<span class="hljs-string">&#x27;ev&#x27;</span>],ev)
+ <span class="hljs-keyword">return</span> m
+phase=sys.argv[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">if</span> phase <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;hp&#x27;</span>,<span class="hljs-string">&#x27;speed&#x27;</span>]:
+ p=R/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>;c=json.loads(p.read_text());c.update(stop=<span class="hljs-literal">False</span>,expected_foes=[<span class="hljs-string">&#x27;Noibat&#x27;</span>,<span class="hljs-string">&#x27;Woobat&#x27;</span>]);p.write_text(json.dumps(c))
+<span class="hljs-keyword">if</span> phase==<span class="hljs-string">&#x27;berries&#x27;</span>:
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">136</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;mart_open&#x27;</span>)
+ <span class="hljs-keyword">for</span> item,n <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;Kelpsy Berry&#x27;</span>,<span class="hljs-number">2</span>),(<span class="hljs-string">&#x27;Qualot Berry&#x27;</span>,<span class="hljs-number">2</span>),(<span class="hljs-string">&#x27;Hondew Berry&#x27;</span>,<span class="hljs-number">3</span>),(<span class="hljs-string">&#x27;Grepa Berry&#x27;</span>,<span class="hljs-number">1</span>)]:run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,item,n,<span class="hljs-number">500</span>)
+ run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>)
+ <span class="hljs-keyword">for</span> item,n <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;Kelpsy Berry&#x27;</span>,<span class="hljs-number">2</span>),(<span class="hljs-string">&#x27;Qualot Berry&#x27;</span>,<span class="hljs-number">2</span>),(<span class="hljs-string">&#x27;Hondew Berry&#x27;</span>,<span class="hljs-number">3</span>),(<span class="hljs-string">&#x27;Grepa Berry&#x27;</span>,<span class="hljs-number">1</span>)]:run(<span class="hljs-string">&#x27;berry_batch&#x27;</span>,item,<span class="hljs-string">&#x27;Kricketune&#x27;</span>,n)
+ check(<span class="hljs-string">&#x27;Krik217-Berries&#x27;</span>,[<span class="hljs-number">16</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">51</span>])
+<span class="hljs-keyword">elif</span> phase <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;railnet&#x27;</span>,<span class="hljs-string">&#x27;railnet-resume-held&#x27;</span>]:
+ <span class="hljs-keyword">if</span> phase==<span class="hljs-string">&#x27;railnet&#x27;</span>:run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Weight&#x27;</span>,<span class="hljs-string">&#x27;Kricketune&#x27;</span>,<span class="hljs-string">&#x27;--single-step&#x27;</span>)
+ run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Kricketune&#x27;</span>)
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">118</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;heal&#x27;</span>);run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">519</span>)
+ run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;519,9,60,left,wait:2&#x27;</span>,<span class="hljs-string">&#x27;530,94,13,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;519,29,11,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;513,15,8,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;519,58,11,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;633,10,8&#x27;</span>)
+ check(<span class="hljs-string">&#x27;Krik217-Railnet&#x27;</span>,[<span class="hljs-number">16</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">51</span>])
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;hp&#x27;</span>:
+ run(<span class="hljs-string">&#x27;train_wild_bulk&#x27;</span>,<span class="hljs-string">&#x27;Kricketune&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-number">8</span>,<span class="hljs-string">&#x27;--targets&#x27;</span>,<span class="hljs-string">&#x27;Noibat,Woobat&#x27;</span>,<span class="hljs-string">&#x27;--flex-targets&#x27;</span>,<span class="hljs-string">&#x27;--ev-ledger&#x27;</span>)
+ check(<span class="hljs-string">&#x27;Krik217-HP&#x27;</span>,[<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">51</span>])
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;speed&#x27;</span>:
+ run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Anklet&#x27;</span>,<span class="hljs-string">&#x27;Kricketune&#x27;</span>,<span class="hljs-string">&#x27;--single-step&#x27;</span>)
+ run(<span class="hljs-string">&#x27;train_wild_bulk&#x27;</span>,<span class="hljs-string">&#x27;Kricketune&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;--targets&#x27;</span>,<span class="hljs-string">&#x27;Noibat,Woobat&#x27;</span>,<span class="hljs-string">&#x27;--flex-targets&#x27;</span>,<span class="hljs-string">&#x27;--ev-ledger&#x27;</span>)
+ check(<span class="hljs-string">&#x27;Krik217-EV&#x27;</span>,[<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>])
+ run(<span class="hljs-string">&#x27;take_held&#x27;</span>,<span class="hljs-string">&#x27;Kricketune&#x27;</span>,<span class="hljs-string">&#x27;Power Anklet&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unknown phase&#x27;</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>count_battle_items.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of count_battle_items.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Count actual player bag-item uses from a completed native battle log.
+Choices, enemy/partner use, and held activations are intentionally excluded.
+Use only completed battle logs; this helper never inspects live battle decisions.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> Counter
+<span class="hljs-keyword">import</span> re,json,argparse
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">count_items</span>(<span class="hljs-params">path</span>):
+    counts=Counter(re.findall(<span class="hljs-string">r&#x27;^\[Player used (.+)\]\s*$&#x27;</span>,Path(path).read_text(),re.M))
+    <span class="hljs-keyword">return</span> [{<span class="hljs-string">&#x27;name&#x27;</span>:name,<span class="hljs-string">&#x27;count&#x27;</span>:count} <span class="hljs-keyword">for</span> name,count <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(counts.items())]
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument(<span class="hljs-string">&#x27;completed_log&#x27;</span>);a=p.parse_args()
+    <span class="hljs-built_in">print</span>(json.dumps({<span class="hljs-string">&#x27;item_usage&#x27;</span>:count_items(a.completed_log),<span class="hljs-string">&#x27;item_usage_evidence&#x27;</span>:{<span class="hljs-string">&#x27;method&#x27;</span>:<span class="hljs-string">&#x27;Exact completed native log [Player used ...] lines&#x27;</span>,<span class="hljs-string">&#x27;source&#x27;</span>:a.completed_log,<span class="hljs-string">&#x27;scope&#x27;</span>:<span class="hljs-string">&#x27;Player bag consumables in this battle only&#x27;</span>}},indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

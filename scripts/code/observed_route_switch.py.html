@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>observed_route_switch.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of observed_route_switch.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Update a navigation note only after observing the triggering coordinate.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+mid,x,y,number,value=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">6</span>]);<span class="hljs-keyword">assert</span> value <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">1</span>]
+actual=locate(mid);<span class="hljs-keyword">assert</span> actual==(mid,x,y),(actual,(mid,x,y))
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v.setdefault(<span class="hljs-string">&#x27;switches&#x27;</span>,{})[<span class="hljs-built_in">str</span>(number)]=<span class="hljs-built_in">bool</span>(value);p.write_text(json.dumps(v));<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OBSERVED ROUTE SWITCH&#x27;</span>,number,value,<span class="hljs-string">&#x27;at&#x27;</span>,actual,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

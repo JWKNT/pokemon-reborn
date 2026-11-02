@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>public_turn_receipt.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of public_turn_receipt.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read short already-recorded battle captions; no game state or native battle logs.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse, pathlib, subprocess, json, hashlib, concurrent.futures
+p=argparse.ArgumentParser();p.add_argument(<span class="hljs-string">&#x27;session&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>);p.add_argument(<span class="hljs-string">&#x27;start&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">float</span>);p.add_argument(<span class="hljs-string">&#x27;end&#x27;</span>,<span class="hljs-built_in">type</span>=<span class="hljs-built_in">float</span>);p.add_argument(<span class="hljs-string">&#x27;output&#x27;</span>,<span class="hljs-built_in">type</span>=pathlib.Path);a=p.parse_args()
+<span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;a.end-a.start&lt;=<span class="hljs-number">60</span>
+R=pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+m=json.loads((R/<span class="hljs-string">f&#x27;recordings/session-<span class="hljs-subst">{a.session:03}</span>.json&#x27;</span>).read_text());offset=a.start-m[<span class="hljs-string">&#x27;start_epoch&#x27;</span>];<span class="hljs-keyword">assert</span> offset&gt;=<span class="hljs-number">0</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> a.output.exists();a.output.mkdir(parents=<span class="hljs-literal">True</span>)
+subprocess.run([<span class="hljs-string">&#x27;/opt/homebrew/bin/ffmpeg&#x27;</span>,<span class="hljs-string">&#x27;-v&#x27;</span>,<span class="hljs-string">&#x27;error&#x27;</span>,<span class="hljs-string">&#x27;-ss&#x27;</span>,<span class="hljs-built_in">str</span>(offset),<span class="hljs-string">&#x27;-i&#x27;</span>,<span class="hljs-built_in">str</span>(R/m[<span class="hljs-string">&#x27;raw&#x27;</span>]),<span class="hljs-string">&#x27;-t&#x27;</span>,<span class="hljs-built_in">str</span>(a.end-a.start),<span class="hljs-string">&#x27;-vf&#x27;</span>,<span class="hljs-string">&#x27;fps=10,crop=852:145:0:490&#x27;</span>,<span class="hljs-built_in">str</span>(a.output/<span class="hljs-string">&#x27;%04d.png&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-comment"># Deduplicate identical caption crops before OCR; each retained image stays reviewable.</span>
+seen=<span class="hljs-built_in">set</span>();frames=[]
+<span class="hljs-keyword">for</span> f <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(a.output.glob(<span class="hljs-string">&#x27;*.png&#x27;</span>)):
+ h=hashlib.sha256(f.read_bytes()).digest()
+ <span class="hljs-keyword">if</span> h <span class="hljs-keyword">in</span> seen:<span class="hljs-keyword">continue</span>
+ seen.add(h);frames.append(f)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">read</span>(<span class="hljs-params">f</span>):
+ rows=json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>),<span class="hljs-built_in">str</span>(f)]));<span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;frame&#x27;</span>:f.name,<span class="hljs-string">&#x27;text&#x27;</span>:<span class="hljs-string">&#x27; &#x27;</span>.join(x[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> rows)}
+rows=<span class="hljs-built_in">list</span>(concurrent.futures.ThreadPoolExecutor(<span class="hljs-number">4</span>).<span class="hljs-built_in">map</span>(read,frames))
+(a.output/<span class="hljs-string">&#x27;receipt.json&#x27;</span>).write_text(json.dumps({<span class="hljs-string">&#x27;source&#x27;</span>:<span class="hljs-string">&#x27;Recorded public video captions only&#x27;</span>,<span class="hljs-string">&#x27;session&#x27;</span>:a.session,<span class="hljs-string">&#x27;start_epoch&#x27;</span>:a.start,<span class="hljs-string">&#x27;end_epoch&#x27;</span>:a.end,<span class="hljs-string">&#x27;observations&#x27;</span>:rows},indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+last=<span class="hljs-string">&#x27;&#x27;</span>
+<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows:
+ <span class="hljs-keyword">if</span> r[<span class="hljs-string">&#x27;text&#x27;</span>]!=last:<span class="hljs-built_in">print</span>(r[<span class="hljs-string">&#x27;frame&#x27;</span>],r[<span class="hljs-string">&#x27;text&#x27;</span>]);last=r[<span class="hljs-string">&#x27;text&#x27;</span>]
+</code></pre>
+  </body>
+</html>

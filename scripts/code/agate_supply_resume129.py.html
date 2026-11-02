@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>agate_supply_resume129.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of agate_supply_resume129.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Resume ONLY the recorded department menu OCR stop; no completed route replay.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,json,subprocess,sys,time,hashlib
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+os.environ[<span class="hljs-string">&#x27;REBORN_COORD_CACHE&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+<span class="hljs-keyword">from</span> agate_supply_queue <span class="hljs-keyword">import</span> ROOT,vendor_ready_public,final_proof,source_proof
+old=ROOT/<span class="hljs-string">&#x27;work/agate-shopping-129-journal.json&#x27;</span>;out=ROOT/<span class="hljs-string">&#x27;work/agate-shopping-129-resume1.json&#x27;</span>
+s=json.loads(old.read_text());<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> out.exists()
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(s[<span class="hljs-string">&#x27;phases&#x27;</span>])==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;phases&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;finished_steps&#x27;</span>]==<span class="hljs-number">7</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;phases&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;pending_step&#x27;</span>]==<span class="hljs-number">7</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> s[<span class="hljs-string">&#x27;phases&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;receipts&#x27;</span>]
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;stop_reason&#x27;</span>]==<span class="hljs-string">&#x27;Expected source merchant Buy/Sell/Quit greeting; no advancement&#x27;</span>
+before=json.loads(Path(s[<span class="hljs-string">&#x27;status&#x27;</span>]).read_text());nav=json.loads(Path(s[<span class="hljs-string">&#x27;navigation&#x27;</span>]).read_text());<span class="hljs-keyword">assert</span> source_proof(nav)==s[<span class="hljs-string">&#x27;proposal&#x27;</span>][<span class="hljs-string">&#x27;source_proof&#x27;</span>]
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;proposal&#x27;</span>][<span class="hljs-string">&#x27;commands&#x27;</span>][<span class="hljs-string">&#x27;dept&#x27;</span>][<span class="hljs-number">7</span>]=={<span class="hljs-string">&#x27;script&#x27;</span>:<span class="hljs-string">&#x27;vendor-ready&#x27;</span>,<span class="hljs-string">&#x27;args&#x27;</span>:[<span class="hljs-number">4</span>,<span class="hljs-number">4</span>]}
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read
+vendor_ready_public()
+s.update(resumed_from=<span class="hljs-built_in">str</span>(old.relative_to(ROOT)),resumed_from_sha256=hashlib.sha256(old.read_bytes()).hexdigest(),resume_epoch=time.time(),resume_public_reason=<span class="hljs-string">&#x27;Reviewed Buy/Sell/Quit at department8; close crop independently verified; no purchases yet&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">write</span>():out.write_text(json.dumps(s,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+write()
+<span class="hljs-keyword">try</span>:
+ <span class="hljs-keyword">for</span> phase,commands <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;proposal&#x27;</span>][<span class="hljs-string">&#x27;commands&#x27;</span>].items():
+  <span class="hljs-keyword">if</span> phase==<span class="hljs-string">&#x27;dept&#x27;</span>:entry=s[<span class="hljs-string">&#x27;phases&#x27;</span>][<span class="hljs-number">0</span>];start=<span class="hljs-number">7</span>
+  <span class="hljs-keyword">else</span>:
+   entry={<span class="hljs-string">&#x27;phase&#x27;</span>:phase,<span class="hljs-string">&#x27;state&#x27;</span>:<span class="hljs-string">&#x27;pending&#x27;</span>,<span class="hljs-string">&#x27;entry_epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;commands&#x27;</span>:commands,<span class="hljs-string">&#x27;finished_steps&#x27;</span>:<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;receipts&#x27;</span>:[]};s[<span class="hljs-string">&#x27;phases&#x27;</span>].append(entry);start=<span class="hljs-number">0</span>
+  <span class="hljs-keyword">for</span> i,c <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(commands[start:],start):
+   entry[<span class="hljs-string">&#x27;pending_step&#x27;</span>]=i;write()
+   <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;script&#x27;</span>]==<span class="hljs-string">&#x27;vendor-ready&#x27;</span>:vendor_ready_public()
+   <span class="hljs-keyword">else</span>:
+    p=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(c[<span class="hljs-string">&#x27;script&#x27;</span>]+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,c[<span class="hljs-string">&#x27;args&#x27;</span>])],text=<span class="hljs-literal">True</span>,capture_output=<span class="hljs-literal">True</span>)
+    entry[<span class="hljs-string">&#x27;last_output_tail&#x27;</span>]=(p.stdout+p.stderr)[-<span class="hljs-number">6000</span>:];write()
+    <span class="hljs-keyword">if</span> p.returncode:<span class="hljs-built_in">print</span>(entry[<span class="hljs-string">&#x27;last_output_tail&#x27;</span>],flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Helper stopped: &#x27;</span>+c[<span class="hljs-string">&#x27;script&#x27;</span>])
+    <span class="hljs-keyword">if</span> c.get(<span class="hljs-string">&#x27;purchase&#x27;</span>):
+     r=c[<span class="hljs-string">&#x27;purchase&#x27;</span>];<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;PURCHASE VERIFIED &#x27;</span>+r[<span class="hljs-string">&#x27;name&#x27;</span>]+<span class="hljs-string">&#x27; &#x27;</span>+<span class="hljs-built_in">str</span>(r[<span class="hljs-string">&#x27;quantity&#x27;</span>]) <span class="hljs-keyword">in</span> p.stdout
+     entry[<span class="hljs-string">&#x27;receipts&#x27;</span>].append(<span class="hljs-built_in">dict</span>(r,verified_epoch=time.time()))
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;REMAINING QUEUE STEP VERIFIED&#x27;</span>,phase,c[<span class="hljs-string">&#x27;script&#x27;</span>],c[<span class="hljs-string">&#x27;args&#x27;</span>],flush=<span class="hljs-literal">True</span>)
+   entry[<span class="hljs-string">&#x27;finished_steps&#x27;</span>]=i+<span class="hljs-number">1</span>;entry.pop(<span class="hljs-string">&#x27;pending_step&#x27;</span>,<span class="hljs-literal">None</span>);write()
+  entry.update(state=<span class="hljs-string">&#x27;complete&#x27;</span>,complete_epoch=time.time());write()
+ after=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Circus-restocked129-status.json&#x27;</span>).read_text());final_proof(before,after,s[<span class="hljs-string">&#x27;proposal&#x27;</span>]);s.update(verified=<span class="hljs-literal">True</span>,resume_complete_epoch=time.time());write()
+<span class="hljs-keyword">except</span> BaseException <span class="hljs-keyword">as</span> e:
+ s.update(resume_stopped_epoch=time.time(),resume_stop_reason=<span class="hljs-built_in">str</span>(e));write();<span class="hljs-keyword">raise</span>
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/agate_prep_phase.py&#x27;</span>),<span class="hljs-string">&#x27;finish-lens&#x27;</span>,<span class="hljs-string">&#x27;--status&#x27;</span>,<span class="hljs-string">&#x27;notes/Circus-restocked129-status.json&#x27;</span>,<span class="hljs-string">&#x27;--execute&#x27;</span>],check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RESTOCK AND FINAL COFA HEAL VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

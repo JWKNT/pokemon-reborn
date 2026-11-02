@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ray369_map_after_fly.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ray369_map_after_fly.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Open the visible Region Map after a verified normal Fly (Pokemon menu remembered).&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> ray368_marker <span class="hljs-keyword">import</span> marker
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--menu-open&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>)
+t=read();<span class="hljs-keyword">assert</span> (<span class="hljs-string">&#x27;Pokégear&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;Pokegear&#x27;</span> <span class="hljs-keyword">in</span> t) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;Quit Game&#x27;</span> <span class="hljs-keyword">in</span> t,t
+act(<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>);t=read();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Field Notes&#x27;</span> <span class="hljs-keyword">in</span> t,t
+act(<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>,<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Reborn Region&#x27;</span> <span class="hljs-keyword">in</span> read()
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUBLIC MARKER&#x27;</span>,marker(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>public_sprite_positions.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of public_sprite_positions.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only match of public map pixels to installed transparent NPC sprites.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> cv2,numpy <span class="hljs-keyword">as</span> np,json,sys,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>];G=Path(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Graphics/Characters&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">find</span>(<span class="hljs-params">frame,matrix,names</span>):
+ scale=matrix[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>];inv=cv2.invertAffineTransform(np.array(matrix));hits=[]
+ <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> names:
+  src=cv2.imread(<span class="hljs-built_in">str</span>(G/(name+<span class="hljs-string">&#x27;.png&#x27;</span>)),cv2.IMREAD_UNCHANGED);h,w=src.shape[:<span class="hljs-number">2</span>];h//=<span class="hljs-number">4</span>;w//=<span class="hljs-number">4</span>
+  candidates=[]
+  <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+   <span class="hljs-keyword">for</span> col <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+    cell=src[row*h:(row+<span class="hljs-number">1</span>)*h,col*w:(col+<span class="hljs-number">1</span>)*w]
+    cell=cv2.resize(cell,(<span class="hljs-built_in">round</span>(w*scale),<span class="hljs-built_in">round</span>(h*scale)),interpolation=cv2.INTER_NEAREST)
+    mask=(cell[:,:,<span class="hljs-number">3</span>]&gt;<span class="hljs-number">128</span>).astype(np.uint8)*<span class="hljs-number">255</span>
+    score=cv2.matchTemplate(frame,cell[:,:,:<span class="hljs-number">3</span>],cv2.TM_CCORR_NORMED,mask=mask)
+    score=np.nan_to_num(score,nan=<span class="hljs-number">0</span>,posinf=<span class="hljs-number">0</span>,neginf=<span class="hljs-number">0</span>)
+    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+     _,val,_,xy=cv2.minMaxLoc(score)
+     <span class="hljs-keyword">if</span> val&lt;<span class="hljs-number">.88</span>:<span class="hljs-keyword">break</span>
+     x,y=xy;foot=np.array([x+cell.shape[<span class="hljs-number">1</span>]/<span class="hljs-number">2</span>,y+cell.shape[<span class="hljs-number">0</span>],<span class="hljs-number">1</span>]);world=inv@foot
+     candidates.append({<span class="hljs-string">&#x27;sprite&#x27;</span>:name,<span class="hljs-string">&#x27;score&#x27;</span>:<span class="hljs-built_in">round</span>(val,<span class="hljs-number">5</span>),<span class="hljs-string">&#x27;tile&#x27;</span>:[<span class="hljs-built_in">round</span>(world[<span class="hljs-number">0</span>]/<span class="hljs-number">32</span>-<span class="hljs-number">.5</span>,<span class="hljs-number">2</span>),<span class="hljs-built_in">round</span>(world[<span class="hljs-number">1</span>]/<span class="hljs-number">32</span>-<span class="hljs-number">1</span>,<span class="hljs-number">2</span>)],<span class="hljs-string">&#x27;frame&#x27;</span>:col,<span class="hljs-string">&#x27;direction&#x27;</span>:[<span class="hljs-number">2</span>,<span class="hljs-number">4</span>,<span class="hljs-number">6</span>,<span class="hljs-number">8</span>][row],<span class="hljs-string">&#x27;pixel&#x27;</span>:<span class="hljs-built_in">list</span>(xy)})
+     score[<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,y-<span class="hljs-number">20</span>):y+<span class="hljs-number">21</span>,<span class="hljs-built_in">max</span>(<span class="hljs-number">0</span>,x-<span class="hljs-number">20</span>):x+<span class="hljs-number">21</span>]=<span class="hljs-number">0</span>
+  <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(candidates,key=<span class="hljs-keyword">lambda</span> c:-c[<span class="hljs-string">&#x27;score&#x27;</span>]):
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(h[<span class="hljs-string">&#x27;sprite&#x27;</span>]==name <span class="hljs-keyword">and</span> np.linalg.norm(np.array(h[<span class="hljs-string">&#x27;tile&#x27;</span>])-c[<span class="hljs-string">&#x27;tile&#x27;</span>])&lt;<span class="hljs-number">.8</span> <span class="hljs-keyword">for</span> h <span class="hljs-keyword">in</span> hits):hits.append(c)
+ <span class="hljs-keyword">return</span> hits
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ im=cv2.imread(sys.argv[<span class="hljs-number">1</span>]);m=json.load(<span class="hljs-built_in">open</span>(sys.argv[<span class="hljs-number">2</span>]))[<span class="hljs-string">&#x27;matrix&#x27;</span>];t=time.time();hits=find(im,m,sys.argv[<span class="hljs-number">3</span>:] <span class="hljs-keyword">or</span> [<span class="hljs-string">&#x27;trchar148&#x27;</span>,<span class="hljs-string">&#x27;pkmn_tyrantrum&#x27;</span>,<span class="hljs-string">&#x27;pkmn_aerodactyl&#x27;</span>,<span class="hljs-string">&#x27;pkmn_druddigon&#x27;</span>]);<span class="hljs-built_in">print</span>(json.dumps({<span class="hljs-string">&#x27;seconds&#x27;</span>:time.time()-t,<span class="hljs-string">&#x27;hits&#x27;</span>:hits},indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

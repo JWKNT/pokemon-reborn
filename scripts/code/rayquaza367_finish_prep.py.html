@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>rayquaza367_finish_prep.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of rayquaza367_finish_prep.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed normal-menu final Rayquaza preparation after Silva candy training.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+s=json.loads((R/<span class="hljs-string">&#x27;notes/Postgame367-Silva6-Cap145-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(m[<span class="hljs-string">&#x27;level&#x27;</span>]==<span class="hljs-number">145</span> <span class="hljs-keyword">and</span> m[<span class="hljs-string">&#x27;hp&#x27;</span>]==m[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>])
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]&gt;=<span class="hljs-number">8500</span>
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;TM17&#x27;</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;AMPLIFIELDROCK&#x27;</span>]&gt;=<span class="hljs-number">1</span>
+env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_STEP_PAUSE=<span class="hljs-string">&#x27;.10&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;56&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RAYQUAZA PREP&#x27;</span>,name,args,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],env=env,check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;teach_machine&#x27;</span>,<span class="hljs-string">&#x27;TM17&#x27;</span>,<span class="hljs-string">&#x27;Magearna&#x27;</span>,<span class="hljs-string">&#x27;Protect&#x27;</span>,<span class="hljs-number">0</span>)
+run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Amplifield Rock&#x27;</span>,<span class="hljs-string">&#x27;Magearna&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;mart_open&#x27;</span>)
+run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,<span class="hljs-string">&#x27;Max Potion&#x27;</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2500</span>)
+run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,<span class="hljs-string">&#x27;Super Repel&#x27;</span>,<span class="hljs-number">5</span>,<span class="hljs-number">700</span>)
+run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>)
+run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Magearna&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Rayquaza367-Prepared&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">814</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;814,34,52&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Rayquaza367-Ready&#x27;</span>)
+</code></pre>
+  </body>
+</html>

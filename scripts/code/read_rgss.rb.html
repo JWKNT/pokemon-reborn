@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>read_rgss.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of read_rgss.rb"><code class="hljs language-ruby"><span class="hljs-keyword">require</span> <span class="hljs-string">&#x27;json&#x27;</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">RGSSStub</span>
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">self</span>._load(data)
+  o=new;o.instance_variable_set(<span class="hljs-symbol">:</span><span class="hljs-variable">@raw</span>,data.unpack(<span class="hljs-string">&#x27;C*&#x27;</span>));o
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">load_rgss</span>(<span class="hljs-params">path</span>)
+ data=<span class="hljs-title class_">File</span>.binread(path)
+ <span class="hljs-number">100</span>.times <span class="hljs-keyword">do</span>
+  <span class="hljs-keyword">begin</span>
+   <span class="hljs-keyword">return</span> <span class="hljs-title class_">Marshal</span>.load(data)
+  <span class="hljs-keyword">rescue</span> <span class="hljs-title class_">ArgumentError</span> =&gt; e
+   warn e.message
+   name=e.message[<span class="hljs-regexp">/undefined class\/module ([A-Za-z0-9_:]+)/</span>,<span class="hljs-number">1</span>]
+   <span class="hljs-keyword">raise</span> <span class="hljs-keyword">unless</span> name
+   parent=<span class="hljs-title class_">Object</span>
+   name.split(<span class="hljs-string">&#x27;::&#x27;</span>).reject(&amp;<span class="hljs-symbol">:empty?</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">part</span>|
+    parent.const_set(part,<span class="hljs-title class_">Class</span>.new(<span class="hljs-title class_">RGSSStub</span>)) <span class="hljs-keyword">unless</span> parent.const_defined?(part,<span class="hljs-literal">false</span>)
+    parent=parent.const_get(part,<span class="hljs-literal">false</span>)
+   <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">end</span>
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">plain</span>(<span class="hljs-params">o,depth=<span class="hljs-number">0</span></span>)
+ <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;...&#x27;</span> <span class="hljs-keyword">if</span> depth&gt;<span class="hljs-number">12</span>
+ <span class="hljs-keyword">case</span> o
+ <span class="hljs-keyword">when</span> <span class="hljs-title class_">Hash</span> <span class="hljs-keyword">then</span> o.transform_values{|<span class="hljs-params">v</span>| plain(v,depth+<span class="hljs-number">1</span>)}
+ <span class="hljs-keyword">when</span> <span class="hljs-title class_">Array</span> <span class="hljs-keyword">then</span> o.map{|<span class="hljs-params">v</span>|plain(v,depth+<span class="hljs-number">1</span>)}
+ <span class="hljs-keyword">when</span> <span class="hljs-title class_">Numeric</span>,<span class="hljs-title class_">String</span>,<span class="hljs-title class_">Symbol</span>,<span class="hljs-title class_">NilClass</span>,<span class="hljs-title class_">TrueClass</span>,<span class="hljs-title class_">FalseClass</span> <span class="hljs-keyword">then</span> o
+ <span class="hljs-keyword">else</span>
+  {<span class="hljs-string">&#x27;type&#x27;</span>=&gt;o.<span class="hljs-keyword">class</span>.name}.merge(o.instance_variables.to_h{|<span class="hljs-params">v</span>|[v.to_s.delete_prefix(<span class="hljs-string">&#x27;@&#x27;</span>),plain(o.instance_variable_get(v),depth+<span class="hljs-number">1</span>)]})
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+<span class="hljs-keyword">if</span> <span class="hljs-variable constant_">__FILE__</span>==<span class="hljs-variable">$0</span>
+ v=load_rgss(<span class="hljs-variable constant_">ARGV</span>[<span class="hljs-number">0</span>]);puts <span class="hljs-variable constant_">JSON</span>.generate(v.is_a?(<span class="hljs-title class_">Hash</span>) ? v.transform_values{|<span class="hljs-params">a</span>|a.<span class="hljs-keyword">class</span>.name} : v.<span class="hljs-keyword">class</span>.name)
+<span class="hljs-keyword">end</span>
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,98 @@
+{
+  "status": "Preparation complete; session276 entering Charous with all six120",
+  "quest_variable_611": 8,
+  "sources": [
+    "work/275-flora-e4-source.json",
+    "work/275-flora-e4-trainers.json",
+    "/Applications/Reborn.app/Contents/Game/Scripts/Selection.rb",
+    "/Applications/Reborn.app/Contents/Game/Scripts/Trainers.rb",
+    "/Applications/Reborn.app/Contents/Game/Scripts/Reborn/fieldtext.rb"
+  ],
+  "rules": "Treat the four partnered Elite Four battles as a single no-save chain. Freeze six before entry; record actual selected three and order each round. A loss restarts all four. Existing first League seven-round chain is already completed.",
+  "proposed_six": [
+    "Cresselia",
+    "Mawile",
+    "Gigalith",
+    "Volcanion",
+    "Sylveon",
+    "Zapdos"
+  ],
+  "preparation": [
+    {
+      "mon": "Gigalith",
+      "action": "Train level95 to120. Already252HP252Atk; Sturdy. Rock Slide0? actual saved slots StoneEdge0/Bulldoze1/StealthRock2/RockSlide3. Prefer Rock Slide for spread; get Wide Lens from boxed Mienshao through UI if practical."
+    },
+    {
+      "mon": "Cresselia",
+      "action": "Teach owned TM92 Trick Room over Calm Mind2; retain Moonblast0/Psychic1/Moonlight3. Moonlight heals normally indoors outside hail. Magical Seed is owned and could be reserved for Elias, giving +1SpAtk/MagicCoat."
+    },
+    {
+      "mon": "Mawile",
+      "action": "After training, relearn Play Rough over Brick Break0. Two Heart Scales owned. Retain IronHead1/SuckerPunch2/SwordsDance3; beware copied boosts against Elias Ditto."
+    },
+    {
+      "mon": "Volcanion",
+      "action": "Safety Goggles important vs Laura powder. Consider owned TM34 Sludge Wave over Overheat2, but it hits partner: Ferrothorn immune, Mismagius weak. Heat Wave tutor at522E125 costs9RedShards; none owned and not unlocked, so do not assume available."
+    },
+    {
+      "mon": "Sylveon",
+      "action": "Withdraw boxed0 slot18 in place of Swampert. Actual moves DrainingKiss/MistyTerrain/DazzlingGleam/Moonblast; does NOT know Heal Bell. Level120HP252SpDef252."
+    }
+  ],
+  "rounds": [
+    {
+      "id": 166,
+      "foe": "Heather1",
+      "ally": "Flora1",
+      "field": "Mountain",
+      "tentative_three": [
+        "Cresselia",
+        "Gigalith",
+        "Mawile"
+      ],
+      "notes": "Heather installed iv=0; do not substitute guide31. Rock/Flying damage1.5, Thunder1.5 and perfect accuracy. Cresselia Levitate protects against EQ. Trick Room helps ally Ferrothorn; Rock Slide field boosted. Watch boosted Flying and spread Rock."
+    },
+    {
+      "id": 167,
+      "foe": "Laura0",
+      "ally": "Flora2",
+      "field": "Flower Garden",
+      "tentative_three": [
+        "Sylveon",
+        "Volcanion",
+        "Mawile"
+      ],
+      "notes": "Misty Terrain can replace Flower Garden and suppress sleep on grounded mons. Volcanion Goggles handles powders. Haze could remove growth/shields, but also ally boosts. Avoid friendly Sludge Wave once ally Mismagius enters."
+    },
+    {
+      "id": 168,
+      "foe": "Elias1",
+      "ally": "Flora3",
+      "field": "Holy",
+      "tentative_three": [
+        "Cresselia",
+        "Sylveon",
+        "Mawile"
+      ],
+      "notes": "Holy Fairy special1.5, Normal special1.5, Psychic/Dragon1.2. Magical Seed givesSpAtk+1/MagicCoat. Lead Cresselia can TR and field boosted Moonblast Kommo-o. Noivern seeded Flamethrower threatens Mawile. Avoid SD setup while Imposter Ditto remains."
+    },
+    {
+      "id": 169,
+      "foe": "Bennett2",
+      "ally": "Flora4",
+      "field": "Rainbow",
+      "tentative_three": [
+        "Cresselia",
+        "Gigalith",
+        "Volcanion"
+      ],
+      "notes": "Five seeds boostSpAtk. Rainbow doubles added-effect chances. TrickRoom and RockSlide against fast Fire/Bug team. Gigalith Sturdy useful but needs health. Volcanion Flame kills Genesect, Steam kills fires unless sun. Review exact targets and actual partner switches."
+    }
+  ],
+  "archive_pending": [
+    "Implement and verify three-member selection proof, inherited immutable six-member builds, public item changes, and one-chain journal before entry.",
+    "Use standard three trainer columns; verify actual screen ownership before rendering.",
+    "Prepare Flora165 major after closing275, before deleting any275sources."
+  ],
+  "preparation_completed_checkpoint": "Postgame276-E4Moves"
+}

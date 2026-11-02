@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ray368_hall_search.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ray368_hall_search.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Retired experiment: two-area history prevents Rayquaza entering Opal.
+
+Preserved for the recorded attempt history. Use ray368_beryl_search.py instead,
+whose target544 is connected to player525 but never enters player area history.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Retired: Hall/Opal loop excludes its own target from roaming choices&#x27;</span>)
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> ray368_marker <span class="hljs-keyword">import</span> marker
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/name),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">24</span>):
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Reborn Region&#x27;</span> <span class="hljs-keyword">in</span> read(),<span class="hljs-string">&#x27;Map expected&#x27;</span>
+ m=marker();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUBLIC MARKER&#x27;</span>,m,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-comment"># Opal Ward itself: restored city wards use transfers, not connected maps.</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">tuple</span>(m[<span class="hljs-string">&#x27;grid&#x27;</span>]) == (<span class="hljs-number">7</span>,<span class="hljs-number">14</span>):
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OPAL MARKER: stop for grass route&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>):
+  act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>)
+  t=read()
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Reborn Region&#x27;</span>,<span class="hljs-string">&#x27;Field Notes&#x27;</span>,<span class="hljs-string">&#x27;Quit Game&#x27;</span>]):<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Map close review&#x27;</span>)
+ p=locate();<span class="hljs-keyword">assert</span> p <span class="hljs-keyword">in</span> [(<span class="hljs-number">519</span>,<span class="hljs-number">34</span>,<span class="hljs-number">46</span>),(<span class="hljs-number">519</span>,<span class="hljs-number">35</span>,<span class="hljs-number">46</span>)],p
+ act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+ <span class="hljs-keyword">assert</span> locate()==(<span class="hljs-number">38</span>,<span class="hljs-number">15</span>,<span class="hljs-number">28</span>)
+ act(<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+ p=locate();<span class="hljs-keyword">assert</span> p <span class="hljs-keyword">in</span> [(<span class="hljs-number">519</span>,<span class="hljs-number">34</span>,<span class="hljs-number">46</span>),(<span class="hljs-number">519</span>,<span class="hljs-number">35</span>,<span class="hljs-number">46</span>)],p
+ act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.4&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>)
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Field Notes&#x27;</span> <span class="hljs-keyword">in</span> read() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;Region Map&#x27;</span> <span class="hljs-keyword">in</span> read()
+ act(<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;wait:.15&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;wait:.15&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;wait:.15&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Bounded search finished; map remains open&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>layer_route.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of layer_route.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only Route 2 planner that tracks switch410 across stairs and jumps.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> copy
+DIR={<span class="hljs-string">&#x27;up&#x27;</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>,<span class="hljs-number">8</span>),<span class="hljs-string">&#x27;down&#x27;</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>),<span class="hljs-string">&#x27;left&#x27;</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">4</span>),<span class="hljs-string">&#x27;right&#x27;</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">6</span>)}
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">effect</span>(<span class="hljs-params">event,direction,ground</span>):
+ active={-<span class="hljs-number">1</span>:<span class="hljs-literal">True</span>};conditions={}
+ <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> event.get(<span class="hljs-string">&#x27;list&#x27;</span>,[]) <span class="hljs-keyword">or</span> []:
+  code,a,indent=c[<span class="hljs-string">&#x27;code&#x27;</span>],c[<span class="hljs-string">&#x27;parameters&#x27;</span>],c[<span class="hljs-string">&#x27;indent&#x27;</span>]
+  <span class="hljs-keyword">if</span> code==<span class="hljs-number">111</span>:
+   <span class="hljs-keyword">if</span> a[:<span class="hljs-number">2</span>]==[<span class="hljs-number">6</span>,-<span class="hljs-number">1</span>]:ok=a[<span class="hljs-number">2</span>]==direction
+   <span class="hljs-keyword">elif</span> a[:<span class="hljs-number">2</span>]==[<span class="hljs-number">0</span>,<span class="hljs-number">410</span>]:ok=ground==(a[<span class="hljs-number">2</span>]==<span class="hljs-number">0</span>)
+   <span class="hljs-keyword">else</span>:ok=<span class="hljs-literal">False</span>
+   conditions[indent]=ok;active[indent]=active.get(indent-<span class="hljs-number">1</span>,<span class="hljs-literal">True</span>) <span class="hljs-keyword">and</span> ok
+  <span class="hljs-keyword">elif</span> code==<span class="hljs-number">411</span>:active[indent]=active.get(indent-<span class="hljs-number">1</span>,<span class="hljs-literal">True</span>) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> conditions.get(indent,<span class="hljs-literal">False</span>)
+  <span class="hljs-keyword">elif</span> code==<span class="hljs-number">412</span>:active.pop(indent,<span class="hljs-literal">None</span>)
+  <span class="hljs-keyword">elif</span> code==<span class="hljs-number">121</span> <span class="hljs-keyword">and</span> a[:<span class="hljs-number">2</span>]==[<span class="hljs-number">410</span>,<span class="hljs-number">410</span>] <span class="hljs-keyword">and</span> active.get(indent-<span class="hljs-number">1</span>,<span class="hljs-literal">True</span>):ground=a[<span class="hljs-number">2</span>]==<span class="hljs-number">0</span>
+ <span class="hljs-keyword">return</span> ground
+CACHE={}
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">plan</span>(<span class="hljs-params">mid,x,y,ground,tx,ty,target_ground=<span class="hljs-literal">None</span>,hypothetical_state=<span class="hljs-literal">None</span></span>):
+ st=copy.deepcopy(hypothetical_state) <span class="hljs-keyword">if</span> hypothetical_state <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> json.loads((ROOT/<span class="hljs-string">&quot;notes/navigation-state.json&quot;</span>).read_text())
+ st.get(<span class="hljs-string">&quot;switches&quot;</span>,{}).pop(<span class="hljs-string">&quot;410&quot;</span>,<span class="hljs-literal">None</span>)
+ cachekey=(mid,json.dumps(st,sort_keys=<span class="hljs-literal">True</span>))
+ maps={};graphs={}
+ <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-literal">False</span>,<span class="hljs-literal">True</span>]:
+  <span class="hljs-keyword">if</span> (cachekey,s) <span class="hljs-keyword">in</span> CACHE:
+   maps[s],graphs[s]=CACHE[(cachekey,s)];<span class="hljs-keyword">continue</span>
+  arg=json.dumps({<span class="hljs-string">&#x27;switches&#x27;</span>:{**st.get(<span class="hljs-string">&#x27;switches&#x27;</span>,{}),<span class="hljs-string">&#x27;410&#x27;</span>:s},<span class="hljs-string">&#x27;variables&#x27;</span>:st.get(<span class="hljs-string">&#x27;variables&#x27;</span>,{})})
+  v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y),arg],stderr=subprocess.DEVNULL))
+  <span class="hljs-keyword">if</span> hypothetical_state <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+   <span class="hljs-keyword">for</span> eid,xy <span class="hljs-keyword">in</span> st.get(<span class="hljs-string">&#x27;positions&#x27;</span>,{}).get(<span class="hljs-built_in">str</span>(mid),{}).items():
+    <span class="hljs-keyword">if</span> eid <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>]:v[<span class="hljs-string">&#x27;events&#x27;</span>][eid][<span class="hljs-string">&#x27;x&#x27;</span>],v[<span class="hljs-string">&#x27;events&#x27;</span>][eid][<span class="hljs-string">&#x27;y&#x27;</span>]=xy
+  maps[s]=v;graphs[s]=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);CACHE[(cachekey,s)]=(v,graphs[s])
+ start=(x,y,ground);todo=[(<span class="hljs-number">0</span>,start)];dist={start:<span class="hljs-number">0</span>};prev={start:<span class="hljs-literal">None</span>};final=<span class="hljs-literal">None</span>
+ <span class="hljs-keyword">while</span> todo:
+  cost,p=heapq.heappop(todo)
+  <span class="hljs-keyword">if</span> cost!=dist[p]:<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">if</span> p[:<span class="hljs-number">2</span>]==(tx,ty) <span class="hljs-keyword">and</span> (target_ground <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> p[<span class="hljs-number">2</span>]==target_ground):final=p;<span class="hljs-keyword">break</span>
+  px,py,s=p
+  <span class="hljs-keyword">for</span> key,(nx,ny) <span class="hljs-keyword">in</span> graphs[s].get((px,py),[]):
+   k=key.removeprefix(<span class="hljs-string">&#x27;jump:&#x27;</span>);dx,dy,d=DIR[k];new=s
+   points=[(px+dx,py+dy),(nx,ny)] <span class="hljs-keyword">if</span> key.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>) <span class="hljs-keyword">else</span> [(nx,ny)]
+   <span class="hljs-keyword">for</span> point <span class="hljs-keyword">in</span> <span class="hljs-built_in">dict</span>.fromkeys(points):
+    <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> maps[s][<span class="hljs-string">&#x27;events&#x27;</span>].values():
+     <span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> (e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])==point:new=effect(e,d,new)
+   n=(nx,ny,new);nc=cost+(<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> key.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>) <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>)
+   <span class="hljs-keyword">if</span> nc&lt;dist.get(n,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):dist[n]=nc;prev[n]=(p,key,action_jump(maps[s],p[:<span class="hljs-number">2</span>],key));heapq.heappush(todo,(nc,n))
+ <span class="hljs-keyword">if</span> final <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;No layered route&#x27;</span>)
+ out=[];p=final
+ <span class="hljs-keyword">while</span> prev[p]:old,key,activate=prev[p];out.append({<span class="hljs-string">&#x27;from&#x27;</span>:old,<span class="hljs-string">&#x27;key&#x27;</span>:key,<span class="hljs-string">&#x27;to&#x27;</span>:p,<span class="hljs-string">&#x27;action_jump&#x27;</span>:activate});p=old
+ <span class="hljs-keyword">return</span> out[::-<span class="hljs-number">1</span>]
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ mid,x,y,ground,tx,ty=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">7</span>]);r=plan(mid,x,y,<span class="hljs-built_in">bool</span>(ground),tx,ty)
+ <span class="hljs-built_in">print</span>(json.dumps(r));(ROOT/<span class="hljs-string">&#x27;work/layer-route.json&#x27;</span>).write_text(json.dumps(r,indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

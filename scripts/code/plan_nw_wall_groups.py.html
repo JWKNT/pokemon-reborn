@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>plan_nw_wall_groups.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of plan_nw_wall_groups.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Offline physical-wall proofs for bounded NW pushes; never imports controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> ast,json,heapq,re,subprocess,copy,itertools
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+ns=<span class="hljs-built_in">dict</span>(ROOT=R,json=json,heapq=heapq,re=re)
+t=ast.parse((R/<span class="hljs-string">&#x27;scripts/nav.py&#x27;</span>).read_text());f=<span class="hljs-built_in">next</span>(x <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> t.body <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(x,ast.FunctionDef)<span class="hljs-keyword">and</span> x.name==<span class="hljs-string">&#x27;route&#x27;</span>)
+s=ast.unparse(f).replace(<span class="hljs-string">&#x27;graph = {}&#x27;</span>,<span class="hljs-string">&#x27;jumps = {}; graph = {}&#x27;</span>).replace(<span class="hljs-string">&#x27;native_jump = terrain(n) == 1&#x27;</span>,<span class="hljs-string">&#x27;native_jump = False&#x27;</span>);<span class="hljs-built_in">exec</span>(s,ns)
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;784&#x27;</span>,<span class="hljs-string">&#x27;85&#x27;</span>,<span class="hljs-string">&#x27;22&#x27;</span>],stderr=subprocess.DEVNULL))
+steps=<span class="hljs-built_in">sum</span>([json.loads((R/<span class="hljs-string">f&#x27;work/192-nw-<span class="hljs-subst">{part}</span>-plan.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;pushes&#x27;</span>]<span class="hljs-keyword">for</span> part <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;upper&#x27;</span>,<span class="hljs-string">&#x27;lower&#x27;</span>]],[])
+out=[];index=<span class="hljs-number">1</span>
+<span class="hljs-keyword">for</span> (eid,direction),group <span class="hljs-keyword">in</span> itertools.groupby(steps,<span class="hljs-keyword">lambda</span> p:(p[<span class="hljs-string">&#x27;event&#x27;</span>],p[<span class="hljs-string">&#x27;direction&#x27;</span>])):
+ group=<span class="hljs-built_in">list</span>(group);e=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)];vv=copy.deepcopy(v);vv[<span class="hljs-string">&#x27;events&#x27;</span>].pop(<span class="hljs-built_in">str</span>(eid));g=ns[<span class="hljs-string">&#x27;route&#x27;</span>](vv,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);end=<span class="hljs-built_in">tuple</span>(group[-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;box_to&#x27;</span>]);blocked={(a[<span class="hljs-string">&#x27;x&#x27;</span>],a[<span class="hljs-string">&#x27;y&#x27;</span>])<span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> vv[<span class="hljs-string">&#x27;events&#x27;</span>].values()<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> a[<span class="hljs-string">&#x27;through&#x27;</span>]}
+ cur=(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]);valid=<span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(k==direction <span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> g.get(end,[]))
+ <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> group:
+  dest=<span class="hljs-built_in">tuple</span>(p[<span class="hljs-string">&#x27;box_to&#x27;</span>]);valid=valid <span class="hljs-keyword">and</span> (direction,dest)<span class="hljs-keyword">in</span> g.get(cur,[]) <span class="hljs-keyword">and</span> dest <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> blocked;cur=dest
+ out.append(<span class="hljs-built_in">dict</span>(start=index,count=<span class="hljs-built_in">len</span>(group),event=eid,direction=direction,box_from=[e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]],box_to=<span class="hljs-built_in">list</span>(end),wall_burst=valid))
+ e.update(x=end[<span class="hljs-number">0</span>],y=end[<span class="hljs-number">1</span>]);index+=<span class="hljs-built_in">len</span>(group)
+(R/<span class="hljs-string">&#x27;work/194-nw-push-groups.json&#x27;</span>).write_text(json.dumps(out,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>);<span class="hljs-built_in">print</span>(json.dumps(out))
+</code></pre>
+  </body>
+</html>

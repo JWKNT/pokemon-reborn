@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>toybox311_chase.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of toybox311_chase.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Follow installed Mew disguise scenes through normal UI; verify each quest stage.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,pathlib
+R=pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">stage</span>(<span class="hljs-params">label,expected</span>):
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+ status=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text())
+ nav=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-navigation.json&#x27;</span>).read_text())
+ <span class="hljs-comment"># Checkpoints contain the game&#x27;s ordinary, read-only quest-variable snapshot.</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">int</span>(nav[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-string">&#x27;636&#x27;</span>,-<span class="hljs-number">1</span>))==expected,(label,nav.get(<span class="hljs-string">&#x27;variables&#x27;</span>,{}).get(<span class="hljs-string">&#x27;636&#x27;</span>))
+<span class="hljs-keyword">for</span> eid,expected,label <span class="hljs-keyword">in</span> [(<span class="hljs-number">77</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;Mew311-Cubone&#x27;</span>),(<span class="hljs-number">80</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;Mew311-Jigglypuff&#x27;</span>),(<span class="hljs-number">82</span>,<span class="hljs-number">8</span>,<span class="hljs-string">&#x27;Mew311-Chikorita&#x27;</span>),(<span class="hljs-number">84</span>,<span class="hljs-number">9</span>,<span class="hljs-string">&#x27;Mew311-Portal&#x27;</span>)]:
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">874</span>,eid,<span class="hljs-string">&#x27;talk&#x27;</span>)
+ run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">874</span>,eid,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--world-settle&#x27;</span>,<span class="hljs-string">&#x27;9&#x27;</span>)
+ stage(label,expected)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">874</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">875</span>,<span class="hljs-number">12</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--world-settle&#x27;</span>,<span class="hljs-string">&#x27;9&#x27;</span>)
+stage(<span class="hljs-string">&#x27;Mew311-Forest&#x27;</span>,<span class="hljs-number">10</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FOREST ENTRY COMPLETE; review route to southern exit&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

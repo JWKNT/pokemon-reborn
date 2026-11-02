@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>agate_finite_items.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of agate_finite_items.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finite root-selected Agate item queue; default dry-run, public UI only.
+
+Each item delegates to the independently guarded agate_public_action wrapper.
+One automatic Ultra Potion is allowed only after its exact no-action low-HP
+stop. There is no battle policy, inferred boost tracking or pending replay.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> __future__ <span class="hljs-keyword">import</span> annotations
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">from</span> functools <span class="hljs-keyword">import</span> lru_cache
+<span class="hljs-keyword">import</span> hashlib
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">import</span> signal
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> time
+<span class="hljs-keyword">from</span> types <span class="hljs-keyword">import</span> SimpleNamespace
+
+<span class="hljs-keyword">from</span> agate_public_action <span class="hljs-keyword">import</span> (ACTOR,GAME,MAX_HP,MODE_FOES,ROOT,
+                                command_guard,helper_argv,mode_is_double,need,source_proof)
+<span class="hljs-keyword">from</span> hypno_turn <span class="hljs-keyword">import</span> name_matches,normalized_name_text
+
+MAX_ITEMS=<span class="hljs-number">8</span>
+MAX_INVOCATIONS=<span class="hljs-number">16</span>
+MAX_SECONDS=<span class="hljs-number">900</span>
+LOW_HP_ERROR=<span class="hljs-string">&#x27;ValueError: Actual HP is below the explicit safe action threshold; no battle action&#x27;</span>
+NO_EFFECT=re.<span class="hljs-built_in">compile</span>(<span class="hljs-string">r&quot;won.?t (?:go|rise) any higher|cannot (?:be used|rise)|can&#x27;t be used|&quot;</span>
+                     <span class="hljs-string">r&quot;(?:had|has|have) no effect|won.?t have any effect|stat.+maximum&quot;</span>,re.I)
+STATUS_CHANGE=re.<span class="hljs-built_in">compile</span>(<span class="hljs-string">r&#x27;\b(?:fell\s+asleep|(?:was|is|became)\s+(?:badly\s+)?(?:poisoned|burned|&#x27;</span>
+                         <span class="hljs-string">r&#x27;paraly[sz]ed|frozen(?:\s+solid)?|confused|drowsy)|became\s+confused|&#x27;</span>
+                         <span class="hljs-string">r&#x27;status\s*[:.]\s*(?:sleep|asleep|poison(?:ed)?|burn(?:ed)?|frozen|paraly[sz]ed))\b&#x27;</span>,re.I)
+CONDITIONS_CHANGE=re.<span class="hljs-built_in">compile</span>(<span class="hljs-string">r&#x27;\b(?:used\s+(?:trick\s*room|rain\s*dance|sunny\s*day|hail|sandstorm|&#x27;</span>
+                            <span class="hljs-string">r&#x27;(?:electric|grassy|misty|psychic)\s*terrain)|&#x27;</span>
+                            <span class="hljs-string">r&#x27;(?:twisted(?:\s+the)?\s+dimensions|dimensions\s+(?:were\s+)?twisted)|&#x27;</span>
+                            <span class="hljs-string">r&#x27;(?:field|terrain|weather)\s+(?:has\s+|was\s+|is\s+)?(?:changed|transformed|&#x27;</span>
+                            <span class="hljs-string">r&#x27;became|returned|reverted|disappeared|destroyed|inverted|flattened)|&#x27;</span>
+                            <span class="hljs-string">r&#x27;started\s+to\s+(?:rain|hail)|(?:rain|hail)\s+(?:started|stopped)|&#x27;</span>
+                            <span class="hljs-string">r&#x27;sunlight\s+(?:turned\s+harsh|faded)|sandstorm\s+(?:brewed|kicked\s+up|subsided)|&#x27;</span>
+                            <span class="hljs-string">r&#x27;strong\s+winds\s+kicked\s+up)\b&#x27;</span>,re.I)
+OWN_STAT_DROP=re.<span class="hljs-built_in">compile</span>(
+    <span class="hljs-string">r&quot;(?P&lt;owner&gt;[^\W\d_]+)\s*[&#x27;’]\s*s\s+&quot;</span>
+    <span class="hljs-string">r&quot;(?P&lt;stat&gt;(?:sp\.?\s*|special\s+)?(?:defen[cs]e|def\.?|attack|atk\.?)|accuracy|speed)&quot;</span>
+    <span class="hljs-string">r&quot;\s+(?:(?:sharply|harshly|severely|greatly|drastically|dramatically)\s+)?&quot;</span>
+    <span class="hljs-string">r&quot;(?:fell|(?:was\s+)?(?:lowered|decreased|dropped|reduced))\b&quot;</span>,re.I)
+SWAGGER_USE=re.<span class="hljs-built_in">compile</span>(<span class="hljs-string">r&#x27;\bused\s+swagger\b&#x27;</span>,re.I)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">words</span>(<span class="hljs-params">text</span>):<span class="hljs-keyword">return</span> re.sub(<span class="hljs-string">r&#x27;[^a-z0-9]+&#x27;</span>,<span class="hljs-string">&#x27; &#x27;</span>,text.lower()).strip()
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">message_scopes</span>(<span class="hljs-params">lines</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Permit bounded OCR line wraps without mixing messages across screens.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">return</span> [<span class="hljs-string">&#x27; &#x27;</span>.join(lines[i:i+span]) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(lines))
+            <span class="hljs-keyword">for</span> span <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>,<span class="hljs-built_in">min</span>(<span class="hljs-number">3</span>,<span class="hljs-built_in">len</span>(lines)-i)+<span class="hljs-number">1</span>)]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">negative_own_stat_message</span>(<span class="hljs-params">text</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Require possessive own-name attribution, never a nearby HUD name.
+
+    Exact message grammar prevents joining an own boost to a later foe drop.
+    Existing one-substitution name matching covers observed Cofagrigue OCR.
+    No unseen stages or effective numeric stats are inferred from this text.
+    &quot;&quot;&quot;</span>
+    normalized=normalized_name_text(text)
+    <span class="hljs-keyword">for</span> <span class="hljs-keyword">match</span> <span class="hljs-keyword">in</span> OWN_STAT_DROP.finditer(normalized):
+        <span class="hljs-keyword">if</span> name_matches(<span class="hljs-keyword">match</span>[<span class="hljs-string">&#x27;owner&#x27;</span>],ACTOR):
+            prefix=normalized[:<span class="hljs-keyword">match</span>.start()]
+            <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;\b(?:opposing|foe|enemy)\s*$&#x27;</span>,prefix):<span class="hljs-keyword">continue</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">match</span>.group(<span class="hljs-number">0</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+
+
+<span class="hljs-meta">@lru_cache(<span class="hljs-params">maxsize=<span class="hljs-number">1</span></span>)</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">installed_field_change_messages</span>():
+    <span class="hljs-comment"># Parse literal static Ruby hash keys only; never evaluate game source.</span>
+    found=[];inside=<span class="hljs-literal">False</span>
+    <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> (GAME/<span class="hljs-string">&#x27;Scripts/Reborn/fieldtext.rb&#x27;</span>).read_text().splitlines():
+        <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;:changeMessage&#x27;</span> <span class="hljs-keyword">in</span> line <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;=&gt;&#x27;</span> <span class="hljs-keyword">in</span> line:
+            tail=line.split(<span class="hljs-string">&#x27;{&#x27;</span>,<span class="hljs-number">1</span>)[<span class="hljs-number">1</span>]
+            inside=<span class="hljs-keyword">not</span> tail.lstrip().startswith(<span class="hljs-string">&#x27;}&#x27;</span>)
+            <span class="hljs-keyword">continue</span>
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> inside:<span class="hljs-keyword">continue</span>
+        <span class="hljs-keyword">if</span> re.<span class="hljs-keyword">match</span>(<span class="hljs-string">r&#x27;\s*\}&#x27;</span>,line):inside=<span class="hljs-literal">False</span>;<span class="hljs-keyword">continue</span>
+        m=re.<span class="hljs-keyword">match</span>(<span class="hljs-string">r&#x27;\s*&quot;((?:[^&quot;\\]|\\.)*)&quot;\s*=&gt;&#x27;</span>,line)
+        <span class="hljs-keyword">if</span> m <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;{&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> m.group(<span class="hljs-number">1</span>) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;#&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> m.group(<span class="hljs-number">1</span>):
+            phrase=m.group(<span class="hljs-number">1</span>).replace(<span class="hljs-string">&#x27;\\&quot;&#x27;</span>,<span class="hljs-string">&#x27;&quot;&#x27;</span>)
+            <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(words(phrase))&gt;=<span class="hljs-number">12</span>:found.append(phrase)
+    need(found,<span class="hljs-string">&#x27;Installed field-change message contract unavailable&#x27;</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">sorted</span>(<span class="hljs-built_in">set</span>(found)))
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">public_condition_guard</span>(<span class="hljs-params">report</span>):
+    rows=report.get(<span class="hljs-string">&#x27;final_rows&#x27;</span>,[])
+    <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows:
+        <span class="hljs-keyword">if</span> <span class="hljs-number">.37</span>&lt;=row.get(<span class="hljs-string">&#x27;y&#x27;</span>,-<span class="hljs-number">1</span>)&lt;<span class="hljs-number">.70</span> <span class="hljs-keyword">and</span> row.get(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-number">0</span>)&gt;<span class="hljs-number">.5</span>:
+            need(<span class="hljs-keyword">not</span> (<span class="hljs-built_in">set</span>(words(row.get(<span class="hljs-string">&#x27;text&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>)).split()) &amp; {<span class="hljs-string">&#x27;slp&#x27;</span>,<span class="hljs-string">&#x27;frz&#x27;</span>,<span class="hljs-string">&#x27;psn&#x27;</span>,<span class="hljs-string">&#x27;par&#x27;</span>,<span class="hljs-string">&#x27;brn&#x27;</span>,<span class="hljs-string">&#x27;tox&#x27;</span>}),
+                 <span class="hljs-string">&#x27;Visible own status requires manual threshold review before another item&#x27;</span>)
+    groups=[[r.get(<span class="hljs-string">&#x27;text&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>) <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows]]
+    groups.extend([t <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> s.get(<span class="hljs-string">&#x27;text&#x27;</span>,[]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(t,<span class="hljs-built_in">str</span>)]
+                  <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> report.get(<span class="hljs-string">&#x27;public_screens&#x27;</span>,[]))
+    groups.extend([t <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> g.get(<span class="hljs-string">&#x27;lines&#x27;</span>,[]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(t,<span class="hljs-built_in">str</span>)]
+                  <span class="hljs-keyword">for</span> g <span class="hljs-keyword">in</span> report.get(<span class="hljs-string">&#x27;literal_message_candidates&#x27;</span>,[]))
+    texts=[t <span class="hljs-keyword">for</span> group <span class="hljs-keyword">in</span> groups <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> group]
+    <span class="hljs-keyword">for</span> group <span class="hljs-keyword">in</span> groups:
+        <span class="hljs-keyword">for</span> scope <span class="hljs-keyword">in</span> message_scopes(group):
+            drop=negative_own_stat_message(scope)
+            need(drop <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;Public own stat drop requires fresh OWN Q stats and threshold review: &#x27;</span>+
+                 (drop <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;&#x27;</span>))
+            need(<span class="hljs-keyword">not</span> SWAGGER_USE.search(normalized_name_text(scope)),
+                 <span class="hljs-string">&#x27;Public Swagger use changes own Attack/confusion risk; manual Foul Play/threshold review required&#x27;</span>)
+    body=<span class="hljs-string">&#x27; &#x27;</span>.join(texts)
+    need(<span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\bsolar(?:is|ts)\s+used\s+(?:the\s+|a\s+)?full\s*restore\b&#x27;</span>,body,re.I), <span class="hljs-string">&#x27;Solaris FullRestore may clear the reviewed burn; root must recheck before another queued item&#x27;</span>)
+    <span class="hljs-keyword">match</span>=STATUS_CHANGE.search(body) <span class="hljs-keyword">or</span> CONDITIONS_CHANGE.search(body)
+    need(<span class="hljs-keyword">match</span> <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;Public status/field/weather/Trick Room change requires manual threshold review: &#x27;</span>+
+         (<span class="hljs-keyword">match</span>.group(<span class="hljs-number">0</span>) <span class="hljs-keyword">if</span> <span class="hljs-keyword">match</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;&#x27;</span>))
+    normalized=<span class="hljs-string">&#x27; &#x27;</span>+words(body)+<span class="hljs-string">&#x27; &#x27;</span>
+    <span class="hljs-keyword">for</span> phrase <span class="hljs-keyword">in</span> installed_field_change_messages():
+        need(<span class="hljs-string">&#x27; &#x27;</span>+words(phrase)+<span class="hljs-string">&#x27; &#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> normalized,
+             <span class="hljs-string">&#x27;Installed field-change message requires manual threshold review: &#x27;</span>+phrase)
+    <span class="hljs-comment"># Continuing known hail/rain/sandstorm chip is not a transition; actual HP</span>
+    <span class="hljs-comment"># remains independently guarded by the child and each requested threshold.</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">validate_plan</span>(<span class="hljs-params">plan</span>):
+    need(<span class="hljs-built_in">isinstance</span>(plan,<span class="hljs-built_in">list</span>) <span class="hljs-keyword">and</span> <span class="hljs-number">1</span>&lt;=<span class="hljs-built_in">len</span>(plan)&lt;=MAX_ITEMS,<span class="hljs-string">&#x27;Sequence must contain1..8 explicit items&#x27;</span>)
+    result=[]
+    <span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> plan:
+        need(<span class="hljs-built_in">isinstance</span>(step,<span class="hljs-built_in">dict</span>) <span class="hljs-keyword">and</span> <span class="hljs-built_in">set</span>(step)=={<span class="hljs-string">&#x27;item&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>},<span class="hljs-string">&#x27;Each step must have exactly item and min_hp&#x27;</span>)
+        item=step[<span class="hljs-string">&#x27;item&#x27;</span>];hp=step[<span class="hljs-string">&#x27;min_hp&#x27;</span>]
+        need(<span class="hljs-built_in">isinstance</span>(item,<span class="hljs-built_in">str</span>) <span class="hljs-keyword">and</span> item.strip()==item <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;<span class="hljs-built_in">len</span>(item)&lt;=<span class="hljs-number">80</span> <span class="hljs-keyword">and</span>
+             <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(<span class="hljs-built_in">ord</span>(c)&lt;<span class="hljs-number">32</span> <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> item),<span class="hljs-string">&#x27;Each item needs a nonempty literal name&#x27;</span>)
+        need(<span class="hljs-built_in">type</span>(hp) <span class="hljs-keyword">is</span> <span class="hljs-built_in">int</span> <span class="hljs-keyword">and</span> <span class="hljs-number">1</span>&lt;=hp&lt;=MAX_HP,<span class="hljs-string">&#x27;Each literal min_hp must be1..252&#x27;</span>)
+        result.append({<span class="hljs-string">&#x27;item&#x27;</span>:item,<span class="hljs-string">&#x27;min_hp&#x27;</span>:hp})
+    <span class="hljs-keyword">return</span> result
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">validate_foes</span>(<span class="hljs-params">mode,foes</span>):
+    need(mode <span class="hljs-keyword">in</span> MODE_FOES,<span class="hljs-string">&#x27;Unknown Agate mode&#x27;</span>)
+    known=MODE_FOES[mode]
+    need(<span class="hljs-built_in">isinstance</span>(foes,<span class="hljs-built_in">list</span>) <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(<span class="hljs-built_in">isinstance</span>(n,<span class="hljs-built_in">str</span>) <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> foes) <span class="hljs-keyword">and</span>
+         <span class="hljs-built_in">len</span>(foes)==(<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> mode_is_double(mode) <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>) <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(foes))==<span class="hljs-built_in">len</span>(foes) <span class="hljs-keyword">and</span>
+         <span class="hljs-built_in">set</span>(foes)&lt;=known,<span class="hljs-string">&#x27;Distinct exact installed foes required for this mode&#x27;</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">list</span>(foes)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">validate_output</span>(<span class="hljs-params">path,root=ROOT</span>):
+    path=path.expanduser().resolve()
+    need(path.is_relative_to(root.resolve()) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> path.exists(),
+         <span class="hljs-string">&#x27;A NEW workspace output directory is required; no resume/replay/overwrite&#x27;</span>)
+    need(re.fullmatch(<span class="hljs-string">r&#x27;[A-Za-z0-9][A-Za-z0-9_.-]{0,79}&#x27;</span>,path.name) <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>,
+         <span class="hljs-string">&#x27;Output directory name must be1..80 simple letters/digits/._-&#x27;</span>)
+    <span class="hljs-keyword">return</span> path
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">numeric_hp</span>(<span class="hljs-params">proof</span>):
+    need(<span class="hljs-built_in">isinstance</span>(proof,<span class="hljs-built_in">dict</span>) <span class="hljs-keyword">and</span> <span class="hljs-built_in">type</span>(proof.get(<span class="hljs-string">&#x27;hp&#x27;</span>)) <span class="hljs-keyword">is</span> <span class="hljs-built_in">int</span> <span class="hljs-keyword">and</span>
+         <span class="hljs-built_in">type</span>(proof.get(<span class="hljs-string">&#x27;total_hp&#x27;</span>)) <span class="hljs-keyword">is</span> <span class="hljs-built_in">int</span> <span class="hljs-keyword">and</span> proof[<span class="hljs-string">&#x27;total_hp&#x27;</span>]==MAX_HP <span class="hljs-keyword">and</span>
+         <span class="hljs-number">0</span>&lt;proof[<span class="hljs-string">&#x27;hp&#x27;</span>]&lt;=MAX_HP,<span class="hljs-string">&#x27;Actual positive literal HP/252 proof required&#x27;</span>)
+    <span class="hljs-keyword">return</span> proof[<span class="hljs-string">&#x27;hp&#x27;</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">classify_child</span>(<span class="hljs-params">report,*,mode,foes,step,returncode,now</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Validate only this invocation&#x27;s own child journal, never historic logs.&quot;&quot;&quot;</span>
+    need(<span class="hljs-built_in">isinstance</span>(report,<span class="hljs-built_in">dict</span>) <span class="hljs-keyword">and</span> report.get(<span class="hljs-string">&#x27;kind&#x27;</span>)==<span class="hljs-string">&#x27;agate_public_one_reviewed_action&#x27;</span>,
+         <span class="hljs-string">&#x27;Expected guarded public child journal&#x27;</span>)
+    need(report.get(<span class="hljs-string">&#x27;mode&#x27;</span>)==mode <span class="hljs-keyword">and</span> report.get(<span class="hljs-string">&#x27;expected_actor&#x27;</span>)==ACTOR <span class="hljs-keyword">and</span>
+         report.get(<span class="hljs-string">&#x27;expected_total_hp&#x27;</span>)==MAX_HP <span class="hljs-keyword">and</span> report.get(<span class="hljs-string">&#x27;min_hp&#x27;</span>)==step[<span class="hljs-string">&#x27;min_hp&#x27;</span>] <span class="hljs-keyword">and</span>
+         report.get(<span class="hljs-string">&#x27;expected_foes&#x27;</span>)==foes,<span class="hljs-string">&#x27;Child request binding changed&#x27;</span>)
+    need(report.get(<span class="hljs-string">&#x27;explicit_action&#x27;</span>)=={<span class="hljs-string">&#x27;item&#x27;</span>:step[<span class="hljs-string">&#x27;item&#x27;</span>],<span class="hljs-string">&#x27;move_slot&#x27;</span>:<span class="hljs-literal">None</span>,
+                                       <span class="hljs-string">&#x27;target&#x27;</span>:<span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;target_foe&#x27;</span>:<span class="hljs-literal">None</span>},<span class="hljs-string">&#x27;Child action binding changed&#x27;</span>)
+    need(report.get(<span class="hljs-string">&#x27;pending&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> report.get(<span class="hljs-string">&#x27;journal_issues&#x27;</span>) <span class="hljs-keyword">and</span>
+         <span class="hljs-keyword">not</span> report.get(<span class="hljs-string">&#x27;final_capture_error&#x27;</span>),<span class="hljs-string">&#x27;Pending or ambiguous child receipt; never replay&#x27;</span>)
+    rows=report.get(<span class="hljs-string">&#x27;final_rows&#x27;</span>,[])
+    captured=report.get(<span class="hljs-string">&#x27;final_guard&#x27;</span>,{}).get(<span class="hljs-string">&#x27;capture_epoch&#x27;</span>,report.get(<span class="hljs-string">&#x27;final_capture_epoch&#x27;</span>))
+    need(<span class="hljs-built_in">type</span>(captured) <span class="hljs-keyword">in</span> (<span class="hljs-built_in">int</span>,<span class="hljs-built_in">float</span>),<span class="hljs-string">&#x27;Child final public capture time is absent&#x27;</span>)
+    command_guard(rows,foes,mode,captured_at=captured,now=now)
+    public_condition_guard(report)
+    initial_hp=numeric_hp(report.get(<span class="hljs-string">&#x27;initial_hp_proof&#x27;</span>))
+    <span class="hljs-keyword">if</span> report.get(<span class="hljs-string">&#x27;error&#x27;</span>)==LOW_HP_ERROR:
+        need(returncode==<span class="hljs-number">2</span> <span class="hljs-keyword">and</span> report.get(<span class="hljs-string">&#x27;result&#x27;</span>)==<span class="hljs-string">&#x27;stopped_for_review&#x27;</span> <span class="hljs-keyword">and</span>
+             report.get(<span class="hljs-string">&#x27;helpers&#x27;</span>)==[] <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;pre_action_guard&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> report <span class="hljs-keyword">and</span>
+             initial_hp&lt;step[<span class="hljs-string">&#x27;min_hp&#x27;</span>],
+             <span class="hljs-string">&#x27;Low-HP exception is not proven to have sent no battle action&#x27;</span>)
+        <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;outcome&#x27;</span>:<span class="hljs-string">&#x27;low_hp_no_action&#x27;</span>,<span class="hljs-string">&#x27;initial_hp&#x27;</span>:initial_hp}
+    need(returncode==<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> report.get(<span class="hljs-string">&#x27;result&#x27;</span>)==<span class="hljs-string">&#x27;helpers_returned&#x27;</span> <span class="hljs-keyword">and</span>
+         report.get(<span class="hljs-string">&#x27;final_classification&#x27;</span>)==<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span> <span class="hljs-keyword">and</span>
+         <span class="hljs-keyword">not</span> report.get(<span class="hljs-string">&#x27;error&#x27;</span>),<span class="hljs-string">&#x27;Child action did not return to the exact expected command; stop&#x27;</span>)
+    need(initial_hp&gt;=step[<span class="hljs-string">&#x27;min_hp&#x27;</span>],<span class="hljs-string">&#x27;Action receipt initial HP failed its requested threshold&#x27;</span>)
+    helpers=report.get(<span class="hljs-string">&#x27;helpers&#x27;</span>)
+    args=SimpleNamespace(item=step[<span class="hljs-string">&#x27;item&#x27;</span>],mode=mode,move_slot=<span class="hljs-literal">None</span>,target=<span class="hljs-literal">None</span>,target_foe=<span class="hljs-literal">None</span>)
+    expected=[helper_argv(args,{}),[sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)]]
+    need(<span class="hljs-built_in">isinstance</span>(helpers,<span class="hljs-built_in">list</span>) <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(helpers)==<span class="hljs-number">2</span> <span class="hljs-keyword">and</span>
+         <span class="hljs-built_in">all</span>(h.get(<span class="hljs-string">&#x27;argv&#x27;</span>)==argv <span class="hljs-keyword">and</span> h.get(<span class="hljs-string">&#x27;returncode&#x27;</span>)==<span class="hljs-number">0</span> <span class="hljs-keyword">for</span> h,argv <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(helpers,expected)),
+         <span class="hljs-string">&#x27;Exact item+ready helper receipts required; no partial or extra dispatch&#x27;</span>)
+    final_hp=numeric_hp(report.get(<span class="hljs-string">&#x27;final_hp_proof&#x27;</span>))
+    text=<span class="hljs-string">&#x27;\n&#x27;</span>.join(t <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> report.get(<span class="hljs-string">&#x27;public_screens&#x27;</span>,[]) <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> s.get(<span class="hljs-string">&#x27;text&#x27;</span>,[]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(t,<span class="hljs-built_in">str</span>))
+    need(<span class="hljs-keyword">not</span> NO_EFFECT.search(text),<span class="hljs-string">&#x27;Public item refusal/no-effect message; stop without replay&#x27;</span>)
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;outcome&#x27;</span>:<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>,<span class="hljs-string">&#x27;initial_hp&#x27;</span>:initial_hp,<span class="hljs-string">&#x27;final_hp&#x27;</span>:final_hp,
+            <span class="hljs-string">&#x27;proof_scope&#x27;</span>:<span class="hljs-string">&#x27;Selected item helper returned to the guarded command; no unseen consumption/stages inferred&#x27;</span>}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">pilot_receipt</span>(<span class="hljs-params">report,*,mode,foes,now</span>):
+    need(<span class="hljs-built_in">isinstance</span>(report,<span class="hljs-built_in">dict</span>) <span class="hljs-keyword">and</span> <span class="hljs-built_in">type</span>(report.get(<span class="hljs-string">&#x27;end_epoch&#x27;</span>)) <span class="hljs-keyword">in</span> (<span class="hljs-built_in">int</span>,<span class="hljs-built_in">float</span>) <span class="hljs-keyword">and</span>
+         <span class="hljs-number">0</span>&lt;=now-report[<span class="hljs-string">&#x27;end_epoch&#x27;</span>]&lt;=MAX_SECONDS,
+         <span class="hljs-string">&#x27;A completed same-mode public pilot from the last15minutes is required&#x27;</span>)
+    action=report.get(<span class="hljs-string">&#x27;explicit_action&#x27;</span>,{})
+    step={<span class="hljs-string">&#x27;item&#x27;</span>:action.get(<span class="hljs-string">&#x27;item&#x27;</span>),<span class="hljs-string">&#x27;min_hp&#x27;</span>:report.get(<span class="hljs-string">&#x27;min_hp&#x27;</span>)}
+    validate_plan([step])
+    pilot_foes=validate_foes(mode,report.get(<span class="hljs-string">&#x27;expected_foes&#x27;</span>))
+    need(<span class="hljs-built_in">set</span>(pilot_foes)==<span class="hljs-built_in">set</span>(foes),<span class="hljs-string">&#x27;Pilot exact foe set changed&#x27;</span>)
+    proof=classify_child(report,mode=mode,foes=pilot_foes,step=step,returncode=<span class="hljs-number">0</span>,
+                         now=report[<span class="hljs-string">&#x27;end_epoch&#x27;</span>])
+    need(proof[<span class="hljs-string">&#x27;outcome&#x27;</span>]==<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>,<span class="hljs-string">&#x27;Pilot was not a completed reviewed action&#x27;</span>)
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;pilot_end_epoch&#x27;</span>:report[<span class="hljs-string">&#x27;end_epoch&#x27;</span>],<span class="hljs-string">&#x27;age_seconds&#x27;</span>:<span class="hljs-built_in">round</span>(now-report[<span class="hljs-string">&#x27;end_epoch&#x27;</span>],<span class="hljs-number">3</span>),
+            <span class="hljs-string">&#x27;mode&#x27;</span>:mode,<span class="hljs-string">&#x27;foes&#x27;</span>:foes,<span class="hljs-string">&#x27;item&#x27;</span>:step[<span class="hljs-string">&#x27;item&#x27;</span>],
+            <span class="hljs-string">&#x27;scope&#x27;</span>:<span class="hljs-string">&#x27;Completed public pilot proves wrapper operation only; its HP/stats are never current-action evidence&#x27;</span>}
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run_plan</span>(<span class="hljs-params">plan,invoke,progress=<span class="hljs-keyword">lambda</span> report:<span class="hljs-literal">None</span></span>):
+    <span class="hljs-string">&quot;&quot;&quot;Pure finite sequencing; invoke is the sole explicit execution boundary.&quot;&quot;&quot;</span>
+    plan=validate_plan(plan)
+    report={<span class="hljs-string">&#x27;result&#x27;</span>:<span class="hljs-string">&#x27;running&#x27;</span>,<span class="hljs-string">&#x27;planned_items&#x27;</span>:plan,<span class="hljs-string">&#x27;invocations&#x27;</span>:<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;completed_items&#x27;</span>:<span class="hljs-number">0</span>,
+            <span class="hljs-string">&#x27;steps&#x27;</span>:[],<span class="hljs-string">&#x27;automatic_heal_wrapper_invocations&#x27;</span>:<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;max_invocations&#x27;</span>:MAX_INVOCATIONS}
+    progress(report)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">call</span>(<span class="hljs-params">step,index,role</span>):
+        need(report[<span class="hljs-string">&#x27;invocations&#x27;</span>]&lt;MAX_INVOCATIONS,<span class="hljs-string">&#x27;16-invocation cap reached; no more inputs&#x27;</span>)
+        report[<span class="hljs-string">&#x27;invocations&#x27;</span>]+=<span class="hljs-number">1</span>
+        <span class="hljs-keyword">if</span> role==<span class="hljs-string">&#x27;one-heal&#x27;</span>:report[<span class="hljs-string">&#x27;automatic_heal_wrapper_invocations&#x27;</span>]+=<span class="hljs-number">1</span>
+        progress(report)
+        result=invoke(step,index,role,report[<span class="hljs-string">&#x27;invocations&#x27;</span>])
+        need(result.get(<span class="hljs-string">&#x27;outcome&#x27;</span>) <span class="hljs-keyword">in</span> {<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>,<span class="hljs-string">&#x27;low_hp_no_action&#x27;</span>},
+             <span class="hljs-string">&#x27;Unknown child result; stop without replay&#x27;</span>)
+        <span class="hljs-keyword">return</span> result
+
+    <span class="hljs-keyword">try</span>:
+        <span class="hljs-keyword">for</span> index,step <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(plan):
+            record={<span class="hljs-string">&#x27;index&#x27;</span>:index,<span class="hljs-string">&#x27;requested&#x27;</span>:step,<span class="hljs-string">&#x27;receipts&#x27;</span>:[],<span class="hljs-string">&#x27;heal_requested&#x27;</span>:<span class="hljs-literal">False</span>}
+            report[<span class="hljs-string">&#x27;steps&#x27;</span>].append(record);progress(report)
+            outcome=call(step,index,<span class="hljs-string">&#x27;item&#x27;</span>);record[<span class="hljs-string">&#x27;receipts&#x27;</span>].append(outcome);progress(report)
+            <span class="hljs-keyword">if</span> outcome[<span class="hljs-string">&#x27;outcome&#x27;</span>]==<span class="hljs-string">&#x27;low_hp_no_action&#x27;</span>:
+                record[<span class="hljs-string">&#x27;heal_requested&#x27;</span>]=<span class="hljs-literal">True</span>;progress(report)
+                heal=call({<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,<span class="hljs-string">&#x27;min_hp&#x27;</span>:<span class="hljs-number">1</span>},index,<span class="hljs-string">&#x27;one-heal&#x27;</span>)
+                record[<span class="hljs-string">&#x27;receipts&#x27;</span>].append(heal);progress(report)
+                need(heal[<span class="hljs-string">&#x27;outcome&#x27;</span>]==<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>,<span class="hljs-string">&#x27;Single heal was not unambiguously completed; stop&#x27;</span>)
+                need(<span class="hljs-built_in">type</span>(heal.get(<span class="hljs-string">&#x27;final_hp&#x27;</span>)) <span class="hljs-keyword">is</span> <span class="hljs-built_in">int</span> <span class="hljs-keyword">and</span> heal[<span class="hljs-string">&#x27;final_hp&#x27;</span>]&gt;=step[<span class="hljs-string">&#x27;min_hp&#x27;</span>],
+                     <span class="hljs-string">&#x27;HP is still below the requested threshold after one heal; stop without a heal loop&#x27;</span>)
+                outcome=call(step,index,<span class="hljs-string">&#x27;retry-once&#x27;</span>);record[<span class="hljs-string">&#x27;receipts&#x27;</span>].append(outcome);progress(report)
+                need(outcome[<span class="hljs-string">&#x27;outcome&#x27;</span>]==<span class="hljs-string">&#x27;fresh_expected_command&#x27;</span>,
+                     <span class="hljs-string">&#x27;Retried item stopped; no second heal/retry is permitted&#x27;</span>)
+            record[<span class="hljs-string">&#x27;result&#x27;</span>]=<span class="hljs-string">&#x27;reviewed_item_helper_returned&#x27;</span>;report[<span class="hljs-string">&#x27;completed_items&#x27;</span>]+=<span class="hljs-number">1</span>;progress(report)
+        report[<span class="hljs-string">&#x27;result&#x27;</span>]=<span class="hljs-string">&#x27;complete&#x27;</span>
+    <span class="hljs-keyword">except</span> Exception <span class="hljs-keyword">as</span> e:
+        report.update(result=<span class="hljs-string">&#x27;stopped_for_review&#x27;</span>,error=<span class="hljs-string">f&#x27;<span class="hljs-subst">{<span class="hljs-built_in">type</span>(e).__name__}</span>: <span class="hljs-subst">{e}</span>&#x27;</span>)
+    progress(report)
+    <span class="hljs-keyword">return</span> report
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Runner</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self,args,plan</span>):
+        <span class="hljs-variable language_">self</span>.args=args;<span class="hljs-variable language_">self</span>.plan=plan;<span class="hljs-variable language_">self</span>.path=validate_output(args.output_dir)
+        <span class="hljs-variable language_">self</span>.start=time.time();<span class="hljs-variable language_">self</span>.baseline=<span class="hljs-variable language_">self</span>.health()
+        wrapper=ROOT/<span class="hljs-string">&#x27;scripts/agate_public_action.py&#x27;</span>
+        need(LOW_HP_ERROR.removeprefix(<span class="hljs-string">&#x27;ValueError: &#x27;</span>) <span class="hljs-keyword">in</span> wrapper.read_text(),
+             <span class="hljs-string">&#x27;Installed wrapper exact no-action low-HP contract changed&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.base={<span class="hljs-string">&#x27;kind&#x27;</span>:<span class="hljs-string">&#x27;agate_finite_root_selected_items&#x27;</span>,<span class="hljs-string">&#x27;start_epoch&#x27;</span>:<span class="hljs-variable language_">self</span>.start,
+                   <span class="hljs-string">&#x27;mode&#x27;</span>:args.mode,<span class="hljs-string">&#x27;expected_foes&#x27;</span>:args.foes,<span class="hljs-string">&#x27;actor&#x27;</span>:ACTOR,
+                   <span class="hljs-string">&#x27;capture_baseline&#x27;</span>:<span class="hljs-variable language_">self</span>.baseline,<span class="hljs-string">&#x27;source&#x27;</span>:source_proof(),
+                   <span class="hljs-string">&#x27;field_transition_source_sha256&#x27;</span>:hashlib.sha256((GAME/<span class="hljs-string">&#x27;Scripts/Reborn/fieldtext.rb&#x27;</span>).read_bytes()).hexdigest(),
+                   <span class="hljs-string">&#x27;reviewed_pilot&#x27;</span>:args.pilot_proof,
+                   <span class="hljs-string">&#x27;wrapper_sha256&#x27;</span>:hashlib.sha256(wrapper.read_bytes()).hexdigest(),
+                   <span class="hljs-string">&#x27;pending&#x27;</span>:<span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;children&#x27;</span>:[],<span class="hljs-string">&#x27;policy&#x27;</span>:<span class="hljs-string">&#x27;max8 explicit items; max16 total wrapper invocations; one heal per low-HP no-action step; no boosts/AI/RNG/native/log inference&#x27;</span>}
+        <span class="hljs-variable language_">self</span>.path.mkdir(parents=<span class="hljs-literal">True</span>);<span class="hljs-variable language_">self</span>.save({<span class="hljs-string">&#x27;result&#x27;</span>:<span class="hljs-string">&#x27;not_started&#x27;</span>})
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">health</span>(<span class="hljs-params">self</span>):
+        h=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+        need(h.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span> <span class="hljs-keyword">and</span> time.time()-h.get(<span class="hljs-string">&#x27;epoch&#x27;</span>,<span class="hljs-number">0</span>)&lt;<span class="hljs-number">2</span>,
+             <span class="hljs-string">&#x27;Recording capture is not fresh; no input&#x27;</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">hasattr</span>(<span class="hljs-variable language_">self</span>,<span class="hljs-string">&#x27;baseline&#x27;</span>):
+            need(h.get(<span class="hljs-string">&#x27;pid&#x27;</span>)==<span class="hljs-variable language_">self</span>.baseline.get(<span class="hljs-string">&#x27;pid&#x27;</span>) <span class="hljs-keyword">and</span>
+                 h.get(<span class="hljs-string">&#x27;restart_count&#x27;</span>,<span class="hljs-number">0</span>)==<span class="hljs-variable language_">self</span>.baseline.get(<span class="hljs-string">&#x27;restart_count&#x27;</span>,<span class="hljs-number">0</span>),
+                 <span class="hljs-string">&#x27;Capture restarted during finite queue; stop without replay&#x27;</span>)
+        <span class="hljs-keyword">return</span> h
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">save</span>(<span class="hljs-params">self,sequence</span>):
+        <span class="hljs-variable language_">self</span>.sequence=json.loads(json.dumps(sequence))
+        (<span class="hljs-variable language_">self</span>.path/<span class="hljs-string">&#x27;queue.json&#x27;</span>).write_text(json.dumps({**<span class="hljs-variable language_">self</span>.base,<span class="hljs-string">&#x27;sequence&#x27;</span>:<span class="hljs-variable language_">self</span>.sequence},indent=<span class="hljs-number">2</span>,ensure_ascii=<span class="hljs-literal">False</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">stop_owned_child</span>(<span class="hljs-params">self,p</span>):
+        <span class="hljs-comment"># start_new_session gives this wrapper/descendants their own group.</span>
+        <span class="hljs-keyword">try</span>:os.killpg(p.pid,signal.SIGTERM)
+        <span class="hljs-keyword">except</span> ProcessLookupError:<span class="hljs-keyword">pass</span>
+        <span class="hljs-keyword">try</span>:<span class="hljs-keyword">return</span> p.communicate(timeout=<span class="hljs-number">5</span>)
+        <span class="hljs-keyword">except</span> subprocess.TimeoutExpired:
+            <span class="hljs-keyword">try</span>:os.killpg(p.pid,signal.SIGKILL)
+            <span class="hljs-keyword">except</span> ProcessLookupError:<span class="hljs-keyword">pass</span>
+            <span class="hljs-keyword">return</span> p.communicate()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">invoke</span>(<span class="hljs-params">self,step,index,role,number</span>):
+        <span class="hljs-variable language_">self</span>.health();remaining=MAX_SECONDS-(time.time()-<span class="hljs-variable language_">self</span>.start)
+        need(remaining&gt;<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;15-minute finite queue limit reached; no more inputs&#x27;</span>)
+        child_path=<span class="hljs-variable language_">self</span>.path/<span class="hljs-string">f&#x27;<span class="hljs-subst">{self.path.name}</span>-<span class="hljs-subst">{number:02d}</span>-<span class="hljs-subst">{role}</span>.json&#x27;</span>
+        <span class="hljs-comment"># The child also places evidence under work/&lt;journal-stem&gt;.</span>
+        need(<span class="hljs-keyword">not</span> child_path.exists() <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> (ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/child_path.stem).exists(),
+             <span class="hljs-string">&#x27;Child journal/evidence already exists; no replay&#x27;</span>)
+        cmd=[sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/agate_public_action.py&#x27;</span>),<span class="hljs-string">&#x27;--execute&#x27;</span>,
+             <span class="hljs-string">&#x27;--mode&#x27;</span>,<span class="hljs-variable language_">self</span>.args.mode,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;,&#x27;</span>.join(<span class="hljs-variable language_">self</span>.args.foes),<span class="hljs-string">&#x27;--item&#x27;</span>,step[<span class="hljs-string">&#x27;item&#x27;</span>],
+             <span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-built_in">str</span>(step[<span class="hljs-string">&#x27;min_hp&#x27;</span>]),<span class="hljs-string">&#x27;--output&#x27;</span>,<span class="hljs-built_in">str</span>(child_path)]
+        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.args.canvas:cmd+=[<span class="hljs-string">&#x27;--canvas&#x27;</span>,<span class="hljs-variable language_">self</span>.args.canvas]
+        record={<span class="hljs-string">&#x27;number&#x27;</span>:number,<span class="hljs-string">&#x27;plan_index&#x27;</span>:index,<span class="hljs-string">&#x27;role&#x27;</span>:role,<span class="hljs-string">&#x27;step&#x27;</span>:step,<span class="hljs-string">&#x27;argv&#x27;</span>:cmd,
+                <span class="hljs-string">&#x27;journal&#x27;</span>:<span class="hljs-built_in">str</span>(child_path),<span class="hljs-string">&#x27;start_epoch&#x27;</span>:time.time()}
+        <span class="hljs-variable language_">self</span>.base[<span class="hljs-string">&#x27;children&#x27;</span>].append(record);<span class="hljs-variable language_">self</span>.base[<span class="hljs-string">&#x27;pending&#x27;</span>]=record;<span class="hljs-variable language_">self</span>.save(<span class="hljs-variable language_">self</span>.sequence)
+        <span class="hljs-keyword">try</span>:
+            p=subprocess.Popen(cmd,cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
+                               text=<span class="hljs-literal">True</span>,start_new_session=<span class="hljs-literal">True</span>)
+            stdout,stderr=p.communicate(timeout=<span class="hljs-built_in">min</span>(<span class="hljs-number">420</span>,remaining))
+            record.update(returncode=p.returncode,stdout=stdout,stderr=stderr,end_epoch=time.time())
+        <span class="hljs-keyword">except</span> subprocess.TimeoutExpired <span class="hljs-keyword">as</span> e:
+            <span class="hljs-comment"># The group is exclusively this spawned wrapper and its helpers.</span>
+            <span class="hljs-comment"># Stop descendants too; never leave a timed-out input worker alive.</span>
+            stdout,stderr=<span class="hljs-variable language_">self</span>.stop_owned_child(p)
+            record.update(returncode=p.returncode,stdout=stdout,stderr=stderr,
+                          timeout=<span class="hljs-literal">True</span>,end_epoch=time.time())
+            <span class="hljs-variable language_">self</span>.save(<span class="hljs-variable language_">self</span>.sequence);<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Child timed out; pending must never be replayed&#x27;</span>) <span class="hljs-keyword">from</span> e
+        <span class="hljs-keyword">except</span> BaseException <span class="hljs-keyword">as</span> e:
+            <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;p&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">locals</span>():
+                stdout,stderr=<span class="hljs-variable language_">self</span>.stop_owned_child(p)
+                record.update(returncode=p.returncode,stdout=stdout,stderr=stderr)
+            record.update(interrupted=<span class="hljs-literal">True</span>,error=<span class="hljs-string">f&#x27;<span class="hljs-subst">{<span class="hljs-built_in">type</span>(e).__name__}</span>: <span class="hljs-subst">{e}</span>&#x27;</span>,end_epoch=time.time())
+            <span class="hljs-variable language_">self</span>.save(<span class="hljs-variable language_">self</span>.sequence);<span class="hljs-keyword">raise</span>
+        <span class="hljs-variable language_">self</span>.save(<span class="hljs-variable language_">self</span>.sequence);<span class="hljs-variable language_">self</span>.health()
+        need(child_path.is_file(),<span class="hljs-string">&#x27;Child journal absent; pending action is ambiguous&#x27;</span>)
+        raw=child_path.read_bytes();child=json.loads(raw)
+        outcome=classify_child(child,mode=<span class="hljs-variable language_">self</span>.args.mode,foes=<span class="hljs-variable language_">self</span>.args.foes,step=step,
+                               returncode=p.returncode,now=time.time())
+        record.update(journal_sha256=hashlib.sha256(raw).hexdigest(),classification=outcome,
+                      literal_message_candidates=child.get(<span class="hljs-string">&#x27;literal_message_candidates&#x27;</span>,[]))
+        <span class="hljs-variable language_">self</span>.base[<span class="hljs-string">&#x27;pending&#x27;</span>]=<span class="hljs-literal">None</span>;<span class="hljs-variable language_">self</span>.save(<span class="hljs-variable language_">self</span>.sequence)
+        <span class="hljs-keyword">return</span> {**outcome,<span class="hljs-string">&#x27;journal&#x27;</span>:<span class="hljs-built_in">str</span>(child_path),<span class="hljs-string">&#x27;journal_sha256&#x27;</span>:record[<span class="hljs-string">&#x27;journal_sha256&#x27;</span>]}
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">def</span> <span class="hljs-title function_">interrupted</span>(<span class="hljs-params">number,frame</span>):
+            <span class="hljs-keyword">raise</span> InterruptedError(<span class="hljs-string">f&#x27;Signal<span class="hljs-subst">{number}</span>: stop owned child and preserve pending; never replay&#x27;</span>)
+        previous={s:signal.signal(s,interrupted) <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> (signal.SIGINT,signal.SIGTERM)}
+        <span class="hljs-keyword">try</span>:result=run_plan(<span class="hljs-variable language_">self</span>.plan,<span class="hljs-variable language_">self</span>.invoke,<span class="hljs-variable language_">self</span>.save)
+        <span class="hljs-keyword">finally</span>:
+            <span class="hljs-keyword">for</span> number,handler <span class="hljs-keyword">in</span> previous.items():signal.signal(number,handler)
+        <span class="hljs-variable language_">self</span>.base[<span class="hljs-string">&#x27;end_epoch&#x27;</span>]=time.time();<span class="hljs-variable language_">self</span>.save(result)
+        <span class="hljs-keyword">return</span> result
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument(<span class="hljs-string">&#x27;--execute&#x27;</span>,action=<span class="hljs-string">&#x27;store_true&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--mode&#x27;</span>,choices=<span class="hljs-built_in">tuple</span>(MODE_FOES),required=<span class="hljs-literal">True</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--foes&#x27;</span>,required=<span class="hljs-literal">True</span>,<span class="hljs-built_in">type</span>=<span class="hljs-keyword">lambda</span> s:s.split(<span class="hljs-string">&#x27;,&#x27;</span>))
+    p.add_argument(<span class="hljs-string">&#x27;--sequence&#x27;</span>,required=<span class="hljs-literal">True</span>,<span class="hljs-built_in">type</span>=Path,<span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;JSON array of exact item/min_hp objects&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--output-dir&#x27;</span>,<span class="hljs-built_in">type</span>=Path)
+    p.add_argument(<span class="hljs-string">&#x27;--pilot-journal&#x27;</span>,<span class="hljs-built_in">type</span>=Path,<span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;Completed same-mode/exact-foe public one-action receipt from last15min&#x27;</span>)
+    p.add_argument(<span class="hljs-string">&#x27;--canvas&#x27;</span>,<span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;Optional root-calibrated canvas passed to public child wrapper&#x27;</span>)
+    args=p.parse_args();args.foes=validate_foes(args.mode,args.foes)
+    plan=validate_plan(json.loads(args.sequence.read_text()))
+    <span class="hljs-keyword">if</span> args.output_dir:validate_output(args.output_dir)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> args.execute:
+        <span class="hljs-built_in">print</span>(json.dumps({<span class="hljs-string">&#x27;status&#x27;</span>:<span class="hljs-string">&#x27;dry-run; no UI/input/output created&#x27;</span>,<span class="hljs-string">&#x27;mode&#x27;</span>:args.mode,
+                          <span class="hljs-string">&#x27;foes&#x27;</span>:args.foes,<span class="hljs-string">&#x27;sequence&#x27;</span>:plan,<span class="hljs-string">&#x27;max_items&#x27;</span>:MAX_ITEMS,
+                          <span class="hljs-string">&#x27;max_total_wrapper_invocations&#x27;</span>:MAX_INVOCATIONS,<span class="hljs-string">&#x27;source&#x27;</span>:source_proof(),
+                          <span class="hljs-string">&#x27;installed_field_change_message_count&#x27;</span>:<span class="hljs-built_in">len</span>(installed_field_change_messages()),
+                          <span class="hljs-string">&#x27;low_hp_exception&#x27;</span>:LOW_HP_ERROR,<span class="hljs-string">&#x27;pilot_required_for_execute&#x27;</span>:<span class="hljs-literal">True</span>,
+                          <span class="hljs-string">&#x27;auto_heal&#x27;</span>:<span class="hljs-string">&#x27;one Ultra Potion min_hp1 onlyafterprovennoaction; actualposthealHPmustmeetrequestedthreshold; thenoneNEWretryjournal&#x27;</span>},indent=<span class="hljs-number">2</span>));<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>
+    need(args.output_dir <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;--execute requires a NEW --output-dir&#x27;</span>)
+    need(args.pilot_journal <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;--execute requires a reviewed completed --pilot-journal&#x27;</span>)
+    pilot=args.pilot_journal.resolve()
+    need(pilot.is_relative_to(ROOT) <span class="hljs-keyword">and</span> pilot.is_file(),<span class="hljs-string">&#x27;Completed pilot must be a workspace public journal&#x27;</span>)
+    raw=pilot.read_bytes()
+    args.pilot_proof={**pilot_receipt(json.loads(raw),mode=args.mode,foes=args.foes,now=time.time()),
+                      <span class="hljs-string">&#x27;journal&#x27;</span>:<span class="hljs-built_in">str</span>(pilot),<span class="hljs-string">&#x27;sha256&#x27;</span>:hashlib.sha256(raw).hexdigest()}
+    runner=Runner(args,plan);result=runner.run()
+    <span class="hljs-built_in">print</span>(result[<span class="hljs-string">&#x27;result&#x27;</span>],<span class="hljs-built_in">str</span>(runner.path/<span class="hljs-string">&#x27;queue.json&#x27;</span>),flush=<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span> <span class="hljs-keyword">if</span> result[<span class="hljs-string">&#x27;result&#x27;</span>]==<span class="hljs-string">&#x27;complete&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">2</span>
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:<span class="hljs-keyword">raise</span> SystemExit(main())
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>calcenon_return.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of calcenon_return.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed Circus–Calcenon return after selecting Route 2 in the elevator.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;now at:&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;route 2&#x27;</span> <span class="hljs-keyword">in</span> t,<span class="hljs-string">&#x27;Route 2 elevator result expected&#x27;</span>
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;74&#x27;</span>]=<span class="hljs-number">1</span>;p.write_text(json.dumps(v))
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/script),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">event</span>(<span class="hljs-params">mid,eid</span>):run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,mid,eid,<span class="hljs-string">&#x27;enter&#x27;</span>)
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>);event(<span class="hljs-number">365</span>,<span class="hljs-number">24</span>);run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;365,4,63,left,wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;layer_walk.py&#x27;</span>,<span class="hljs-number">358</span>,<span class="hljs-number">47</span>,<span class="hljs-number">13</span>,<span class="hljs-number">0</span>);event(<span class="hljs-number">358</span>,<span class="hljs-number">35</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;361,53,17,right,wait:2&#x27;</span>);event(<span class="hljs-number">404</span>,<span class="hljs-number">51</span>);event(<span class="hljs-number">405</span>,<span class="hljs-number">6</span>)
+event(<span class="hljs-number">404</span>,<span class="hljs-number">48</span>);event(<span class="hljs-number">409</span>,<span class="hljs-number">4</span>);event(<span class="hljs-number">408</span>,<span class="hljs-number">2</span>);event(<span class="hljs-number">410</span>,<span class="hljs-number">2</span>);event(<span class="hljs-number">409</span>,<span class="hljs-number">6</span>)
+run(<span class="hljs-string">&#x27;layer_walk.py&#x27;</span>,<span class="hljs-number">404</span>,<span class="hljs-number">120</span>,<span class="hljs-number">23</span>,<span class="hljs-number">1</span>);event(<span class="hljs-number">404</span>,<span class="hljs-number">45</span>);event(<span class="hljs-number">411</span>,<span class="hljs-number">6</span>)
+event(<span class="hljs-number">408</span>,<span class="hljs-number">6</span>);event(<span class="hljs-number">406</span>,<span class="hljs-number">3</span>);event(<span class="hljs-number">408</span>,<span class="hljs-number">4</span>);event(<span class="hljs-number">411</span>,<span class="hljs-number">2</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;404,169,10,right,wait:2&#x27;</span>);event(<span class="hljs-number">412</span>,<span class="hljs-number">22</span>);event(<span class="hljs-number">418</span>,<span class="hljs-number">1</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CALCENON RETURN COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

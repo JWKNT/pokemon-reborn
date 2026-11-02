@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Hardy17: reviewed numeric plan, installed19.5.43">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="hardy-battle-plan-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/hardy-battle-plan-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/hardy-battle-plan-2026-10-03.md.html">
+    <title>hardy-battle-plan-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">hardy-battle-plan-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 12 KB · <a href="/pokemon-reborn/reasoning/18/">Task 18</a> · first used Oct 3 20:31</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Hardy17: reviewed numeric plan, installed19.5.43</h2>
+<p>Static future plan; <strong>no live fight/state was read and no current party was changed</strong>. This assumes the normal Timid/Hex/80SpA-EV Cofagrigus preparation in <a href="/pokemon-reborn/notes/agate-chain-plan-2026-10-03.md.html">agate-chain-plan-2026-10-03.md</a> has actually been completed. Its proposed Cofagrigus stats below are hypothetical until a normal post-preparation checkpoint proves them. Other stats come from the archived Glass-restocked party and the ownedLv90 Ludicolo. Recalculate if the actual team changes or levels beyond90.</p>
+<p>The <a href="https://bigjra.github.io/reborn/#geode-badge">BigJRA Geode walkthrough</a> was checked online; its Hardy roster currently agrees with the installed extraction. Exact sources and local calculations take precedence. The source-only calculator is <code>scripts/hardy_battle_calculation.py</code>, output <code>work/hardy-battle-calculation.json</code>; it imports no gameplay/native/UI helper. All calculations retain normal enemy abilities/item boosts, do not depend on a predicted AI target/move, and do not assume that Mummy or Defeatist has activated.</p>
+<h3>Six and legal preparation</h3>
+<p>Recommended six: <strong>Cofagrigus, Swampert, Mienshao, Klinklang, Excadrill, Ludicolo</strong>, lead <strong>Cofa+Swamp</strong>. Bench Arcanine for this Rock fight; Cryogonal adds little here. Ludicolo supplies an accurate special attack reserve after the dangerous flyers are removed, rather than duplicating another physical attacker. It is <strong>not</strong> a safe blind early switch.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Pokémon90</th>
+<th>HP / Atk / Def / SpA / SpD / Spe</th>
+<th>Ability; item</th>
+<th>Reviewed moves</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Cofa, proposed Timid build</td>
+<td>252 /93 /333 /210 /218 /68</td>
+<td>Mummy; none</td>
+<td>TrickRoom, WillOWisp, Hex, DarkPulse</td>
+</tr>
+<tr>
+<td>Swamp</td>
+<td>295 /264 /190 /199 /183 /145</td>
+<td>Torrent; WaveIncense</td>
+<td>Waterfall, Earthquake, Surf, RockClimb</td>
+</tr>
+<tr>
+<td>Mien</td>
+<td>228 /251 /130 /195 /145 /217</td>
+<td>Reckless; ProtectivePads</td>
+<td>HighJumpKick, WideGuard, FakeOut, BrickBreak</td>
+</tr>
+<tr>
+<td>KG</td>
+<td>275 /267 /228 /149 /176 /187</td>
+<td>ClearBody; WideLens</td>
+<td>GearGrind, MirrorShot, Discharge, ShiftGear</td>
+</tr>
+<tr>
+<td>Exc</td>
+<td>379 /312 /144 /93 /122 /182</td>
+<td>MoldBreaker; none</td>
+<td>Earthquake, RockSmash, RockSlide, SwordsDance</td>
+</tr>
+<tr>
+<td>Ludi</td>
+<td>285 /140 /153 /194 /208 /142</td>
+<td>verify actual owned ability; WiseGlasses</td>
+<td><strong>Scald</strong> over Uproar; MegaDrain, ZenHeadbutt, KnockOff</td>
+</tr>
+</tbody></table></div>
+<p>TM55Scald is already owned and Ludicolo-compatible; teach through the normal bag before entry. Scald&#39;s100accuracy and no ally damage are useful. Avoid Surf/Earthquake as the default doubles attack. Swampert <strong>cannot learn WideGuard</strong> in the installed moveset/compatibility; Mienshao is the carrier. Do not substitute a nonexistent SwampWideGuard branch.</p>
+<p>No AmplifieldRock was found in the archived bag or read-only saved boxed held items. Leave Cofa unheld unless a subsequently verified legal item is deliberately chosen. Rocky <strong>TrickRoom lasts5turns</strong>, including the casting turn: only <strong>four following turns</strong>. Do not reuse Glass&#39;s field duration. Before entry, aim for at least3XDefend,2XAttack,1XAccuracy,8UltraPotion and someRevives; these are reserve goals, not a prediction of item use. Additional XDefend/XSPECIAL enable reserve setups. Check actual stock after Solaris and its warmup; those consumables remain spent.</p>
+<h3>Installed Hardy1, doubles, Rocky</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Enemy</th>
+<th>HP / Atk / Def / SpA / SpD / Spe</th>
+<th>Item, ability, moves</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Gigalith90</td>
+<td>337 /365 /266 /126 /177 /77</td>
+<td>ChoiceBand, SandStream; StompingTantrum, RockSlide, RockSmash, ThroatChop</td>
+</tr>
+<tr>
+<td>MegaAerodactyl92</td>
+<td>278 /372 /189 /145 /208 /367</td>
+<td>Aerodactylite, ToughClaws; AquaTail, RockSlide, AerialAce, RockSmash</td>
+</tr>
+<tr>
+<td>MiddayLycanroc92</td>
+<td>269 /333 /153 /120 /153 /297</td>
+<td>ChoiceBand, SandRush(<strong>594sand</strong>); RockSlide, DrillRun, BrickBreak, ZenHeadbutt</td>
+</tr>
+<tr>
+<td>Archeops91</td>
+<td>265 /345 /152 /213 /151 /319</td>
+<td>FlyingGem, Defeatist; RockSlide, AquaTail, Endeavor, Acrobatics</td>
+</tr>
+<tr>
+<td>Rampardos91</td>
+<td>306 /429 /142 /135 /124 /196</td>
+<td>ChoiceScarf(<strong>294</strong>), SheerForce; RockSlide, IronHead, FirePunch, RockSmash</td>
+</tr>
+<tr>
+<td>DuskLycanroc97</td>
+<td>283 /323 /161 /126 /161 /339</td>
+<td>TelluricSeed(<strong>+1Def→241</strong>), ToughClaws; RockSlide, Accelerock, BrickBreak, DrillRun</td>
+</tr>
+</tbody></table></div>
+<p>Hardy has2FullRestores. Opening sand is5turns; Gigalith holds no SmoothRock. Cofa68 is slower than Gigalith77 under TrickRoom. Swamp145 is faster than Gigalith in ordinary order, so <strong>Gigalith still acts before Swamp under TrickRoom</strong>; every other enemy is faster than Swamp, so Swamp acts before them within normal priority. Accelerock remains +1priority even in room.</p>
+<p>Rocky boosts Rock damage1.5 and RockSmash power2. Its most useful defensive rule: <strong>any positive Defense stage prevents both flinching and the extra quarter-HP rock collision</strong>. Cofa&#39;s own XDefend is therefore both bulk and a dependable ordinary RockSlide→TrickRoom defense. RockSmash can lower Swamp&#39;s Defense; inspect its actual stage rather than remembering the original boost. Cofa is immune to RockSmash and Endeavor. KG&#39;s ClearBody prevents ordinary opposing RockSmash Defense drops.</p>
+<h3>Guarded opener and sweep</h3>
+<p><strong>Xitems always boost their own acting Pokémon.</strong> Swamp cannot select XDefend for Cofa. Ordinary medicine can target the active ally, and both actors retain their own registered action.</p>
+<ol>
+<li><strong>T1 Cofa selfXDefend; Swamp selfXDefend.</strong> Both actions occur before attacks. Cofa&#39;s +2Def remains positive despite Fighting-immune RockSmash; don&#39;t rely on RockSlide flinch luck.</li>
+<li><strong>T2 Cofa TrickRoom; Swamp UltraPotion on Cofa</strong>, ordinarily restoring its252HP before attacks. This establishes room even if Swamp subsequently faints. A faster optional T2SwampXAttack is permissible only after the first-turn checkpoint proves CofaHP≥174 and Swamp&#39;s own HP/Defense can survive the next pair; it is not the default queue.</li>
+<li><strong>T3 normally Cofa heals itself; Swamp selfXAttack</strong> for+2Atk. Guard Swamp&#39;s Defense/HP first. If RockSmash drops left Defense0 or insufficient HP, restore/heal instead of issuing the attack boost blindly. An extra recovery turn shortens this room; record its exact remaining turns. Cofa can heal Swamp while Swamp uses its own XDefend when Cofa itself has enough HP for the incoming turn. Arbitrarily repeated two-target Defense drops are not guaranteed survivable by a fixed queue.</li>
+<li><strong>T4 Swamp Waterfall MegaAero</strong>, then prioritize Archeops if it replaces Aero. Otherwise remove Gigalith next, because it acts before Swamp in room and ThroatChop threatens Cofa. Cofa heals the relevant teammate, uses XAccuracy before planned WillOWisp, or burns a surviving physical attacker only from a safeHP checkpoint. Do not spend a non-healing setup turn on Cofa at low HP.</li>
+<li>Continue single-target Waterfall KOs while Cofa preserves itself/Swamp. At room expiration, renew <strong>only when room=0</strong>; selecting TrickRoom while active cancels it. A renewal turn faces ordinary speed order before Cofa&#39;s −7priority move: positive Defense and adequate HP matter. Gear/Scald reserves also need an observed room counter, not a presumed eight-turn window.</li>
+</ol>
+<p>The normal lead-turn bounds at Cofa+2Def are GigalithThroatChop87–102, MegaAeroRockSlide47–56 and sand15: <strong>173maximum</strong>, so require <strong>174HP</strong> before an unhealed setup turn with both leads alive. TwoRockSlides give at most81+56+15=152. At Swamp+2Def, most focused lead pairs remain below180; if AeroRockSmash drops Defense to+1 before GigalithRockSmash, the pair can reach79+118=197. Further stage drops change those bounds; rows forDef+1/0 are in the calculation output.</p>
+<p>These bounds are <strong>ordinary damage, not a critical-hit guarantee</strong>. Gigalith&#39;s criticalThroatChop258–303 ignores positive Defense and KOs hypothetical252HP Cofa; two other critical hits can also defeat either lead. The plan minimizes extra setup and checks the resulting turn instead of assuming its HP estimate remains valid after a crit. Source-proven Mummy/choice locks may improve a <em>subsequent observed</em> branch, but no opener depends on them.</p>
+<h3>Damage and reserves</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th align="right">Swamp+2Atk Waterfall</th>
+<th align="right">KG+2Atk GearGrind, both hits</th>
+<th align="right">Ludi+4SpA Scald, sand</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Giga337HP</td>
+<td align="right">372–438</td>
+<td align="right">398–468</td>
+<td align="right">377–444</td>
+</tr>
+<tr>
+<td>MegaAero278</td>
+<td align="right">523–615</td>
+<td align="right">556–654</td>
+<td align="right">321–378</td>
+</tr>
+<tr>
+<td>MidLyc269</td>
+<td align="right">645–759</td>
+<td align="right">684–804</td>
+<td align="right">436–513</td>
+</tr>
+<tr>
+<td>Arch265</td>
+<td align="right">650–765</td>
+<td align="right">688–810</td>
+<td align="right">441–519</td>
+</tr>
+<tr>
+<td>Ramp306</td>
+<td align="right">696–819</td>
+<td align="right">734–864</td>
+<td align="right">538–633</td>
+</tr>
+<tr>
+<td>Dusk283, seedDefense</td>
+<td align="right">411–483</td>
+<td align="right">438–516</td>
+<td align="right">413–486</td>
+</tr>
+</tbody></table></div>
+<p>Every listed range guarantees an ordinary full-health KO when it hits. Unboosted Swamp already KOs MidLyc/Arch/Ramp, but not guaranteed Giga/Mega/Dusk; one XAttack covers all. Waterfall100accuracy is the main reason to favor Swamp. KG&#39;s WideLens GearGrind still has a miss chance; selfXAccuracy removes that ordinary accuracy risk. ShiftGear on Rocky is only+1Atk/+2Speed and makes it less slow in room, so selfXAttack is the efficient reserve damage boost.</p>
+<p>Ludi needs <strong>two own XSPECIAL (+4SpA)</strong> for guaranteed sand KOs of every target. Its setup is conditional: MegaAeroAerialAce189–222 and first-gem ArcheopsAcrobatics316–372 even into Ludi+2Def make it unsafe before the flyers are removed. Two focused RockSlides can also exceed its285HP at+2Def. Bring it against a safely weakened/burned pair or a single remaining enemy, heal/support through setup, and don&#39;t label it an unconditional tank. KG likewise needs a guarded setup against Fighting/Ground attacks; its Steel typing is helpful against Rock, but not a universal resistance.</p>
+<p><strong>WideGuard branch:</strong> Mienshao can repeatedly guard enemy spreadRockSlides while its partner heals/boosts. It does not block targeted attacks. MegaAeroAerialAce219–258 into Mien even at+2Def can OHKO its228HP; ArcheopsAcrobatics and MidLycanrocZenHeadbutt are also dangerous. Use Mien chiefly after the flyers are gone and after observing the relevant ChoiceBand lock, or knowingly as a one-turn emergency guard that may faint after acting. Leading Cofa+Mien is less dependable than Cofa+Swamp: T1MienWideGuard+CofaXDef; if Mien faints, freeSwamp entry can heal Cofa on its room turn. Do not call the sacrifice guaranteed safe against every selected attack.</p>
+<p>Exc is a reserve, not the default sweeper. Rocky Earthquake gains Rock effectiveness in addition to Ground: into pureRock the2×Ground and0.5×Rock cancel; Flying targets remain immune. Calculated unboosted spreadEQGiga258–304 fails to KO337, Aero/Arch0. It also hits a grounded ally. Waterfall/Scald avoid those problems.</p>
+<h3>Commitments and subsequent route</h3>
+<p>Use <a href="/pokemon-reborn/notes/hardy-puzzle-saphira-route-2026-10-03.md.html">hardy-puzzle-saphira-route-2026-10-03.md</a> and <code>work/hardy-piano-proposed-template.json</code> for source-verified tuner geometry and guarded interaction anchors. Eight targetx values are17,19,21,16,16,14,15,15. RockClimb from739[5,46] facingUp ends[5,8]; switch1022 opens the arena door. Clear its three sight trainers first. Stage at <strong>740[9,19]</strong> before the player-touch Hardy trigger at[9,18], then the normalYes response starts doubles. After victory verify badge17/cap95 and the normal item ledger.</p>
+<p>Beyond Hardy, prepare independent boss teams for Zero/PULSEClawitzer, LCCC Mime+Sigmund onShortcircuit, then the route-dependent tournament. <strong>Tournament waiting rooms have normal PCs and menu checkpoints</strong>; its arena transfers each commit to their own autorun fight, so it is not one Glass-style fixed-six continuous script. The later chest challenge <strong>does</strong> commit to26defense waves then immediateGargantuanSteelix, requiring a whole-run team/PP plan. Only after that win is there a normal Saphira preparation point and780E74LightShard fullheal. Saphira victory alone is not badge18: interact with the chest at780[26/27,43] facingUp afterward and verify the badge. These later battles still require their own numeric review.</p>
+<p>No actual major IDs or active configs were allocated. Hardy is an eligible gym major; ordinary gym/raid trainers stay only in full journey recordings. Preserve failed attempts in the full recording and count only the successful battle footage in the major compilation, with actual attempts/items/team metadata.</p>
+<p>Sources: installed <code>trainers.dat</code> Hardy/version1; <code>metatext.rb</code> map740 Rocky; <code>fieldtext.rb</code> Rocky; <code>Battle_Scene.rb:3361</code> self-only Xitem; <code>Battler.rb:4745–4765</code> positiveDefense/flinch; <code>Battle_MoveEffects.rb:8177</code> TrickRoom5/8 condition and WideGuard implementation; <code>Battle_Move.rb</code> mixed field typing/ToughClaws/Acrobatics; <code>montext.rb</code> Swampert compatibility. Calculator syntaxchecked and run independently; no live input execution.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

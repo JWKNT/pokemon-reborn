@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>surface_readonly.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of surface_readonly.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Use the existing pure surface planner without importing input-owning nav.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> route_readonly <span class="hljs-keyword">import</span> ROOT,route
+<span class="hljs-keyword">import</span> ast,copy,heapq,re
+WATER={<span class="hljs-number">5</span>,<span class="hljs-number">6</span>,<span class="hljs-number">7</span>,<span class="hljs-number">9</span>}
+tree=ast.parse((ROOT/<span class="hljs-string">&#x27;scripts/surface_plan.py&#x27;</span>).read_text())
+functions=[n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> tree.body <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(n,ast.FunctionDef) <span class="hljs-keyword">and</span> n.name <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;tag&#x27;</span>,<span class="hljs-string">&#x27;surface_plan&#x27;</span>]]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(functions)==<span class="hljs-number">2</span>
+<span class="hljs-built_in">exec</span>(<span class="hljs-built_in">compile</span>(ast.Module(body=functions,type_ignores=[]),<span class="hljs-string">&#x27;surface-readonly-extract&#x27;</span>,<span class="hljs-string">&#x27;exec&#x27;</span>))
+</code></pre>
+  </body>
+</html>

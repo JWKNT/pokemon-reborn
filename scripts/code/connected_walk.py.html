@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>connected_walk.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of connected_walk.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Cross a read-only installed map connection with normal walking, verifying arrival.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+m,n=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]);near=<span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">3</span>:<span class="hljs-number">5</span>])) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;=<span class="hljs-number">5</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+actual,x,y=locate(m);<span class="hljs-keyword">assert</span> actual==m
+connections=json.loads((ROOT/<span class="hljs-string">&#x27;work/map-connections-reviewed.json&#x27;</span>).read_text())
+pairs=[]
+<span class="hljs-keyword">for</span> a,ax,ay,b,bx,by <span class="hljs-keyword">in</span> connections:
+ <span class="hljs-keyword">if</span> (a,b)==(m,n):pairs.append((ax,ay,bx,by))
+ <span class="hljs-keyword">if</span> (b,a)==(m,n):pairs.append((bx,by,ax,ay))
+<span class="hljs-keyword">assert</span> pairs,<span class="hljs-string">&#x27;No installed connection between requested maps&#x27;</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">load</span>(<span class="hljs-params">mid,position</span>):<span class="hljs-keyword">return</span> json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,position)],stderr=subprocess.DEVNULL))
+v=load(m,(x,y));vv=load(n,(<span class="hljs-number">0</span>,<span class="hljs-number">0</span>));choices=[]
+<span class="hljs-keyword">for</span> ax,ay,bx,by <span class="hljs-keyword">in</span> pairs:
+ <span class="hljs-keyword">for</span> k,dx,dy <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),(<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),(<span class="hljs-string">&#x27;left&#x27;</span>,-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)]:
+  edge=[(xx,<span class="hljs-number">0</span>)<span class="hljs-keyword">for</span> xx <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(v[<span class="hljs-string">&#x27;width&#x27;</span>])]<span class="hljs-keyword">if</span> k==<span class="hljs-string">&#x27;up&#x27;</span> <span class="hljs-keyword">else</span> ([(xx,v[<span class="hljs-string">&#x27;height&#x27;</span>]-<span class="hljs-number">1</span>)<span class="hljs-keyword">for</span> xx <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(v[<span class="hljs-string">&#x27;width&#x27;</span>])]<span class="hljs-keyword">if</span> k==<span class="hljs-string">&#x27;down&#x27;</span> <span class="hljs-keyword">else</span> ([(<span class="hljs-number">0</span>,yy)<span class="hljs-keyword">for</span> yy <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(v[<span class="hljs-string">&#x27;height&#x27;</span>])]<span class="hljs-keyword">if</span> k==<span class="hljs-string">&#x27;left&#x27;</span> <span class="hljs-keyword">else</span> [(v[<span class="hljs-string">&#x27;width&#x27;</span>]-<span class="hljs-number">1</span>,yy)<span class="hljs-keyword">for</span> yy <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(v[<span class="hljs-string">&#x27;height&#x27;</span>])]))
+  <span class="hljs-keyword">for</span> sx,sy <span class="hljs-keyword">in</span> edge:
+   tx,ty=sx+dx-ax+bx,sy+dy-ay+by
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (<span class="hljs-number">0</span>&lt;=tx&lt;vv[<span class="hljs-string">&#x27;width&#x27;</span>] <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;=ty&lt;vv[<span class="hljs-string">&#x27;height&#x27;</span>]):<span class="hljs-keyword">continue</span>
+   <span class="hljs-comment"># The translated source edge must be outside the destination by one tile.</span>
+   fx,fy=sx-ax+bx,sy-ay+by
+   <span class="hljs-keyword">if</span> <span class="hljs-number">0</span>&lt;=fx&lt;vv[<span class="hljs-string">&#x27;width&#x27;</span>] <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;=fy&lt;vv[<span class="hljs-string">&#x27;height&#x27;</span>]:<span class="hljs-keyword">continue</span>
+   <span class="hljs-keyword">try</span>:
+    p=route(v,(sx,sy));nv=<span class="hljs-built_in">dict</span>(vv,position=[tx,ty]);tail=route(nv,near)<span class="hljs-keyword">if</span> near <span class="hljs-keyword">else</span> []
+    <span class="hljs-comment"># Require a real reciprocal inward walking edge at the destination.</span>
+    graph=route(nv,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> graph.get((tx,ty)):<span class="hljs-keyword">continue</span>
+    choices.append((<span class="hljs-built_in">len</span>(p)+<span class="hljs-built_in">len</span>(tail),(sx,sy),k,(tx,ty)))
+   <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">pass</span>
+<span class="hljs-keyword">assert</span> choices,<span class="hljs-string">&#x27;No reachable ordinary walking connection&#x27;</span>
+_,p,k,d=<span class="hljs-built_in">min</span>(choices);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CONNECTED WALK&#x27;</span>,m,p,k,<span class="hljs-string">&#x27;-&gt;&#x27;</span>,n,d,flush=<span class="hljs-literal">True</span>)
+result=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">f&#x27;<span class="hljs-subst">{m}</span>,<span class="hljs-subst">{p[<span class="hljs-number">0</span>]}</span>,<span class="hljs-subst">{p[<span class="hljs-number">1</span>]}</span>&#x27;</span>])
+<span class="hljs-keyword">if</span> result.returncode:
+ a,xx,yy=locate()
+ <span class="hljs-keyword">if</span> a==n <span class="hljs-keyword">and</span> <span class="hljs-built_in">abs</span>(xx-d[<span class="hljs-number">0</span>])+<span class="hljs-built_in">abs</span>(yy-d[<span class="hljs-number">1</span>])&lt;=<span class="hljs-number">2</span>:
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CONNECTION ARRIVAL VERIFIED during boundary approach&#x27;</span>,a,xx,yy,flush=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-number">0</span>)
+ <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Boundary approach stopped away from the verified destination: &#x27;</span>+<span class="hljs-built_in">str</span>((a,xx,yy)))
+act(k+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+a,xx,yy=locate(n);<span class="hljs-keyword">assert</span> a==n,<span class="hljs-string">&#x27;Connection did not arrive at requested map&#x27;</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">abs</span>(xx-d[<span class="hljs-number">0</span>])+<span class="hljs-built_in">abs</span>(yy-d[<span class="hljs-number">1</span>])&lt;=<span class="hljs-number">1</span>,((xx,yy),d)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CONNECTION ARRIVAL VERIFIED&#x27;</span>,a,xx,yy,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

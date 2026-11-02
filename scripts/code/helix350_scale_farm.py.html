@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>helix350_scale_farm.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of helix350_scale_farm.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded low-level Thief farming; public UI only during each encounter.
+Owned held items are checked only in normal saved checkpoints after battle.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+<span class="hljs-keyword">from</span> bgm_span <span class="hljs-keyword">import</span> append_span,wild_track
+E=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FARM&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">return</span> subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],env=E,check=<span class="hljs-literal">True</span>)
+prefix=os.environ.get(<span class="hljs-string">&#x27;REBORN_FARM_CHECKPOINT_PREFIX&#x27;</span>,<span class="hljs-string">&#x27;Helix350&#x27;</span>)
+<span class="hljs-keyword">assert</span> re.fullmatch(<span class="hljs-string">r&#x27;[A-Za-z0-9-]+&#x27;</span>,prefix)
+start_index=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+control=ROOT/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>
+control.write_text(json.dumps({<span class="hljs-string">&#x27;expected_foes&#x27;</span>:[<span class="hljs-string">&#x27;Luvdisc&#x27;</span>,<span class="hljs-string">&#x27;Basculin&#x27;</span>,<span class="hljs-string">&#x27;Mantyke&#x27;</span>]}))
+wins=<span class="hljs-number">0</span>;scales=<span class="hljs-number">0</span>;target_scales=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">3</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">3</span> <span class="hljs-keyword">else</span> <span class="hljs-number">2</span>
+<span class="hljs-keyword">for</span> index <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(start_index,start_index+(<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> <span class="hljs-number">40</span>)):
+ <span class="hljs-keyword">if</span> wins&gt;=<span class="hljs-number">16</span> <span class="hljs-keyword">or</span> scales&gt;=target_scales:<span class="hljs-keyword">break</span>
+ begin=time.time()
+ run(<span class="hljs-string">&#x27;fish_cast247&#x27;</span>)
+ rows=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows).lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:
+  <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(rows)&lt;=<span class="hljs-number">4</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\bhp\b&#x27;</span>,t),t
+  <span class="hljs-keyword">continue</span>
+ foes=[<span class="hljs-string">&#x27;Luvdisc&#x27;</span>,<span class="hljs-string">&#x27;Basculin&#x27;</span>,<span class="hljs-string">&#x27;Mantyke&#x27;</span>]
+ enemy=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>].lower() <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> r[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.37</span>)
+ matched=[n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> foes <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,n.lower(),w).ratio()&gt;=<span class="hljs-number">.78</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> enemy.split())]
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(matched)==<span class="hljs-number">1</span>,enemy
+ foe=matched[<span class="hljs-number">0</span>]
+ <span class="hljs-keyword">if</span> foe!=<span class="hljs-string">&#x27;Luvdisc&#x27;</span>:
+  escaped=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>),<span class="hljs-string">&#x27;--since&#x27;</span>,<span class="hljs-built_in">str</span>(begin)],env=E)
+  <span class="hljs-keyword">if</span> escaped.returncode==<span class="hljs-number">0</span>:
+   t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(t.splitlines())&lt;=<span class="hljs-number">4</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\bfight\b|\bhp\b&#x27;</span>,t),t
+   <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FARM SKIPPED&#x27;</span>,index,foe,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">continue</span>
+  t=read().lower()
+  <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;arcanine&#x27;</span> <span class="hljs-keyword">in</span> t, <span class="hljs-string">&#x27;Failed escape needs review: &#x27;</span>+t
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FARM ESCAPE FALLBACK: approved low-level KO&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+ run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;,&#x27;</span>.join(foes),<span class="hljs-string">&#x27;--wild&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.6&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+ t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(t.splitlines())&lt;=<span class="hljs-number">4</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\bfight\b|\bhp\b&#x27;</span>,t),t
+ run(<span class="hljs-string">&#x27;close_wild_music&#x27;</span>,foe,<span class="hljs-string">&#x27;--since&#x27;</span>,begin)
+ label=<span class="hljs-string">f&#x27;<span class="hljs-subst">{prefix}</span>-ScaleFish<span class="hljs-subst">{index:02d}</span>&#x27;</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> (ROOT/<span class="hljs-string">&#x27;backups&#x27;</span>/<span class="hljs-string">f&#x27;Aster-<span class="hljs-subst">{label}</span>.rxdata&#x27;</span>).exists()
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+ own=json.loads((ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text())
+ arcanine=<span class="hljs-built_in">next</span>(p <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> own[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> p[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Arcanine&#x27;</span>)
+ <span class="hljs-keyword">assert</span> arcanine[<span class="hljs-string">&#x27;hp&#x27;</span>]&gt;<span class="hljs-number">.6</span>*arcanine[<span class="hljs-string">&#x27;totalhp&#x27;</span>],arcanine
+ held=arcanine[<span class="hljs-string">&#x27;item&#x27;</span>]
+ <span class="hljs-keyword">if</span> held:
+  names={<span class="hljs-string">&#x27;HEARTSCALE&#x27;</span>:<span class="hljs-string">&#x27;Heart Scale&#x27;</span>,<span class="hljs-string">&#x27;DEEPSEASCALE&#x27;</span>:<span class="hljs-string">&#x27;Deep Sea Scale&#x27;</span>,<span class="hljs-string">&#x27;DEEPSEATOOTH&#x27;</span>:<span class="hljs-string">&#x27;Deep Sea Tooth&#x27;</span>}
+  <span class="hljs-keyword">assert</span> held <span class="hljs-keyword">in</span> names,held
+  run(<span class="hljs-string">&#x27;take_held&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,names[held])
+  <span class="hljs-keyword">if</span> held==<span class="hljs-string">&#x27;HEARTSCALE&#x27;</span>:scales+=<span class="hljs-number">1</span>
+ wins+=<span class="hljs-number">1</span>
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FARM PROGRESS&#x27;</span>,index,<span class="hljs-string">&#x27;wins&#x27;</span>,wins,<span class="hljs-string">&#x27;scales&#x27;</span>,scales,flush=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">f&#x27;<span class="hljs-subst">{prefix}</span>-ScaleFarmEnd<span class="hljs-subst">{start_index}</span>&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FARM FINISHED&#x27;</span>,wins,scales,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

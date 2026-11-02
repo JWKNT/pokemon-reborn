@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>emerald211_event_fast.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of emerald211_event_fast.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Continuous ordinary path plus one reviewed Emerald lever interaction.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> itertools <span class="hljs-keyword">import</span> groupby
+eid=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);<span class="hljs-keyword">assert</span> eid <span class="hljs-keyword">in</span> [<span class="hljs-number">46</span>,<span class="hljs-number">48</span>,<span class="hljs-number">50</span>,<span class="hljs-number">53</span>,<span class="hljs-number">54</span>,<span class="hljs-number">56</span>,<span class="hljs-number">57</span>]
+m,x,y=locate(<span class="hljs-number">805</span>)
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;805&#x27;</span>,<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],stderr=subprocess.DEVNULL));e=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)]
+opts=[]
+<span class="hljs-keyword">for</span> dx,dy,k <span class="hljs-keyword">in</span> [(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;up&#x27;</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;down&#x27;</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;left&#x27;</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;right&#x27;</span>)]:
+ <span class="hljs-keyword">try</span>:
+  p=route(v,(e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy));opts.append((<span class="hljs-built_in">len</span>(p),p,k))
+ <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">pass</span>
+_,p,k=<span class="hljs-built_in">min</span>(opts);<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(p)&lt;=<span class="hljs-number">100</span>
+seq=[]
+<span class="hljs-keyword">for</span> d,g <span class="hljs-keyword">in</span> groupby(p):
+ n=<span class="hljs-built_in">len</span>(<span class="hljs-built_in">list</span>(g));seq.append(d+<span class="hljs-string">&#x27;:&#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">round</span>(<span class="hljs-number">.1</span>*n+<span class="hljs-number">.02</span>,<span class="hljs-number">3</span>)) <span class="hljs-keyword">if</span> n&gt;=<span class="hljs-number">3</span> <span class="hljs-keyword">else</span> d+<span class="hljs-string">&#x27;:.12&#x27;</span>)
+ <span class="hljs-keyword">if</span> n==<span class="hljs-number">2</span>:seq.append(d+<span class="hljs-string">&#x27;:.12&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FAST LEVER&#x27;</span>,eid,p,flush=<span class="hljs-literal">True</span>)
+act(*seq,k+<span class="hljs-string">&#x27;:.18&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),<span class="hljs-string">f&#x27;Emerald211-Lever<span class="hljs-subst">{eid}</span>&#x27;</span>],check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SAVED LEVER RESULT; verify switch before next action&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

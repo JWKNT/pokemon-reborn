@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_hypno_turn.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_hypno_turn.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure/synthetic public-guard tests. No screenshots, input, or native state.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> pathlib
+<span class="hljs-keyword">import</span> tempfile
+<span class="hljs-keyword">import</span> unittest
+
+<span class="hljs-keyword">from</span> hypno_turn <span class="hljs-keyword">import</span> (command_guard, deduplicate_screens, final_classification,
+                        helper_argv, message_candidates, name_matches, read_generated_screens)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">command</span>(<span class="hljs-params">actor=<span class="hljs-string">&quot;Arcanine&quot;</span>, foe=<span class="hljs-string">&quot;Hypno&quot;</span></span>):
+    <span class="hljs-keyword">return</span> [
+        {<span class="hljs-string">&quot;text&quot;</span>: foe, <span class="hljs-string">&quot;x&quot;</span>: <span class="hljs-number">.12</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.13</span>},
+        {<span class="hljs-string">&quot;text&quot;</span>: <span class="hljs-string">&quot;Lv100&quot;</span>, <span class="hljs-string">&quot;x&quot;</span>: <span class="hljs-number">.30</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.13</span>},
+        {<span class="hljs-string">&quot;text&quot;</span>: actor, <span class="hljs-string">&quot;x&quot;</span>: <span class="hljs-number">.66</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.53</span>},
+        {<span class="hljs-string">&quot;text&quot;</span>: <span class="hljs-string">&quot;HP 294/294&quot;</span>, <span class="hljs-string">&quot;x&quot;</span>: <span class="hljs-number">.71</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.64</span>},
+        {<span class="hljs-string">&quot;text&quot;</span>: <span class="hljs-string">f&quot;What will <span class="hljs-subst">{actor}</span> do?&quot;</span>, <span class="hljs-string">&quot;x&quot;</span>: <span class="hljs-number">.08</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.77</span>},
+        {<span class="hljs-string">&quot;text&quot;</span>: <span class="hljs-string">&quot;FIGHT&quot;</span>, <span class="hljs-string">&quot;x&quot;</span>: <span class="hljs-number">.63</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.77</span>},
+        {<span class="hljs-string">&quot;text&quot;</span>: <span class="hljs-string">&quot;BAG&quot;</span>, <span class="hljs-string">&quot;x&quot;</span>: <span class="hljs-number">.82</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.77</span>},
+        {<span class="hljs-string">&quot;text&quot;</span>: <span class="hljs-string">&quot;RUN&quot;</span>, <span class="hljs-string">&quot;x&quot;</span>: <span class="hljs-number">.83</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.86</span>},
+    ]
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PublicHypnoTurnTests</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_complete_hyphenated_species_token</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Kommo-o&#x27;</span>,<span class="hljs-string">&#x27;Kommo-o Lv87&#x27;</span>,<span class="hljs-string">&#x27;Kommo o&#x27;</span>,<span class="hljs-string">&#x27;Kommo\u2011o&#x27;</span>]:
+            <span class="hljs-variable language_">self</span>.assertTrue(name_matches(text,<span class="hljs-string">&#x27;Kommo-o&#x27;</span>))
+        <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Kommo&#x27;</span>,<span class="hljs-string">&#x27;Jangmo-o&#x27;</span>,<span class="hljs-string">&#x27;Hakamo-o&#x27;</span>,<span class="hljs-string">&#x27;NotKommo-o&#x27;</span>,<span class="hljs-string">&#x27;Kommo-oid&#x27;</span>,<span class="hljs-string">&#x27;Kommo x&#x27;</span>]:
+            <span class="hljs-variable language_">self</span>.assertFalse(name_matches(text,<span class="hljs-string">&#x27;Kommo-o&#x27;</span>))
+        <span class="hljs-variable language_">self</span>.assertTrue(name_matches(<span class="hljs-string">&#x27;Porygon-Z Lv89&#x27;</span>,<span class="hljs-string">&#x27;Porygon-Z&#x27;</span>))
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_observed_cyrillic_hypno_glyphs_keep_exact_hud_guard</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;Hypnо&quot;</span>, <span class="hljs-string">&quot;Нурnо&quot;</span>, <span class="hljs-string">&quot;Нурnо ♀ Lv100&quot;</span>]:
+            <span class="hljs-variable language_">self</span>.assertTrue(name_matches(text, <span class="hljs-string">&quot;Hypno&quot;</span>))
+            proof = command_guard(command(foe=text), captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)
+            <span class="hljs-variable language_">self</span>.assertEqual(proof[<span class="hljs-string">&quot;foe&quot;</span>], <span class="hljs-string">&quot;Hypno&quot;</span>)
+        <span class="hljs-comment"># Initial turn1&#x27;s public capture split its command prompt into two rows.</span>
+        rows = command(foe=<span class="hljs-string">&quot;Hypnо&quot;</span>)
+        rows[<span class="hljs-number">2</span>][<span class="hljs-string">&quot;text&quot;</span>] = <span class="hljs-string">&quot;Arcanine F&quot;</span>
+        rows[<span class="hljs-number">4</span>][<span class="hljs-string">&quot;text&quot;</span>] = <span class="hljs-string">&quot;What will&quot;</span>
+        rows.insert(<span class="hljs-number">5</span>, {<span class="hljs-string">&quot;text&quot;</span>: <span class="hljs-string">&quot;Arcanine do&quot;</span>, <span class="hljs-string">&quot;x&quot;</span>: <span class="hljs-number">.10</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.831</span>})
+        <span class="hljs-variable language_">self</span>.assertEqual(command_guard(rows, captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)[<span class="hljs-string">&quot;actor&quot;</span>], <span class="hljs-string">&quot;Arcanine&quot;</span>)
+        <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;Hypnoid&quot;</span>, <span class="hljs-string">&quot;Drowzee&quot;</span>, <span class="hljs-string">&quot;НурnоК&quot;</span>, <span class="hljs-string">&quot;NotHypno&quot;</span>, <span class="hljs-string">&quot;Гурnо&quot;</span>]:
+            <span class="hljs-variable language_">self</span>.assertFalse(name_matches(text, <span class="hljs-string">&quot;Hypno&quot;</span>))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_cyrillic_actor_aliases_do_not_hide_a_contradictory_prompt</span>(<span class="hljs-params">self</span>):
+        proof = command_guard(command(actor=<span class="hljs-string">&quot;Аrсаnіnе&quot;</span>, foe=<span class="hljs-string">&quot;Нурnо&quot;</span>), captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(proof[<span class="hljs-string">&quot;actor&quot;</span>], <span class="hljs-string">&quot;Arcanine&quot;</span>)
+        <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;Cofagrigus&quot;</span>, <span class="hljs-string">&quot;Сofagrigus&quot;</span>, <span class="hljs-string">&quot;Swampert&quot;</span>, <span class="hljs-string">&quot;Klinklang&quot;</span>, <span class="hljs-string">&quot;ArcanineК&quot;</span>]:
+            rows = command(foe=<span class="hljs-string">&quot;Нурnо&quot;</span>)
+            rows[<span class="hljs-number">4</span>][<span class="hljs-string">&quot;text&quot;</span>] = <span class="hljs-string">f&quot;What will <span class="hljs-subst">{name}</span> do?&quot;</span>
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaisesRegex(ValueError, <span class="hljs-string">&quot;different acting&quot;</span>):
+                command_guard(rows, captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)
+        <span class="hljs-keyword">for</span> actor <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;Сofagrigus&quot;</span>, <span class="hljs-string">&quot;Swampert&quot;</span>, <span class="hljs-string">&quot;Klinklang&quot;</span>, <span class="hljs-string">&quot;ArcanineК&quot;</span>]:
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaisesRegex(ValueError, <span class="hljs-string">&quot;Expected visible&quot;</span>):
+                command_guard(command(actor=actor, foe=<span class="hljs-string">&quot;Нурnо&quot;</span>), captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_observed_turn4_riun_is_only_a_proper_run_command_alias</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-comment"># Turn4&#x27;s failed public capture: Cyrillic Hypno, split prompt, RIUN in</span>
+        <span class="hljs-comment"># the observed lower-right cell. The old report sent zero helpers.</span>
+        rows = command(foe=<span class="hljs-string">&quot;Нурnо&quot;</span>)
+        rows[<span class="hljs-number">2</span>].update(text=<span class="hljs-string">&quot;Arcanine&quot;</span>, x=<span class="hljs-number">.5928264</span>, y=<span class="hljs-number">.5189115</span>)
+        rows[<span class="hljs-number">3</span>].update(text=<span class="hljs-string">&quot;210/ 294&quot;</span>, x=<span class="hljs-number">.7732558</span>, y=<span class="hljs-number">.6035242</span>)
+        rows[<span class="hljs-number">4</span>].update(text=<span class="hljs-string">&quot;What will&quot;</span>, x=<span class="hljs-number">.1017442</span>, y=<span class="hljs-number">.7615639</span>)
+        rows.insert(<span class="hljs-number">5</span>, {<span class="hljs-string">&quot;text&quot;</span>: <span class="hljs-string">&quot;Arcanine do&quot;</span>, <span class="hljs-string">&quot;x&quot;</span>: <span class="hljs-number">.1031977</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.8309091</span>})
+        rows[-<span class="hljs-number">1</span>].update(text=<span class="hljs-string">&quot;RIUN&quot;</span>, x=<span class="hljs-number">.7892442</span>, y=<span class="hljs-number">.8418182</span>)
+        <span class="hljs-keyword">for</span> label <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;RIUN&quot;</span>, <span class="hljs-string">&quot;RΙUN&quot;</span>, <span class="hljs-string">&quot;RІUN&quot;</span>, <span class="hljs-string">&quot;RUN&quot;</span>]:
+            rows[-<span class="hljs-number">1</span>][<span class="hljs-string">&quot;text&quot;</span>] = label
+            <span class="hljs-variable language_">self</span>.assertEqual(command_guard(rows, captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)[<span class="hljs-string">&quot;foe&quot;</span>], <span class="hljs-string">&quot;Hypno&quot;</span>)
+        <span class="hljs-keyword">for</span> label <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;REUN&quot;</span>, <span class="hljs-string">&quot;RIN&quot;</span>, <span class="hljs-string">&quot;RUM&quot;</span>, <span class="hljs-string">&quot;RIUN to escape&quot;</span>, <span class="hljs-string">&quot;NOTRIUN&quot;</span>]:
+            rows[-<span class="hljs-number">1</span>][<span class="hljs-string">&quot;text&quot;</span>] = label
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaisesRegex(ValueError, <span class="hljs-string">&quot;command labels&quot;</span>):
+                command_guard(rows, captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)
+        rows[-<span class="hljs-number">1</span>][<span class="hljs-string">&quot;text&quot;</span>] = <span class="hljs-string">&quot;RIUN&quot;</span>
+        <span class="hljs-keyword">for</span> x, y <span class="hljs-keyword">in</span> [(<span class="hljs-number">.2</span>, <span class="hljs-number">.84</span>), (<span class="hljs-number">.79</span>, <span class="hljs-number">.3</span>), (<span class="hljs-number">.79</span>, <span class="hljs-number">.97</span>)]:
+            rows[-<span class="hljs-number">1</span>].update(x=x, y=y)
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaisesRegex(ValueError, <span class="hljs-string">&quot;command labels&quot;</span>):
+                command_guard(rows, captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)
+        rows[-<span class="hljs-number">1</span>].update(x=<span class="hljs-number">.7892442</span>, y=<span class="hljs-number">.8418182</span>)
+        rows[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;text&quot;</span>] = <span class="hljs-string">&quot;Drowzee&quot;</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaisesRegex(ValueError, <span class="hljs-string">&quot;Expected visible&quot;</span>):
+            command_guard(rows, captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)
+        rows[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;text&quot;</span>] = <span class="hljs-string">&quot;Нурnо&quot;</span>
+        rows[<span class="hljs-number">6</span>][<span class="hljs-string">&quot;text&quot;</span>] = <span class="hljs-string">&quot;Flamethrower&quot;</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaisesRegex(ValueError, <span class="hljs-string">&quot;command labels&quot;</span>):
+            command_guard(rows, captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_fresh_visible_actor_and_foe_required</span>(<span class="hljs-params">self</span>):
+        proof = command_guard(command(), captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual((proof[<span class="hljs-string">&quot;actor&quot;</span>], proof[<span class="hljs-string">&quot;foe&quot;</span>]), (<span class="hljs-string">&quot;Arcanine&quot;</span>, <span class="hljs-string">&quot;Hypno&quot;</span>))
+        <span class="hljs-keyword">for</span> rows <span class="hljs-keyword">in</span> [command(<span class="hljs-string">&quot;Klinklang&quot;</span>), command(foe=<span class="hljs-string">&quot;Gardevoir&quot;</span>),
+                     [{**row, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.8</span>} <span class="hljs-keyword">if</span> row[<span class="hljs-string">&quot;text&quot;</span>] == <span class="hljs-string">&quot;Hypno&quot;</span> <span class="hljs-keyword">else</span> row <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> command()],
+                     command() + [{<span class="hljs-string">&quot;text&quot;</span>: <span class="hljs-string">&quot;PP: 10/10&quot;</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.84</span>}],
+                     command() + [{<span class="hljs-string">&quot;text&quot;</span>: <span class="hljs-string">&quot;Choose a Pokemon&quot;</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.76</span>}]]:
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+                command_guard(rows, captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            command_guard(command(), captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">116</span>)
+        rows = command()
+        rows[<span class="hljs-number">4</span>][<span class="hljs-string">&quot;text&quot;</span>] = <span class="hljs-string">&quot;What will Cofagrigus do?&quot;</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            command_guard(rows, captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_exact_explicit_action_only</span>(<span class="hljs-params">self</span>):
+        base = pathlib.Path(<span class="hljs-string">&quot;/synthetic&quot;</span>)
+        item = helper_argv(argparse.Namespace(item=<span class="hljs-string">&quot;X Sp. Def&quot;</span>, move_slot=<span class="hljs-literal">None</span>), base)
+        <span class="hljs-variable language_">self</span>.assertEqual(item[<span class="hljs-number">1</span>:], [<span class="hljs-string">&quot;/synthetic/scripts/battle_item.py&quot;</span>, <span class="hljs-string">&quot;X Sp. Def&quot;</span>, <span class="hljs-string">&quot;Arcanine&quot;</span>, <span class="hljs-string">&quot;--active&quot;</span>])
+        potion = helper_argv(argparse.Namespace(item=<span class="hljs-string">&quot;Ultra Potion&quot;</span>, move_slot=<span class="hljs-literal">None</span>), base)
+        <span class="hljs-variable language_">self</span>.assertEqual(potion[<span class="hljs-number">1</span>:], [<span class="hljs-string">&quot;/synthetic/scripts/battle_item.py&quot;</span>, <span class="hljs-string">&quot;Ultra Potion&quot;</span>, <span class="hljs-string">&quot;Arcanine&quot;</span>])
+        move = helper_argv(argparse.Namespace(item=<span class="hljs-literal">None</span>, move_slot=<span class="hljs-number">2</span>), base)
+        <span class="hljs-variable language_">self</span>.assertEqual(move[<span class="hljs-number">1</span>:], [<span class="hljs-string">&quot;/synthetic/scripts/battle_move.py&quot;</span>, <span class="hljs-string">&quot;2&quot;</span>, <span class="hljs-string">&quot;--watch&quot;</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_adjacent_dedup_does_not_erase_a_later_repeat</span>(<span class="hljs-params">self</span>):
+        records = [{<span class="hljs-string">&quot;epoch&quot;</span>: i, <span class="hljs-string">&quot;text&quot;</span>: text} <span class="hljs-keyword">for</span> i, text <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>([
+            [<span class="hljs-string">&quot;Hypno used Calm Mind!&quot;</span>], [<span class="hljs-string">&quot;Hypno used Calm Mind!&quot;</span>],
+            [<span class="hljs-string">&quot;FIGHT&quot;</span>, <span class="hljs-string">&quot;BAG&quot;</span>, <span class="hljs-string">&quot;RUN&quot;</span>], [<span class="hljs-string">&quot;Hypno used Calm Mind!&quot;</span>]])]
+        result = deduplicate_screens(records)
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-built_in">len</span>(result), <span class="hljs-number">3</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(result[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;captures&quot;</span>], <span class="hljs-number">2</span>)
+        messages = message_candidates(result)
+        <span class="hljs-variable language_">self</span>.assertEqual([row[<span class="hljs-string">&quot;screen_index&quot;</span>] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> messages], [<span class="hljs-number">0</span>, <span class="hljs-number">2</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(messages[<span class="hljs-number">0</span>][<span class="hljs-string">&quot;lines&quot;</span>], [<span class="hljs-string">&quot;Hypno used Calm Mind!&quot;</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_bounded_append_read_and_final_public_state</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">with</span> tempfile.TemporaryDirectory(prefix=<span class="hljs-string">&quot;hypno-public-test-&quot;</span>) <span class="hljs-keyword">as</span> directory:
+            journal = pathlib.Path(directory) / <span class="hljs-string">&quot;screens.jsonl&quot;</span>
+            journal.write_text(json.dumps({<span class="hljs-string">&quot;epoch&quot;</span>: <span class="hljs-number">1</span>, <span class="hljs-string">&quot;text&quot;</span>: [<span class="hljs-string">&quot;old screen&quot;</span>]}) + <span class="hljs-string">&quot;\n&quot;</span>)
+            offset = journal.stat().st_size
+            <span class="hljs-keyword">with</span> journal.<span class="hljs-built_in">open</span>(<span class="hljs-string">&quot;a&quot;</span>) <span class="hljs-keyword">as</span> stream:
+                <span class="hljs-keyword">for</span> value <span class="hljs-keyword">in</span> [
+                    {<span class="hljs-string">&quot;epoch&quot;</span>: <span class="hljs-number">5</span>, <span class="hljs-string">&quot;text&quot;</span>: [<span class="hljs-string">&quot;too early&quot;</span>]},
+                    {<span class="hljs-string">&quot;epoch&quot;</span>: <span class="hljs-number">11</span>, <span class="hljs-string">&quot;text&quot;</span>: [<span class="hljs-string">&quot;Hypno used Dark Pulse!&quot;</span>]},
+                    {<span class="hljs-string">&quot;epoch&quot;</span>: <span class="hljs-number">15</span>, <span class="hljs-string">&quot;text&quot;</span>: [<span class="hljs-string">&quot;too late&quot;</span>]}]:
+                    stream.write(json.dumps(value) + <span class="hljs-string">&quot;\n&quot;</span>)
+            rows, issues = read_generated_screens(journal, offset, <span class="hljs-number">10</span>, <span class="hljs-number">12</span>)
+            <span class="hljs-variable language_">self</span>.assertEqual([row[<span class="hljs-string">&quot;text&quot;</span>] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows], [[<span class="hljs-string">&quot;Hypno used Dark Pulse!&quot;</span>]])
+            <span class="hljs-variable language_">self</span>.assertFalse(issues)
+        <span class="hljs-variable language_">self</span>.assertEqual(final_classification(command(), captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>), <span class="hljs-string">&quot;fresh_arcanine_hypno_command&quot;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(final_classification(command(<span class="hljs-string">&quot;Cofagrigus&quot;</span>), captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>), <span class="hljs-string">&quot;review_required&quot;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(final_classification([{<span class="hljs-string">&quot;text&quot;</span>: <span class="hljs-string">&quot;You defeated Hypno!&quot;</span>, <span class="hljs-string">&quot;y&quot;</span>: <span class="hljs-number">.8</span>}], captured_at=<span class="hljs-number">100</span>, now=<span class="hljs-number">101</span>), <span class="hljs-string">&quot;visible_victory_message&quot;</span>)
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    unittest.main()
+</code></pre>
+  </body>
+</html>

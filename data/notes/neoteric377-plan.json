@@ -1,0 +1,54 @@
+{
+  "updated": 1791993423.152998,
+  "clone": {
+    "verified_static": "copyTrainerTeam copies exact moves;31IV252allEV,fullHP",
+    "owned_latios": "115;286Speed;Memento-only;no item;sole party",
+    "strategy": "select Memento; clone faster and should self-KO first; verify actual victory",
+    "party_storage": "Amoonguss,Cresselia,Magearna,Darkrai,Rayquaza deposited Box4 slots0-4; Heatran Box2slot20",
+    "route": "233->232->231->244->261->247->259->511->895; normal controls",
+    "curation": "Alter Clone excluded in established roadmap; retain full journey. Mew/Mewtwo anomaly major required.",
+    "avatar_class": "ALTVERO (frozen player avatar variable176=0)",
+    "first_waterfall_verified": "511 (36,55) left -> (33,55); ordinary event37, nav.py extended narrowly",
+    "result": "First attempt victory, one turn, zero bag items; savedNeoteric377-Clone-cleared; EscapeRope returned23218,67"
+  },
+  "anomaly": {
+    "static_roster": "work/377-mew-trainers-static.json",
+    "proposed_only": [
+      "Cresselia Reflect/TrickRoom/Moonlight/Psychic",
+      "Magearna CM/DazzlingGleam/DrainingKiss/FlashCannon (relearn requirements verify)",
+      "Amoonguss Spore/RagePowder/Synthesis/GigaDrain (relearn verify)",
+      "Rayquaza DragonAscent/ExtremeSpeed/Vcreate/Protect (relearn verify)",
+      "Primal Kyogre or Groudon training potential; frozen owned reserve inspect outside combat",
+      "Train owned Kyogre120 to145 with HP252/SpA252; 56XL approx, 13 owned +4Silva rounds12each sufficient. PrimordialSea removes Tyranitar sand SpDef boost and WaterSpout pressures both leads. Verify exact EXP before spending."
+    ],
+    "field": "Holy special Fairy1.5; Psychic1.2; specialDark0.5; physicalDark unchanged. MagicalSeed SpA+1 and MagicCoat, so avoid Spore into seeded enemies.",
+    "caution": "All proposals unimplemented. No battle yet.",
+    "selected_preparation": [
+      "Core six for boss: Magearna/Cresselia/Kyogre/Rayquaza/Amoonguss/Heatran (provisional until damage/entry review)",
+      "Magearna Protect/CalmMind/DazzlingGleam/DrainingKiss; PowerWeight halvesSpeed for TrickRoom; use only owned HeartScale",
+      "Cresselia TrickRoom/Psychic/Reflect/Rest; take LightClay from owned Meowstic; Rest sleep manageable with rotation (Chesto alternative)",
+      "Kyogre HP252/SpA252, level145, BlueOrb, Quiet or Modest nature; replaceSheerCold with IceBeam; retainWaterSpout andMuddyWater; Protect replacesHydroPump optional",
+      "Four normal Silva rounds with trained Zapdos supply 48XL plus13owned; verify exact XP before spending",
+      "No changes implemented yet beyond clone Latios preparation and PC restoration in progress"
+    ],
+    "current_corrections": [
+      "Installed Magearna level-up list has no Draining Kiss; no TM or map tutor found. Abandon reminder proposal; retain Flash Cannon.",
+      "TM13 Ice Beam and TM44 Rest not owned. Cress keeps Moonlight. Kyogre Scald for safe EV training and Water Spout for boss.",
+      "Four mints applied; teaching TM92 Cresselia and TM17 Magearna/Kyogre, TM04 Kyogre in progress."
+    ],
+    "final_build_intent": [
+      "Cresselia TrickRoom/Psychic/Reflect/Moonlight; keepChesto unless stronger owned item practical.",
+      "Magearna Protect/CM/DG/TrickRoom; replaceFlashCannon with redundantTR for12foes. QuietPowerWeight.",
+      "Kyogre Protect/WaterSpout/Scald/MuddyWater; QuietHP252SpA252BlueOrb145. Scald is ownedTM55 and safe training move.",
+      "Rayquaza DA/Fly/Vcreate/Protect; replaceSurf, retainFlyfortravel. Brave145.",
+      "Amoonguss Spore/Synthesis/GigaDrain/ClearSmog Relaxed145.",
+      "Heatran restored forZapdos aftertraining."
+    ],
+    "trick_room_correction": "Installed Battle_MoveEffects.rb8177: AmplifieldRock extends TrickRoom to8turns evenHoly. Move ownedAmplifieldRock fromMagearna toCresselia afterPowerWeight equipped. Mage backupTR lasts5. SafetyGogglesAmoonguss protectsSandchip; Ray already suppressesweather.",
+    "opening_plan_current": [
+      "Teach ownedTM16 LightScreen overCresseliaPsychic; support dualscreens/TR/Moonlight.",
+      "T1 CressReflect MageProtect; T2 CressTR MageCM; T3 CressLightScreen MageDG; T4 CressswitchKyogre MageDG. Adjust topublicflinch/damage/KO results.",
+      "Psystrike is special despite using Defense: LightScreen, notReflect, reduces it. Captureplanning must countpublicPsystrikePP beforeAmoonguss ifscreen/survivalnotsecure."
+    ]
+  }
+}

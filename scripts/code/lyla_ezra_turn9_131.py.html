@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>lyla_ezra_turn9_131.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of lyla_ezra_turn9_131.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Root-reviewed single remaining active Mantine; finite2normalactions.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,read
+<span class="hljs-keyword">from</span> hypno_turn <span class="hljs-keyword">import</span> name_matches
+t=read();<span class="hljs-keyword">assert</span> name_matches(t,<span class="hljs-string">&#x27;Hexan&#x27;</span>) <span class="hljs-keyword">and</span> name_matches(t,<span class="hljs-string">&#x27;Mantine&#x27;</span>) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;fight&#x27;</span><span class="hljs-keyword">in</span> t.lower()
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_move.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-number">3</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--foe-names&#x27;</span>,<span class="hljs-string">&#x27;Haxorus,Mantine&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+t=read();<span class="hljs-keyword">assert</span> name_matches(t,<span class="hljs-string">&#x27;Excadrill&#x27;</span>) <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;fight&#x27;</span><span class="hljs-keyword">in</span> t.lower()
+run(<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+</code></pre>
+  </body>
+</html>

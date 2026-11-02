@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>battle_repeat_checked.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of battle_repeat_checked.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded single-battle repetition, checked only against the public command UI.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse, difflib, re, subprocess, sys
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> snap, ROOT
+
+p = argparse.ArgumentParser(description=__doc__)
+p.add_argument(<span class="hljs-string">&#x27;--actor&#x27;</span>, required=<span class="hljs-literal">True</span>)
+p.add_argument(<span class="hljs-string">&#x27;--foe&#x27;</span>, required=<span class="hljs-literal">True</span>)
+p.add_argument(<span class="hljs-string">&#x27;--slot&#x27;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, choices=<span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>), required=<span class="hljs-literal">True</span>)
+p.add_argument(<span class="hljs-string">&#x27;--count&#x27;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, required=<span class="hljs-literal">True</span>)
+p.add_argument(<span class="hljs-string">&#x27;--min-hp&#x27;</span>, <span class="hljs-built_in">type</span>=<span class="hljs-built_in">int</span>, required=<span class="hljs-literal">True</span>)
+a = p.parse_args()
+<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span> &lt;= a.count &lt;= <span class="hljs-number">4</span> <span class="hljs-keyword">and</span> a.min_hp &gt; <span class="hljs-number">0</span>
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">matches</span>(<span class="hljs-params">name, words</span>):
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>, name.lower(), re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, word.lower())).ratio() &gt; <span class="hljs-number">.84</span> <span class="hljs-keyword">for</span> word <span class="hljs-keyword">in</span> words.split())
+
+<span class="hljs-keyword">for</span> turn <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(a.count):
+    rows = snap()
+    text = <span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows)
+    <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> text.lower() <span class="hljs-keyword">and</span> re.search(<span class="hljs-string">r&#x27;\b(?:bag|bae)\b&#x27;</span>, text, re.I), <span class="hljs-string">&#x27;Command menu changed&#x27;</span>
+    actor = <span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> r[<span class="hljs-string">&#x27;x&#x27;</span>] &lt; <span class="hljs-number">.55</span> <span class="hljs-keyword">and</span> r[<span class="hljs-string">&#x27;y&#x27;</span>] &gt; <span class="hljs-number">.72</span>)
+    foe = <span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> r[<span class="hljs-string">&#x27;y&#x27;</span>] &lt; <span class="hljs-number">.37</span>)
+    <span class="hljs-keyword">assert</span> matches(a.actor, actor), <span class="hljs-string">&#x27;Actor changed: &#x27;</span> + actor
+    <span class="hljs-keyword">assert</span> matches(a.foe, foe), <span class="hljs-string">&#x27;Foe changed: &#x27;</span> + foe
+    <span class="hljs-comment"># The directly reviewed Glitch HUD slash sometimes OCRs as uppercase F.</span>
+    hp = re.findall(<span class="hljs-string">r&#x27;(?&lt;!\d)(\d+)\s*[/F]\s*(\d+)(?!\d)&#x27;</span>, text)
+    <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(hp) == <span class="hljs-number">1</span>, <span class="hljs-string">&#x27;Single HP reading required: &#x27;</span> + text
+    current, maximum = <span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>, hp[<span class="hljs-number">0</span>])
+    <span class="hljs-keyword">assert</span> a.min_hp &lt;= current &lt;= maximum, <span class="hljs-string">&#x27;HP guard: &#x27;</span> + <span class="hljs-built_in">str</span>(hp)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUBLIC CHECK&#x27;</span>, turn + <span class="hljs-number">1</span>, a.actor, a.foe, current, maximum, flush=<span class="hljs-literal">True</span>)
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_move.py&#x27;</span>), <span class="hljs-built_in">str</span>(a.slot), <span class="hljs-string">&#x27;--watch&#x27;</span>], check=<span class="hljs-literal">True</span>)
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)], check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BOUNDED REPETITION COMPLETE&#x27;</span>, flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

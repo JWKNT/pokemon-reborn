@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Agate south entry and ordinary Ricardo fight — source proposal">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="agate-south-entry-ricardo-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/agate-south-entry-ricardo-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/agate-south-entry-ricardo-2026-10-03.md.html">
+    <title>agate-south-entry-ricardo-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">agate-south-entry-ricardo-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 5.9 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · first used Oct 3 16:11</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Agate south entry and ordinary Ricardo fight — source proposal</h2>
+<p>Source-only, not executed. Installed19.5.43 declarations/maps take precedence over the <a href="https://bigjra.github.io/reborn/#the-raid-on-agate-city">BigJRA raid route</a>, which explicitly recommends Vanhanen Labyrinth → Agate&#39;s south entry. Root retains ownership of actual public controls/checkpoints. No active battle data or AI predictions used.</p>
+<h3>Travel, keeping Tranquill</h3>
+<p>Current intended condition is391=51,988/989=True. Keep the conscious Fly carrier until after Ricardo. The normal Vanhanen Labyrinth/Vanhanen Castle Fly point is <strong>292[16,16]</strong>, region0 cursor[12,9].</p>
+<p>Reviewed ordinary queue (existing helpers; root executes only after public guards):</p>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="sh example"><code class="hljs">python3 scripts/fly_to.py 292
+python3 scripts/connected_walk.py 292 291 48 0
+python3 scripts/connected_walk.py 291 297 25 13
+python3 scripts/eventq.py 297 1
+python3 scripts/q.py 298,8,2
+python3 scripts/eventq.py 298 8</code></pre>
+<p>Static route proof: <code>work/agate-south-travel-proposal.json</code>, full installed map extracts <code>work/agate-south-travel-static.json</code>. The chosen boundary geometry is292[33,0]UP→291[47,49],291[48,0]UP→297[24,22],297E1[25,12]→298[8,13],298E8p2/988True[8,1]→763[36,85]. Reviewed walking totals121+54+10+11 keys. Maze292 only touches E27/E3 (switch96 off; E3 may run ordinary dismount common32); no dialogue or battle. Route291 remainsx46–48, outside active trainer26[37,19]DOWN6. Ordinary Repel can cover grass; an unexpected wild battle/dialogue ends the current walking batch and must be resolved before resume.</p>
+<p>Both alternatives are blocked <em>before</em> any trainer at39151: Fly763[46,70] is an allied NPC enclosure; Circus west arrival763[13,54] is enclosed by BishopE41[22,72]/AllyssaE42[22,73], the only passable eastern boundary openings. Their dialogue lists are empty; their blank pages require391&gt;=52. Therefore no optional Christopher fight is necessary for this southern route.</p>
+<h3>Ricardo approach and story guard</h3>
+<p>From south763[36,85], the reviewed26-key prefix to[32,63] is:</p>
+<p><code>left up up up left up up up up left up up up left up up up up up up up up up up up up</code></p>
+<p>Proof <code>work/ricardo-safe-route-36.json</code>. Stop there to prepare lead, HP and weather. One <strong>UP</strong> reaches[32,62], normal stage52 setterE84 and RicardoE48&#39;s left-facing Trainer(3) sightline. This is an ordinary street fight, <strong>not</strong> the two-battle Agate chain. Do not blindly queue further keys. On public victory, Ricardo selfA=True; verify39152 outside battle. At52 the allied barricades disappear; normal Agate PC752 can now exchange Tranquill for Cryogonal/borrow Sash, arrange/heal the fixed final six. Do not cross763x43–48,y52 until whole-chain preparation and archive entry are ready (that commits39153 and the warmup→Solaris chain).</p>
+<h3>Ricardo actual team and weather</h3>
+<p>Installed trainertext10312: Ricardo/MeteorAceM1; defaults Hardy,10IV/85EV each, no held items or trainer medicines. NoField; map763 Outdoor/MapPosition[0,13,6] selects <strong>Carnelia weather region4</strong>. Game_Screen.rb318/349 chooses regional weather on outdoor entry; leaving a PC does not force clear weather. Field.rb1122 maps outdoor Snow/Blizzard to permanent Hail. Swamp hail chip18; Cofa chip15. Use the fresh outside-battle checkpoint <code>weather</code> export plus public fight weather before selecting the plan.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Foe</th>
+<th align="right">Level</th>
+<th>Ability</th>
+<th>HP / Def / SpD / Speed</th>
+<th>Moves</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Slurpuff</td>
+<td align="right">86</td>
+<td>Unburden</td>
+<td>263 /179 /160 /155</td>
+<td>PlayRough, Wish, StickyWeb, Surf</td>
+</tr>
+<tr>
+<td>Minior, full-HP Meteor7</td>
+<td align="right">86</td>
+<td>ShieldsDown</td>
+<td>225 /203 /203 /134</td>
+<td>CosmicPower, RockSlide, ConfuseRay, Bulldoze</td>
+</tr>
+<tr>
+<td>Scolipede</td>
+<td align="right">87</td>
+<td>SpeedBoost</td>
+<td>228 /186 /152 /226</td>
+<td>Megahorn, RockSlide, SwordsDance, PoisonJab</td>
+</tr>
+<tr>
+<td>Aggron</td>
+<td align="right">88</td>
+<td>RockHead</td>
+<td>248 /349 /137 /120</td>
+<td>IronHead, HeadSmash, Earthquake, Curse</td>
+</tr>
+<tr>
+<td>Blaziken</td>
+<td align="right">88</td>
+<td>SpeedBoost</td>
+<td>266 /155 /155 /173</td>
+<td>HighJumpKick, FlareBlitz, BraveBird, RockSlide</td>
+</tr>
+</tbody></table></div>
+<p>Battler.rb1489/2355 makes full-HP Minior Meteor7 on activation; its declared YellowCore5 is restored at&lt;=halfHP (coreSpeed238). Battle.rb6127 requires turncount&gt;0 for SpeedBoost, so a fresh Scolipede/Blaziken replacement has no entry boost.</p>
+<p><strong>Clear/rain/sand:</strong> lead full295HP Swamp/WaveIncense. Use selfXSpeed, then selfXAttack, inspect public stages, then Waterfall all five while staying active. Speed290 beats initial Scoli226/Blaz173. At actual Attack&gt;=+2, Waterfall floors277/487/266/286/638 against the five HP totals. Two maximum rainy Surf crits144 each leave7HP; clear PlayRough crit133 twice leaves29. Ground typing prevents sand chip. <strong>Any public Attackfell changes this proof:</strong> heal/restore Attack&gt;=+2 before attack, without inferring hidden enemy intentions. One-XAttack-only is not recommended: later faster Scoli/Blaziken crits can overwhelm the remaining HP. Do not use this same damage plan in sun (water weakened) or hail (setup chip can kill).</p>
+<p><strong>Hail/sun:</strong> take PowerLens off Cofa normally before entering Ricardo; otherwise its battleSpeed is halved. Require the completed normal Timid build252HP/333Def/210SpA/218SpD/68Spe and Hex present. Use three selfXSPECIAL and three selfXSPEED, with public HP guards between every action. At+6/+6, SpA840/Speed272. Slurp has no damaging status move; PlayRough Attack drops do not affect this special plan. Wish and StickyWeb do not prevent a sweep while Cofa stays active. Hail worst Slurp crit PlayRough77 +15chip=92: <strong>&gt;=93HP before every setup item</strong>; Ultra200 safely restores enough even from1HP. Sun has no chip; conservative same93 guard is fine. Before first Hex, <strong>&gt;=76HP</strong> covers five hail ticks75. Unstatus Hex floors333/263/351/388/343, guaranteeing every foe&#39;s KO before it acts. Do not switch or waste turns after starting this sweep. Rain Cofa fallback uses&gt;=123HP because rainy Surf crit122; prefer the short Swamp plan there. Sand raises rock SpD, so the stated Cofa Minior KO does not apply; use Swamp.</p>
+<p>Heal/reset party normally after this ordinary victory, take the required Agate PC exchange, then freeze the real final six/stock before opening the curated Solaris126 shared-chain attempt.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

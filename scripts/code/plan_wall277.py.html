@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>plan_wall277.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of plan_wall277.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Offline multi-boulder route search using installed tiles and frozen saved evidence.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> ast,heapq,json,re,subprocess,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ[<span class="hljs-string">&#x27;REBORN_FROZEN_SAVE&#x27;</span>]=<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;backups/Aster-Postgame308-Tier6.rxdata&#x27;</span>)
+tree=ast.parse((R/<span class="hljs-string">&#x27;scripts/nav.py&#x27;</span>).read_text());ns=<span class="hljs-built_in">dict</span>(ROOT=R,json=json,heapq=heapq,re=re)
+<span class="hljs-built_in">exec</span>(<span class="hljs-built_in">compile</span>(ast.Module(body=[x <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> tree.body <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(x,ast.FunctionDef) <span class="hljs-keyword">and</span> x.name==<span class="hljs-string">&#x27;route&#x27;</span>],type_ignores=[]),<span class="hljs-string">&#x27;nav.py&#x27;</span>,<span class="hljs-string">&#x27;exec&#x27;</span>),ns)
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;277&#x27;</span>,<span class="hljs-string">&#x27;13&#x27;</span>,<span class="hljs-string">&#x27;7&#x27;</span>],stderr=subprocess.DEVNULL))
+boxes={<span class="hljs-built_in">int</span>(k):(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]) <span class="hljs-keyword">for</span> k,e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items() <span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Boulder&#x27;</span>}
+<span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">list</span>(v[<span class="hljs-string">&#x27;events&#x27;</span>]):
+ <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;events&#x27;</span>][k][<span class="hljs-string">&#x27;name&#x27;</span>]==<span class="hljs-string">&#x27;Boulder&#x27;</span>:<span class="hljs-keyword">del</span> v[<span class="hljs-string">&#x27;events&#x27;</span>][k]
+g=ns[<span class="hljs-string">&#x27;route&#x27;</span>](v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);dirs=[(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;down&#x27;</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;left&#x27;</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;right&#x27;</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;up&#x27;</span>)]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">reach</span>(<span class="hljs-params">p,b</span>):
+ q=deque([p]);seen={p}
+ <span class="hljs-keyword">while</span> q:
+  <span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> g.get(q.popleft(),[]):
+   <span class="hljs-keyword">if</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> b <span class="hljs-keyword">and</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> seen:seen.add(n);q.append(n)
+ <span class="hljs-keyword">return</span> seen
+p=(<span class="hljs-number">13</span>,<span class="hljs-number">7</span>);plan=[]
+<span class="hljs-keyword">for</span> goal <span class="hljs-keyword">in</span> [(<span class="hljs-number">24</span>,<span class="hljs-number">14</span>),(<span class="hljs-number">10</span>,<span class="hljs-number">14</span>),(<span class="hljs-number">17</span>,<span class="hljs-number">19</span>),(<span class="hljs-number">13</span>,<span class="hljs-number">7</span>)]:
+ initial=<span class="hljs-built_in">frozenset</span>(boxes.values());q=[(<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,p,initial,[])];seen=<span class="hljs-built_in">set</span>();serial=<span class="hljs-number">0</span>
+ <span class="hljs-keyword">while</span> q:
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(q)&gt;<span class="hljs-number">6000</span>:q=heapq.nsmallest(<span class="hljs-number">2000</span>,q);heapq.heapify(q)
+  _,cost,_,pos,b,moves=heapq.heappop(q);r=reach(pos,b);key=(<span class="hljs-built_in">min</span>(r),b)
+  <span class="hljs-keyword">if</span> key <span class="hljs-keyword">in</span> seen:<span class="hljs-keyword">continue</span>
+  seen.add(key)
+  <span class="hljs-keyword">if</span> goal <span class="hljs-keyword">in</span> r:
+   <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;GOAL&#x27;</span>,goal,<span class="hljs-string">&#x27;states&#x27;</span>,<span class="hljs-built_in">len</span>(seen),<span class="hljs-string">&#x27;pushes&#x27;</span>,<span class="hljs-built_in">len</span>(moves),flush=<span class="hljs-literal">True</span>)
+   <span class="hljs-keyword">for</span> before,after,d <span class="hljs-keyword">in</span> moves:
+    eid=<span class="hljs-built_in">next</span>(k <span class="hljs-keyword">for</span> k,v <span class="hljs-keyword">in</span> boxes.items() <span class="hljs-keyword">if</span> v==before);boxes[eid]=after;plan.append(<span class="hljs-built_in">dict</span>(event=eid,before=before,after=after,direction=d))
+   plan.append(<span class="hljs-built_in">dict</span>(walk=goal));p=goal;<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(seen)&gt;<span class="hljs-number">30000</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Bound exceeded&#x27;</span>)
+  <span class="hljs-keyword">for</span> bx,by <span class="hljs-keyword">in</span> b:
+   <span class="hljs-keyword">for</span> dx,dy,d <span class="hljs-keyword">in</span> dirs:
+    back=(bx-dx,by-dy);dest=(bx+dx,by+dy)
+    <span class="hljs-keyword">if</span> back <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> r <span class="hljs-keyword">or</span> dest <span class="hljs-keyword">in</span> b <span class="hljs-keyword">or</span> (d,dest) <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> g.get((bx,by),[]):<span class="hljs-keyword">continue</span>
+    nb=(b-{(bx,by)})|{dest};serial+=<span class="hljs-number">1</span>
+    <span class="hljs-comment"># Prefer pushing along a short geometric approach while retaining alternatives.</span>
+    heuristic=<span class="hljs-built_in">min</span>(<span class="hljs-built_in">abs</span>(x-goal[<span class="hljs-number">0</span>])+<span class="hljs-built_in">abs</span>(y-goal[<span class="hljs-number">1</span>]) <span class="hljs-keyword">for</span> x,y <span class="hljs-keyword">in</span> reach(back,nb))
+    heapq.heappush(q,(cost+<span class="hljs-number">1</span>+heuristic*<span class="hljs-number">6</span>,cost+<span class="hljs-number">1</span>,serial,back,nb,moves+[((bx,by),dest,d)]))
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No path&#x27;</span>)
+(R/<span class="hljs-string">&#x27;work/308-wall277-plan.json&#x27;</span>).write_text(json.dumps(plan,indent=<span class="hljs-number">2</span>))
+<span class="hljs-built_in">print</span>(json.dumps(plan),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

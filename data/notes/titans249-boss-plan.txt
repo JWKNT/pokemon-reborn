@@ -1,0 +1,8 @@
+Prospective installed source only; no live enemy data. REGIS/Anomaly0, NewWorld, likely major147.
+Mienshao105 WideLens Reckless HJK: approximate494–582 into344HPStakataka,877–1032 into431HPTtar. Both outspeed;99%accuracy. LeadMienshao to denyTrickRoom.
+MegaMaw opponent dangerous: switchownMawIntimidate (base) orAegKingsShield to cutcontactattack, SwampWaterfall neutral withWaveIncense. AvoidHJKFairyresist.
+RegirockBand: Swamp resistsStoneEdge/FirePunch; Waterfall 2hits, considerAegimmunitypivotiflockedHammerArm.
+RegiceSpecs: AegresistsIceBeam/AncientPower/SignalBeam, Thunderboltneutral. SetSDbehindshield thenSacredSword(field1.5) possible; ownMegaMawIronHead. MienshaoHJK369–435 vs395HP notguaranteedOHKO.
+RegisteelMagicalSeed +all1/rechargeturn: AegimmuneToxic andresistsIronHead; SDsetupthenSacredSword1.5 ignoresDefboost. KingsShieldcyclespreservebulk.
+SylMoonblast2fieldstrongspecialbackup,Ttar4xFairy? Dark/Rockmeans2xFairy; outspeeds121with146Spe. NoMistyTerrain (failsNewWorld). EQ0.25, avoid.
+BossE40 victoryworld thenlegendsflee—noimmediatewildbattle. Onlyreadcompletedlogsafterpublicworld. CatchRegisteelusefulbulkyreserve; decideothersbeforeone-timeevent.

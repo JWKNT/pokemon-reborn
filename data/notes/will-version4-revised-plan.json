@@ -1,0 +1,21 @@
+{
+  "source": "Completed normal Will version4 battle log, 2026-10-02_00-23-14; public installed team data. Do not read live AI logs.",
+  "reward": {
+    "EXPCANDYXL": 12
+  },
+  "party_prerequisites": {
+    "Arcanine": 79,
+    "Klinklang": 80,
+    "Mienshao": 75,
+    "Swampert": 75,
+    "Ampharos": 75
+  },
+  "core_plan": [
+    "Arcanine lead applies Intimidate. Switch Mienshao, Fake Out then High Jump Kick; accept miss without restoring save.",
+    "If Mienshao faints, Swampert uses Earthquake. Do not try to outheal Torrent Aqua Tail with 120HP Hyper Potions. If Swampert faints after two EQs, free Arcanine Extreme Speed finishes the remaining42HP.",
+    "Gardevoir free change to Ampharos: Light Screen, Thunder Wave. Then paid switch Klinklang; observed AI selected Hyper Voice against Ampharos, which Klinklang resists under screen. At80 one Gear Grind likely KOs Gardevoir. Check actual HP/move after switch.",
+    "Charizard facing Klinklang: use one Hyper Potion on stored Ampharos (~83->203HP) while Klinklang absorbs the attack. If Klinklang faints, Ampharos can Thunder Wave then Discharge; Arcanine priority can finish if Ampharos falls.",
+    "Sceptile: Arcanine Flamethrower, Morning Sun when safe. Adapt ordering and critical hits from UI."
+  ],
+  "limits": "Not a rigid guarantee. Stop helper on unexpected actor/foe, immunity, lowHP or resource prompt. Failed attempts stay in fulljourney. Ordinary practice fight excluded frommajor."
+}

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>pc_exchange_ampharos.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of pc_exchange_ampharos.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Exchange known Box0 slot10 Ampharos with current party slot3 Drapion, UI only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> re
+t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;organize&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;move pok&#x27;</span> <span class="hljs-keyword">in</span> t:
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>);t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;box\s*1&#x27;</span>,t):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Fresh Box1 cursor0 required: &#x27;</span>+t)
+act(*([<span class="hljs-string">&#x27;right:.05&#x27;</span>]*<span class="hljs-number">4</span>),<span class="hljs-string">&#x27;down:.05&#x27;</span>,<span class="hljs-string">&#x27;wait:.4&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;ampharos&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t.lower():<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Box10 Ampharos selection review&#x27;</span>)
+act(<span class="hljs-string">&#x27;a&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>,*([<span class="hljs-string">&#x27;down:.05&#x27;</span>]*<span class="hljs-number">4</span>),<span class="hljs-string">&#x27;left:.05&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>,<span class="hljs-string">&#x27;down:.05&#x27;</span>,<span class="hljs-string">&#x27;right:.05&#x27;</span>,<span class="hljs-string">&#x27;a&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;drapion&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t.lower():<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Held swapped Drapion review&#x27;</span>)
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>,*([<span class="hljs-string">&#x27;right:.05&#x27;</span>]*<span class="hljs-number">4</span>),<span class="hljs-string">&#x27;down:.05&#x27;</span>,<span class="hljs-string">&#x27;a&#x27;</span>,<span class="hljs-string">&#x27;wait:.7&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;drapion&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t.lower():<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Drapion replacement box slot review&#x27;</span>)
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;No&#x27;</span>],check=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/overworld.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;AMPHAROS PARTY / DRAPION BOX10 EXCHANGE COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

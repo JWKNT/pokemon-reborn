@@ -1,0 +1,83 @@
+{
+  "map": 872,
+  "quest_variable": 631,
+  "ready_value": 5,
+  "hot_toggle": 9,
+  "cold_toggle": 6,
+  "sequence": [
+    {
+      "event": 32,
+      "name": "Red1",
+      "hot": true
+    },
+    {
+      "toggle": 6
+    },
+    {
+      "event": 53,
+      "name": "Blue2",
+      "hot": false
+    },
+    {
+      "boulder": 12,
+      "instruction": "Observe actual position, approach west, normal Strength push right2, checkpoint"
+    },
+    {
+      "toggle": 9
+    },
+    {
+      "event": 33,
+      "name": "Red3",
+      "hot": true
+    },
+    {
+      "toggle": 6
+    },
+    {
+      "event": 54,
+      "name": "Blue4",
+      "hot": false
+    },
+    {
+      "event": 55,
+      "name": "Blue5",
+      "hot": false
+    },
+    {
+      "toggle": 9
+    },
+    {
+      "event": 17,
+      "name": "Rock6",
+      "hot": true
+    },
+    {
+      "event": 34,
+      "name": "Red7",
+      "hot": true
+    },
+    {
+      "toggle": 6
+    },
+    {
+      "event": 56,
+      "name": "Blue8",
+      "hot": false
+    },
+    {
+      "boulder": 13,
+      "instruction": "Push left as needed after observed path"
+    },
+    {
+      "toggle": 9
+    },
+    {
+      "exit": 132,
+      "destination": 873
+    }
+  ],
+  "source": "https://bigjra.github.io/reborn/",
+  "static_mapping": "work/295-map872-hot.json",
+  "battle_entry": "map873 event16 at17,14, trigger1; stop adjacent17,15 for verified save and major172",
+  "boulder13_correction": "Required for final ladder reachability: cold approach30,27, push boulder13 left from29,27 to28,27 or farther. Verified static hot route becomes reachable with corresponding hot boulder88,27. Do not skip."
+}

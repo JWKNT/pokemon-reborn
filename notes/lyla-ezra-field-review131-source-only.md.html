@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Lyla/Ezra field and immediate damage review">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="lyla-ezra-field-review131-source-only.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/lyla-ezra-field-review131-source-only.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/lyla-ezra-field-review131-source-only.md.html">
+    <title>lyla-ezra-field-review131-source-only.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">lyla-ezra-field-review131-source-only.md</h1>
+        <p class="task-meta">Markdown · 2.2 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · committed Oct 3 17:56</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Lyla/Ezra field and immediate damage review</h2>
+<p>Source-only review, 2026-10-03. No live battle, AI, RNG, native save, log, or video was consulted. Actual HP, observed Close Combat drop, and battle backdrop descriptions below came from the root player&#39;s messages.</p>
+<p>Installed <code>Scripts/Reborn/metatext.rb</code> map763 specifies <code>BattleBack: FieldEve</code>. <code>PokeBattle_Field.initialize</code> in <code>Scripts/Battle_Field.rb</code> starts from that graphic, with possible explicit forced-field variables, terrain/Surf, and password overrides. Static E45/E46 source contains no field-setting command; <code>pbTrainerIntro</code> in <code>Field.rb:2951</code> locks movement and plays the trainer intro only. Therefore the street map does <strong>not</strong> source-prove Mountain or Snowy Mountain. Hail itself does not establish Snowy Mountain. Root reported an orange/brown backdrop, so Snowy multipliers must not be assumed from weather alone.</p>
+<p>The installed Snowy Mountain definition (<code>Scripts/Reborn/fieldtext.rb:1609</code>) boosts Ice1.5, IcyWind2.0 separately, HyperVoice1.5, and halves Fire. FlameBurst changes it to Mountain after that hit. ClangingScales and DazzlingGleam have no Snowy-specific boost listed. The root-observed CF147 HP loss remains authoritative; the earlier no-field calculations were conditional estimates, not a reconstruction of that damage.</p>
+<p>From frozen Cryogonal90 SpA205 and installed ordinary trainer defaults (IV10/EV85, neutral nature):</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th align="right">HP / SpDef</th>
+<th align="right">Unboosted Ice Beam on no-field or Mountain</th>
+<th align="right">On Snowy Mountain</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Haxorus87, full HP</td>
+<td align="right">256 /153</td>
+<td align="right">237–279</td>
+<td align="right">354–417</td>
+</tr>
+<tr>
+<td>Kommo-o87, no drop</td>
+<td align="right">254 /214</td>
+<td align="right">171–201</td>
+<td align="right">255–300</td>
+</tr>
+<tr>
+<td>Kommo-o87, one observed Close Combat SpDef−1</td>
+<td align="right">254 /142</td>
+<td align="right">255–300</td>
+<td align="right">383–450</td>
+</tr>
+</tbody></table></div>
+<p>Thus unboosted Ice Beam cannot promise a full-HP Haxorus KO on the normal map field. Kommo-o after the actual single Close Combat drop is a guaranteed KO even without a field boost. These figures assume no Light Screen, further defensive boost, SpA loss, or other modifier; use actual public conditions.</p>
+<p>Installed <code>PBStuff.rb:116</code> Bulletproof move list does not contain Hex. At CF90 baseSpA210, +4SpA Hex into Kommo-o&#39;s observed SpDef142 is282–332 on no-field, whereas DarkPulse is115–136 because Fighting resists Dark. Wigglytuff&#39;s Normal typing makes Hex ineffective.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

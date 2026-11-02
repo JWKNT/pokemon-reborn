@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Session292 Aegir route recovery, October11">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="diancie292-route-recovery.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/diancie292-route-recovery.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/diancie292-route-recovery.md.html">
+    <title>diancie292-route-recovery.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">diancie292-route-recovery.md</h1>
+        <p class="task-meta">Markdown · 2.6 KB · <a href="/pokemon-reborn/reasoning/27/">Task 27</a> · written Oct 11 07:45</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Session292 Aegir route recovery, October11</h2>
+<p>No boss fought yet. Recorder292 remains active. Corrected several incomplete older route assumptions through ordinary controls.</p>
+<ul>
+<li>Victory785 E60 sends to55,89; RockClimb145 from24,55left→22,55; portal152from17,52up→85254,7.</li>
+<li>852 route6,36→11,43, Surf11,44; waterfall down→11,86; surface4,95; portal3→84959,37.</li>
+<li>849 E54 is a CHOICE: talk hole, Jump? Yes. It transfers85043,60 then autorun85 drops6tiles→43,66 (dry eight-tile isolated shore). Source explicitly confirms6Down.</li>
+<li>From85040,65 faceleft+C Surf→39,65. Southwest pond is isolated from main lake. Climbing35,62falls to35,59 only reaches a shallow western strip bounded by rocks; DON&#39;T repeat this detour.</li>
+<li>Correct continuation fromSWpond: Surf26,65, Dive85126,65; underwater23,61, enterE3→12,50; underwater43,13, enterE7→62,106; underwater68,107, surface85068,107; Surf/walk62,107; enterE57→85062,33 (brief849transfer part of installed script).</li>
+<li>Walk85058,42 then <strong>down only</strong>, wait5. Touch event82 automatically startsSurf, jumps3, walks3, ends58,48. Do NOT pressCafterwards unless ready toDive (CopensDive on darkwater).</li>
+<li>Latest current state: enteredDive85158,48, worker <code>diancie292_depths_entry.py --underwater</code> routes55,64→E15→39,103→surface39,106→85039,110→E116→86024,26. It then saves, teachesVolcanionBrickBreak slot2, SwampertBulldoze slot1, savesDepthsBuild.</li>
+<li>EscapeRope attempted underwater approach850: explicitly Can&#39;t use that here; none consumed (10remain).</li>
+<li>TwoSuperRepels consumed sofar, 28remain afterunderwaterrenewal.</li>
+</ul>
+<p>Scripts: diancie292_main_lake.py now handles the connected underwater rooms and normal ledgejump. diancie292_depths_entry supports --underwater; do not replayits initial lakeapproach if already inside.</p>
+<p>IMPORTANT Depths ascent previous summary ladderchain was wrong. New static route (with waterfall underpasses): <strong>10→14→21→23→1</strong>. Source-reviewed sixMoveForward horizontal waterfall passages addedto <code>nav.py</code> for map860 only. This changes planning only, no game/save modifications. Actual crossing still must be observed. <code>diancie292_depths_ascent.py</code> uses this correctedchain; starts after main descent atbottomlake and approaches86048,107.</p>
+<p>Optional PrisonBottle script <code>diancie292_depths_bottle.py</code>: surface33,27→upfalls33,14→item144at36,14, reversefalls, approach24,31thenDown+C main descent. Not yet run; verifylanding/prompt.</p>
+<p>Recording291 fully finalized/published/cleaned; video25through29146988framesSHA2d4c1fbe1c510d2af4f5da3733cbecb9b920fcd7c8e81949cc9d06b92959fb09. No major in292yet. 292 should rotateatDepthsBuild; archive whiletraversing293. Usage21%usedlastchecked,95%cutoff.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

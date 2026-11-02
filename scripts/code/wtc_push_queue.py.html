@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>wtc_push_queue.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of wtc_push_queue.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute a reviewed offline WTC push plan; each group verifies actual displacement.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,sys,pathlib,subprocess,itertools
+ROOT=pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+p=json.loads(pathlib.Path(sys.argv[<span class="hljs-number">1</span>]).read_text());mid=p[<span class="hljs-string">&#x27;map&#x27;</span>]
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+<span class="hljs-keyword">if</span> p.get(<span class="hljs-string">&#x27;initial&#x27;</span>):
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],stderr=subprocess.DEVNULL))
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>([v[<span class="hljs-string">&#x27;events&#x27;</span>][k][<span class="hljs-string">&#x27;x&#x27;</span>],v[<span class="hljs-string">&#x27;events&#x27;</span>][k][<span class="hljs-string">&#x27;y&#x27;</span>]]==xy <span class="hljs-keyword">for</span> k,xy <span class="hljs-keyword">in</span> p[<span class="hljs-string">&#x27;initial&#x27;</span>].items()),<span class="hljs-string">&#x27;Push-plan initial position mismatch&#x27;</span>
+<span class="hljs-keyword">for</span> (eid,key),group <span class="hljs-keyword">in</span> itertools.groupby(p[<span class="hljs-string">&#x27;pushes&#x27;</span>],key=<span class="hljs-keyword">lambda</span> a:(a[<span class="hljs-string">&#x27;event&#x27;</span>],a[<span class="hljs-string">&#x27;direction&#x27;</span>])):
+ group=<span class="hljs-built_in">list</span>(group)
+ <span class="hljs-keyword">for</span> start <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">0</span>,<span class="hljs-built_in">len</span>(group),<span class="hljs-number">6</span>):
+  actions=group[start:start+<span class="hljs-number">6</span>]
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/push_trash.py&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(eid),key,<span class="hljs-built_in">str</span>(<span class="hljs-built_in">len</span>(actions))],check=<span class="hljs-literal">True</span>)
+  s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+  <span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-built_in">str</span>(mid)][<span class="hljs-built_in">str</span>(eid)]==actions[-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;box_to&#x27;</span>],<span class="hljs-string">&#x27;Plan endpoint mismatch&#x27;</span>
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;REVIEWED PUSH PLAN COMPLETE&#x27;</span>,mid,p[<span class="hljs-string">&#x27;goals&#x27;</span>],flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

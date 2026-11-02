@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>lake_route_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of lake_route_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only ordinary Surf/Dive planner across the four connected lake maps.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> surface_readonly <span class="hljs-keyword">import</span> route,tag,WATER
+<span class="hljs-keyword">import</span> json,heapq,copy,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+root=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+vs={m:json.loads((root/<span class="hljs-string">f&#x27;work/lake<span class="hljs-subst">{m}</span>.json&#x27;</span>).read_text()) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> [<span class="hljs-number">567</span>,<span class="hljs-number">565</span>,<span class="hljs-number">553</span>,<span class="hljs-number">547</span>]}
+ground={m:route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)<span class="hljs-keyword">for</span> m,v <span class="hljs-keyword">in</span> vs.items()};surf={}
+<span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> [<span class="hljs-number">567</span>,<span class="hljs-number">565</span>]:
+ v=copy.deepcopy(vs[m])
+ <span class="hljs-keyword">for</span> i,t <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(v[<span class="hljs-string">&#x27;terrain&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>]):
+  <span class="hljs-keyword">if</span> t <span class="hljs-keyword">in</span> WATER:v[<span class="hljs-string">&#x27;passages&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][i]=<span class="hljs-number">0</span>;v[<span class="hljs-string">&#x27;priorities&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][i]=<span class="hljs-number">0</span>
+ surf[m]=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+pair={<span class="hljs-number">567</span>:<span class="hljs-number">553</span>,<span class="hljs-number">565</span>:<span class="hljs-number">547</span>};reverse={v:k <span class="hljs-keyword">for</span> k,v <span class="hljs-keyword">in</span> pair.items()}
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">choices</span>(<span class="hljs-params">p</span>):
+ m,x,y,water=p;pos=(x,y);under=m <span class="hljs-keyword">in</span> reverse
+ graph=ground[m] <span class="hljs-keyword">if</span> under <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> water <span class="hljs-keyword">else</span> surf[m]
+ edges=<span class="hljs-built_in">list</span>(graph.get(pos,[]))
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> under <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> water:
+  edges.extend((k,n)<span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> surf[m].get(pos,[])<span class="hljs-keyword">if</span> tag(vs[m],n)<span class="hljs-keyword">in</span> WATER <span class="hljs-keyword">and</span> tag(vs[m],pos)<span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> WATER)
+ <span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> edges:
+  <span class="hljs-keyword">if</span> k.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):<span class="hljs-keyword">continue</span>
+  nw=<span class="hljs-literal">False</span> <span class="hljs-keyword">if</span> under <span class="hljs-keyword">else</span> tag(vs[m],n)<span class="hljs-keyword">in</span> WATER
+  action=(<span class="hljs-string">&#x27;surf:&#x27;</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> under <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> water <span class="hljs-keyword">and</span> nw <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;&#x27;</span>)+k
+  <span class="hljs-keyword">yield</span> (m,*n,nw),action,<span class="hljs-number">8</span> <span class="hljs-keyword">if</span> action.startswith(<span class="hljs-string">&#x27;surf:&#x27;</span>) <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+ other=reverse.get(m,pair.get(m));surface=other <span class="hljs-keyword">if</span> under <span class="hljs-keyword">else</span> m
+ <span class="hljs-keyword">if</span> tag(vs[surface],pos)==<span class="hljs-number">5</span> <span class="hljs-keyword">and</span> pos <span class="hljs-keyword">in</span> ground[other] <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> under <span class="hljs-keyword">else</span> tag(vs[surface],pos)==<span class="hljs-number">5</span>:
+  <span class="hljs-keyword">yield</span> (other,x,y,under),<span class="hljs-string">&#x27;surface&#x27;</span><span class="hljs-keyword">if</span> under <span class="hljs-keyword">else</span><span class="hljs-string">&#x27;dive&#x27;</span>,<span class="hljs-number">8</span>
+ <span class="hljs-comment"># These pairs share exactly the south/north boundary at x offset55.</span>
+ <span class="hljs-keyword">for</span> north,south <span class="hljs-keyword">in</span> [(<span class="hljs-number">567</span>,<span class="hljs-number">565</span>),(<span class="hljs-number">553</span>,<span class="hljs-number">547</span>)]:
+  <span class="hljs-keyword">if</span> m==north <span class="hljs-keyword">and</span> y==<span class="hljs-number">67</span> <span class="hljs-keyword">and</span> <span class="hljs-number">55</span>&lt;=x&lt;<span class="hljs-number">130</span>:dest=(south,x-<span class="hljs-number">55</span>,<span class="hljs-number">0</span>);key=<span class="hljs-string">&#x27;down&#x27;</span>
+  <span class="hljs-keyword">elif</span> m==south <span class="hljs-keyword">and</span> y==<span class="hljs-number">0</span>:dest=(north,x+<span class="hljs-number">55</span>,<span class="hljs-number">67</span>);key=<span class="hljs-string">&#x27;up&#x27;</span>
+  <span class="hljs-keyword">else</span>:<span class="hljs-keyword">continue</span>
+  dm,dx,dy=dest;dg=ground[dm]<span class="hljs-keyword">if</span> under <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> water <span class="hljs-keyword">else</span> surf[dm]
+  <span class="hljs-keyword">if</span> (dx,dy)<span class="hljs-keyword">in</span> dg:<span class="hljs-keyword">yield</span>(*dest,water),<span class="hljs-string">&#x27;connect:&#x27;</span>+key,<span class="hljs-number">1</span>
+m,x,y,tm,tx,ty=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:]);start=(m,x,y,m <span class="hljs-keyword">in</span> surf <span class="hljs-keyword">and</span> tag(vs[m],(x,y))<span class="hljs-keyword">in</span> WATER)
+q=[(<span class="hljs-number">0</span>,start)];dist={start:<span class="hljs-number">0</span>};prev={start:<span class="hljs-literal">None</span>};end=<span class="hljs-literal">None</span>
+<span class="hljs-keyword">while</span> q:
+ d,p=heapq.heappop(q)
+ <span class="hljs-keyword">if</span> d!=dist[p]:<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> p[:<span class="hljs-number">3</span>]==(tm,tx,ty):end=p;<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">for</span> n,k,c <span class="hljs-keyword">in</span> choices(p):
+  nd=d+c
+  <span class="hljs-keyword">if</span> nd&lt;dist.get(n,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):dist[n]=nd;prev[n]=(p,k);heapq.heappush(q,(nd,n))
+<span class="hljs-keyword">assert</span> end,<span class="hljs-string">&#x27;No lake route&#x27;</span>
+steps=[]
+<span class="hljs-keyword">while</span> prev[end]:
+ p,k=prev[end];steps.append({<span class="hljs-string">&#x27;from&#x27;</span>:p,<span class="hljs-string">&#x27;to&#x27;</span>:end,<span class="hljs-string">&#x27;key&#x27;</span>:k});end=p
+steps.reverse();out=root/<span class="hljs-string">&#x27;work/lake-route-planned.json&#x27;</span>;out.write_text(json.dumps(steps,indent=<span class="hljs-number">2</span>))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PLAN&#x27;</span>,<span class="hljs-built_in">len</span>(steps),<span class="hljs-string">&#x27;steps&#x27;</span>,out)
+<span class="hljs-keyword">for</span> i,s <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(steps):
+ <span class="hljs-keyword">if</span> s[<span class="hljs-string">&#x27;key&#x27;</span>]<span class="hljs-keyword">in</span>[<span class="hljs-string">&#x27;dive&#x27;</span>,<span class="hljs-string">&#x27;surface&#x27;</span>]<span class="hljs-keyword">or</span> s[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;connect:&#x27;</span>):<span class="hljs-built_in">print</span>(i,s)
+</code></pre>
+  </body>
+</html>

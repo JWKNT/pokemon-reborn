@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g9_iolia_blue_resume.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g9_iolia_blue_resume.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> g9_iolia_first <span class="hljs-keyword">import</span> *
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">333</span>,<span class="hljs-number">62</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">333</span>,<span class="hljs-number">62</span>,<span class="hljs-string">&#x27;--active&#x27;</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;s=json.loads(p.read_text());s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;443&#x27;</span>]=<span class="hljs-literal">True</span>;p.write_text(json.dumps(s))
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">333</span>,<span class="hljs-number">65</span>,<span class="hljs-string">&#x27;smash&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;333,16,41,down:0.22,wait:1&#x27;</span>)
+red(<span class="hljs-number">334</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">166</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">334</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;342,21,32,down:0.22,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">335</span>,<span class="hljs-number">158</span>,<span class="hljs-string">&#x27;item&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">335</span>,<span class="hljs-number">158</span>,<span class="hljs-string">&#x27;--active&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BLUE KEY: inspect and save.&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

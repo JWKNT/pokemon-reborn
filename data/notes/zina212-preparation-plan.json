@@ -1,0 +1,23 @@
+{
+  "source": "Installed trainer table and Starlight field definition; owned frozen Zina356-Cap140 save.",
+  "team": [
+    "Meowstic",
+    "Zapdos",
+    "Darkrai",
+    "Swampert",
+    "Magearna",
+    "Heatran"
+  ],
+  "target_level": 140,
+  "plan": "Light Clay Meowstic sets Light Screen then Trick Room; assess public damage/setup before switching Magearna. Calm Mind and Dazzling Gleam exploit resisted Dark/Fairy coverage and Starlight boost. Preserve Darkrai for Lunala and Heatran for Delphox. Zoroark holds Focus Sash and may disguise itself as Lunala; first appearance is not actual Lunala. Every decision uses recorded public moves/HP, never live native logs.",
+  "risks": [
+    "Zoroark Nasty Plot may force immediate offense",
+    "Lunala Shadow Shield and doubled ghost Z-move require high HP or a prepared Darkrai",
+    "Trick Room lasts five turns; do not assume it remains up"
+  ],
+  "travel": "Swampert required for Rock Climb, Surf and Waterfall. Return to Beryl then north Citrine entrance560\u2192382.",
+  "next_major": 212,
+  "opening_refinement": "Prankster Light Screen first. Do not blindly use negative-priority Trick Room: Meowstic may be 2HKOed by boosted Night Daze. Assess first public move; a Zapdos Thunder Wave bridge can paralyze Zoroark before Magearna sets up. Zapdos140 Speed458 vs installed Zoroark135 Timid Speed456 (all252EVs). Preserve terrain boost for Magearna; adapt to Nasty Plot and observed damage.",
+  "attempt1_result": "Normal F12 reset after two critical Moonblasts KOed Meowstic and Magearna. Xerneas uses immediate Geomancy on Starlight; changed terrain is essential before allowing setup.",
+  "attempt2_plan": "Amplifield Rock Meowstic for8-turn Misty Terrain. Opening Light Screen, Zapdos paralysis bridge, Magearna Calm Mind probes Delphox switch; Heatran absorbs Fire Blast then Earth Power. On Xerneas free-switch Meowstic and use Misty Terrain FIRST. Adapt from public screen; do not blindly stack Calm Mind against immediate Geomancy."
+}

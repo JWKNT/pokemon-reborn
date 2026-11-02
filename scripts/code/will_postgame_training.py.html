@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>will_postgame_training.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of will_postgame_training.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded Friday Will v4 plan for the 115+ postgame party from installed roster and public battle UI.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib,re
+began=json.loads((ROOT/<span class="hljs-string">&#x27;work/active-trainer-music.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;start_epoch&#x27;</span>]
+actor=sys.argv[<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Amoonguss&#x27;</span>
+names=[<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;Sceptile&#x27;</span>,<span class="hljs-string">&#x27;Charizard&#x27;</span>,<span class="hljs-string">&#x27;Gardevoir&#x27;</span>]
+matchups={<span class="hljs-string">&#x27;Swampert&#x27;</span>:(<span class="hljs-string">&#x27;Amoonguss&#x27;</span>,<span class="hljs-number">2</span>),<span class="hljs-string">&#x27;Sceptile&#x27;</span>:(<span class="hljs-string">&#x27;Zapdos&#x27;</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;Charizard&#x27;</span>:(<span class="hljs-string">&#x27;Zapdos&#x27;</span>,<span class="hljs-number">1</span>),<span class="hljs-string">&#x27;Gardevoir&#x27;</span>:(<span class="hljs-string">&#x27;Mawile&#x27;</span>,<span class="hljs-number">1</span>)}
+<span class="hljs-keyword">if</span> os.environ.get(<span class="hljs-string">&#x27;REBORN_WILL_GARDEVOIR_ZAPDOS&#x27;</span>)==<span class="hljs-string">&#x27;1&#x27;</span>:
+ <span class="hljs-comment"># Installed Will v4 Gardevoir85: Hyper Voice/Psyshock/Focus Blast/Calm Mind.</span>
+ <span class="hljs-comment"># Reviewed Zapdos120 has Discharge1 and Roost2; avoids a PC trip for Mawile.</span>
+ matchups[<span class="hljs-string">&#x27;Gardevoir&#x27;</span>]=(<span class="hljs-string">&#x27;Zapdos&#x27;</span>,<span class="hljs-number">1</span>)
+mega=<span class="hljs-literal">False</span>
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+ before=(ROOT/<span class="hljs-string">&#x27;recordings/actions.jsonl&#x27;</span>).stat().st_mtime_ns
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> s==<span class="hljs-string">&#x27;battle_batch&#x27;</span> <span class="hljs-keyword">and</span> (ROOT/<span class="hljs-string">&#x27;recordings/actions.jsonl&#x27;</span>).stat().st_mtime_ns==before:
+  <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Battle helper requested review without choosing an action; do not repeat unchanged state&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">named</span>(<span class="hljs-params">t</span>):
+ hits=[n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> names <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,n.lower(),w.lower()).ratio()&gt;=<span class="hljs-number">.8</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> re.findall(<span class="hljs-string">&#x27;[A-Za-z]+&#x27;</span>,t))]
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(hits)==<span class="hljs-number">1</span>,(<span class="hljs-string">&#x27;Opponent ambiguity&#x27;</span>,t,hits)
+ <span class="hljs-keyword">return</span> hits[<span class="hljs-number">0</span>]
+<span class="hljs-keyword">for</span> phase <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">16</span>):
+ rows=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows);low=t.lower();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;WILL PHASE&#x27;</span>,phase,actor,t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;de.?feated|for winning&#x27;</span>,low):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;WILL VICTORY&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;change pok&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;switch your&#x27;</span> <span class="hljs-keyword">in</span> low:
+  <span class="hljs-keyword">from</span> recent_incoming <span class="hljs-keyword">import</span> recent_incoming
+  foe=<span class="hljs-literal">None</span>
+  <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> (ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).read_text().splitlines()[::-<span class="hljs-number">1</span>]:
+   v=json.loads(line)
+   <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;began:<span class="hljs-keyword">break</span>
+   msg=<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>]).lower()
+   <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;send in&#x27;</span> <span class="hljs-keyword">in</span> msg:
+    foe=named(msg.split(<span class="hljs-string">&#x27;send in&#x27;</span>,<span class="hljs-number">1</span>)[<span class="hljs-number">1</span>]);<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">if</span> foe <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:foe=recent_incoming(began,names)
+  <span class="hljs-keyword">assert</span> foe <span class="hljs-keyword">in</span> matchups,(<span class="hljs-string">&#x27;Incoming review&#x27;</span>,foe)
+  nxt=matchups[foe][<span class="hljs-number">0</span>]
+  <span class="hljs-keyword">if</span> nxt==actor:act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+  <span class="hljs-keyword">else</span>:act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.2&#x27;</span>);run(<span class="hljs-string">&#x27;party_pick&#x27;</span>,nxt);actor=nxt
+  run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;hp&#x27;</span> <span class="hljs-keyword">in</span> low,(<span class="hljs-string">&#x27;Battle needs review&#x27;</span>,t)
+ foe=named(<span class="hljs-string">&#x27; &#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> v[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.37</span>))
+ <span class="hljs-keyword">if</span> foe==<span class="hljs-string">&#x27;Swampert&#x27;</span> <span class="hljs-keyword">and</span> actor==<span class="hljs-string">&#x27;Amoonguss&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;frz&#x27;</span>,<span class="hljs-string">&#x27;fref&#x27;</span>,<span class="hljs-string">&#x27;frozen&#x27;</span>]):
+  <span class="hljs-comment"># Public Ice Punch freeze: preserve Amoonguss via Regenerator and use the</span>
+  <span class="hljs-comment"># healthy Levitate Cresselia&#x27;s Psychic against this lower-level Swampert.</span>
+  run(<span class="hljs-string">&#x27;battle_switch&#x27;</span>,<span class="hljs-string">&#x27;Cresselia&#x27;</span>);actor=<span class="hljs-string">&#x27;Cresselia&#x27;</span>;matchups[<span class="hljs-string">&#x27;Swampert&#x27;</span>]=(<span class="hljs-string">&#x27;Cresselia&#x27;</span>,<span class="hljs-number">1</span>)
+  run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>);<span class="hljs-keyword">continue</span>
+ expected,slot=matchups[foe];<span class="hljs-keyword">assert</span> actor==expected,(<span class="hljs-string">&#x27;Unexpected matchup&#x27;</span>,actor,foe)
+ <span class="hljs-keyword">if</span> actor==<span class="hljs-string">&#x27;Mawile&#x27;</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> mega:
+  run(<span class="hljs-string">&#x27;battle_move&#x27;</span>,slot,<span class="hljs-string">&#x27;--mega&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>);mega=<span class="hljs-literal">True</span>;run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+ <span class="hljs-keyword">else</span>:
+  <span class="hljs-comment"># Zapdos120 is faster and Discharge should 2HKO. A .60 threshold can</span>
+  <span class="hljs-comment"># repeatedly Roost from the same post-Hyper-Voice HP instead of finishing.</span>
+  recovery=[<span class="hljs-string">&#x27;--recover-below&#x27;</span>,<span class="hljs-number">.45</span>,<span class="hljs-string">&#x27;--recover-slot&#x27;</span>,<span class="hljs-number">2</span>] <span class="hljs-keyword">if</span> foe==<span class="hljs-string">&#x27;Gardevoir&#x27;</span> <span class="hljs-keyword">and</span> actor==<span class="hljs-string">&#x27;Zapdos&#x27;</span> <span class="hljs-keyword">else</span> []
+  run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,actor,slot,<span class="hljs-string">&#x27;--foes&#x27;</span>,foe,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-number">.30</span>,<span class="hljs-string">&#x27;--stop-after-victory&#x27;</span>,*recovery)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Will phase limit&#x27;</span>)
+</code></pre>
+  </body>
+</html>

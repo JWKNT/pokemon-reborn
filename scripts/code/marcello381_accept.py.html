@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>marcello381_accept.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of marcello381_accept.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finish only Marcello&#x27;s inspected quest dialogue and leave his normal mart.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+source=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/event_dump.rb&#x27;</span>),<span class="hljs-string">&#x27;827&#x27;</span>,<span class="hljs-string">&#x27;57&#x27;</span>],stderr=subprocess.DEVNULL))
+lines=[]
+<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> source[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">2</span>][<span class="hljs-string">&#x27;list&#x27;</span>]:
+ <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">101</span>:lines.append(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>])
+ <span class="hljs-keyword">elif</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">401</span>:lines[-<span class="hljs-number">1</span>]+=<span class="hljs-string">&#x27; &#x27;</span>+c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]
+norm=<span class="hljs-keyword">lambda</span> s:re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,s.lower().replace(<span class="hljs-string">&#x27;pokemon reborn&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>))
+seen=<span class="hljs-literal">False</span>;closed=<span class="hljs-literal">False</span>;empty=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">24</span>):
+ t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>);low=t.lower();labels=[z.strip().lower() <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> t.splitlines()]
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">all</span>(z <span class="hljs-keyword">in</span> labels <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;buy&#x27;</span>,<span class="hljs-string">&#x27;sell&#x27;</span>,<span class="hljs-string">&#x27;quit&#x27;</span>]):
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Buy|Sell|Quit&#x27;</span>,<span class="hljs-string">&#x27;Quit&#x27;</span>],check=<span class="hljs-literal">True</span>);closed=<span class="hljs-literal">True</span>;<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;please come again&#x27;</span> <span class="hljs-keyword">in</span> low:
+  <span class="hljs-keyword">assert</span> closed;act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,norm(t),norm(x)).ratio()&gt;<span class="hljs-number">.65</span> <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> lines):
+  seen=<span class="hljs-literal">True</span>;act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(norm(t))&lt;<span class="hljs-number">5</span>:
+  <span class="hljs-keyword">if</span> seen <span class="hljs-keyword">and</span> closed:<span class="hljs-keyword">break</span>
+  empty+=<span class="hljs-number">1</span>;<span class="hljs-keyword">assert</span> empty&lt;=<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;Marcello interaction not confirmed; inspect position&#x27;</span>
+  act(<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Marcello dialogue review: &#x27;</span>+t)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Marcello dialogue bound&#x27;</span>)
+<span class="hljs-keyword">assert</span> seen <span class="hljs-keyword">and</span> closed
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),<span class="hljs-string">&#x27;Twilight381-Accepted&#x27;</span>],check=<span class="hljs-literal">True</span>)
+j=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Twilight381-Accepted-navigation.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> j[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;699&#x27;</span>]==<span class="hljs-number">1</span>,j[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;699&#x27;</span>]
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DESERT QUEST ACTIVATION VERIFIED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>subseven_plan_steps.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of subseven_plan_steps.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Compile an offline, inspected Subseven plan into existing guarded UI calls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,itertools,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+x=json.loads(Path(sys.argv[<span class="hljs-number">1</span>]).read_text());out=[];anchor=<span class="hljs-literal">None</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">group</span>(<span class="hljs-params">a</span>):
+ <span class="hljs-keyword">if</span> a[<span class="hljs-number">0</span>]==<span class="hljs-string">&#x27;phase&#x27;</span>:<span class="hljs-keyword">return</span>(a[<span class="hljs-number">0</span>],a[<span class="hljs-number">4</span>],a[<span class="hljs-number">5</span>])
+ <span class="hljs-keyword">if</span> a[<span class="hljs-number">0</span>]==<span class="hljs-string">&#x27;walk&#x27;</span>:<span class="hljs-keyword">return</span>(a[<span class="hljs-number">0</span>],)
+ <span class="hljs-keyword">return</span> <span class="hljs-built_in">tuple</span>(a)
+<span class="hljs-keyword">for</span> key,g <span class="hljs-keyword">in</span> itertools.groupby(x[<span class="hljs-string">&#x27;actions&#x27;</span>],key=group):
+ actions=<span class="hljs-built_in">list</span>(g);a=actions[-<span class="hljs-number">1</span>]
+ <span class="hljs-keyword">if</span> a[<span class="hljs-number">0</span>]==<span class="hljs-string">&#x27;walk&#x27;</span>:out.append([<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">f&#x27;871,<span class="hljs-subst">{a[<span class="hljs-number">2</span>]}</span>,<span class="hljs-subst">{a[<span class="hljs-number">3</span>]}</span>&#x27;</span>])
+ <span class="hljs-keyword">elif</span> a[<span class="hljs-number">0</span>]==<span class="hljs-string">&#x27;phase&#x27;</span>:
+  out.append([<span class="hljs-string">&#x27;subseven_phase_walk&#x27;</span>,a[<span class="hljs-number">4</span>],a[<span class="hljs-number">5</span>],a[<span class="hljs-number">2</span>],a[<span class="hljs-number">3</span>]]);anchor=(a[<span class="hljs-number">4</span>],a[<span class="hljs-number">5</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(a[<span class="hljs-number">2</span>]-a[<span class="hljs-number">4</span>])+<span class="hljs-built_in">abs</span>(a[<span class="hljs-number">3</span>]-a[<span class="hljs-number">5</span>])&lt;=<span class="hljs-number">8</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+ <span class="hljs-keyword">elif</span> a[<span class="hljs-number">0</span>]==<span class="hljs-string">&#x27;transfer&#x27;</span>:out.append([<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">871</span>,a[<span class="hljs-number">1</span>],<span class="hljs-string">&#x27;enter&#x27;</span>])
+ <span class="hljs-keyword">elif</span> a[<span class="hljs-number">0</span>]==<span class="hljs-string">&#x27;statue&#x27;</span>:
+  <span class="hljs-keyword">if</span> anchor:out.append([<span class="hljs-string">&#x27;subseven_statue_activate&#x27;</span>,*anchor,a[<span class="hljs-number">1</span>],a[<span class="hljs-number">2</span>],a[<span class="hljs-number">3</span>]])
+  <span class="hljs-keyword">else</span>:out.append([<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">871</span>,a[<span class="hljs-number">1</span>],<span class="hljs-string">&#x27;talk&#x27;</span>])
+ <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> ValueError(a)
+Path(sys.argv[<span class="hljs-number">2</span>]).write_text(json.dumps(out,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>);<span class="hljs-built_in">print</span>(json.dumps(out))
+</code></pre>
+  </body>
+</html>

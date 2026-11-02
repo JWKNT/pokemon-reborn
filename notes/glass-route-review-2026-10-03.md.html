@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Glass route review — 2026-10-03">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="glass-route-review-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/glass-route-review-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/glass-route-review-2026-10-03.md.html">
+    <title>glass-route-review-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">glass-route-review-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 9.4 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · first used Oct 3 10:39</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Glass route review — 2026-10-03</h2>
+<p>Read-only research of installed 19.5 map events, native <code>Glass-10AM-paused</code> evidence, and <a href="https://bigjra.github.io/reborn/#glass-workstation">BigJRA’s Glass walkthrough</a>. No game input or save/game/runtime edits were made by this reviewer. Live observations and subsequent native checkpoints supersede this planning document.</p>
+<h3>Rescue and carry Espeon</h3>
+<p>Native pause: player732[37,28],410=True; Espeon36,19,965=True,947=False; Glaceon27,33,964=False,946=False. E65 requires <strong>410=False when965=True</strong>;965=False instead requires410=True. Approach Espeon from35,19False and faceRight/C. Successful rejoin zeros406/407 and sets947=True.</p>
+<p>The layered route from37,28True is Left twice, then Up nine times to35,19False. This ladder ascent is harmless while neither companion follows. **Do not take this ladder down after rejoining Espeon:**73219[35,20] and73221[35,22] explicitly remove the following dependency and set947/946False. The generic eleven-step route to37,28 (Down9,Right2) crosses both events and causes the former false pallet-success report.</p>
+<p>Carry Espeon Left29 from35,19False to6,19False; enter73270[6,18] to733[3,43]. SelectB2F at73366[1,39], then exit73367[3,44] to732[6,24]410True. The lift updates965=False <strong>only if947True</strong>, preserving a waiting companion’s layer. Use live route guards for timing/drift.</p>
+<h3>Reopen the northern corridor and retain access to Glaceon</h3>
+<p>The pivotal geometric correction is <strong>GB1 DOWN (core97)→408=1</strong>. Native408=0 has its top blockers at21/22,28–30, preventing a carry route from6,24 to the safe left face of GB10. A read-only hypothetical408=1 opens a55-step route from6,24True to37,28True, without the companion-dropping ladder. The old assumption that GB1 should remainUP throughout was wrong.</p>
+<p>Glaceon27,33 becomes isolated on the south side when GB1 isDOWN. Prefer moving Glaceon to the western corridor <strong>before</strong> this push: leave Espeon near17,31 using its actualWait menu; fetchGlaceon27,33; bring it back near the waiting Espeon, then swap back toEspeon so Glaceon waits on a clear western tile, such as18,31. Confirm actual follower placement in footage/native save.18,31 is outside the common-event forbidden box ranges. With4081,4172,4191 andGlaceon18,31, read-only routes from37,28 reach its adjacent17,31 in23steps and the upper-left lava’s lower stair35,15 in24steps. These routes still require live confirmation.</p>
+<p>Then push <strong>GB10 RIGHT (147 or146)→417=2</strong>, provided416=1. Safe observed target is37,28, facingRight toward150[38,28]. Espeon must actually be following; stationary player coordinates alone prove nothing. The repaired helper checks the expected pallet variable after a normal native quicksave.</p>
+<p>Push <strong>GB12 RIGHT (157)→419=1</strong> while418=0. A short route from37,28 after4172 reaches41,26, facingUp to core157[41,25]. This opens the upper-left path.</p>
+<h3>Upper puzzle, with corrected directions</h3>
+<p>FetchGlaceon from the accessible western placement; take it to35,15 and trigger73284[35,14] forFrostBreath→402=60.73283[35,13] is the counterpart from the upper side. The5XL item is73295[36,12]; sourceLightShard73262[34,12] is nearby. Use the normal native healing effect if encountered, but still verify full party HP/status/PP before the gauntlet.</p>
+<p>LeaveGlaceon <strong>41,22</strong>, as in the first guide image, and bringEspeon to41,23 beneath it. Important installed-source sequence:</p>
+<ol>
+<li><strong>GB12 LEFT</strong>,4191→0. From41,23, one stepRight to42,23 and faceDown toward160[42,24] is a safe left-push face; other equally safe faces exist.</li>
+<li><strong>GB11 DOWN</strong>,4180→1. This is <strong>DOWN, notUP</strong>. From43,23 faceRight toward154[44,23]. Source blocks thisDown motion while419=1, so step1 must precede it. UP only restores4181→0.</li>
+<li><strong>GB12 RIGHT</strong>,4190→2 while418=1. Source selects4192 rather than4191 when4181. A safe northern face is161[41,24], from41,23 facingDown. Verify actual geometry after each operation.</li>
+</ol>
+<p>TakeEspeon around the cleared eastern side and leave it <strong>43,15</strong>, immediately right of the lower staircase42,15. This follows the second guide image: old42,14 was a mistaken sprite-coordinate reading and lies on unfrozen lava. A possible way to place it is walk43,15 then43,16, faceUp/C andWait when the follower is visually at43,15. Do not repeat a long held turn that exchanges player/follower positions.</p>
+<p>Fetch Glaceon41,22; approach the upper-right lava from42,15, faceUp to73285[42,14]→403=60.73286[42,13] is the upper counterpart. <strong>Do not leave Blue at42,16 or43,16:</strong> either placement blocks the only southern exit, making the eventual scanner return impossible until Blue is moved.</p>
+<p>Prefer parking Blue in the upper alcove <strong>43,11</strong> before rejoining Espeon43,15. After freezing from42,15, carry Blue Up4 to42,11, Right to43,11, then Left to42,11. FaceRight/C and choose its actual Wait menu when Blue is43,11. This tile is outside the forbidden Wait rectangles, and it does not obstruct the main bridge at42,12. Return Down4 to42,15 and faceRight/C to join waiting Espeon43,15. Verify actual coordinates after the Wait operation; hypothetical geometry cannot prove live follower placement.</p>
+<p>At the upper pallets, the accessible order from the right bridge is <strong>GB14 RIGHT (170)→421=1 first</strong>, then <strong>GB13 LEFT (165)→420=1</strong>. With4200/4210, the installed model has no accessible legal GB13Left face, while GB14Right is accessible from42,11 facingUp toward171[42,10]. Moving GB14 exposes the GB13 interaction. Reach732174[40,8] andC: native MeteorCard possession leads to <strong>958=True</strong>. The scanner itself does not start the gauntlet.</p>
+<h3>Proven hypothetical scanner return</h3>
+<p>With Blue43,11, following Espeon, frozen402/403=60, and4201/4211:</p>
+<ol>
+<li>From scanner stand40,9, reach43,23 in21 route actions; faceDown toward163[43,24] and push <strong>GB12 LEFT→4190</strong>.</li>
+<li>Down2 to43,25, faceRight toward155[44,25], and push <strong>GB11 UP→4180</strong>.</li>
+<li>Up2, Left to42,23, faceDown toward163[42,24], and push <strong>GB12 RIGHT→4191</strong>. This restores access to the left bridge.</li>
+<li>The model now reaches35,10 in24 actions via the frozen left bridge; faceRight toward167[36,10], and push <strong>GB13 RIGHT→4202</strong>.4211 is required for this branch. A right push from the eastern side facingLeft is explicitly blocked.</li>
+<li>From35,10, Right, Up, Right2 reaches safe door standby38,9. Both38,8 and39,8 remain forbidden in the helper, so this route cannot enter the gauntlet.</li>
+</ol>
+<p>All segments above were checked against the installed map/controller using explicit hypothetical state, not executed by this reviewer. Recompute after each native observation. If402 is actually0, the western return route is absent; a new freeze is needed. Installed map732 source contains only the freeze writes402/403=60, with no local countdown found, so60 should not be described as a confirmed expiring timer.</p>
+<h3>Standalone planner</h3>
+<p><code>scripts/glass_upper_route_plan.py</code> accepts an explicit snapshot, start coordinate/layer, optional stage and waiting-companion overrides, and returns layered route steps to safe interaction faces. It never sends input, quicksaves, extracts native state, or writes shared navigation. It reads installed map data and native saved progress, with explicit snapshot keys taking precedence. The generic navigation lookup is redirected to a temporary planning-only JSON that is deleted on completion.</p>
+<p>Example query:</p>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="sh example"><code class="hljs">python3 scripts/glass_upper_route_plan.py \
+  --state notes/Glass-10AM-paused-navigation.json --stage scanner-return \
+  --from 40 9 true --following espeon --glaceon 43 11 --query GB12Left</code></pre>
+<p>Use <code>--stage current</code> with a current observed snapshot for live planning. Stage presets are hypotheses, not success claims. <code>--var 419=0 --var 418=0</code> supplies a proposed pallet state without writing it anywhere. <code>--goal 38 9 true</code> plans standby; a gauntlet-door goal returns null. Seven read-only regression probes passed: layer rescue, follower-drop avoidance, western Blue access, upper pallet order, scanner return, GB13 west-face access, and safe door standby.</p>
+<h3>Authoritative branch table</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Core</th>
+<th align="right">Current state</th>
+<th>Direction</th>
+<th>Result and gate</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>97GB1</td>
+<td align="right">4080</td>
+<td>Down</td>
+<td>4081; opens northern corridor</td>
+</tr>
+<tr>
+<td>97GB1</td>
+<td align="right">4081</td>
+<td>Up</td>
+<td>4080</td>
+</tr>
+<tr>
+<td>140GB9</td>
+<td align="right">4161</td>
+<td>Up</td>
+<td>4160, unless4172</td>
+</tr>
+<tr>
+<td>146/147GB10</td>
+<td align="right">4171</td>
+<td>Right</td>
+<td>4172 if4161; otherwise4170</td>
+</tr>
+<tr>
+<td>153GB11</td>
+<td align="right">4180</td>
+<td>Down</td>
+<td>4181 unless4191</td>
+</tr>
+<tr>
+<td>153GB11</td>
+<td align="right">4181</td>
+<td>Up</td>
+<td>4180</td>
+</tr>
+<tr>
+<td>157GB12</td>
+<td align="right">4190</td>
+<td>Right</td>
+<td>4192 if4181; otherwise4191</td>
+</tr>
+<tr>
+<td>157GB12</td>
+<td align="right">4191/2</td>
+<td>Left</td>
+<td>4190</td>
+</tr>
+<tr>
+<td>165GB13</td>
+<td align="right">4200/2</td>
+<td>Left</td>
+<td>4201</td>
+</tr>
+<tr>
+<td>165GB13</td>
+<td align="right">4200/1</td>
+<td>Right</td>
+<td>4202 if4211; otherwise4200</td>
+</tr>
+<tr>
+<td>170GB14</td>
+<td align="right">4210</td>
+<td>Right</td>
+<td>4211</td>
+</tr>
+<tr>
+<td>170GB14</td>
+<td align="right">4211</td>
+<td>Left</td>
+<td>4210</td>
+</tr>
+</tbody></table></div>
+<p>For any desired push, the player must not face opposite that direction:Right forbids facingLeft;Left forbidsRight;Down forbidsUp;Up forbidsDown. C opens the purple directional prompt only if947True. The arrow is a puzzle selection, not ordinary walking.</p>
+<h3>Door boundary</h3>
+<p>73274/75[38/39,8] transfer directly to734[18,24] and remove companions.73412 has an unconditional initial autorun; its391&gt;=46 page is the <strong>post-gauntlet</strong> inactive page.39123 is valid before entering. **Do not step into eitherdoor before healing, selecting the fixedsix and leading pair, taking battle-entry metadata, and committing to all three consecutive fights.**958 should beTrue and1040False at first entry.</p>
+<p>Guide images inspected: <code>work/guide-glass-glaceon.jpg</code> and <code>work/guide-glass-espeon.png</code>. Current source: <code>work/story-map-732-events.json</code>, <code>work/story-map-733-events.json</code>, <code>work/story-map-734-events.json</code>; native pause notes: <code>notes/Glass-10AM-paused-status.json</code> and companion navigation snapshot. Read-only geometry experiments used hypothetical planning objects only and were never copied into game/save state.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

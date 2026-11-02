@@ -1,0 +1,36 @@
+{
+  "map": 784,
+  "plan": [
+    {
+      "push": 69,
+      "direction": "right",
+      "count": 1
+    },
+    {
+      "push": 70,
+      "direction": "down",
+      "count": 1
+    },
+    {
+      "smash": 123,
+      "from": [
+        53,
+        30
+      ],
+      "face": "up"
+    },
+    {
+      "push": 70,
+      "direction": "up",
+      "count": 1
+    },
+    {
+      "walk": [
+        55,
+        32
+      ]
+    }
+  ],
+  "source_note": "Static graph reaches below rock123 after first downward push; smash is normal and can generate wild encounter. Verify stages against live icicles before executing.",
+  "status": "Unexecuted plan"
+}

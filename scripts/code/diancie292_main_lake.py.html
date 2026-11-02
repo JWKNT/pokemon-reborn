@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>diancie292_main_lake.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of diancie292_main_lake.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal Dive passage from western pond to main lake, followed by quest entrance.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,sys,subprocess
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MAIN LAKE&#x27;</span>,n,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--underwater&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">850</span>,<span class="hljs-number">35</span>,<span class="hljs-number">59</span>)
+ run(<span class="hljs-string">&#x27;waterfall_step&#x27;</span>,<span class="hljs-number">850</span>,<span class="hljs-number">35</span>,<span class="hljs-number">59</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-number">850</span>,<span class="hljs-number">35</span>,<span class="hljs-number">62</span>)
+ run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">850</span>,<span class="hljs-number">26</span>,<span class="hljs-number">65</span>)
+ run(<span class="hljs-string">&#x27;dive_transition&#x27;</span>,<span class="hljs-number">850</span>,<span class="hljs-number">26</span>,<span class="hljs-number">65</span>,<span class="hljs-number">851</span>)
+run(<span class="hljs-string">&#x27;underwater_walk&#x27;</span>,<span class="hljs-number">851</span>,<span class="hljs-number">23</span>,<span class="hljs-number">61</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">851</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;underwater_walk&#x27;</span>,<span class="hljs-number">851</span>,<span class="hljs-number">43</span>,<span class="hljs-number">13</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">851</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;underwater_walk&#x27;</span>,<span class="hljs-number">851</span>,<span class="hljs-number">68</span>,<span class="hljs-number">107</span>)
+run(<span class="hljs-string">&#x27;dive_transition&#x27;</span>,<span class="hljs-number">851</span>,<span class="hljs-number">68</span>,<span class="hljs-number">107</span>,<span class="hljs-number">850</span>)
+run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">850</span>,<span class="hljs-number">62</span>,<span class="hljs-number">107</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">850</span>,<span class="hljs-number">57</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Diancie292-MainLake&#x27;</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;850,58,42&#x27;</span>)
+run(<span class="hljs-string">&#x27;play&#x27;</span>,<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:5&#x27;</span>)
+run(<span class="hljs-string">&#x27;diancie292_depths_entry&#x27;</span>)
+</code></pre>
+  </body>
+</html>

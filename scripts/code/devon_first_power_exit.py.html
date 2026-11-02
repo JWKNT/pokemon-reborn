@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>devon_first_power_exit.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of devon_first_power_exit.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finish the reviewed first power panel and stop before Arclight&#x27;s trigger.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> subprocess, sys, json
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name, *args</span>):
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/name), *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)], check=<span class="hljs-literal">True</span>)
+
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">630</span>) == (<span class="hljs-number">630</span>,<span class="hljs-number">15</span>,<span class="hljs-number">3</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">630</span>,<span class="hljs-number">44</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;choose_dialog.py&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">630</span>,<span class="hljs-number">44</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1562&#x27;</span>]=<span class="hljs-literal">True</span>;p.write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;devon_walk.py&#x27;</span>,<span class="hljs-number">630</span>,<span class="hljs-number">25</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--go&#x27;</span>,<span class="hljs-string">&#x27;--conveyors&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">630</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">628</span>)==(<span class="hljs-number">628</span>,<span class="hljs-number">30</span>,<span class="hljs-number">24</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">628</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">628</span>)==(<span class="hljs-number">628</span>,<span class="hljs-number">2</span>,<span class="hljs-number">25</span>)
+run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Devon-first-puzzle-complete&#x27;</span>)
+</code></pre>
+  </body>
+</html>

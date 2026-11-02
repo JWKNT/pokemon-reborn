@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ride_train.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ride_train.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Ride one reviewed functional train; verify its Yes/No prompt and world exit.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+m,e,var=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">4</span>]);statepath=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(m),<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],stderr=subprocess.DEVNULL));cs=v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(e)][<span class="hljs-string">&#x27;list&#x27;</span>]<span class="hljs-keyword">or</span>[]
+<span class="hljs-keyword">assert</span> [c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">102</span>]==[[<span class="hljs-string">&#x27;Yes&#x27;</span>,<span class="hljs-string">&#x27;No&#x27;</span>]]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">122</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]==var <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs), <span class="hljs-string">&#x27;Train has no reviewed advance on this page&#x27;</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Full steam ahead?&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(cs)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-built_in">str</span>(m),<span class="hljs-built_in">str</span>(e),<span class="hljs-string">&#x27;talk&#x27;</span>],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/linear_dialog.py&#x27;</span>),<span class="hljs-built_in">str</span>(m),<span class="hljs-built_in">str</span>(e),<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>,<span class="hljs-string">&#x27;--world-settle&#x27;</span>,<span class="hljs-string">&#x27;12&#x27;</span>],check=<span class="hljs-literal">True</span>)
+actual=locate();<span class="hljs-keyword">assert</span> actual[<span class="hljs-number">0</span>]==m,actual
+state=json.loads(statepath.read_text());value=<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> var==<span class="hljs-number">369</span> <span class="hljs-keyword">and</span> state[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-string">&#x27;363&#x27;</span>,<span class="hljs-number">0</span>)&gt;=<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-built_in">str</span>(var)]=value
+<span class="hljs-keyword">if</span> var==<span class="hljs-number">367</span>:state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;371&#x27;</span>]=<span class="hljs-number">1</span>
+statepath.write_text(json.dumps(state))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TRAIN RIDE OBSERVED&#x27;</span>,m,e,var,actual,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

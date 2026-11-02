@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>statuary341_one.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of statuary341_one.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One reviewed level75 Statuary fight using ordinary public battle controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+t=read()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;Statuary&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;battle&#x27;</span> <span class="hljs-keyword">in</span> t:act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Garchomp&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;75&#x27;</span> <span class="hljs-keyword">in</span> t,t
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+t=read();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Garchomp&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;75&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;Volcanion&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;FIGHT&#x27;</span> <span class="hljs-keyword">in</span> t,t
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_move.py&#x27;</span>),<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>],check=<span class="hljs-literal">True</span>)
+t=read();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;defeated&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;Statuary&#x27;</span> <span class="hljs-keyword">in</span> t,t
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.4&#x27;</span>);t=read();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;Gar&#x27;</span> <span class="hljs-keyword">in</span> t,t
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;up:2.0&#x27;</span>,<span class="hljs-string">&#x27;d:1.0&#x27;</span>,<span class="hljs-string">&#x27;wait:.4&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

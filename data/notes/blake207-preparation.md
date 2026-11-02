@@ -1,0 +1,9 @@
+# Blake preparation
+
+Installed trainer party BLAKE/Blake/2 is a single battle with all-six-EV spreads, two Full Restores. Exact roster exported as major134. Lead trained Cryogonal: Freeze-Dry bypasses Reflect and should need two hits on Starmie. Keep Arcanine for Intimidate and Alolan Sandslash. Teach Mienshao Brick Break over Strength for Reflect and fourfold Weavile damage; Fake Out exploits the icy-field physical priority speed boost. Preserve Swampert with Wave Incense for Mamoswine. Sylveon can use Misty Terrain to remove ice damage and speed interactions temporarily.
+
+Misty Terrain is five turns without Amplifield Rock (not owned), not permanent. Seeds are checked on field reversion, so do not claim seed suppression lasts the whole battle. Elemental Seed on ice grants +2 Speed; Gyarados and Mamoswine carry it. Cryogonal Freeze-Dry strongly punishes Gyarados but cannot safely take boosted physical hits; use free Switch-mode replacement if offered. No hidden live foe/RNG reads. Adapt to visible turns.
+
+Sirius preparation correction remains relevant: Dragon Den Elemental Seed sets a FlashFire effect, not the FLASHFIRE ability/immunity. Do not reuse that faulty immunity inference.
+
+Offline explicit estimates (work/blake207-damage-estimates.json): Cryogonal Freeze-Dry on ice does252–297 into Starmie311HP and459–540 into Gyarados376HP. Lead Light Screen first to withstand possible two Full Restore cycles; use Recover to preserve Cryogonal for Gyarados. Reckless Mienshao HJK does446–525 into Mamoswine405HP and405–477 into Walrein411HP, and Brick Break safely OHKOs Weavile. Mamoswine with seed is490Speed, faster than Mienshao even after one Fake Out speed boost; do not assume Fake Out solves this. Arcanine Intimidate or Swampert must cover that matchup. Sandslash is229Speed before any boosts, so Mienshao HJK is the clean answer. Estimates are explicit ordinary rolls, not live AI or RNG.

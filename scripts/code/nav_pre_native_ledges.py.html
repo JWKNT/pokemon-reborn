@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>nav_pre_native_ledges.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of nav_pre_native_ledges.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque
+<span class="hljs-keyword">import</span> heapq
+<span class="hljs-keyword">from</span> itertools <span class="hljs-keyword">import</span> groupby
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">loadmap</span>():
+ raw=subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/map_state.rb&#x27;</span>)],stderr=subprocess.DEVNULL);(ROOT/<span class="hljs-string">&#x27;notes/map-state.json&#x27;</span>).write_bytes(raw);<span class="hljs-keyword">return</span> json.loads(raw)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">save</span>():
+ act(<span class="hljs-string">&#x27;d&#x27;</span>,<span class="hljs-string">&#x27;wait:0.4&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.8&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.3&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">route</span>(<span class="hljs-params">v,goal</span>):
+ w,h=v[<span class="hljs-string">&#x27;width&#x27;</span>],v[<span class="hljs-string">&#x27;height&#x27;</span>];data=v[<span class="hljs-string">&#x27;data&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>];pas=v[<span class="hljs-string">&#x27;passages&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>];pri=v[<span class="hljs-string">&#x27;priorities&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>]
+ blocked={(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]) <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values() <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> e[<span class="hljs-string">&#x27;through&#x27;</span>] <span class="hljs-keyword">and</span> e[<span class="hljs-string">&#x27;character&#x27;</span>]}
+ tile_events={(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]):e[<span class="hljs-string">&#x27;tile_id&#x27;</span>] <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values() <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> e[<span class="hljs-string">&#x27;through&#x27;</span>] <span class="hljs-keyword">and</span> e[<span class="hljs-string">&#x27;tile_id&#x27;</span>]&gt;<span class="hljs-number">0</span>}
+ statefile=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>
+ <span class="hljs-keyword">if</span> statefile.exists():blocked.update(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">tuple</span>,json.loads(statefile.read_text()).get(<span class="hljs-string">&#x27;avoid&#x27;</span>,{}).get(<span class="hljs-built_in">str</span>(v[<span class="hljs-string">&#x27;map&#x27;</span>]),[])))
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">ok</span>(<span class="hljs-params">x,y,d</span>):
+  <span class="hljs-keyword">if</span> x&lt;<span class="hljs-number">0</span> <span class="hljs-keyword">or</span> y&lt;<span class="hljs-number">0</span> <span class="hljs-keyword">or</span> x&gt;=w <span class="hljs-keyword">or</span> y&gt;=h:<span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+  bit=<span class="hljs-number">1</span>&lt;&lt;(d//<span class="hljs-number">2</span>-<span class="hljs-number">1</span>)
+  <span class="hljs-keyword">if</span> (x,y) <span class="hljs-keyword">in</span> tile_events:
+   t=tile_events[(x,y)]
+   <span class="hljs-keyword">if</span> pas[t]&amp;bit <span class="hljs-keyword">or</span> pas[t]&amp;<span class="hljs-number">15</span>==<span class="hljs-number">15</span>:<span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+   <span class="hljs-keyword">if</span> pri[t]==<span class="hljs-number">0</span>:<span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+  <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>]:
+   t=data[x+w*y+w*h*z]
+   <span class="hljs-keyword">if</span> pas[t]&amp;bit <span class="hljs-keyword">or</span> pas[t]&amp;<span class="hljs-number">15</span>==<span class="hljs-number">15</span>:<span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+   <span class="hljs-keyword">if</span> pri[t]==<span class="hljs-number">0</span>:<span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+ jumps={}
+ <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values():
+  cmds=e[<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">or</span> []
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">250</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(<span class="hljs-built_in">isinstance</span>(a,<span class="hljs-built_in">dict</span>) <span class="hljs-keyword">and</span> a.get(<span class="hljs-string">&#x27;name&#x27;</span>)==<span class="hljs-string">&#x27;jump&#x27;</span> <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>]) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cmds):<span class="hljs-keyword">continue</span>
+  direction=<span class="hljs-literal">None</span>
+  <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cmds:
+   a=c[<span class="hljs-string">&#x27;parameters&#x27;</span>]
+   <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">111</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(a)&gt;=<span class="hljs-number">3</span> <span class="hljs-keyword">and</span> a[:<span class="hljs-number">2</span>]==[<span class="hljs-number">6</span>,-<span class="hljs-number">1</span>]:direction=a[<span class="hljs-number">2</span>]
+   <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">509</span> <span class="hljs-keyword">and</span> direction <span class="hljs-keyword">and</span> a[<span class="hljs-number">0</span>].get(<span class="hljs-string">&#x27;code&#x27;</span>)==<span class="hljs-number">14</span>:
+    dx,dy={<span class="hljs-number">2</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-number">4</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">6</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">8</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)}[direction]
+    p=(e[<span class="hljs-string">&#x27;x&#x27;</span>]-dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]-dy);jx,jy=a[<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;parameters&#x27;</span>];jumps[(p,direction)]=(p[<span class="hljs-number">0</span>]+jx,p[<span class="hljs-number">1</span>]+jy)
+ statefile=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>
+ <span class="hljs-keyword">if</span> statefile.exists():
+  <span class="hljs-keyword">for</span> sx,sy,k,tx,ty <span class="hljs-keyword">in</span> json.loads(statefile.read_text()).get(<span class="hljs-string">&#x27;edges&#x27;</span>,{}).get(<span class="hljs-built_in">str</span>(v[<span class="hljs-string">&#x27;map&#x27;</span>]),[]):
+   jumps[((sx,sy),{<span class="hljs-string">&#x27;down&#x27;</span>:<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;left&#x27;</span>:<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;right&#x27;</span>:<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;up&#x27;</span>:<span class="hljs-number">8</span>}[k])]=(tx,ty)
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">cost</span>(<span class="hljs-params">n</span>):
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;terrain&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> v:<span class="hljs-keyword">return</span> <span class="hljs-number">1</span>
+  tags=v[<span class="hljs-string">&#x27;terrain&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>]
+  <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>]:
+   tag=tags[data[n[<span class="hljs-number">0</span>]+w*n[<span class="hljs-number">1</span>]+w*h*z]]
+   <span class="hljs-keyword">if</span> tag <span class="hljs-keyword">and</span> tag!=<span class="hljs-number">13</span>:<span class="hljs-keyword">return</span> <span class="hljs-number">8</span> <span class="hljs-keyword">if</span> tag <span class="hljs-keyword">in</span> [<span class="hljs-number">2</span>,<span class="hljs-number">10</span>,<span class="hljs-number">11</span>,<span class="hljs-number">14</span>] <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>
+ start=<span class="hljs-built_in">tuple</span>(v[<span class="hljs-string">&#x27;position&#x27;</span>]);q=[(<span class="hljs-number">0</span>,start)];dist={start:<span class="hljs-number">0</span>};prev={start:<span class="hljs-literal">None</span>};dirs=[(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;down&#x27;</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;left&#x27;</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;right&#x27;</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>,<span class="hljs-number">8</span>,<span class="hljs-string">&#x27;up&#x27;</span>)]
+ <span class="hljs-keyword">while</span> q:
+  distance,p=heapq.heappop(q)
+  <span class="hljs-keyword">if</span> distance!=dist[p]:<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">if</span> p==goal:<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">for</span> dx,dy,d,k <span class="hljs-keyword">in</span> dirs:
+   n=(p[<span class="hljs-number">0</span>]+dx,p[<span class="hljs-number">1</span>]+dy)
+   <span class="hljs-keyword">if</span> (p,d) <span class="hljs-keyword">in</span> jumps:
+    n=jumps[(p,d)]
+    nd=distance+cost(n)
+    <span class="hljs-keyword">if</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> blocked <span class="hljs-keyword">and</span> nd&lt;dist.get(n,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):
+     prev[n]=(p,<span class="hljs-string">&#x27;jump:&#x27;</span>+k);dist[n]=nd;heapq.heappush(q,(nd,n))
+    <span class="hljs-keyword">continue</span>
+   <span class="hljs-keyword">if</span> n <span class="hljs-keyword">in</span> blocked <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> ok(*p,d) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> ok(*n,<span class="hljs-number">10</span>-d):<span class="hljs-keyword">continue</span>
+   nd=distance+cost(n)
+   <span class="hljs-keyword">if</span> nd&lt;dist.get(n,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):
+    prev[n]=(p,k);dist[n]=nd;heapq.heappush(q,(nd,n))
+ <span class="hljs-keyword">if</span> goal <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<span class="hljs-keyword">return</span> dist
+ <span class="hljs-keyword">if</span> goal <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> prev:<span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;No path&#x27;</span>)
+ out=[];p=goal
+ <span class="hljs-keyword">while</span> prev[p]:p,k=prev[p];out.append(k)
+ <span class="hljs-keyword">return</span> out[::-<span class="hljs-number">1</span>]
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ v=loadmap();
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--from&#x27;</span> <span class="hljs-keyword">in</span> sys.argv:
+  j=sys.argv.index(<span class="hljs-string">&#x27;--from&#x27;</span>);v[<span class="hljs-string">&#x27;position&#x27;</span>]=<span class="hljs-built_in">list</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[j+<span class="hljs-number">1</span>:j+<span class="hljs-number">3</span>]))
+ goal=<span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]));path=route(v,goal);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MAP&#x27;</span>,v[<span class="hljs-string">&#x27;map&#x27;</span>],v[<span class="hljs-string">&#x27;position&#x27;</span>],<span class="hljs-string">&#x27;to&#x27;</span>,goal,<span class="hljs-string">&#x27;PATH&#x27;</span>,path,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--go&#x27;</span> <span class="hljs-keyword">in</span> sys.argv:
+  <span class="hljs-keyword">for</span> key,g <span class="hljs-keyword">in</span> groupby(path):
+   n=<span class="hljs-built_in">len</span>(<span class="hljs-built_in">list</span>(g))
+   <span class="hljs-keyword">if</span> key.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):
+    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n):act(key[<span class="hljs-number">5</span>:],<span class="hljs-string">&#x27;wait:0.9&#x27;</span>)
+   <span class="hljs-keyword">else</span>:act(<span class="hljs-string">f&#x27;<span class="hljs-subst">{key}</span>:<span class="hljs-subst">{n*<span class="hljs-number">.1</span>+<span class="hljs-number">.02</span>:<span class="hljs-number">.3</span>f}</span>&#x27;</span>)
+   rr=snap();txt=<span class="hljs-string">&#x27;\n&#x27;</span>.join(a[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> rr)
+   im=Image.<span class="hljs-built_in">open</span>(STATE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=im.size
+   crop=im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.10</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.74</span>),<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.47</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.87</span>)))
+   white=<span class="hljs-built_in">sum</span>(<span class="hljs-number">1</span> <span class="hljs-keyword">for</span> r,g,b <span class="hljs-keyword">in</span> crop.getdata() <span class="hljs-keyword">if</span> <span class="hljs-built_in">min</span>(r,g,b)&gt;<span class="hljs-number">225</span>)/(crop.width*crop.height)
+   <span class="hljs-keyword">if</span> (<span class="hljs-string">&#x27;hp&#x27;</span> <span class="hljs-keyword">in</span> txt.lower() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;wild &#x27;</span> <span class="hljs-keyword">in</span> txt.lower() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> txt.lower() <span class="hljs-keyword">or</span> (white&gt;<span class="hljs-number">.35</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(a[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.73</span> <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> rr))):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;INTERRUPTED&#x27;</span>,txt,flush=<span class="hljs-literal">True</span>);sys.exit(<span class="hljs-number">2</span>)
+  <span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

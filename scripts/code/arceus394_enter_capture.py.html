@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>arceus394_enter_capture.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of arceus394_enter_capture.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Enter the source-reviewed wild Arceus after the completed final gauntlet.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">assert</span> json.loads((ROOT/<span class="hljs-string">&#x27;notes/active-league-chain.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;status&#x27;</span>]==<span class="hljs-string">&#x27;completed&#x27;</span>
+p=ROOT/<span class="hljs-string">&#x27;work/394-arceus-capture.json&#x27;</span>;<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> p.exists()
+(ROOT/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>).write_text(json.dumps(<span class="hljs-built_in">dict</span>(stop=<span class="hljs-literal">False</span>,expected_foes=[<span class="hljs-string">&#x27;Arceus&#x27;</span>]),indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+p.write_text(json.dumps(<span class="hljs-built_in">dict</span>(species=<span class="hljs-string">&#x27;Arceus&#x27;</span>,session=<span class="hljs-number">394</span>,start_epoch=time.time(),event=<span class="hljs-number">301</span>),indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-string">&#x27;898&#x27;</span>,<span class="hljs-string">&#x27;301&#x27;</span>,<span class="hljs-string">&#x27;talk&#x27;</span>],check=<span class="hljs-literal">True</span>)
+t=read();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;arceus&#x27;</span> <span class="hljs-keyword">in</span> t.lower(),t
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:3&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_ready.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

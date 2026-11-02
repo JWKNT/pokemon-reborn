@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>void_source_extract.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of void_source_extract.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Static, read-only Void map/event extraction. No save read, navigation write,</span>
+<span class="hljs-comment"># game driver import, UI, input, or game data modification.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+root = <span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data&#x27;</span>
+ids = (<span class="hljs-number">754</span>..<span class="hljs-number">759</span>).to_a
+out = ids.map <span class="hljs-keyword">do</span> |<span class="hljs-params">id</span>|
+  map = load_rgss(<span class="hljs-title class_">File</span>.join(root, <span class="hljs-string">&#x27;Map%03d.rxdata&#x27;</span> % id))
+  events = map.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>).map <span class="hljs-keyword">do</span> |<span class="hljs-params">eid, event</span>|
+    {
+      <span class="hljs-symbol">id:</span> eid,
+      <span class="hljs-symbol">name:</span> event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@name</span>),
+      <span class="hljs-symbol">x:</span> event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@x</span>),
+      <span class="hljs-symbol">y:</span> event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@y</span>),
+      <span class="hljs-symbol">pages:</span> event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@pages</span>).map.with_index <span class="hljs-keyword">do</span> |<span class="hljs-params">page, index</span>|
+        {
+          <span class="hljs-symbol">index:</span> index,
+          <span class="hljs-symbol">condition:</span> plain(page.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@condition</span>)),
+          <span class="hljs-symbol">trigger:</span> page.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@trigger</span>),
+          <span class="hljs-symbol">through:</span> page.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@through</span>),
+          <span class="hljs-symbol">graphic:</span> plain(page.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@graphic</span>)),
+          <span class="hljs-symbol">move_type:</span> page.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@move_type</span>),
+          <span class="hljs-symbol">list:</span> plain(page.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@list</span>))
+        }
+      <span class="hljs-keyword">end</span>
+    }
+  <span class="hljs-keyword">end</span>
+  {<span class="hljs-symbol">map:</span> id, <span class="hljs-symbol">width:</span> map.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@width</span>), <span class="hljs-symbol">height:</span> map.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@height</span>), <span class="hljs-symbol">events:</span> events}
+<span class="hljs-keyword">end</span>
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(out)
+</code></pre>
+  </body>
+</html>

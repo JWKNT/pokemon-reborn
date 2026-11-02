@@ -1,0 +1,8 @@
+Ho-oh attempt2: party all135 fullHP. Magearna lead; Latias newly equipped Latiasite and Surf/Psychic/Recover/CalmMind. Native Postgame337-Jace2-Cap135.
+Articuno: immediate Flash Cannon, benefits from Mirror field and seeded evasion; avoid wasteful setup that invited Celesteela last attempt.
+Celesteela: Zapdos Discharge, Roost guarded below75%; don't remain at lowHP after a critical FlashCannon.
+Shaymin: free switch to Latias if offered; Levitate blocks EarthPower. Mega and CalmMind when safe, Psychic offense, Recover. Specs means observe public move and use immunity/resistance. Shaymin521 outspeeds Darkrai515.
+Hydreigon: Magearna DazzlingGleam (4x).
+Enemy Latias: Darkrai NastyPlot/DarkPulse, immune MistBall, guard IceBeam damage; Magearna DazzlingGleam alternative.
+Ho-oh: MegaLatias135 speed377 vs installed374, HP474 baseDef374 mega536. Levitate blocksEQ, Fire resisted. CalmMind with Recover, Surf. Do not MegaMawile before Latias in trainer battle. Use small bounded loops and stop on matchup changes.
+Catch125 immediately afterboss: no between-battle save/heal. Separate wildbattle allowsMegaMawile. Zapdos ThunderWave; MawileMegaSD3/FalseSwipe/TimerBalls with HP guard. Wild has FutureSight/NaturalGift/CalmMind/SkyAttack, no recoil or recovery.

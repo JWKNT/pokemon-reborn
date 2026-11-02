@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>antoine_speed_pilot131.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of antoine_speed_pilot131.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Exit verified own stat popup and request one new speed boost.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,read,act
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;inspecting cofagrigus&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;accuracy&#x27;</span> <span class="hljs-keyword">in</span> t
+act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/agate_public_action.py&#x27;</span>),<span class="hljs-string">&#x27;--execute&#x27;</span>,<span class="hljs-string">&#x27;--mode&#x27;</span>,<span class="hljs-string">&#x27;antoine&#x27;</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Mamoswine&#x27;</span>,<span class="hljs-string">&#x27;--item&#x27;</span>,<span class="hljs-string">&#x27;X Speed&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;80&#x27;</span>,<span class="hljs-string">&#x27;--output&#x27;</span>,<span class="hljs-string">&#x27;work/antoine-xspeed-pilot131.json&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>handoff_context.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of handoff_context.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure handoff prose/data helpers; safe to import without UI, save or output edits.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> re
+
+PREPLANS = (
+    <span class="hljs-string">&#x27;notes/mime-completed-savequit-2026-10-04.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/hardy-completed-savequit-2026-10-04.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/hardy-piano-paused-savequit-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/hardy-trainers-completed-savequit-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/hardy-trainer-plan-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/hardy-piano-queue-helper-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/elite-four-preplan-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/agate-street-completed-savequit-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/agate-paired-trainer-entry-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/agate-xitem-resupply-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/agate-ordinary-street-policy-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/lyla-ezra-field-review131-source-only.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/post-solaris-hardy-mime-route-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/mime-fairy-roster-plan-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/gym17-glass-plan-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/glass-gauntlet-review-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/void-route-plan-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/hypno-guarded-plan-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/post-hypno-exit-route-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/glass-r3-completed-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/battle-item-reconciliation-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/post-glass-boss-preplan-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/agate-chain-plan-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/agate-archive-workflow-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/agate-prep-normal-queue-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/heartscale-normal-route-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/hardy-battle-plan-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/hardy-puzzle-saphira-route-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/saphira-leg-tactical-review-2026-10-03.md&#x27;</span>,
+    <span class="hljs-string">&#x27;notes/gauntlet-policy.md&#x27;</span>,
+)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">endpoint</span>(<span class="hljs-params">control, closed</span>):
+    <span class="hljs-keyword">if</span> closed <span class="hljs-keyword">and</span> control.get(<span class="hljs-string">&#x27;story_complete&#x27;</span>):
+        <span class="hljs-keyword">return</span> (<span class="hljs-string">&#x27;Main story and Anna-route postgame complete. Saved and actually quit. &#x27;</span>
+                + (<span class="hljs-string">&#x27;All recorded sessions and both victory compilations are verified; archive cleanup is complete. &#x27;</span> <span class="hljs-keyword">if</span> control.get(<span class="hljs-string">&#x27;archive_done&#x27;</span>) <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Finish the authorized final recording reconciliation. &#x27;</span>)
+                + <span class="hljs-string">&#x27;Do not replay completed final battles or resume optional content without a new user request.&#x27;</span>)
+    used = control.get(<span class="hljs-string">&#x27;usage_stop_used_percent&#x27;</span>)
+    reserve = (<span class="hljs-string">f&#x27;Stop gameplay at <span class="hljs-subst">{used:g}</span>% used (<span class="hljs-subst">{<span class="hljs-number">100</span>-used:g}</span>% remaining), &#x27;</span>
+               <span class="hljs-string">&#x27;with capacity reserved for verified save, actual quit and archive cleanup.&#x27;</span>) <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(used, (<span class="hljs-built_in">int</span>,<span class="hljs-built_in">float</span>)) <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;Read the latest user instruction for the usage boundary.&#x27;</span>
+    <span class="hljs-keyword">if</span> closed <span class="hljs-keyword">and</span> control.get(<span class="hljs-string">&#x27;user_requested_end_session&#x27;</span>):
+        cleanup = (<span class="hljs-string">&#x27; Recording edits and archive cleanup are complete.&#x27;</span>
+                   <span class="hljs-keyword">if</span> control.get(<span class="hljs-string">&#x27;archive_done&#x27;</span>) <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27; Finish the authorized archive cleanup.&#x27;</span>)
+        <span class="hljs-keyword">return</span> (<span class="hljs-string">&#x27;Saved and actually quit. The user explicitly ended this gameplay session; &#x27;</span>
+                <span class="hljs-string">&#x27;wait for new gameplay authorization. The earlier usage endpoint does not &#x27;</span>
+                <span class="hljs-string">&#x27;authorize resuming this session.&#x27;</span> + cleanup + <span class="hljs-string">&#x27; Latest endpoint: &#x27;</span>
+                + control.get(<span class="hljs-string">&#x27;milestone&#x27;</span>, <span class="hljs-string">&#x27;Read the latest user instruction.&#x27;</span>))
+    <span class="hljs-keyword">if</span> closed:
+        <span class="hljs-keyword">return</span> (<span class="hljs-string">&#x27;Saved and actually quit after the latest authorized play session; &#x27;</span>
+                <span class="hljs-string">&#x27;wait for a new gameplay endpoint. &#x27;</span> + reserve)
+    <span class="hljs-keyword">return</span> (<span class="hljs-string">&#x27;Active macOS run: &#x27;</span> + control.get(<span class="hljs-string">&#x27;milestone&#x27;</span>, <span class="hljs-string">&#x27;Read the latest user instruction for the authorized endpoint.&#x27;</span>) + <span class="hljs-string">&#x27; &#x27;</span> + reserve)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">published</span>(<span class="hljs-params">master, verification</span>):
+    n = <span class="hljs-built_in">int</span>(master[<span class="hljs-string">&#x27;published_count&#x27;</span>])
+    <span class="hljs-keyword">assert</span> <span class="hljs-number">0</span> &lt;= n &lt;= <span class="hljs-built_in">len</span>(master[<span class="hljs-string">&#x27;fights&#x27;</span>])
+    <span class="hljs-keyword">assert</span> n == verification[<span class="hljs-string">&#x27;fights&#x27;</span>], <span class="hljs-string">&#x27;Published manifest and master verification disagree&#x27;</span>
+    <span class="hljs-keyword">assert</span> master[<span class="hljs-string">&#x27;published_sha256&#x27;</span>] == verification[<span class="hljs-string">&#x27;sha256&#x27;</span>], <span class="hljs-string">&#x27;Master hashes disagree&#x27;</span>
+    rows = master[<span class="hljs-string">&#x27;fights&#x27;</span>][:n]
+    <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>({r[<span class="hljs-string">&#x27;id&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows}) == n, <span class="hljs-string">&#x27;Duplicate published major IDs&#x27;</span>
+    <span class="hljs-keyword">return</span> rows
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">victory_summary</span>(<span class="hljs-params">rows, limit=<span class="hljs-number">8</span></span>):
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;; &#x27;</span>.join(<span class="hljs-string">f&quot;ID<span class="hljs-subst">{r[<span class="hljs-string">&#x27;id&#x27;</span>]}</span> <span class="hljs-subst">{r.get(<span class="hljs-string">&#x27;display_title&#x27;</span>) <span class="hljs-keyword">or</span> r[<span class="hljs-string">&#x27;opponent&#x27;</span>]}</span>: <span class="hljs-subst">{r[<span class="hljs-string">&#x27;attempts&#x27;</span>]}</span> attempt(s)&quot;</span> <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows[-limit:]) <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;No published victories in this manifest.&#x27;</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">preplans</span>(<span class="hljs-params">root</span>):
+    <span class="hljs-keyword">return</span> [p <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> PREPLANS <span class="hljs-keyword">if</span> (Path(root)/p).is_file()]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">journey_verification</span>(<span class="hljs-params">root, metadata</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Select the recording&#x27;s own journey; never fall back to an unrelated gym.&quot;&quot;&quot;</span>
+    gym = <span class="hljs-built_in">int</span>(metadata[<span class="hljs-string">&#x27;journey_gym&#x27;</span>])
+    <span class="hljs-keyword">match</span> = re.search(<span class="hljs-string">r&#x27;session-(\d+)-game-raw&#x27;</span>, metadata.get(<span class="hljs-string">&#x27;raw&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>))
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">match</span>:
+        registry = Path(root)/<span class="hljs-string">&#x27;recordings&#x27;</span>/<span class="hljs-string">f&#x27;session-<span class="hljs-subst">{<span class="hljs-built_in">int</span>(<span class="hljs-keyword">match</span>[<span class="hljs-number">1</span>]):03}</span>-journey-segments.json&#x27;</span>
+        <span class="hljs-keyword">if</span> registry.is_file():
+            gym = <span class="hljs-built_in">int</span>(json.loads(registry.read_text())[<span class="hljs-string">&#x27;segments&#x27;</span>][-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;gym&#x27;</span>])
+    candidates = [Path(root)/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;gym<span class="hljs-subst">{gym}</span>-<span class="hljs-subst">{tail}</span>.json&#x27;</span>
+                  <span class="hljs-keyword">for</span> tail <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;progress-verification&#x27;</span>, <span class="hljs-string">&#x27;verification&#x27;</span>)]
+    existing = [p <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> candidates <span class="hljs-keyword">if</span> p.is_file()]
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> existing:
+        <span class="hljs-keyword">raise</span> FileNotFoundError(<span class="hljs-string">f&#x27;No verified journey metadata for recording gym<span class="hljs-subst">{gym}</span>&#x27;</span>)
+    path = <span class="hljs-built_in">max</span>(existing, key=<span class="hljs-keyword">lambda</span> p:p.stat().st_mtime)
+    result = json.loads(path.read_text())
+    <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;decode&#x27;</span> <span class="hljs-keyword">in</span> result[<span class="hljs-string">&#x27;verified&#x27;</span>], <span class="hljs-string">f&#x27;Journey not decode-verified: <span class="hljs-subst">{path}</span>&#x27;</span>
+    <span class="hljs-keyword">assert</span> re.<span class="hljs-keyword">match</span>(<span class="hljs-string">rf&#x27;gym-<span class="hljs-subst">{gym:02}</span>-(?:progress-)?game-4x-bgm\.mp4$&#x27;</span>, Path(result[<span class="hljs-string">&#x27;desktop&#x27;</span>]).name), result[<span class="hljs-string">&#x27;desktop&#x27;</span>]
+    <span class="hljs-keyword">return</span> gym, path, result
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">catalog_summary</span>(<span class="hljs-params">catalog</span>):
+    complete, partial = [], []
+    <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> catalog[<span class="hljs-string">&#x27;files&#x27;</span>]:
+        name = row[<span class="hljs-string">&#x27;filename&#x27;</span>]
+        <span class="hljs-keyword">if</span> re.fullmatch(<span class="hljs-string">r&#x27;gym-\d+-game-4x-bgm\.mp4&#x27;</span>, name):
+            complete.append(name)
+        <span class="hljs-keyword">elif</span> re.fullmatch(<span class="hljs-string">r&#x27;gym-\d+-progress-game-4x-bgm\.mp4&#x27;</span>, name):
+            partial.append(name)
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(catalog[<span class="hljs-string">&#x27;files&#x27;</span>]), <span class="hljs-built_in">sorted</span>(complete), <span class="hljs-built_in">sorted</span>(partial)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">resume_text</span>(<span class="hljs-params">*, root, name, save, navigation, sha, capture, metadata,
+                journey, master, verification, control, closed, now</span>):
+    rows = published(master, verification)
+    badges = save[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;badges&#x27;</span>].count(<span class="hljs-literal">True</span>)
+    party = <span class="hljs-string">&#x27;\n&#x27;</span>.join(<span class="hljs-string">f&quot;- <span class="hljs-subst">{m[<span class="hljs-string">&#x27;name&#x27;</span>]}</span> Lv<span class="hljs-subst">{m[<span class="hljs-string">&#x27;level&#x27;</span>]}</span>; HP<span class="hljs-subst">{m[<span class="hljs-string">&#x27;hp&#x27;</span>]}</span>/<span class="hljs-subst">{m[<span class="hljs-string">&#x27;totalhp&#x27;</span>]}</span>; <span class="hljs-subst">{m[<span class="hljs-string">&#x27;ability&#x27;</span>]}</span>; <span class="hljs-subst">{m[<span class="hljs-string">&#x27;item&#x27;</span>] <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;no item&#x27;</span>}</span>; &quot;</span> + <span class="hljs-string">&#x27;, &#x27;</span>.join(z[<span class="hljs-string">&#x27;move&#x27;</span>] <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> m[<span class="hljs-string">&#x27;moves&#x27;</span>]) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> save[<span class="hljs-string">&#x27;party&#x27;</span>])
+    notes = <span class="hljs-string">&#x27;, &#x27;</span>.join(<span class="hljs-string">f&#x27;`<span class="hljs-subst">{p}</span>`&#x27;</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> preplans(root))
+    recorder = (<span class="hljs-string">&#x27;is finalized; discover any newer capture from metadata&#x27;</span> <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;stop_epoch&#x27;</span> <span class="hljs-keyword">in</span> metadata <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;is the current local capture; verify fresh frames before input&#x27;</span>)
+    variables = navigation.get(<span class="hljs-string">&#x27;variables&#x27;</span>, {})
+    story = <span class="hljs-string">&#x27;, &#x27;</span>.join(<span class="hljs-string">f&#x27;<span class="hljs-subst">{k}</span>=<span class="hljs-subst">{variables[k]}</span>&#x27;</span> <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;391&#x27;</span>,<span class="hljs-string">&#x27;475&#x27;</span>,<span class="hljs-string">&#x27;339&#x27;</span>,<span class="hljs-string">&#x27;342&#x27;</span>) <span class="hljs-keyword">if</span> k <span class="hljs-keyword">in</span> variables) <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;consult the exact navigation snapshot&#x27;</span>
+    <span class="hljs-keyword">if</span> closed <span class="hljs-keyword">and</span> control.get(<span class="hljs-string">&#x27;story_complete&#x27;</span>) <span class="hljs-keyword">and</span> control.get(<span class="hljs-string">&#x27;archive_done&#x27;</span>):
+        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;&quot;&quot;# Completed Reborn playthrough — <span class="hljs-subst">{now[:<span class="hljs-number">10</span>]}</span>
+
+<span class="hljs-subst">{endpoint(control, closed)}</span>
+
+Final native checkpoint: **<span class="hljs-subst">{name}</span>**, Aster, <span class="hljs-subst">{badges}</span> badges, map<span class="hljs-subst">{save[<span class="hljs-string">&#x27;map&#x27;</span>]}</span><span class="hljs-subst">{save[<span class="hljs-string">&#x27;position&#x27;</span>]}</span> (Nightclub). Saved <span class="hljs-subst">{save[<span class="hljs-string">&#x27;save_mtime&#x27;</span>]}</span>. Canonical `saves/current/Game_3.rxdata`, SHA256 `<span class="hljs-subst">{sha}</span>`; matching backup and post-quit snapshot retained.
+
+Shade225, Anna226 and PULSE Arceus227 were defeated in one uninterrupted first attempt. Arceus was then caught. Anna&#x27;s ending, credits, Agate farewell and final group photo are complete; see `notes/final394-completion-flags.json` and `notes/active-league-chain.json`.
+
+Video30 is complete in `<span class="hljs-subst">{Path(journey[<span class="hljs-string">&#x27;desktop&#x27;</span>]).name}</span>`: <span class="hljs-subst">{journey[<span class="hljs-string">&#x27;frames&#x27;</span>]}</span> frames, <span class="hljs-subst">{journey[<span class="hljs-string">&#x27;duration&#x27;</span>]:<span class="hljs-number">.6</span>f}</span>s, SHA256 `<span class="hljs-subst">{journey[<span class="hljs-string">&#x27;sha256&#x27;</span>]}</span>`. The established filename retains “progress”; its verification marks the completed milestone. Recorder<span class="hljs-subst">{capture}</span> is closed. All consumed sources are reconciled; protected raw079/080 review holds remain untouched.
+
+The original major-fights compilation contains <span class="hljs-subst">{verification[<span class="hljs-string">&#x27;fights&#x27;</span>]}</span> victories. The separately verified postgame compilation includes the final gauntlet. All exports remain local; no Drive upload was performed.
+
+Final party:
+
+<span class="hljs-subst">{party}</span>
+
+Optional collecting and side activities were not required for completion. No further gameplay is pending. Any newly requested gameplay must use normal controls and a fresh verified recording.
+&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">f&#x27;&#x27;&#x27;# Current Reborn state — <span class="hljs-subst">{now[:<span class="hljs-number">10</span>]}</span>
+
+<span class="hljs-subst">{endpoint(control, closed)}</span>
+
+Latest verified native checkpoint: **<span class="hljs-subst">{name}</span>**; Aster, <span class="hljs-subst">{badges}</span> badges, Reborn19.5.43, HARDCAP only. Saved<span class="hljs-subst">{save[<span class="hljs-string">&#x27;save_mtime&#x27;</span>]}</span>, map<span class="hljs-subst">{save[<span class="hljs-string">&#x27;map&#x27;</span>]}</span><span class="hljs-subst">{save[<span class="hljs-string">&#x27;position&#x27;</span>]}</span>; story variables <span class="hljs-subst">{story}</span>. Canonical `saves/current/Game_3.rxdata`, SHA256 `<span class="hljs-subst">{sha}</span>`; matching `backups/Aster-<span class="hljs-subst">{name}</span>.rxdata` and `handoff/save-state.json`. Native checkpoint is authoritative; later live navigation notes can be ahead.
+
+<span class="hljs-subst">{party}</span>
+
+Latest published major victories: <span class="hljs-subst">{victory_summary(rows)}</span>. The published manifest proves archived victories, not the absence of later gameplay. **Do not replay a completed fight because its archive has not yet been appended.** Determine the next story gate from the verified save and latest progress notes. Relevant current/future preparation: <span class="hljs-subst">{notes}</span>. Glass is a consecutive fixed-six chain; an already completed victory must not be replayed. Its normal Void follow-up uses the LightShard and Safeguard preparation before Hypno. Agate&#x27;s partner warmup and Solaris are also one fixed-six chain with an automatic full heal between. Hardy/Saphira notes distinguish actual checkpoint opportunities from immediate battle commitments; read those before entering a later chain. These are plans, not claims that unrecorded battles were won.
+
+Recorder<span class="hljs-subst">{capture}</span> <span class="hljs-subst">{recorder}</span>. Reconcile editing at natural activity pauses; no mandatory hourly game restart; start a verified recording before any gameplay input. Do not reuse a session number. The current journey is `<span class="hljs-subst">{Path(journey[<span class="hljs-string">&#x27;desktop&#x27;</span>]).name}</span>` (<span class="hljs-subst">{<span class="hljs-string">&#x27;completed leg&#x27;</span> <span class="hljs-keyword">if</span> journey[<span class="hljs-string">&#x27;milestone_complete&#x27;</span>] <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;partial leg&#x27;</span>}</span>), <span class="hljs-subst">{journey[<span class="hljs-string">&#x27;frames&#x27;</span>]}</span>frames/<span class="hljs-subst">{journey[<span class="hljs-string">&#x27;duration&#x27;</span>]:<span class="hljs-number">.6</span>f}</span>s, SHA256 `<span class="hljs-subst">{journey[<span class="hljs-string">&#x27;sha256&#x27;</span>]}</span>`. Major master has <span class="hljs-subst">{verification[<span class="hljs-string">&#x27;fights&#x27;</span>]}</span> selected victories, SHA256 `<span class="hljs-subst">{verification[<span class="hljs-string">&#x27;sha256&#x27;</span>]}</span>`. Full journeys keep all attempts; the major compilation keeps victories only with honest attempt counts and exact player item totals. Verify both required archives before source cleanup; raw079/080 review holds remain untouched.
+
+Continue through normal controls; never edit game/save/memory to win. Only read completed battle logs. Actual doubles columns follow allied left/right and opposing left/right, with sprites/types/builds. Use normal saves/reloads liberally wherever permitted in game. Only game-enforced no-save sequences such as Fiore/Glass restart in full on loss. No Drive upload requested. Linux drivers remain unvalidated; this is still the Mac run.
+&#x27;&#x27;&#x27;</span>
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">refreshed_documents</span>(<span class="hljs-params">texts, *, root, label, save, session, metadata,
+                        journey, master, verification, catalog, control, closed</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Return updated documents without writing or reading game/native state.&quot;&quot;&quot;</span>
+    rows = published(master, verification)
+    badges = save[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;badges&#x27;</span>].count(<span class="hljs-literal">True</span>)
+    state = <span class="hljs-string">f&#x27;Aster, <span class="hljs-subst">{badges}</span> badges, map<span class="hljs-subst">{save[<span class="hljs-string">&quot;map&quot;</span>]}</span><span class="hljs-subst">{save[<span class="hljs-string">&quot;position&quot;</span>]}</span>&#x27;</span>
+    status = endpoint(control, closed)
+    exports, complete, partial = catalog_summary(catalog)
+    count = verification[<span class="hljs-string">&#x27;fights&#x27;</span>]
+    extra = (<span class="hljs-string">&#x27; The current partial journey is &#x27;</span> + <span class="hljs-string">&#x27;, &#x27;</span>.join(<span class="hljs-string">f&#x27;`<span class="hljs-subst">{n}</span>`&#x27;</span> <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> partial) + <span class="hljs-string">&#x27;.&#x27;</span>) <span class="hljs-keyword">if</span> partial <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;&#x27;</span>
+    inventory = (<span class="hljs-string">f&#x27;There are <span class="hljs-subst">{exports}</span> verified local exports: <span class="hljs-subst">{<span class="hljs-built_in">len</span>(complete)}</span> completed gym journeys and &#x27;</span>
+                 <span class="hljs-string">f&#x27;the <span class="hljs-subst">{count}</span>-victory major compilation.<span class="hljs-subst">{extra}</span> See [the media catalog](handoff/media-catalog.json).&#x27;</span>)
+    <span class="hljs-keyword">if</span> control.get(<span class="hljs-string">&#x27;story_complete&#x27;</span>) <span class="hljs-keyword">and</span> control.get(<span class="hljs-string">&#x27;archive_done&#x27;</span>):
+        inventory = <span class="hljs-string">f&#x27;There are <span class="hljs-subst">{exports}</span> verified local exports: 30 journey videos and two major-fight compilations. Established postgame filenames retain “progress” despite completed story milestones. See [the media catalog](handoff/media-catalog.json).&#x27;</span>
+    note_list = <span class="hljs-string">&#x27;, &#x27;</span>.join(<span class="hljs-string">f&#x27;`<span class="hljs-subst">{p}</span>`&#x27;</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> preplans(root))
+    next_session = <span class="hljs-built_in">max</span>(session + <span class="hljs-number">1</span>, <span class="hljs-number">1</span>)
+    out = <span class="hljs-built_in">dict</span>(texts)
+
+    t = out[<span class="hljs-string">&#x27;README.md&#x27;</span>]
+    t = re.sub(<span class="hljs-string">r&#x27;\*\*\d+ badges[;.].*?\*\*&#x27;</span>, <span class="hljs-string">f&#x27;**<span class="hljs-subst">{badges}</span> badges. <span class="hljs-subst">{status}</span> Latest verified save is in RESUME.md.**&#x27;</span>, t, count=<span class="hljs-number">1</span>)
+    t = re.sub(<span class="hljs-string">r&#x27;(Start with \[the Dot handoff\][^\n]*?\)\.).*?\n\n## Resources&#x27;</span>, <span class="hljs-string">r&#x27;\1 &#x27;</span> + status + <span class="hljs-string">&#x27; Linux installation and driver adaptation remain necessary only if a VM transfer is requested.\n\n## Resources&#x27;</span>, t, count=<span class="hljs-number">1</span>, flags=re.S)
+    t = re.sub(<span class="hljs-string">r&#x27;There are\s*\d+ (?:completed|verified) local exports:.*?See \[the media catalog\]\(handoff/media-catalog.json\)\.&#x27;</span>, inventory, t, count=<span class="hljs-number">1</span>, flags=re.S)
+    t = t.replace(<span class="hljs-string">&#x27;plus two calibration images&#x27;</span>, <span class="hljs-string">&#x27;and calibration templates&#x27;</span>)
+    out[<span class="hljs-string">&#x27;README.md&#x27;</span>] = t
+
+    t = out[<span class="hljs-string">&#x27;docs/DOT_HANDOFF.md&#x27;</span>]
+    t = re.sub(<span class="hljs-string">r&#x27;The \d+ current (?:finished videos|verified local exports)&#x27;</span>, <span class="hljs-string">f&#x27;The <span class="hljs-subst">{exports}</span> current verified local exports&#x27;</span>, t, count=<span class="hljs-number">1</span>)
+    t = re.sub(<span class="hljs-string">r&#x27;The current Mac run.*?(?=\n## Read in this order)&#x27;</span>,
+               <span class="hljs-string">f&#x27;The current Mac run is summarized in RESUME.md. Latest native checkpoint is <span class="hljs-subst">{label}</span>, <span class="hljs-subst">{state}</span>. <span class="hljs-subst">{status}</span> A later Linux transfer still requires recorded compatibility/input/capture validation.\n&#x27;</span>, t, count=<span class="hljs-number">1</span>, flags=re.S)
+    t = re.sub(<span class="hljs-string">r&#x27;4\. `recordings/major-fights/manifest.json`.*?\n5\..*?\n6\.&#x27;</span>,
+               <span class="hljs-string">&#x27;4. `recordings/major-fights/manifest.json`, `recordings/major-fights/verification.json`, and the current journey verification named in RESUME.md.\n5. The latest relevant preparation notes: &#x27;</span> + note_list + <span class="hljs-string">&#x27;; newest explicit corrections supersede earlier proposals.\n6.&#x27;</span>, t, count=<span class="hljs-number">1</span>, flags=re.S)
+    t = re.sub(<span class="hljs-string">r&#x27;Confirm Aster, \d+ badges, map\d+\[[^\]]+\], and the exact current party&#x27;</span>, <span class="hljs-string">f&#x27;Confirm <span class="hljs-subst">{state}</span>, and the exact current party&#x27;</span>, t, count=<span class="hljs-number">1</span>)
+    t = re.sub(<span class="hljs-string">r&#x27;fetch at least the completed Gym\d+ journey and\s*\d+-fight master&#x27;</span>, <span class="hljs-string">&#x27;fetch the latest verified journey (including any partial leg) and the &#x27;</span> + <span class="hljs-built_in">str</span>(count) + <span class="hljs-string">&#x27;-fight master&#x27;</span>, t, count=<span class="hljs-number">1</span>)
+    t = re.sub(<span class="hljs-string">r&#x27;The next unused session (?:after the handoff is expected to be|is at least) \*\*\d+\*\*;&#x27;</span>, <span class="hljs-string">f&#x27;The next unused session is at least **<span class="hljs-subst">{next_session:03}</span>**;&#x27;</span>, t, count=<span class="hljs-number">1</span>)
+    t = re.sub(<span class="hljs-string">r&#x27;`record_session.py start N --gym \d+`&#x27;</span>, <span class="hljs-string">&#x27;`record_session.py start N --gym G`&#x27;</span>, t, count=<span class="hljs-number">1</span>)
+    t = re.sub(<span class="hljs-string">r&#x27;Gym\d+ is complete in `gym-\d+-game-4x-bgm.mp4`\.&#x27;</span>, <span class="hljs-string">f&#x27;The current leg has a verified <span class="hljs-subst">{<span class="hljs-string">&quot;completed&quot;</span> <span class="hljs-keyword">if</span> journey[<span class="hljs-string">&quot;milestone_complete&quot;</span>] <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;partial&quot;</span>}</span> journey in `<span class="hljs-subst">{Path(journey[<span class="hljs-string">&quot;desktop&quot;</span>]).name}</span>`; the media catalog lists all completed legs.&#x27;</span>, t, count=<span class="hljs-number">1</span>)
+    heading = <span class="hljs-string">&#x27;## Current finished video baselines\n\n&#x27;</span>
+    a = t.index(heading) + <span class="hljs-built_in">len</span>(heading)
+    b = t.index(<span class="hljs-string">&#x27;## Important-battles selection and presentation&#x27;</span>, a)
+    old = t[a:b]
+    history = old[old.index(<span class="hljs-string">&#x27;- Historical chapters&#x27;</span>):] <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;- Historical chapters&#x27;</span> <span class="hljs-keyword">in</span> old <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;&#x27;</span>
+    baseline = (<span class="hljs-string">f&#x27;The source machine has <span class="hljs-subst">{exports}</span> verified local exports: <span class="hljs-subst">{<span class="hljs-built_in">len</span>(complete)}</span> completed gym journeys, the <span class="hljs-subst">{count}</span>-victory major compilation, and <span class="hljs-subst">{<span class="hljs-built_in">len</span>(partial)}</span> partial leg(s). Videos are excluded from Git; the user handles uploads. Verify against the media catalog.\n\n&#x27;</span>
+                <span class="hljs-string">f&#x27;- Current journey `<span class="hljs-subst">{Path(journey[<span class="hljs-string">&quot;desktop&quot;</span>]).name}</span>`: <span class="hljs-subst">{journey[<span class="hljs-string">&quot;frames&quot;</span>]}</span> frames, <span class="hljs-subst">{journey[<span class="hljs-string">&quot;duration&quot;</span>]:<span class="hljs-number">.6</span>f}</span>s, SHA256 `<span class="hljs-subst">{journey[<span class="hljs-string">&quot;sha256&quot;</span>]}</span>`.\n&#x27;</span>
+                <span class="hljs-string">f&#x27;- Major master: <span class="hljs-subst">{count}</span> victories/chapters, <span class="hljs-subst">{verification[<span class="hljs-string">&quot;frames&quot;</span>]}</span> frames, <span class="hljs-subst">{verification[<span class="hljs-string">&quot;duration&quot;</span>]:<span class="hljs-number">.6</span>f}</span>s, SHA256 `<span class="hljs-subst">{verification[<span class="hljs-string">&quot;sha256&quot;</span>]}</span>`.\n&#x27;</span>)
+    <span class="hljs-keyword">if</span> control.get(<span class="hljs-string">&#x27;story_complete&#x27;</span>) <span class="hljs-keyword">and</span> control.get(<span class="hljs-string">&#x27;archive_done&#x27;</span>):
+        baseline = inventory + <span class="hljs-string">&#x27;\n\n&#x27;</span> + baseline[baseline.index(<span class="hljs-string">&#x27;- Current journey&#x27;</span>):]
+    t = t[:a] + baseline + history.rstrip() + <span class="hljs-string">&#x27;\n\n&#x27;</span> + t[b:]
+    t = re.sub(<span class="hljs-string">r&#x27;Approved through now: all\d+ badge battles;&#x27;</span>, <span class="hljs-string">f&#x27;Approved through now: all<span class="hljs-subst">{badges}</span> badge battles;&#x27;</span>, t)
+    t = re.sub(<span class="hljs-string">r&#x27;Future non-gym additions should.*?(?=\n\nBefore a major attempt)&#x27;</span>,
+               <span class="hljs-string">&#x27;Future non-gym additions should meet the same climax/PULSE/exceptional-boss standard. Latest published victories: &#x27;</span> + victory_summary(rows) + <span class="hljs-string">&#x27;. Consult the actual manifest for all IDs. A missing later publication is not evidence that its battle must be replayed.&#x27;</span>, t, count=<span class="hljs-number">1</span>, flags=re.S)
+    t = re.sub(<span class="hljs-string">r&#x27;The normal append path uses.*?(?=\n\nThe old master)&#x27;</span>,
+               <span class="hljs-string">&#x27;The normal append path uses `prepare_major_append.py`, `export_major_types.rb`, `render_major_fights.py`, and `finish_major_fights.py`, with exact opponent data from `export_major_opponents.rb`. Read the workflow and current scripts first. Published IDs: &#x27;</span> + <span class="hljs-string">&#x27;, &#x27;</span>.join(<span class="hljs-built_in">str</span>(r[<span class="hljs-string">&#x27;id&#x27;</span>]) <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows) + <span class="hljs-string">&#x27;. Also inspect pending attempt records/configs before allocating a new ID. Avoid ID collisions.&#x27;</span>, t, count=<span class="hljs-number">1</span>, flags=re.S)
+    t = re.sub(<span class="hljs-string">r&#x27;1\. Read current RESUME, exact save, recording policy and gauntlet policy\..*?\n2\.&#x27;</span>,
+               <span class="hljs-string">&#x27;1. Read current RESUME, exact save, recording policy and gauntlet policy. &#x27;</span> + status + <span class="hljs-string">&#x27;\n2.&#x27;</span>, t, count=<span class="hljs-number">1</span>, flags=re.S)
+    t = re.sub(<span class="hljs-string">r&#x27;Next unused capture is (?:at least )?\d+;.*?(?=\n3\.)&#x27;</span>, <span class="hljs-string">f&#x27;Next unused capture is at least <span class="hljs-subst">{next_session:03}</span>; discover it from metadata.\n&#x27;</span>, t, count=<span class="hljs-number">1</span>, flags=re.S)
+    t = re.sub(<span class="hljs-string">r&#x27;4\. Plan the next authorized segment.*?(?=\n5\.)&#x27;</span>,
+               <span class="hljs-string">&#x27;4. Plan the next authorized segment from the verified native story gate and actual installed trainers/build. Relevant preparation: &#x27;</span> + note_list + <span class="hljs-string">&#x27;. Do not replay completed Glass or other fights because an older paragraph lists them as upcoming. HARDCAP alone leaves normal Fly carrier requirements in place.&#x27;</span>, t, count=<span class="hljs-number">1</span>, flags=re.S)
+    out[<span class="hljs-string">&#x27;docs/DOT_HANDOFF.md&#x27;</span>] = t
+
+    t = out[<span class="hljs-string">&#x27;docs/LINUX_SETUP.md&#x27;</span>]
+    t = re.sub(<span class="hljs-string">r&#x27;Current major master has\s*\d+\s*fights;&#x27;</span>, <span class="hljs-string">f&#x27;Current major master has <span class="hljs-subst">{count}</span> fights;&#x27;</span>, t)
+    recorder = <span class="hljs-string">&#x27;is finalized&#x27;</span> <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;stop_epoch&#x27;</span> <span class="hljs-keyword">in</span> metadata <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;may still be active; verify actual recorder health&#x27;</span>
+    t = re.sub(<span class="hljs-string">r&#x27;Session\d+ (?:is the current local recording number|is finalized); the next unused number is at least \d+;.*?(?=\n)&#x27;</span>, <span class="hljs-string">f&#x27;Session<span class="hljs-subst">{session}</span> <span class="hljs-subst">{recorder}</span>; the next unused number is at least <span class="hljs-subst">{next_session}</span>; discover newer metadata before using it.&#x27;</span>, t)
+    t = t.replace(<span class="hljs-string">&#x27;heal at the circus&#x27;</span>, <span class="hljs-string">&#x27;heal the saved party if needed&#x27;</span>)
+    t = re.sub(<span class="hljs-string">r&#x27;Preserve the completed Gym\d+ journey and the\s*\d+-fight major prefix\.&#x27;</span>, <span class="hljs-string">f&#x27;Preserve every completed journey, the current `<span class="hljs-subst">{Path(journey[<span class="hljs-string">&quot;desktop&quot;</span>]).name}</span>` and the <span class="hljs-subst">{count}</span>-fight major prefix.&#x27;</span>, t)
+    t = t.replace(<span class="hljs-string">&#x27;`notes/ciel-continuation-plan.md`&#x27;</span>, note_list)
+    t = t.replace(<span class="hljs-string">&#x27;The current instruction is a handoff, not automatic permission to resume playing.&#x27;</span>, <span class="hljs-string">&#x27;Read RESUME.md and the latest user message for gameplay authorization; a transfer alone is not an instruction to play.&#x27;</span>)
+    out[<span class="hljs-string">&#x27;docs/LINUX_SETUP.md&#x27;</span>] = t
+
+    t = out[<span class="hljs-string">&#x27;AGENTS.md&#x27;</span>]
+    a = t.index(<span class="hljs-string">&#x27;Read README.md&#x27;</span>)
+    b = t.index(<span class="hljs-string">&#x27;\n\nDo not start a new game&#x27;</span>, a)
+    t = t[:a] + (<span class="hljs-string">&#x27;Read README.md, RESUME.md, docs/DOT_HANDOFF.md and docs/LINUX_SETUP.md first. These current entrypoints and verified manifests supersede old goals in historical notes. User instructions take precedence. &#x27;</span> + status + <span class="hljs-string">&#x27; See RESUME.md for current checkpoints. Do not replay a completed battle due to stale upcoming lists. No Linux gameplay driver has been validated; the Linux kit is for a possible later transfer.&#x27;</span>) + t[b:]
+    out[<span class="hljs-string">&#x27;AGENTS.md&#x27;</span>] = t
+    <span class="hljs-keyword">return</span> out
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>amaria343_roster.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of amaria343_roster.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Swap in owned doubles supports through normal Grand Hall PC controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,sys,subprocess
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;AMARIA TEAM&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;pc_open_reviewed&#x27;</span>);run(<span class="hljs-string">&#x27;pc_select_box&#x27;</span>,<span class="hljs-number">2</span>)
+run(<span class="hljs-string">&#x27;pc_exchange_named&#x27;</span>,<span class="hljs-number">13</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Latias&#x27;</span>,<span class="hljs-string">&#x27;--box&#x27;</span>,<span class="hljs-number">2</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;pc_open_reviewed&#x27;</span>);run(<span class="hljs-string">&#x27;pc_select_box&#x27;</span>,<span class="hljs-number">3</span>)
+run(<span class="hljs-string">&#x27;pc_exchange_named&#x27;</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;Meowstic&#x27;</span>,<span class="hljs-string">&#x27;Mawile&#x27;</span>,<span class="hljs-string">&#x27;--box&#x27;</span>,<span class="hljs-number">3</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Amaria343-Supports&#x27;</span>)
+run(<span class="hljs-string">&#x27;postgame_candy_spend&#x27;</span>,<span class="hljs-string">&#x27;Amaria343-Supports&#x27;</span>,<span class="hljs-number">135</span>)
+run(<span class="hljs-string">&#x27;teach_machine&#x27;</span>,<span class="hljs-string">&#x27;TM62&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Acrobatics&#x27;</span>,<span class="hljs-number">3</span>)
+run(<span class="hljs-string">&#x27;take_held&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Protective Pads&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Amaria343-Prepared&#x27;</span>)
+</code></pre>
+  </body>
+</html>

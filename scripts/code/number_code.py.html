@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>number_code.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of number_code.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Enter an observed four-digit scripture prompt using ordinary arrow keys.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> re
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+wanted=sys.argv[<span class="hljs-number">1</span>];<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(wanted)==<span class="hljs-number">4</span> <span class="hljs-keyword">and</span> wanted.isdigit()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--current&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Requires --current VERIFIED_VALUE because this font misreads 3 as 1.&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">value</span>():
+ snap();im=Image.<span class="hljs-built_in">open</span>(STATE);w,h=im.size;crop=ROOT/<span class="hljs-string">&#x27;work/number-prompt.png&#x27;</span>;im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.735</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.605</span>),<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.905</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.669</span>))).resize((<span class="hljs-number">680</span>,<span class="hljs-number">256</span>)).save(crop);r=json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>),<span class="hljs-built_in">str</span>(crop)]));<span class="hljs-built_in">print</span>(r,flush=<span class="hljs-literal">True</span>);nums=[]
+ <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> r:
+  z=v[<span class="hljs-string">&#x27;text&#x27;</span>].strip().translate(<span class="hljs-built_in">str</span>.maketrans({<span class="hljs-string">&#x27;O&#x27;</span>:<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;o&#x27;</span>:<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;I&#x27;</span>:<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;l&#x27;</span>:<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;|&#x27;</span>:<span class="hljs-string">&#x27;1&#x27;</span>}));z=z.replace(<span class="hljs-string">&#x27; &#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>)
+  <span class="hljs-keyword">if</span> re.fullmatch(<span class="hljs-string">r&#x27;\d{4}&#x27;</span>,z):nums.append(z)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> nums:
+  joined=<span class="hljs-string">&#x27;&#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>].strip().replace(<span class="hljs-string">&#x27; &#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>) <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(r,key=<span class="hljs-keyword">lambda</span> v:v[<span class="hljs-string">&#x27;x&#x27;</span>]))
+  <span class="hljs-keyword">if</span> re.fullmatch(<span class="hljs-string">r&#x27;\d{4}&#x27;</span>,joined):nums=[joined]
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(nums)!=<span class="hljs-number">1</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Number prompt requires visual review&#x27;</span>)
+ <span class="hljs-keyword">return</span> nums[<span class="hljs-number">0</span>]
+current=sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--current&#x27;</span>)+<span class="hljs-number">1</span>];keys=[<span class="hljs-string">&#x27;right&#x27;</span>] <span class="hljs-comment"># Game source initializes cursor at the last digit.</span>
+<span class="hljs-keyword">for</span> i,(a,b) <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(<span class="hljs-built_in">zip</span>(current,wanted)):
+ n=(<span class="hljs-built_in">int</span>(b)-<span class="hljs-built_in">int</span>(a))%<span class="hljs-number">10</span>;keys+=[<span class="hljs-string">&#x27;up&#x27;</span>]*n <span class="hljs-keyword">if</span> n&lt;=<span class="hljs-number">5</span> <span class="hljs-keyword">else</span> [<span class="hljs-string">&#x27;down&#x27;</span>]*(<span class="hljs-number">10</span>-n)
+ <span class="hljs-keyword">if</span> i&lt;<span class="hljs-number">3</span>:keys+=[<span class="hljs-string">&#x27;right&#x27;</span>]
+act(*keys,<span class="hljs-string">&#x27;wait:0.4&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Expected&#x27;</span>,wanted,<span class="hljs-string">&#x27;VERIFY work/number-prompt.png visually before confirming.&#x27;</span>);value()
+</code></pre>
+  </body>
+</html>

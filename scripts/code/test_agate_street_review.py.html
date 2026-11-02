@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_agate_street_review.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_agate_street_review.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure source/damage boundaries; no controls or actual battle reads.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> unittest
+<span class="hljs-keyword">from</span> agate_street_review <span class="hljs-keyword">import</span> report
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Tests</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_mamo_crit_and_weather_thresholds</span>(<span class="hljs-params">self</span>):
+        r=report();eq=r[<span class="hljs-string">&#x27;mamo_into_cf&#x27;</span>][<span class="hljs-string">&#x27;EARTHQUAKE&#x27;</span>]
+        <span class="hljs-variable language_">self</span>.assertEqual(eq[<span class="hljs-string">&#x27;critical&#x27;</span>],[<span class="hljs-number">109</span>,<span class="hljs-number">128</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(eq[<span class="hljs-string">&#x27;ordinary_at_plus2_def&#x27;</span>],[<span class="hljs-number">37</span>,<span class="hljs-number">44</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(eq[<span class="hljs-string">&#x27;burned_critical&#x27;</span>],[<span class="hljs-number">55</span>,<span class="hljs-number">64</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(r[<span class="hljs-string">&#x27;mamo_safe_min_hp_preburn&#x27;</span>],eq[<span class="hljs-string">&#x27;critical&#x27;</span>][<span class="hljs-number">1</span>]+<span class="hljs-number">15</span>+<span class="hljs-number">1</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(r[<span class="hljs-string">&#x27;mamo_safe_min_hp_burned&#x27;</span>],eq[<span class="hljs-string">&#x27;burned_critical&#x27;</span>][<span class="hljs-number">1</span>]+<span class="hljs-number">15</span>+<span class="hljs-number">1</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_clean_double_crit_invalidates_cf_cryo_lead</span>(<span class="hljs-params">self</span>):
+        r=report()
+        <span class="hljs-variable language_">self</span>.assertGreater(r[<span class="hljs-string">&#x27;noivern_hurricane_crit_cf&#x27;</span>][<span class="hljs-number">1</span>]+
+                           r[<span class="hljs-string">&#x27;copied_cf_ditto_hex_crit_cf&#x27;</span>][<span class="hljs-number">1</span>]+<span class="hljs-number">15</span>,r[<span class="hljs-string">&#x27;players&#x27;</span>][<span class="hljs-string">&#x27;CF&#x27;</span>][<span class="hljs-number">0</span>])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_cryo_mien_opening_damage_boundaries</span>(<span class="hljs-params">self</span>):
+        r=report()
+        <span class="hljs-variable language_">self</span>.assertGreater(r[<span class="hljs-string">&#x27;cryo_icebeam&#x27;</span>][<span class="hljs-string">&#x27;NOIVERN&#x27;</span>][<span class="hljs-string">&#x27;icebeam0&#x27;</span>][<span class="hljs-number">0</span>],r[<span class="hljs-string">&#x27;foes&#x27;</span>][<span class="hljs-string">&#x27;NOIVERN&#x27;</span>][<span class="hljs-number">0</span>])
+        <span class="hljs-variable language_">self</span>.assertGreater(r[<span class="hljs-string">&#x27;mien_brickbreak_copied_cryo_ditto&#x27;</span>][<span class="hljs-number">0</span>],r[<span class="hljs-string">&#x27;foes&#x27;</span>][<span class="hljs-string">&#x27;DITTO&#x27;</span>][<span class="hljs-number">0</span>])
+        <span class="hljs-variable language_">self</span>.assertLess(r[<span class="hljs-string">&#x27;whimsicott_dazzle_crit_mien&#x27;</span>][<span class="hljs-number">1</span>],r[<span class="hljs-string">&#x27;players&#x27;</span>][<span class="hljs-string">&#x27;Mien&#x27;</span>][<span class="hljs-number">0</span>])
+        <span class="hljs-variable language_">self</span>.assertLess(r[<span class="hljs-string">&#x27;cryo_icebeam&#x27;</span>][<span class="hljs-string">&#x27;WHIMSICOTT&#x27;</span>][<span class="hljs-string">&#x27;icebeam0&#x27;</span>][<span class="hljs-number">0</span>],r[<span class="hljs-string">&#x27;foes&#x27;</span>][<span class="hljs-string">&#x27;WHIMSICOTT&#x27;</span>][<span class="hljs-number">0</span>])
+        <span class="hljs-variable language_">self</span>.assertGreater(r[<span class="hljs-string">&#x27;cryo_icebeam&#x27;</span>][<span class="hljs-string">&#x27;WHIMSICOTT&#x27;</span>][<span class="hljs-string">&#x27;icebeam_plus2_lightscreen&#x27;</span>][<span class="hljs-number">0</span>],
+                           r[<span class="hljs-string">&#x27;foes&#x27;</span>][<span class="hljs-string">&#x27;WHIMSICOTT&#x27;</span>][<span class="hljs-number">0</span>])
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:unittest.main()
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_stock_supplies.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_stock_supplies.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal department/Grand Hall shopping from a reviewed outdoor Fly origin.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--from-shop&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--from-clerk&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+  run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">520</span>)
+  run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">520</span>,<span class="hljs-number">101</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">112</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+  run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">113</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+ run(<span class="hljs-string">&#x27;dept_greet&#x27;</span>);run(<span class="hljs-string">&#x27;dept_floor&#x27;</span>,<span class="hljs-number">8</span>)
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">4</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;mart_open&#x27;</span>)
+<span class="hljs-keyword">for</span> name,count,price <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;X Sp. Def&#x27;</span>,<span class="hljs-number">6</span>,<span class="hljs-number">350</span>),(<span class="hljs-string">&#x27;X Defend&#x27;</span>,<span class="hljs-number">5</span>,<span class="hljs-number">550</span>),(<span class="hljs-string">&#x27;X Sp. Atk&#x27;</span>,<span class="hljs-number">6</span>,<span class="hljs-number">350</span>),(<span class="hljs-string">&#x27;X Speed&#x27;</span>,<span class="hljs-number">4</span>,<span class="hljs-number">350</span>),(<span class="hljs-string">&#x27;X Accuracy&#x27;</span>,<span class="hljs-number">2</span>,<span class="hljs-number">950</span>)]:run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,name,count,price)
+run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">4</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">113</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;dept_greet&#x27;</span>);run(<span class="hljs-string">&#x27;dept_floor&#x27;</span>,<span class="hljs-number">1</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">112</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">519</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-number">116</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;mart_open&#x27;</span>)
+run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,<span class="hljs-number">15</span>,<span class="hljs-number">1200</span>)
+run(<span class="hljs-string">&#x27;shop_buy&#x27;</span>,<span class="hljs-string">&#x27;Super Repel&#x27;</span>,<span class="hljs-number">10</span>,<span class="hljs-number">700</span>)
+run(<span class="hljs-string">&#x27;mart_exit&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">413</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SUPPLIES BOUGHT; CALCENON FLY POINT&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>genesect317_safe_swipes.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of genesect317_safe_swipes.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Two safe False Swipes, with public-HUD health checks before each action.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> public_owned_hp <span class="hljs-keyword">import</span> read <span class="hljs-keyword">as</span> owned_hp
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>):
+ rows=snap();low=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows).lower()
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;genesect&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;zeraora&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;par&#x27;</span> <span class="hljs-keyword">in</span> low
+ hp=owned_hp(rows,<span class="hljs-number">371</span>);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Observed Zeraora HP&#x27;</span>,hp,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> hp&lt;<span class="hljs-number">180</span>:
+  run(<span class="hljs-string">&#x27;battle_item&#x27;</span>,<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,<span class="hljs-string">&#x27;Zeraora&#x27;</span>);run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+  rows=snap();<span class="hljs-keyword">assert</span> owned_hp(rows,<span class="hljs-number">371</span>)&gt;=<span class="hljs-number">180</span>,<span class="hljs-string">&#x27;Review healing turn&#x27;</span>
+ run(<span class="hljs-string">&#x27;battle_move&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>);run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+</code></pre>
+  </body>
+</html>

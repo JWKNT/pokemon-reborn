@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>devon_pc_prepare.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of devon_pc_prepare.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Use Devon&#x27;s normal storage PC to heal and prepare the Victoria roster.
+Requires the observed phase28 PC room; never changes saves or game data.
+Seven named storage swaps heal the outgoing Pokemon under normal19.5 rules.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,read
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> subprocess,sys,json,re
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/s),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+v=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;339&#x27;</span>]==<span class="hljs-number">28</span>,<span class="hljs-string">&#x27;Devon PC-room phase required&#x27;</span>
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">628</span>)[<span class="hljs-number">0</span>]==<span class="hljs-number">628</span>
+chain=[(<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;Excadrill&#x27;</span>),(<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;Excadrill&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>),(<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>),(<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Klinklang&#x27;</span>),(<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;Klinklang&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>),(<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;Ampharos&#x27;</span>),(<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;Ampharos&#x27;</span>,<span class="hljs-string">&#x27;Excadrill&#x27;</span>)]
+<span class="hljs-keyword">for</span> i,(slot,incoming,outgoing)<span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(chain):
+ run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">628</span>,<span class="hljs-number">22</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+ run(<span class="hljs-string">&#x27;pc_open_reviewed.py&#x27;</span>)
+ run(<span class="hljs-string">&#x27;pc_exchange_named.py&#x27;</span>,<span class="hljs-number">1</span>,slot,incoming,outgoing)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DEVON STORAGE HEAL&#x27;</span>,i+<span class="hljs-number">1</span>,incoming,outgoing,flush=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;party_front.py&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Klinklang&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;Ampharos&#x27;</span>)
+run(<span class="hljs-string">&#x27;party_open.py&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+pairs=re.findall(<span class="hljs-string">r&#x27;(?&lt;!\d)(\d{1,3})\s*/\s*(\d{1,3})(?!\d)&#x27;</span>,t)
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(pairs)==<span class="hljs-number">6</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(x==y <span class="hljs-keyword">and</span> <span class="hljs-built_in">int</span>(x)&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">for</span> x,y <span class="hljs-keyword">in</span> pairs),<span class="hljs-string">&#x27;Full-party heal requires review&#x27;</span>
+run(<span class="hljs-string">&#x27;overworld.py&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Devon-Victoria-ready&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;DEVON VICTORIA ROSTER FULLY HEALED AND SAVED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

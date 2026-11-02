@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>panaceance319_flower_finish.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of panaceance319_flower_finish.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Finish the verified southwest orb route after its full camera animation.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+ids=[<span class="hljs-string">&#x27;1763&#x27;</span>,<span class="hljs-string">&#x27;1770&#x27;</span>,<span class="hljs-string">&#x27;1771&#x27;</span>]
+<span class="hljs-keyword">for</span> i,(x,y,s)<span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>([(<span class="hljs-number">7</span>,<span class="hljs-number">130</span>,<span class="hljs-number">2</span>),(<span class="hljs-number">18</span>,<span class="hljs-number">133</span>,<span class="hljs-number">1</span>),(<span class="hljs-number">36</span>,<span class="hljs-number">131</span>,<span class="hljs-number">2</span>)],<span class="hljs-number">8</span>):
+ q=ROOT/<span class="hljs-string">&#x27;work/319-sw-finish-route.json&#x27;</span>;q.write_text(json.dumps([[<span class="hljs-number">879</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,x,y,[]]]));run(<span class="hljs-string">&#x27;queue_route&#x27;</span>,q);act(<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+ tag=<span class="hljs-string">f&#x27;Idyll319-flowerMushroom<span class="hljs-subst">{i}</span>&#x27;</span>;run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,tag);v=json.loads((ROOT/<span class="hljs-string">f&#x27;notes/<span class="hljs-subst">{tag}</span>-navigation.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;switches&#x27;</span>];<span class="hljs-keyword">assert</span> v.get(<span class="hljs-string">&#x27;1773&#x27;</span>)<span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(<span class="hljs-built_in">bool</span>(v.get(k))==(j==s)<span class="hljs-keyword">for</span> j,k <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(ids))
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">879</span>,<span class="hljs-number">180</span>,<span class="hljs-string">&#x27;item&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Idyll319-Gracidea4&#x27;</span>)
+</code></pre>
+  </body>
+</html>

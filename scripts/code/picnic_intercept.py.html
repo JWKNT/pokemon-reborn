@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>picnic_intercept.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of picnic_intercept.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded screenshot-only approach to a reviewed moving tree apparition.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> picnic_sprite <span class="hljs-keyword">import</span> detect
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np
+name=sys.argv[<span class="hljs-number">1</span>];dark=<span class="hljs-string">&#x27;--dark&#x27;</span> <span class="hljs-keyword">in</span> sys.argv
+<span class="hljs-keyword">assert</span> name.lower() <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;espeon&#x27;</span>,<span class="hljs-string">&#x27;chingling&#x27;</span>,<span class="hljs-string">&#x27;umbreon&#x27;</span>,<span class="hljs-string">&#x27;cleffa&#x27;</span>,<span class="hljs-string">&#x27;mismagius&#x27;</span>,<span class="hljs-string">&#x27;florges&#x27;</span>,<span class="hljs-string">&#x27;flabebe&#x27;</span>,<span class="hljs-string">&#x27;zweilous&#x27;</span>,<span class="hljs-string">&#x27;granbull&#x27;</span>,<span class="hljs-string">&#x27;murkrow&#x27;</span>,<span class="hljs-string">&#x27;houndour&#x27;</span>,<span class="hljs-string">&#x27;kadabra&#x27;</span>,<span class="hljs-string">&#x27;mandibuzz&#x27;</span>,<span class="hljs-string">&#x27;chimecho&#x27;</span>,<span class="hljs-string">&#x27;deino&#x27;</span>,<span class="hljs-string">&#x27;vullaby&#x27;</span>,<span class="hljs-string">&#x27;poochyena&#x27;</span>,<span class="hljs-string">&#x27;eevee&#x27;</span>,<span class="hljs-string">&#x27;misdreavus&#x27;</span>]
+previous=<span class="hljs-literal">None</span>;stalled=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">32</span>):
+ <span class="hljs-comment"># Use a fresh frame from the existing recorder; never open another capture.</span>
+ epoch=time.time()
+ <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">20</span>):
+  health=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+  <span class="hljs-keyword">if</span> health.get(<span class="hljs-string">&#x27;preview_epoch&#x27;</span>,<span class="hljs-number">0</span>)&gt;epoch:<span class="hljs-keyword">break</span>
+  time.sleep(<span class="hljs-number">.04</span>)
+ a=np.asarray(Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)).astype(<span class="hljs-built_in">int</span>)
+ <span class="hljs-keyword">if</span> np.mean(a.<span class="hljs-built_in">max</span>(axis=<span class="hljs-number">2</span>)-a.<span class="hljs-built_in">min</span>(axis=<span class="hljs-number">2</span>))&gt;<span class="hljs-number">12</span>:
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;COLOR TRANSITION — public battle review&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ score,x,y,row,col=detect(name,dark)[<span class="hljs-number">0</span>]
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;VISIBLE&#x27;</span>,i,name,<span class="hljs-built_in">round</span>(score,<span class="hljs-number">3</span>),x,y,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> score&lt;(<span class="hljs-number">.55</span> <span class="hljs-keyword">if</span> name.lower()==<span class="hljs-string">&#x27;zweilous&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">.43</span>):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No confident public apparition silhouette&#x27;</span>)
+ pos=(<span class="hljs-built_in">round</span>(x/<span class="hljs-number">8</span>),<span class="hljs-built_in">round</span>(y/<span class="hljs-number">8</span>))
+ stalled=stalled+<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> pos==previous <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>;previous=pos
+ <span class="hljs-keyword">if</span> stalled&gt;=<span class="hljs-number">5</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Visible target blocked by terrain; route around obstacle&#x27;</span>)
+ dx=x-<span class="hljs-number">256</span>;dy=y-<span class="hljs-number">208</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(dx)&lt;<span class="hljs-number">12</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">abs</span>(dy)&lt;<span class="hljs-number">48</span>:
+  act((<span class="hljs-string">&#x27;down&#x27;</span> <span class="hljs-keyword">if</span> dy&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;up&#x27;</span>)+<span class="hljs-string">&#x27;:.025&#x27;</span>,<span class="hljs-string">&#x27;c:0.08&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">elif</span> <span class="hljs-built_in">abs</span>(dy)&lt;<span class="hljs-number">12</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">abs</span>(dx)&lt;<span class="hljs-number">48</span>:
+  act((<span class="hljs-string">&#x27;right&#x27;</span> <span class="hljs-keyword">if</span> dx&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;left&#x27;</span>)+<span class="hljs-string">&#x27;:.025&#x27;</span>,<span class="hljs-string">&#x27;c:0.08&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">else</span>:
+  direction=(<span class="hljs-string">&#x27;right&#x27;</span> <span class="hljs-keyword">if</span> dx&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;left&#x27;</span>) <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(dx)&gt;<span class="hljs-built_in">abs</span>(dy) <span class="hljs-keyword">else</span> (<span class="hljs-string">&#x27;down&#x27;</span> <span class="hljs-keyword">if</span> dy&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;up&#x27;</span>)
+  act(direction+<span class="hljs-string">&#x27;:.08&#x27;</span>,<span class="hljs-string">&#x27;wait:.12&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Bounded apparition approach ended; inspect obstacles&#x27;</span>)
+</code></pre>
+  </body>
+</html>

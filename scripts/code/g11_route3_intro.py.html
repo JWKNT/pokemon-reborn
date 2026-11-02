@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g11_route3_intro.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g11_route3_intro.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed Route 3 bridge scenes and Aya registration, using normal controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/s),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">note</span>(<span class="hljs-params">stage,**switches</span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;184&#x27;</span>]=stage
+ v.setdefault(<span class="hljs-string">&#x27;switches&#x27;</span>,{}).update(switches);p.write_text(json.dumps(v))
+rc=subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">&#x27;361,22,22&#x27;</span>])
+<span class="hljs-keyword">if</span> rc==<span class="hljs-number">0</span>:act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+<span class="hljs-keyword">elif</span> rc!=<span class="hljs-number">2</span>:<span class="hljs-keyword">raise</span> SystemExit(rc)
+t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;cain:&#x27;</span>,<span class="hljs-string">&#x27;hardy:&#x27;</span>,<span class="hljs-string">&#x27;saphira:&#x27;</span>]):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;First Route 3 scene review: &#x27;</span>+t)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">361</span>,<span class="hljs-number">53</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+note(<span class="hljs-number">7</span>,**{<span class="hljs-string">&#x27;2045&#x27;</span>:<span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;486&#x27;</span>:<span class="hljs-literal">True</span>})
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;361,53,17,right:.12,right:.12,wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;q.py&#x27;</span>,<span class="hljs-string">&#x27;404,1,11,right:.12,wait:1&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">404</span>,<span class="hljs-number">71</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+note(<span class="hljs-number">8</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">404</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">404</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+note(<span class="hljs-number">9</span>,**{<span class="hljs-string">&#x27;2046&#x27;</span>:<span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;488&#x27;</span>:<span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;490&#x27;</span>:<span class="hljs-literal">True</span>})
+run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Aya-route3-joined&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;AYA REGISTERED — inspect saved partner and cave events&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

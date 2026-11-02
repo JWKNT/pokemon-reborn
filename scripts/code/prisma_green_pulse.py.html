@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>prisma_green_pulse.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of prisma_green_pulse.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One bounded Prisma beam attempt using normal keys and recorded public frames.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os
+os.environ.setdefault(<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>)
+os.environ.setdefault(<span class="hljs-string">&#x27;REBORN_COORD_CACHE&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>)
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> ROOT,act,read,route
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> json,subprocess,sys,time,threading
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+n=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+mode=sys.argv[<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;green&#x27;</span>
+<span class="hljs-keyword">assert</span> mode <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;green&#x27;</span>,<span class="hljs-string">&#x27;dual&#x27;</span>,<span class="hljs-string">&#x27;triple&#x27;</span>,<span class="hljs-string">&#x27;final&#x27;</span>]
+<span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;896&#x27;</span>][<span class="hljs-string">&#x27;75&#x27;</span>]==([<span class="hljs-number">26</span>,<span class="hljs-number">64</span>] <span class="hljs-keyword">if</span> mode==<span class="hljs-string">&#x27;final&#x27;</span> <span class="hljs-keyword">else</span> [<span class="hljs-number">22</span>,<span class="hljs-number">61</span>])
+<span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;896&#x27;</span>][<span class="hljs-string">&#x27;74&#x27;</span>]==([<span class="hljs-number">17</span>,<span class="hljs-number">64</span>] <span class="hljs-keyword">if</span> mode==<span class="hljs-string">&#x27;green&#x27;</span> <span class="hljs-keyword">else</span> [<span class="hljs-number">18</span>,<span class="hljs-number">64</span>])
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(n[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(k)] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-number">1890</span>,<span class="hljs-number">1900</span>,<span class="hljs-number">1902</span>])
+expected_shadows={<span class="hljs-string">&#x27;green&#x27;</span>:[<span class="hljs-number">18</span>,<span class="hljs-number">64</span>,<span class="hljs-number">17</span>,<span class="hljs-number">64</span>],<span class="hljs-string">&#x27;dual&#x27;</span>:[<span class="hljs-number">18</span>,<span class="hljs-number">63</span>,<span class="hljs-number">17</span>,<span class="hljs-number">63</span>],<span class="hljs-string">&#x27;triple&#x27;</span>:[<span class="hljs-number">18</span>,<span class="hljs-number">63</span>,<span class="hljs-number">17</span>,<span class="hljs-number">63</span>],<span class="hljs-string">&#x27;final&#x27;</span>:[<span class="hljs-number">26</span>,<span class="hljs-number">64</span>,<span class="hljs-number">26</span>,<span class="hljs-number">68</span>]}
+<span class="hljs-keyword">assert</span> [n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-built_in">str</span>(k)] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-number">731</span>,<span class="hljs-number">732</span>,<span class="hljs-number">737</span>,<span class="hljs-number">738</span>]]==expected_shadows[mode]
+<span class="hljs-keyword">if</span> mode==<span class="hljs-string">&#x27;triple&#x27;</span>:
+ <span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;896&#x27;</span>][<span class="hljs-string">&#x27;73&#x27;</span>]==[<span class="hljs-number">27</span>,<span class="hljs-number">64</span>]
+ <span class="hljs-keyword">assert</span> [n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-built_in">str</span>(k)] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-number">735</span>,<span class="hljs-number">736</span>]]==[<span class="hljs-number">26</span>,<span class="hljs-number">62</span>]
+<span class="hljs-keyword">if</span> mode==<span class="hljs-string">&#x27;final&#x27;</span>:
+ <span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;896&#x27;</span>][<span class="hljs-string">&#x27;73&#x27;</span>]==[<span class="hljs-number">23</span>,<span class="hljs-number">68</span>]
+ <span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;896&#x27;</span>][<span class="hljs-string">&#x27;72&#x27;</span>]==[<span class="hljs-number">22</span>,<span class="hljs-number">62</span>]
+ <span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;896&#x27;</span>][<span class="hljs-string">&#x27;95&#x27;</span>]==[<span class="hljs-number">19</span>,<span class="hljs-number">60</span>]
+ <span class="hljs-keyword">assert</span> [n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-built_in">str</span>(k)] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-number">733</span>,<span class="hljs-number">734</span>,<span class="hljs-number">735</span>,<span class="hljs-number">736</span>]]==[<span class="hljs-number">19</span>,<span class="hljs-number">60</span>,<span class="hljs-number">27</span>,<span class="hljs-number">62</span>]
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">&#x27;896,22,63&#x27;</span>],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">896</span>)==(<span class="hljs-number">896</span>,<span class="hljs-number">22</span>,<span class="hljs-number">63</span>)
+v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;896&#x27;</span>,<span class="hljs-string">&#x27;22&#x27;</span>,<span class="hljs-string">&#x27;63&#x27;</span>],stderr=subprocess.DEVNULL))
+steps=([<span class="hljs-string">&#x27;right&#x27;</span>]*<span class="hljs-number">3</span>+[<span class="hljs-string">&#x27;down&#x27;</span>]*<span class="hljs-number">3</span>+[<span class="hljs-string">&#x27;right&#x27;</span>]+[<span class="hljs-string">&#x27;down&#x27;</span>]*<span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> mode==<span class="hljs-string">&#x27;final&#x27;</span> <span class="hljs-keyword">else</span> ([<span class="hljs-string">&#x27;right&#x27;</span>]*<span class="hljs-number">4</span>+[<span class="hljs-string">&#x27;down&#x27;</span>]*<span class="hljs-number">4</span>+[<span class="hljs-string">&#x27;right&#x27;</span>])
+point=(<span class="hljs-number">22</span>,<span class="hljs-number">63</span>)
+<span class="hljs-keyword">for</span> d <span class="hljs-keyword">in</span> steps:
+ dx,dy={<span class="hljs-string">&#x27;right&#x27;</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-string">&#x27;down&#x27;</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>)}[d];after=(point[<span class="hljs-number">0</span>]+dx,point[<span class="hljs-number">1</span>]+dy)
+ <span class="hljs-keyword">assert</span> route(<span class="hljs-built_in">dict</span>(v,position=<span class="hljs-built_in">list</span>(point)),after)==[d]
+ point=after
+<span class="hljs-keyword">assert</span> point==((<span class="hljs-number">26</span>,<span class="hljs-number">68</span>) <span class="hljs-keyword">if</span> mode==<span class="hljs-string">&#x27;final&#x27;</span> <span class="hljs-keyword">else</span> (<span class="hljs-number">27</span>,<span class="hljs-number">67</span>))
+out=ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/(<span class="hljs-string">&#x27;prisma-&#x27;</span>+mode+<span class="hljs-string">&#x27;-public-&#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">int</span>(time.time())));out.mkdir()
+stop=threading.Event()
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">capture</span>():
+ last=<span class="hljs-number">0</span>
+ <span class="hljs-keyword">while</span> <span class="hljs-keyword">not</span> stop.is_set():
+  <span class="hljs-keyword">try</span>:
+   h=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+   <span class="hljs-keyword">if</span> h.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">and</span> h.get(<span class="hljs-string">&#x27;preview_epoch&#x27;</span>,<span class="hljs-number">0</span>)&gt;last <span class="hljs-keyword">and</span> time.time()-h[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;<span class="hljs-number">2</span>:
+    last=h[<span class="hljs-string">&#x27;preview_epoch&#x27;</span>];im=Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);im.save(out/<span class="hljs-string">f&#x27;<span class="hljs-subst">{last:<span class="hljs-number">.3</span>f}</span>.png&#x27;</span>)
+  <span class="hljs-keyword">except</span> (OSError,ValueError):<span class="hljs-keyword">pass</span>
+  stop.wait(<span class="hljs-number">.12</span>)
+t=threading.Thread(target=capture);t.start()
+<span class="hljs-keyword">try</span>:
+ seq=[<span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.25&#x27;</span>]
+ <span class="hljs-keyword">for</span> d <span class="hljs-keyword">in</span> steps:seq.extend([d+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.1&#x27;</span>])
+ seq.extend([<span class="hljs-string">&#x27;right:.12&#x27;</span> <span class="hljs-keyword">if</span> mode==<span class="hljs-string">&#x27;final&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;down:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>])
+ start=time.time();act(*seq)
+ text=read();<span class="hljs-built_in">print</span>(text,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;reacted&#x27;</span> <span class="hljs-keyword">in</span> text.lower(),<span class="hljs-string">&#x27;Purple activation needs public review&#x27;</span>
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:7&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+ (out/<span class="hljs-string">&#x27;attempt.json&#x27;</span>).write_text(json.dumps(<span class="hljs-built_in">dict</span>(start=start,end=time.time(),keys=seq,public_text=text),indent=<span class="hljs-number">2</span>))
+<span class="hljs-keyword">finally</span>:
+ stop.<span class="hljs-built_in">set</span>();t.join()
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PUBLIC PULSE FRAMES&#x27;</span>,out,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

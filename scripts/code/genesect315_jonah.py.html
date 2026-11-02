@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>genesect315_jonah.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of genesect315_jonah.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Train Zeraora against the inspected Monday Jonah v4; normal UI only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):
+ p=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(name+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],text=<span class="hljs-literal">True</span>,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+ <span class="hljs-built_in">print</span>(p.stdout,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> p.returncode:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Helper stopped: &#x27;</span>+name)
+ <span class="hljs-keyword">return</span> p.stdout
+<span class="hljs-keyword">for</span> cycle <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>])):
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (cycle==<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;--dialog-open&#x27;</span> <span class="hljs-keyword">in</span> sys.argv):run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">41</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+ run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,<span class="hljs-string">&#x27;YOUNGSTER&#x27;</span>,<span class="hljs-string">&#x27;Jonah&#x27;</span>,<span class="hljs-string">&#x27;--map&#x27;</span>,<span class="hljs-number">38</span>)
+ run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>)
+ run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">41</span>,<span class="hljs-string">&#x27;YOUNGSTER&#x27;</span>,<span class="hljs-string">&#x27;Jonah&#x27;</span>,<span class="hljs-string">&#x27;--expand-common&#x27;</span>,<span class="hljs-string">&#x27;--active-dialogue&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>,<span class="hljs-string">&#x27;--resume-intro&#x27;</span>)
+ out=run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,<span class="hljs-string">&#x27;Zeraora&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Squirtle,Wartortle,Blastoise&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">12</span>,<span class="hljs-string">&#x27;--stay-team-reviewed&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-number">.4</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--stop-after-battle&#x27;</span>)
+ <span class="hljs-keyword">assert</span> re.search(<span class="hljs-string">r&#x27;de.?feated|for winning&#x27;</span>,out,re.I),<span class="hljs-string">&#x27;Victory not observed&#x27;</span>
+ out+=run(<span class="hljs-string">&#x27;dialog&#x27;</span>,<span class="hljs-string">&#x27;--limit=20&#x27;</span>)
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;bonus&#x27;</span> <span class="hljs-keyword">in</span> out.lower() <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;cand&#x27;</span> <span class="hljs-keyword">in</span> out.lower(),<span class="hljs-string">&#x27;Reward not observed&#x27;</span>
+ run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;JONAH TRAINING COMPLETE&#x27;</span>,cycle+<span class="hljs-number">1</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

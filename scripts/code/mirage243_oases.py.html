@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mirage243_oases.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mirage243_oases.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Visit three installed mirage shards by normal travel; stop on interruption.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,subprocess,sys,json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+sys.path.insert(<span class="hljs-number">0</span>,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>))
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act
+E=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+<span class="hljs-comment"># Static maps: every current layout has exactly one shard event69.</span>
+allowed=[<span class="hljs-number">694</span>,<span class="hljs-number">703</span>,<span class="hljs-number">704</span>,<span class="hljs-number">705</span>]
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>):
+ m,x,y=locate();<span class="hljs-keyword">assert</span> m <span class="hljs-keyword">in</span> allowed,(m,x,y)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MIRAGE&#x27;</span>,i+<span class="hljs-number">1</span>,m,x,y,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-built_in">str</span>(m),<span class="hljs-string">&#x27;69&#x27;</span>,<span class="hljs-string">&#x27;enter&#x27;</span>],check=<span class="hljs-literal">True</span>,env=E)
+ act(<span class="hljs-string">&#x27;wait:3&#x27;</span>)
+ after=locate();<span class="hljs-keyword">assert</span> after[<span class="hljs-number">0</span>]<span class="hljs-keyword">in</span> allowed <span class="hljs-keyword">and</span> after[<span class="hljs-number">0</span>]!=m,after
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SHARD TRANSITION OBSERVED&#x27;</span>,after,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-comment"># Record only the map transition actually seen, never write native state.</span>
+ p=R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;d=json.loads(p.read_text())
+ d.setdefault(<span class="hljs-string">&#x27;variables&#x27;</span>,{})[<span class="hljs-string">&#x27;360&#x27;</span>]=allowed.index(after[<span class="hljs-number">0</span>])+<span class="hljs-number">1</span>
+ d[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;359&#x27;</span>]=i+<span class="hljs-number">1</span>
+ p.write_text(json.dumps(d,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),<span class="hljs-string">&#x27;Postgame243-Mirages&#x27;</span>],check=<span class="hljs-literal">True</span>,env=E)
+</code></pre>
+  </body>
+</html>

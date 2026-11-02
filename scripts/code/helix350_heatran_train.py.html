@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>helix350_heatran_train.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of helix350_heatran_train.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded normal Good Rod training of owned Heatran; verify EVs after fights.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+phase=sys.argv[<span class="hljs-number">1</span>];<span class="hljs-keyword">assert</span> phase <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;hp&#x27;</span>,<span class="hljs-string">&#x27;spa&#x27;</span>)
+wins=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;=wins&lt;<span class="hljs-number">8</span>
+foes=[<span class="hljs-string">&#x27;Luvdisc&#x27;</span>,<span class="hljs-string">&#x27;Basculin&#x27;</span>,<span class="hljs-string">&#x27;Mantyke&#x27;</span>]
+(ROOT/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>).write_text(json.dumps({<span class="hljs-string">&#x27;expected_foes&#x27;</span>:foes}))
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TRAIN&#x27;</span>,s,*args,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">for</span> cast <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">50</span>):
+ <span class="hljs-keyword">if</span> wins&gt;=<span class="hljs-number">8</span>:<span class="hljs-keyword">break</span>
+ began=time.time();run(<span class="hljs-string">&#x27;fish_cast247&#x27;</span>);rows=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows).lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:
+  <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(rows)&lt;=<span class="hljs-number">4</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\bhp\b&#x27;</span>,t),t
+  <span class="hljs-keyword">continue</span>
+ enemy=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>].lower() <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> r[<span class="hljs-string">&#x27;y&#x27;</span>]&lt;<span class="hljs-number">.37</span>)
+ found=[n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> foes <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,n.lower(),w).ratio()&gt;=<span class="hljs-number">.78</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> enemy.split())]
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(found)==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;heatran&#x27;</span> <span class="hljs-keyword">in</span> t,t
+ run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,<span class="hljs-string">&#x27;Heatran&#x27;</span>,<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> phase==<span class="hljs-string">&#x27;hp&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">2</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;,&#x27;</span>.join(foes),<span class="hljs-string">&#x27;--wild&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-string">&#x27;.6&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+ t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(t.splitlines())&lt;=<span class="hljs-number">4</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> re.search(<span class="hljs-string">r&#x27;\bfight\b|\bhp\b&#x27;</span>,t),t
+ run(<span class="hljs-string">&#x27;close_wild_music&#x27;</span>,found[<span class="hljs-number">0</span>],<span class="hljs-string">&#x27;--since&#x27;</span>,began)
+ wins+=<span class="hljs-number">1</span>;label=<span class="hljs-string">f&#x27;Helix350-Heatran-<span class="hljs-subst">{phase}</span><span class="hljs-subst">{wins}</span>&#x27;</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> (ROOT/<span class="hljs-string">&#x27;backups&#x27;</span>/<span class="hljs-string">f&#x27;Aster-<span class="hljs-subst">{label}</span>.rxdata&#x27;</span>).exists()
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+ s=json.loads((ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text())
+ p=<span class="hljs-built_in">next</span>(x <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> x[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;HEATRAN&#x27;</span>)
+ expected=[<span class="hljs-built_in">min</span>(<span class="hljs-number">252</span>,<span class="hljs-number">32</span>*wins),<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>] <span class="hljs-keyword">if</span> phase==<span class="hljs-string">&#x27;hp&#x27;</span> <span class="hljs-keyword">else</span> [<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-built_in">min</span>(<span class="hljs-number">252</span>,<span class="hljs-number">32</span>*wins),<span class="hljs-number">0</span>,<span class="hljs-number">0</span>]
+ <span class="hljs-keyword">assert</span> p[<span class="hljs-string">&#x27;ev&#x27;</span>]==expected,(p[<span class="hljs-string">&#x27;ev&#x27;</span>],expected)
+ <span class="hljs-keyword">assert</span> p[<span class="hljs-string">&#x27;hp&#x27;</span>]&gt;<span class="hljs-number">.6</span>*p[<span class="hljs-string">&#x27;totalhp&#x27;</span>],p
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;HEATRAN EV VERIFIED&#x27;</span>,phase,wins,expected,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">assert</span> wins==<span class="hljs-number">8</span>,<span class="hljs-string">&#x27;Cast limit; resume from verified checkpoint&#x27;</span>
+</code></pre>
+  </body>
+</html>

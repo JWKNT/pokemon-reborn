@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Post-Hypno normal exit, recovery and Calcenon">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="post-hypno-exit-route-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/post-hypno-exit-route-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/post-hypno-exit-route-2026-10-03.md.html">
+    <title>post-hypno-exit-route-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">post-hypno-exit-route-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 6.4 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · first used Oct 3 13:42</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Post-Hypno normal exit, recovery and Calcenon</h2>
+<p>Installed19.5.43 source review only. <strong>Freeze the normal post-Hypno native save/status/bag and reconcile major125 before any medicine, held-item, PC or training flows.</strong> Hypno victory sets1874True, does not heal the party, and does not advance391 to47.</p>
+<p><code>scripts/post_hypno_exit.py</code> implements the post-Hypno758 loop in bounded normal movement, then the recovery autoruns to Calcenon. Development/source validation and pure tests sent no inputs. It reuses ordinary capture/session guards and stops for unknown touch events, choices, battles, dialogue mismatch, coordinate/timing disagreement or capture failure. Planner flags change only after an observed approved scene has settled; these notes are never game-state writes. The two actor removals used by its route model are explicit installed animation endings: Amy25 after90A, Cal26 after92 advances39133.</p>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="sh example"><code class="hljs">python3 scripts/post_hypno_exit.py
+python3 scripts/post_hypno_exit.py --execute --post-status notes/EXACT-HYPNO-POST-status.json --item-report work/EXACT-HYPNO-ITEM-REPORT.json --stop-phase zel
+python3 scripts/post_hypno_exit.py --execute --post-status notes/EXACT-HYPNO-POST-status.json --item-report work/EXACT-HYPNO-ITEM-REPORT.json --from-phase shade</code></pre>
+<p>The placeholders must be replaced by the actual frozen files. The gate requires a frozen status on758, a verified one-Hypno125 item report with native inventory proof, and an exact hash binding to the supplied post-status. <code>status_full.rb</code> omits1874 from its small switch subset; a normal post-Hypno checkpoint must separately have synced1874True into the full navigation notes, and the helper checks that before UI inputs. No inventory, money, party, game save, or archive configuration is altered by this helper. It does not save or save-quit.</p>
+<p>Expected Hypno&#39;s forced movements leave the player near <strong>758[28,102]</strong>; observed coordinates govern the path. The source loop crosses heartbeatE36[29,90], Terra memoryE62/63[83,18/19]→39131, E89[54,18]→39132 plus Titania90 autorun, E91[53,50] (826-dependent Taka animation/dialogue), E92[37,57]→39133, Cal/Blake touches28[34,40],99[34,33],100[34,28], E30/101[31,16/9]→39134 plus104, E102/103[17,16/9]→39135 plus105, and E107/108[19/18,63]→39136 plus Victoria31&#39;s parallel transitions through40. Every meaningful touch truncates the current movement batch; followers settle before planning the next segment.</p>
+<p>Mandatory finishing action gates: <strong>ZEL758E33[12,146], face from11,146 RIGHT</strong>, then <strong>Shade758E34[17,181], face from17,180 DOWN</strong>. Both have animation-only source sequences and set their own self-A. Then touch <strong>Luna758E35[40,176]</strong>, which transfers759[40,176]. On759 the whitelisted touches at43,177/178/180/182/184/186/188/189 only change tint; E5[43,191] transfers735[18,18]. The loop&#39;s exact walk length varies with already consumed pages and actor movements; static routes are proposals, not observed receipts.</p>
+<p>Resume phases: <code>zel</code>, <code>shade</code>, <code>luna</code>, <code>void-exit</code>, <code>recovery</code>. On a normal758/759 overworld, absent <code>--from-phase</code> selects the first applicable phase and skips source-confirmed consumed33/34. A partially completed touch/dialogue must first be inspected and settled; automatic coordinate resume does not operate inside dialogue. For a known recovery dialogue on735,715 or734, use explicit <code>--from-phase recovery</code>; it uses public installed-text/choice guards and sends no coordinate hotkey mid-scene. Stopping after <code>void-exit</code> leaves a sent transfer touch plus pending recovery, explicitly <strong>unverified</strong>; the later full Calcenon coordinate check is the chain completion proof.</p>
+<p>The installed recovery is an uninterrupted chain of autoruns, <strong>with no controllable HeartScale window on715</strong>:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Condition and resulting transfer</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>735E4 page0</td>
+<td>Initial Void return with391&lt;47; completes39145→715[39,20].</td>
+</tr>
+<tr>
+<td>715E85 page0 Radomus</td>
+<td>Trigger3 autorun at39145; completes39146→734[18,14], facingRIGHT.</td>
+</tr>
+<tr>
+<td>734E16 page0 Radomus</td>
+<td>Trigger3 autorun at39146; completes39147→735[18,14].</td>
+</tr>
+<tr>
+<td>735E7 page0</td>
+<td>Trigger3 autorun at39147; completes39148.</td>
+</tr>
+<tr>
+<td>735E4 page2</td>
+<td>Trigger3 autorun at39148; Anna asks “you&#39;re coming too, right?” Choose <strong>Yes</strong> normally; completes39149→413[77,26].</td>
+</tr>
+</tbody></table></div>
+<p>All earlier scenes have no battles or choices. The helper stops at the one reviewed Anna Yes/No, selects Yes by visible labels, resolves its tail, then verifies Calcenon coordinates. It does not guess inter-scene flags or credit a key receipt as a transfer. Installed BGM changes during the uninterrupted recovery are journaled only when their following public dialogue anchor is actually observed; no coordinate hotkey interrupts those scenes.</p>
+<p>From Calcenon, root can use the existing ordinary helpers: optionally413E46 Shelly[61,32] (sets1023), <strong>413E93 Eve[43,30] first page</strong> (sets39150), then413E67[28,31]→417[11,28]. House briefing autorun is417E29 unless878True, in which case417E30; either finishes39151. Exit417E6[11,29]→413[28,32]. Do not interact with Eve again blindly: her39150 page is a four-option PULSE information menu.</p>
+<p>Normal Pokémon Center:413E68[45,27]→415[10,10]; nurse415E4[10,4] calls the ordinary healing common event; PC415E7[14,3] runs <code>pbPokeCenterPC</code>; exit415E8[10,11]→413[45,28]. From the reviewed Arc/KG/Swamp/Mien/Cofa/Exc order, temporary Box1 slot12 <strong>Tranquill</strong> replaces party index1 <strong>Klinklang</strong> using visibly verified <code>pc_exchange_named.py 12 1 Tranquill Klinklang</code>. Keep the carrier until reaching Agate&#39;s PC752. Ordinary <code>fly_to.py 355</code> checks visited status, carrier Fly menu and destination label, and arrives at <strong>Circus355[30,13]</strong>. This remaining PC/Fly segment is root-owned, not included in this helper.</p>
+<p>Static supporting event dumps: <code>work/posthypno-source-735-4.json</code>, <code>...715-85.json</code>, <code>...734-16.json</code>, <code>...735-7.json</code>, <code>...758-35.json</code>, <code>...759-5.json</code>. <code>python3 scripts/post_hypno_exit.py</code> validated all approved installed pages; syntax and three pure guard regressions passed. Source checks never loaded a native save or ongoing battle log.</p>
+<p><code>scripts/post_hypno_static_route.py</code> additionally replays the route model using <strong>hypothetical</strong>39130/1874True/17A at758[28,102], updating only RAM copies after source-approved touch effects. Both826False and <code>--taka</code>/826True branches passed:17 bounded84-tile chunks,668 total steps, then ZEL/Shade source gates and Luna. The generated <code>work/post-hypno-static-route-proposal*.json</code> files are proposals with explicit <code>no_observed_completion</code>; real runtime actor movement/coordinates remain authoritative.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

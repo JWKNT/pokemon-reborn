@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_hypno_guarded_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_hypno_guarded_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded semantic fixtures; no game inputs or native files.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">import</span> unittest
+
+<span class="hljs-keyword">from</span> hypno_guarded_plan <span class="hljs-keyword">import</span> BUILD, MOVES, propose, pulse_ranges
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">state</span>(<span class="hljs-params">rows=(<span class="hljs-params"></span>), *, hp=<span class="hljs-number">294</span>, status=<span class="hljs-literal">None</span>, accept=<span class="hljs-literal">False</span></span>):
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">dict</span>(build=<span class="hljs-built_in">dict</span>(BUILD, moves=<span class="hljs-built_in">sorted</span>(MOVES)), ledger_complete=<span class="hljs-literal">True</span>,
+                stock=<span class="hljs-built_in">dict</span>(XSPEED=<span class="hljs-number">5</span>, XATTACK=<span class="hljs-number">4</span>, XSPDEF=<span class="hljs-number">12</span>, FULLHEAL=<span class="hljs-number">17</span>,
+                           ULTRAPOTION=<span class="hljs-number">31</span>, FULLRESTORE=<span class="hljs-number">0</span>),
+                observation=<span class="hljs-built_in">dict</span>(confirmed=<span class="hljs-literal">True</span>, command_menu=<span class="hljs-literal">True</span>, turn=<span class="hljs-built_in">len</span>(rows)+<span class="hljs-number">1</span>,
+                                 actor=<span class="hljs-string">&quot;Arcanine&quot;</span>, foe=<span class="hljs-string">&quot;Hypno&quot;</span>, field=<span class="hljs-string">&quot;STARLIGHT&quot;</span>,
+                                 weather=<span class="hljs-string">&quot;NONE&quot;</span>, hp=hp, status=status,
+                                 pp={m: <span class="hljs-number">8</span> <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> MOVES}),
+                turns=<span class="hljs-built_in">list</span>(rows), accept_critical_risk=accept)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">row</span>(<span class="hljs-params">n, action, enemy=<span class="hljs-string">&quot;HYPNOSIS&quot;</span>, *, result=<span class="hljs-string">&quot;success&quot;</span>, enemy_result=<span class="hljs-string">&quot;failed&quot;</span>,
+        expired=<span class="hljs-literal">False</span>, damage=<span class="hljs-literal">None</span></span>):
+    p = <span class="hljs-built_in">dict</span>(action=action, result=result)
+    <span class="hljs-keyword">if</span> action.startswith(<span class="hljs-string">&quot;X&quot;</span>) <span class="hljs-keyword">or</span> action <span class="hljs-keyword">in</span> {<span class="hljs-string">&quot;FULLHEAL&quot;</span>, <span class="hljs-string">&quot;ULTRAPOTION&quot;</span>, <span class="hljs-string">&quot;FULLRESTORE&quot;</span>}:
+        p[<span class="hljs-string">&quot;consumed&quot;</span>] = result == <span class="hljs-string">&quot;success&quot;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">dict</span>(turn=n, completed=<span class="hljs-literal">True</span>, confirmed=<span class="hljs-literal">True</span>, player=p,
+                enemy=<span class="hljs-built_in">dict</span>(move=enemy, result=enemy_result),
+                safeguard_expired=expired, observed_hp_damage=damage)
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">HypnoPlanTest</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_initial_speed_is_one_priority_item</span>(<span class="hljs-params">self</span>):
+        value = propose(state())
+        <span class="hljs-variable language_">self</span>.assertEqual(value[<span class="hljs-string">&quot;action&quot;</span>], <span class="hljs-string">&quot;XSPEED&quot;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(value[<span class="hljs-string">&quot;ordinary_helper_argv&quot;</span>][-<span class="hljs-number">1</span>], <span class="hljs-string">&quot;--active&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_sleep_cure_before_any_setup</span>(<span class="hljs-params">self</span>):
+        first = row(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;XSPEED&quot;</span>, enemy_result=<span class="hljs-string">&quot;success&quot;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(propose(state([first], status=<span class="hljs-string">&quot;SLEEP&quot;</span>))[<span class="hljs-string">&quot;action&quot;</span>], <span class="hljs-string">&quot;FULLHEAL&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_cure_then_awake_fast_safeguard</span>(<span class="hljs-params">self</span>):
+        rows = [row(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;XSPEED&quot;</span>, enemy_result=<span class="hljs-string">&quot;success&quot;</span>),
+                row(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;FULLHEAL&quot;</span>, <span class="hljs-string">&quot;DREAMEATER&quot;</span>)]
+        <span class="hljs-variable language_">self</span>.assertEqual(propose(state(rows))[<span class="hljs-string">&quot;action&quot;</span>], <span class="hljs-string">&quot;SAFEGUARD&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_hp_critical_margin_healing_precedes_setup</span>(<span class="hljs-params">self</span>):
+        rows = [row(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;XSPEED&quot;</span>, <span class="hljs-string">&quot;DARKPULSE&quot;</span>, enemy_result=<span class="hljs-string">&quot;success&quot;</span>, damage=<span class="hljs-number">119</span>)]
+        <span class="hljs-variable language_">self</span>.assertEqual(propose(state(rows, hp=<span class="hljs-number">175</span>))[<span class="hljs-string">&quot;action&quot;</span>], <span class="hljs-string">&quot;ULTRAPOTION&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_safeguard_cast_end_is_four_not_five</span>(<span class="hljs-params">self</span>):
+        rows = [row(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;XSPEED&quot;</span>), row(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;SAFEGUARD&quot;</span>)]
+        value = propose(state(rows))
+        <span class="hljs-variable language_">self</span>.assertEqual(value[<span class="hljs-string">&quot;derived&quot;</span>][<span class="hljs-string">&quot;safeguard&quot;</span>], <span class="hljs-number">4</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(value[<span class="hljs-string">&quot;action&quot;</span>], <span class="hljs-string">&quot;XATTACK&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_expiry_next_command_recast_before_hypnosis</span>(<span class="hljs-params">self</span>):
+        rows = [row(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;XSPEED&quot;</span>), row(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;SAFEGUARD&quot;</span>), row(<span class="hljs-number">3</span>, <span class="hljs-string">&quot;XATTACK&quot;</span>),
+                row(<span class="hljs-number">4</span>, <span class="hljs-string">&quot;XATTACK&quot;</span>), row(<span class="hljs-number">5</span>, <span class="hljs-string">&quot;MORNINGSUN&quot;</span>),
+                row(<span class="hljs-number">6</span>, <span class="hljs-string">&quot;MORNINGSUN&quot;</span>, expired=<span class="hljs-literal">True</span>)]
+        value = propose(state(rows))
+        <span class="hljs-variable language_">self</span>.assertEqual(value[<span class="hljs-string">&quot;derived&quot;</span>][<span class="hljs-string">&quot;safeguard&quot;</span>], <span class="hljs-number">0</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(value[<span class="hljs-string">&quot;action&quot;</span>], <span class="hljs-string">&quot;SAFEGUARD&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_finishing_crunch_beats_unneeded_recast_after_expiry</span>(<span class="hljs-params">self</span>):
+        rows = [row(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;XSPEED&quot;</span>), row(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;SAFEGUARD&quot;</span>), row(<span class="hljs-number">3</span>, <span class="hljs-string">&quot;XATTACK&quot;</span>),
+                row(<span class="hljs-number">4</span>, <span class="hljs-string">&quot;XATTACK&quot;</span>), row(<span class="hljs-number">5</span>, <span class="hljs-string">&quot;MORNINGSUN&quot;</span>),
+                row(<span class="hljs-number">6</span>, <span class="hljs-string">&quot;CRUNCH&quot;</span>, expired=<span class="hljs-literal">True</span>)]
+        value = propose(state(rows, hp=<span class="hljs-number">30</span>))
+        <span class="hljs-variable language_">self</span>.assertEqual(value[<span class="hljs-string">&quot;derived&quot;</span>][<span class="hljs-string">&quot;foe_hp_bound&quot;</span>], <span class="hljs-number">157</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(value[<span class="hljs-string">&quot;action&quot;</span>], <span class="hljs-string">&quot;CRUNCH&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_false_early_refresh_is_rejected</span>(<span class="hljs-params">self</span>):
+        rows = [row(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;XSPEED&quot;</span>), row(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;SAFEGUARD&quot;</span>), row(<span class="hljs-number">3</span>, <span class="hljs-string">&quot;SAFEGUARD&quot;</span>)]
+        <span class="hljs-variable language_">self</span>.assertEqual(propose(state(rows))[<span class="hljs-string">&quot;status&quot;</span>], <span class="hljs-string">&quot;review&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_failed_refresh_still_ticks_a_turn</span>(<span class="hljs-params">self</span>):
+        rows = [row(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;XSPEED&quot;</span>), row(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;SAFEGUARD&quot;</span>),
+                row(<span class="hljs-number">3</span>, <span class="hljs-string">&quot;SAFEGUARD&quot;</span>, result=<span class="hljs-string">&quot;failed&quot;</span>)]
+        <span class="hljs-variable language_">self</span>.assertEqual(propose(state(rows))[<span class="hljs-string">&quot;derived&quot;</span>][<span class="hljs-string">&quot;safeguard&quot;</span>], <span class="hljs-number">3</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_missing_expiry_line_fails_closed</span>(<span class="hljs-params">self</span>):
+        rows = [row(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;XSPEED&quot;</span>), row(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;SAFEGUARD&quot;</span>), row(<span class="hljs-number">3</span>, <span class="hljs-string">&quot;XATTACK&quot;</span>),
+                row(<span class="hljs-number">4</span>, <span class="hljs-string">&quot;XATTACK&quot;</span>), row(<span class="hljs-number">5</span>, <span class="hljs-string">&quot;MORNINGSUN&quot;</span>), row(<span class="hljs-number">6</span>, <span class="hljs-string">&quot;MORNINGSUN&quot;</span>)]
+        <span class="hljs-variable language_">self</span>.assertEqual(propose(state(rows))[<span class="hljs-string">&quot;status&quot;</span>], <span class="hljs-string">&quot;review&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_critical_ignores_all_defensive_boosts</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.assertEqual(pulse_ranges(<span class="hljs-number">2</span>, <span class="hljs-number">0</span>)[<span class="hljs-number">1</span>], [<span class="hljs-number">326</span>, <span class="hljs-number">383</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(pulse_ranges(<span class="hljs-number">2</span>, <span class="hljs-number">6</span>)[<span class="hljs-number">1</span>], [<span class="hljs-number">326</span>, <span class="hljs-number">383</span>])
+        rows = [row(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;XSPEED&quot;</span>, <span class="hljs-string">&quot;CALMMIND&quot;</span>, enemy_result=<span class="hljs-string">&quot;success&quot;</span>),
+                row(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;SAFEGUARD&quot;</span>, <span class="hljs-string">&quot;CALMMIND&quot;</span>, enemy_result=<span class="hljs-string">&quot;success&quot;</span>)]
+        <span class="hljs-variable language_">self</span>.assertEqual(propose(state(rows))[<span class="hljs-string">&quot;status&quot;</span>], <span class="hljs-string">&quot;review&quot;</span>)
+        value = propose(state(rows, accept=<span class="hljs-literal">True</span>))
+        <span class="hljs-variable language_">self</span>.assertTrue(value[<span class="hljs-string">&quot;critical_can_ohko_full_hp&quot;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(value[<span class="hljs-string">&quot;action&quot;</span>], <span class="hljs-string">&quot;XSPDEF&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_stock_refund_and_turn_omission_are_not_assumed</span>(<span class="hljs-params">self</span>):
+        bad = state([row(<span class="hljs-number">1</span>, <span class="hljs-string">&quot;XSPEED&quot;</span>)])
+        bad[<span class="hljs-string">&quot;turns&quot;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&quot;player&quot;</span>][<span class="hljs-string">&quot;consumed&quot;</span>] = <span class="hljs-literal">False</span>
+        <span class="hljs-variable language_">self</span>.assertEqual(propose(bad)[<span class="hljs-string">&quot;status&quot;</span>], <span class="hljs-string">&quot;review&quot;</span>)
+        missing = state([row(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;XSPEED&quot;</span>)])
+        <span class="hljs-variable language_">self</span>.assertEqual(propose(missing)[<span class="hljs-string">&quot;status&quot;</span>], <span class="hljs-string">&quot;review&quot;</span>)
+        changed = copy.deepcopy(state())
+        changed[<span class="hljs-string">&quot;build&quot;</span>][<span class="hljs-string">&quot;speed&quot;</span>] = <span class="hljs-number">177</span>
+        <span class="hljs-variable language_">self</span>.assertEqual(propose(changed)[<span class="hljs-string">&quot;status&quot;</span>], <span class="hljs-string">&quot;review&quot;</span>)
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    unittest.main()
+</code></pre>
+  </body>
+</html>

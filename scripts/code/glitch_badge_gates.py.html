@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glitch_badge_gates.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glitch_badge_gates.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Queue the inspected badge-gate sequence; stop for any unexpected state.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">observed_var</span>(<span class="hljs-params">n,value</span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v.setdefault(<span class="hljs-string">&#x27;variables&#x27;</span>,{})[<span class="hljs-built_in">str</span>(n)]=value;p.write_text(json.dumps(v))
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">gate</span>(<span class="hljs-params">mid,event,word</span>):
+ rc=subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(event),<span class="hljs-string">&#x27;talk&#x27;</span>])
+ <span class="hljs-keyword">if</span> rc <span class="hljs-keyword">and</span> word.lower() <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> read().lower():<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unexpected gate interruption&#x27;</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--resume-first&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ <span class="hljs-keyword">assert</span> locate()[<span class="hljs-number">0</span>]==<span class="hljs-number">446</span>
+ gate(<span class="hljs-number">446</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;VOLTBADGE&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">446</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>);observed_var(<span class="hljs-number">193</span>,<span class="hljs-number">33</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">446</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+<span class="hljs-keyword">for</span> event,stage <span class="hljs-keyword">in</span> [(<span class="hljs-number">5</span>,<span class="hljs-number">34</span>),(<span class="hljs-number">9</span>,<span class="hljs-number">35</span>),(<span class="hljs-number">11</span>,<span class="hljs-number">36</span>)]:
+ gate(<span class="hljs-number">443</span>,event,{<span class="hljs-number">5</span>:<span class="hljs-string">&#x27;CANOPY&#x27;</span>,<span class="hljs-number">9</span>:<span class="hljs-string">&#x27;COCOON&#x27;</span>,<span class="hljs-number">11</span>:<span class="hljs-string">&#x27;OMEN&#x27;</span>}[event]);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">443</span>,event,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>);observed_var(<span class="hljs-number">193</span>,stage)
+observed_var(<span class="hljs-number">215</span>,<span class="hljs-number">6</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">443</span>,<span class="hljs-number">25</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate()[<span class="hljs-number">0</span>]==<span class="hljs-number">445</span>
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">445</span>,<span class="hljs-number">9</span>,<span class="hljs-string">&#x27;item&#x27;</span>);run(<span class="hljs-string">&#x27;mark_event&#x27;</span>,<span class="hljs-number">445</span>,<span class="hljs-number">9</span>)
+run(<span class="hljs-string">&#x27;field_medicine&#x27;</span>,<span class="hljs-string">&#x27;Rare Candy&#x27;</span>,<span class="hljs-string">&#x27;Kricketune&#x27;</span>);run(<span class="hljs-string">&#x27;candy_progress&#x27;</span>);run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;RARE CANDY AND PERISH SONG PREPARATION COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

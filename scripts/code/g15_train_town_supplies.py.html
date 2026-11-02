@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g15_train_town_supplies.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g15_train_town_supplies.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Native route supplies and castle car maze from observed TrainTown exit.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">r</span>(<span class="hljs-params">s,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+r(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">691</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;item&#x27;</span>);r(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">691</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;item&#x27;</span>);r(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">691</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;item&#x27;</span>)
+r(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Amulet Coin&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>)
+r(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">691</span>,<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);r(<span class="hljs-string">&#x27;settle_arrival&#x27;</span>,<span class="hljs-number">686</span>)
+r(<span class="hljs-string">&#x27;room_follow&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/g15-car-maze-to-fairy.json&#x27;</span>)
+r(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">686</span>,<span class="hljs-number">29</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);r(<span class="hljs-string">&#x27;settle_arrival&#x27;</span>,<span class="hljs-number">696</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FAIRY MAZE ARRIVAL COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>yveltal385_magearna_attack.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of yveltal385_magearna_attack.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">for</span> script,args <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;battle_item&#x27;</span>,[<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,<span class="hljs-string">&#x27;Magearna&#x27;</span>]),(<span class="hljs-string">&#x27;battle_move&#x27;</span>,[<span class="hljs-string">&#x27;3&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>]),(<span class="hljs-string">&#x27;battle_move&#x27;</span>,[<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>])]:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{script}</span>.py&#x27;</span>),*args],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g10_depart.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g10_depart.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> save
+save()
+<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+raw=subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/status.rb&#x27;</span>)],stderr=subprocess.DEVNULL)
+(ROOT/<span class="hljs-string">&#x27;notes/g10-depart-status.json&#x27;</span>).write_bytes(raw)
+x=json.loads(raw)
+<span class="hljs-keyword">assert</span> x[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">5</span>][<span class="hljs-string">&#x27;level&#x27;</span>]==<span class="hljs-number">70</span> <span class="hljs-keyword">and</span> x[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">5</span>][<span class="hljs-string">&#x27;item&#x27;</span>]==<span class="hljs-string">&#x27;ODDINCENSE&#x27;</span>,x[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">5</span>]
+<span class="hljs-keyword">assert</span> x[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;item&#x27;</span>]==<span class="hljs-string">&#x27;EXPSHARE&#x27;</span>,x[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>]
+<span class="hljs-keyword">import</span> shutil
+shutil.copy2(<span class="hljs-string">&#x27;/Users/jw/Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>,ROOT/<span class="hljs-string">&#x27;backups/Aster-Circus-depart.rxdata&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">&#x27;355,13,34,left,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,8,33,up,wait:2&#x27;</span>,<span class="hljs-string">&#x27;365,4,63,left,wait:2&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

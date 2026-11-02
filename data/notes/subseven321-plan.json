@@ -1,0 +1,82 @@
+{
+  "status": "preparing",
+  "source": "work/321-subseven-static.json and work/321-subseven-trainers.json, installed19.5.43",
+  "route_from_grandhall": [
+    [
+      "city_enter",
+      38,
+      519
+    ],
+    [
+      "fly_to",
+      524
+    ],
+    [
+      "eventq",
+      524,
+      30,
+      "enter"
+    ],
+    [
+      "eventq",
+      168,
+      8,
+      "enter"
+    ],
+    [
+      "eventq",
+      168,
+      15,
+      "enter"
+    ],
+    [
+      "city_enter",
+      324,
+      328
+    ],
+    [
+      "city_enter",
+      328,
+      329
+    ],
+    [
+      "city_enter",
+      329,
+      330
+    ],
+    [
+      "eventq",
+      330,
+      12,
+      "enter"
+    ],
+    [
+      "eventq",
+      332,
+      21,
+      "talk"
+    ]
+  ],
+  "first_battle": {
+    "map": 871,
+    "event": 9,
+    "leads": [
+      "Drampa",
+      "Aurorus"
+    ],
+    "party_front": [
+      "Magearna",
+      "Mienshao"
+    ],
+    "turn1": "Magearna Flash Cannon into Aurorus (4x); Mienshao Fake Out into Drampa to block its Heat Wave. Avoid initial Trick Room: Drampa is slower than Magearna.",
+    "turn2": "If Drampa survives lead, Mienshao High Jump Kick it; Magearna targets replacement with Flash Cannon. Adapt to public result."
+  },
+  "major_ids_proposed": {
+    "194": "Anomaly Palkia",
+    "195": "Anomaly Dialga",
+    "196": "Umbral Taka if route triggers"
+  },
+  "maze_mechanic": "Normal statue ability allows passage through walls within Manhattan radius8 from activation point. Crossing radius8 turns Through off; A returns to saved statue origin. Use installed layout and public coords only.",
+  "optional_return": "Gracidea flower to right of giftShaymin not yet collected. Native Shaymin120 storedBox3slot3; do not claimGracideaobtained.",
+  "route_correction_322": "After E8 elevator, E18 console choose7thStreet, dismissLeveltext, save navigation, E11exit thenE15. VerifiednormalUI."
+}

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>endgame_forfeit326.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of endgame_forfeit326.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Use the normal trainer forfeit once to unlock Endgame&#x27;s intended PC fallback.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+t=read().lower()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--at-choice&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;--after-choice&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;run&#x27;</span> <span class="hljs-keyword">in</span> t, <span class="hljs-string">&#x27;Battle command required&#x27;</span>
+ act(<span class="hljs-string">&#x27;right:.2&#x27;</span>,<span class="hljs-string">&#x27;down:.2&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--after-choice&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;forfeit&#x27;</span> <span class="hljs-keyword">in</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t.lower()), <span class="hljs-string">&#x27;Expected normal forfeit confirmation&#x27;</span>
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>],check=<span class="hljs-literal">True</span>)
+blank=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">40</span>):
+ t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>);low=t.lower()
+ <span class="hljs-keyword">if</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,low) <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27;pokemonreborn&#x27;</span>]:
+  blank+=<span class="hljs-number">1</span>
+  <span class="hljs-keyword">if</span> blank&gt;=<span class="hljs-number">3</span>:<span class="hljs-keyword">break</span>
+  act(<span class="hljs-string">&#x27;wait:.7&#x27;</span>);<span class="hljs-keyword">continue</span>
+ blank=<span class="hljs-number">0</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> (<span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;choose a pok&#x27;</span> <span class="hljs-keyword">in</span> low), <span class="hljs-string">&#x27;Unexpected battle input&#x27;</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;forfeited&#x27;</span>,<span class="hljs-string">&#x27;out of usable&#x27;</span>,<span class="hljs-string">&#x27;lost against&#x27;</span>,<span class="hljs-string">&#x27;paid&#x27;</span>,<span class="hljs-string">&#x27;prize money&#x27;</span>,<span class="hljs-string">&#x27;blacked out&#x27;</span>,<span class="hljs-string">&#x27;scurried&#x27;</span>,<span class="hljs-string">&#x27;exhausted&#x27;</span>,<span class="hljs-string">&#x27;fainted pok&#x27;</span>]) <span class="hljs-keyword">or</span> re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,low)==<span class="hljs-string">&#x27;pokemonreborn&#x27;</span>, <span class="hljs-string">&#x27;Loss dialogue review: &#x27;</span>+t
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Loss transition limit&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NORMAL FORFEIT COMPLETE; WORLD OBSERVED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

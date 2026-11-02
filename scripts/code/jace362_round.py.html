@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>jace362_round.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of jace362_round.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed Jace v4 funding round with bulky Arcanine and Amulet Coin.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,re,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+label=sys.argv[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">assert</span> re.fullmatch(<span class="hljs-string">r&#x27;Postgame362-Jace[1-3]&#x27;</span>,label)
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> (ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).exists()
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_STEP_PAUSE=<span class="hljs-string">&#x27;.10&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;56&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;JACE FUNDING&#x27;</span>,name,*args,flush=<span class="hljs-literal">True</span>)
+    subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+foes=[<span class="hljs-string">&#x27;Drifblim&#x27;</span>,<span class="hljs-string">&#x27;Watchog&#x27;</span>,<span class="hljs-string">&#x27;Cherrim&#x27;</span>,<span class="hljs-string">&#x27;Comfey&#x27;</span>,<span class="hljs-string">&#x27;Bisharp&#x27;</span>]
+(ROOT/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>).write_text(json.dumps({<span class="hljs-string">&#x27;expected_foes&#x27;</span>:foes,<span class="hljs-string">&#x27;scope&#x27;</span>:<span class="hljs-string">&#x27;Installed Jace v4 level83–86; Arcanine140 Flamethrower1, full529HP before each round.&#x27;</span>}))
+run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>)
+run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">42</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,<span class="hljs-string">&#x27;COOLTRAINER_Male&#x27;</span>,<span class="hljs-string">&#x27;Jace&#x27;</span>,<span class="hljs-string">&#x27;--map&#x27;</span>,<span class="hljs-number">38</span>)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">42</span>,<span class="hljs-string">&#x27;COOLTRAINER_Male&#x27;</span>,<span class="hljs-string">&#x27;Jace&#x27;</span>,<span class="hljs-string">&#x27;--expand-common&#x27;</span>,<span class="hljs-string">&#x27;--active-dialogue&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>,<span class="hljs-string">&#x27;--resume-intro&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;,&#x27;</span>.join(foes),<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;--stay&#x27;</span>,<span class="hljs-string">&#x27;--stay-team-reviewed&#x27;</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-number">.40</span>,<span class="hljs-string">&#x27;--recover-below&#x27;</span>,<span class="hljs-number">.65</span>,<span class="hljs-string">&#x27;--recover-slot&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--stop-after-victory&#x27;</span>)
+run(<span class="hljs-string">&#x27;grandhall_reward&#x27;</span>)
+run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>,<span class="hljs-string">&#x27;--world-verified&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+v=json.loads((ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> v[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">38</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(p[<span class="hljs-string">&#x27;hp&#x27;</span>]==p[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">and</span> p[<span class="hljs-string">&#x27;status&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;party&#x27;</span>])
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ROUND VERIFIED&#x27;</span>,v[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>],v[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;EXPCANDYXL&#x27;</span>],flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

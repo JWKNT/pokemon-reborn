@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>plan_sw_cart_static.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of plan_sw_cart_static.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Offline switch/cart BFS; only normal reachable lever and cart interactions.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> ast,json,heapq,re,subprocess,copy,pickle,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque
+<span class="hljs-keyword">from</span> static_cart_model <span class="hljs-keyword">import</span> cart_transition
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>];ns=<span class="hljs-built_in">dict</span>(ROOT=R,json=json,heapq=heapq,re=re)
+t=ast.parse((R/<span class="hljs-string">&#x27;scripts/nav.py&#x27;</span>).read_text());f=<span class="hljs-built_in">next</span>(n <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> t.body <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(n,ast.FunctionDef)<span class="hljs-keyword">and</span> n.name==<span class="hljs-string">&#x27;route&#x27;</span>);<span class="hljs-built_in">exec</span>(<span class="hljs-built_in">compile</span>(ast.Module(body=[f],type_ignores=[]),<span class="hljs-string">&#x27;route&#x27;</span>,<span class="hljs-string">&#x27;exec&#x27;</span>),ns)
+cs=json.loads((R/<span class="hljs-string">&#x27;work/191-sw-cart88.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;list&#x27;</span>];positions={<span class="hljs-built_in">int</span>(k):<span class="hljs-built_in">tuple</span>(v)<span class="hljs-keyword">for</span> k,v <span class="hljs-keyword">in</span> json.loads((R/<span class="hljs-string">&#x27;work/191-sw-cart-positions.json&#x27;</span>).read_text()).items()};cache=R/<span class="hljs-string">&#x27;work/192-sw-entry-graphs.pkl&#x27;</span>
+<span class="hljs-keyword">if</span> cache.exists():graphs,events=pickle.loads(cache.read_bytes())
+<span class="hljs-keyword">else</span>:
+ graphs=[]
+ <span class="hljs-keyword">for</span> mask <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">128</span>):
+  extra={<span class="hljs-string">&#x27;switches&#x27;</span>:{<span class="hljs-built_in">str</span>(<span class="hljs-number">1136</span>+i):<span class="hljs-built_in">bool</span>(mask&amp;(<span class="hljs-number">1</span>&lt;&lt;i))<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">7</span>)}}
+  v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-string">&#x27;786&#x27;</span>,<span class="hljs-string">&#x27;90&#x27;</span>,<span class="hljs-string">&#x27;59&#x27;</span>,json.dumps(extra)],stderr=subprocess.DEVNULL));events=v[<span class="hljs-string">&#x27;events&#x27;</span>];v[<span class="hljs-string">&#x27;events&#x27;</span>].pop(<span class="hljs-string">&#x27;88&#x27;</span>,<span class="hljs-literal">None</span>);g=ns[<span class="hljs-string">&#x27;route&#x27;</span>](v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+  inside=<span class="hljs-keyword">lambda</span> p:<span class="hljs-number">50</span>&lt;=p[<span class="hljs-number">0</span>]&lt;=<span class="hljs-number">130</span> <span class="hljs-keyword">and</span> <span class="hljs-number">15</span>&lt;=p[<span class="hljs-number">1</span>]&lt;=<span class="hljs-number">78</span>
+  graphs.append({p:[(k,n)<span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> edges <span class="hljs-keyword">if</span> inside(n)]<span class="hljs-keyword">for</span> p,edges <span class="hljs-keyword">in</span> g.items()<span class="hljs-keyword">if</span> inside(p)})
+ cache.write_bytes(pickle.dumps((graphs,events)))
+initialmask=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>])<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+levers=[<span class="hljs-string">&#x27;70&#x27;</span>,<span class="hljs-string">&#x27;72&#x27;</span>,<span class="hljs-string">&#x27;74&#x27;</span>,<span class="hljs-string">&#x27;76&#x27;</span>,<span class="hljs-string">&#x27;79&#x27;</span>,<span class="hljs-string">&#x27;80&#x27;</span>,<span class="hljs-string">&#x27;82&#x27;</span>];q=deque([((<span class="hljs-number">90</span>,<span class="hljs-number">59</span>),initialmask,<span class="hljs-number">0</span>,[])]);seen=<span class="hljs-built_in">set</span>()
+<span class="hljs-keyword">while</span> q:
+ p,mask,state,plan=q.popleft();g=graphs[mask];cart=positions[state];rr={p};qq=deque([p])
+ <span class="hljs-keyword">while</span> qq:
+  <span class="hljs-keyword">for</span> k,n <span class="hljs-keyword">in</span> g.get(qq.popleft(),[]):
+   <span class="hljs-keyword">if</span> n!=cart <span class="hljs-keyword">and</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> rr:rr.add(n);qq.append(n)
+ key=(<span class="hljs-built_in">min</span>(rr),mask,state)
+ <span class="hljs-keyword">if</span> key <span class="hljs-keyword">in</span> seen:<span class="hljs-keyword">continue</span>
+ seen.add(key)
+ adjacent=<span class="hljs-keyword">lambda</span> xy:<span class="hljs-built_in">sorted</span>(rr.intersection({(xy[<span class="hljs-number">0</span>]+dx,xy[<span class="hljs-number">1</span>]+dy)<span class="hljs-keyword">for</span> dx,dy <span class="hljs-keyword">in</span> [(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)]}))
+ <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> adjacent(cart):
+  new,xy=cart_transition(cs,<span class="hljs-number">497</span>,state,{<span class="hljs-number">1136</span>+i:<span class="hljs-built_in">bool</span>(mask&amp;(<span class="hljs-number">1</span>&lt;&lt;i))<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">7</span>)},cart)
+  <span class="hljs-keyword">if</span> new==state:<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">assert</span> positions[new]==xy
+  pp=plan+[<span class="hljs-built_in">dict</span>(cart=<span class="hljs-number">88</span>,before=state,after=new,approach=a,cart_to=xy)]
+  <span class="hljs-keyword">if</span> new==<span class="hljs-number">8</span>:
+   out=<span class="hljs-built_in">dict</span>(initial_mask=initialmask,actions=pp,states=<span class="hljs-built_in">len</span>(seen));(R/<span class="hljs-string">&#x27;work/191-sw-cart-solution.json&#x27;</span>).write_text(json.dumps(out,indent=<span class="hljs-number">2</span>));<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FOUND&#x27;</span>,<span class="hljs-built_in">len</span>(pp),<span class="hljs-string">&#x27;actions&#x27;</span>,<span class="hljs-built_in">len</span>(seen),<span class="hljs-string">&#x27;states&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-number">0</span>)
+  q.append((a,mask,new,pp))
+ <span class="hljs-keyword">for</span> i,eid <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(levers):
+  e=events[eid]
+  <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> adjacent((e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])):q.append((a,mask^(<span class="hljs-number">1</span>&lt;&lt;i),state,plan+[<span class="hljs-built_in">dict</span>(lever=<span class="hljs-built_in">int</span>(eid),after=<span class="hljs-keyword">not</span> <span class="hljs-built_in">bool</span>(mask&amp;(<span class="hljs-number">1</span>&lt;&lt;i)),approach=a)]))
+<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;No solution &#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">len</span>(seen)))
+</code></pre>
+  </body>
+</html>

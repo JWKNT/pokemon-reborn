@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>fast_chest_transition.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of fast_chest_transition.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;After a publicly observed wild faint, intercept from recorded map pixels.
+No game process/save/battle internals are accessed. Only the active capture
+preview, installed map art and explicitly reviewed navigation inputs are used.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,time,sys,subprocess
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> cv2,numpy <span class="hljs-keyword">as</span> np
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">finish</span>(<span class="hljs-params">timeout=<span class="hljs-number">12</span></span>):
+ <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> act
+ sift=cv2.SIFT_create(nfeatures=<span class="hljs-number">4500</span>)
+ world=cv2.imread(<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;work/779-clean-map.png&#x27;</span>),<span class="hljs-number">0</span>);kw,dw=sift.detectAndCompute(world,<span class="hljs-literal">None</span>)
+ deadline=time.time()+timeout
+ settled_after=<span class="hljs-literal">None</span>
+ settle_delay=<span class="hljs-built_in">float</span>(os.environ.get(<span class="hljs-string">&quot;REBORN_WORLD_SETTLE&quot;</span>,<span class="hljs-string">&quot;.35&quot;</span>));<span class="hljs-keyword">assert</span> <span class="hljs-number">.05</span>&lt;=settle_delay&lt;=<span class="hljs-number">.5</span>
+ step_wait=<span class="hljs-built_in">float</span>(os.environ.get(<span class="hljs-string">&quot;REBORN_WORLD_STEP_WAIT&quot;</span>,<span class="hljs-string">&quot;.10&quot;</span>));<span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;=step_wait&lt;=<span class="hljs-number">.2</span>
+ step_hold=<span class="hljs-built_in">float</span>(os.environ.get(<span class="hljs-string">&quot;REBORN_WORLD_STEP_HOLD&quot;</span>,<span class="hljs-string">&quot;.12&quot;</span>));<span class="hljs-keyword">assert</span> <span class="hljs-number">.08</span>&lt;=step_hold&lt;=<span class="hljs-number">.2</span>
+ <span class="hljs-keyword">while</span> time.time()&lt;deadline:
+  h=json.loads((R/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+  <span class="hljs-keyword">assert</span> h.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">and</span> time.time()-h[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;<span class="hljs-number">2</span>,<span class="hljs-string">&#x27;Fresh active capture required&#x27;</span>
+  frame=cv2.imread(<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>))
+  <span class="hljs-keyword">if</span> frame <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:time.sleep(<span class="hljs-number">.05</span>);<span class="hljs-keyword">continue</span>
+  <span class="hljs-comment"># Battle and story text windows are predominantly white inside this patch.</span>
+  patch=frame[<span class="hljs-number">480</span>:<span class="hljs-number">565</span>,<span class="hljs-number">70</span>:<span class="hljs-number">770</span>]
+  white=np.mean((patch.<span class="hljs-built_in">min</span>(<span class="hljs-number">2</span>)&gt;<span class="hljs-number">235</span>)&amp;((patch.<span class="hljs-built_in">max</span>(<span class="hljs-number">2</span>)-patch.<span class="hljs-built_in">min</span>(<span class="hljs-number">2</span>))&lt;<span class="hljs-number">5</span>))
+  kf,df=sift.detectAndCompute(cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY),<span class="hljs-literal">None</span>)
+  <span class="hljs-keyword">if</span> df <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:time.sleep(<span class="hljs-number">.05</span>);<span class="hljs-keyword">continue</span>
+  pairs=cv2.BFMatcher().knnMatch(dw,df,k=<span class="hljs-number">2</span>);good=[a <span class="hljs-keyword">for</span> a,b <span class="hljs-keyword">in</span> pairs <span class="hljs-keyword">if</span> a.distance&lt;<span class="hljs-number">.65</span>*b.distance]
+  unique={}
+  <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(good,key=<span class="hljs-keyword">lambda</span> m:m.distance):unique.setdefault(m.trainIdx,m)
+  good=<span class="hljs-built_in">list</span>(unique.values())
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(good)&lt;<span class="hljs-number">18</span>:<span class="hljs-keyword">continue</span>
+  M,mask=cv2.estimateAffinePartial2D(np.float32([kw[m.queryIdx].pt <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> good]),np.float32([kf[m.trainIdx].pt <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> good]),method=cv2.RANSAC,ransacReprojThreshold=<span class="hljs-number">2</span>)
+  <span class="hljs-keyword">if</span> M <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> mask.<span class="hljs-built_in">sum</span>()&lt;<span class="hljs-number">18</span> <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> <span class="hljs-number">1.60</span>&lt;M[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>]&lt;<span class="hljs-number">1.72</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">abs</span>(M[<span class="hljs-number">0</span>,<span class="hljs-number">1</span>])&gt;<span class="hljs-number">.02</span>:<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">if</span> settled_after <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+   settled_after=time.time()+settle_delay
+  <span class="hljs-keyword">if</span> time.time()&lt;settled_after:time.sleep(<span class="hljs-number">.03</span>);<span class="hljs-keyword">continue</span>
+  reference=cv2.warpAffine(world,M,(frame.shape[<span class="hljs-number">1</span>],frame.shape[<span class="hljs-number">0</span>]))
+  mono=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY);valid=(reference&gt;<span class="hljs-number">40</span>)&amp;(mono&gt;<span class="hljs-number">8</span>)
+  brightness=<span class="hljs-built_in">float</span>(np.median(mono[valid]/reference[valid]))
+  gray=np.mean((patch.<span class="hljs-built_in">min</span>(<span class="hljs-number">2</span>)&gt;<span class="hljs-number">110</span>)&amp;((patch.<span class="hljs-built_in">max</span>(<span class="hljs-number">2</span>)-patch.<span class="hljs-built_in">min</span>(<span class="hljs-number">2</span>))&lt;<span class="hljs-number">25</span>))
+  <span class="hljs-keyword">if</span> gray&gt;<span class="hljs-number">.4</span>:
+   <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read
+   text=<span class="hljs-string">&#x27; &#x27;</span>.join(read().lower().split())
+   <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;garchomp is preparing&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;rush&#x27;</span> <span class="hljs-keyword">in</span> text:
+    act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.10&#x27;</span>);<span class="hljs-keyword">continue</span>
+   <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;repel&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;wore off&#x27;</span> <span class="hljs-keyword">in</span> text:
+    act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.18&#x27;</span>,<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.10&#x27;</span>);<span class="hljs-keyword">continue</span>
+   <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;use another repel&#x27;</span> <span class="hljs-keyword">in</span> text:
+    act(<span class="hljs-string">&#x27;x:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.10&#x27;</span>);<span class="hljs-keyword">continue</span>
+   <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(text.replace(<span class="hljs-string">&#x27;pokemon reborn&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).strip())&lt;<span class="hljs-number">10</span>:time.sleep(<span class="hljs-number">.05</span>);<span class="hljs-keyword">continue</span>
+   <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Unexpected dialogue over map: &#x27;</span>+text)
+  proof={<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;matrix&#x27;</span>:M.tolist(),<span class="hljs-string">&#x27;inliers&#x27;</span>:<span class="hljs-built_in">int</span>(mask.<span class="hljs-built_in">sum</span>()),<span class="hljs-string">&#x27;white_fraction&#x27;</span>:<span class="hljs-built_in">float</span>(white),<span class="hljs-string">&#x27;brightness_ratio&#x27;</span>:brightness,<span class="hljs-string">&#x27;basis&#x27;</span>:<span class="hljs-string">&#x27;Public recorded world pixels matched installed map art&#x27;</span>}
+  cv2.imwrite(<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;work/fast-chest-transition-world.png&#x27;</span>),frame)
+  checkpoint=os.environ.get(<span class="hljs-string">&#x27;REBORN_POST_BATTLE_CHECKPOINT&#x27;</span>)
+  <span class="hljs-keyword">if</span> checkpoint:
+   subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/chest_prompt_checkpoint.py&#x27;</span>),checkpoint],check=<span class="hljs-literal">True</span>)
+   proof.update(checkpoint=checkpoint,input_end_epoch=time.time())
+   (R/<span class="hljs-string">&#x27;work/fast-chest-transition.json&#x27;</span>).write_text(json.dumps(proof,indent=<span class="hljs-number">2</span>))
+   <span class="hljs-keyword">return</span>
+  route=os.environ.get(<span class="hljs-string">&#x27;REBORN_POST_BATTLE_ROUTE&#x27;</span>);seq=[]
+  goal=os.environ.get(<span class="hljs-string">&#x27;REBORN_POST_BATTLE_GOAL&#x27;</span>)
+  <span class="hljs-keyword">if</span> goal:
+   <span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> route <span class="hljs-keyword">as</span> plan_route
+   point=cv2.invertAffineTransform(M) @ np.array([<span class="hljs-number">426</span>,<span class="hljs-number">346.7</span>,<span class="hljs-number">1</span>])
+   pos=[<span class="hljs-built_in">round</span>(point[<span class="hljs-number">0</span>]/<span class="hljs-number">32</span>-<span class="hljs-number">.5</span>),<span class="hljs-built_in">round</span>(point[<span class="hljs-number">1</span>]/<span class="hljs-number">32</span>-<span class="hljs-number">1</span>)]
+   target=<span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,goal.split(<span class="hljs-string">&#x27;,&#x27;</span>)))
+   <span class="hljs-keyword">assert</span> <span class="hljs-number">23</span>&lt;=pos[<span class="hljs-number">0</span>]&lt;=<span class="hljs-number">30</span> <span class="hljs-keyword">and</span> <span class="hljs-number">40</span>&lt;=pos[<span class="hljs-number">1</span>]&lt;=<span class="hljs-number">46</span> <span class="hljs-keyword">and</span> <span class="hljs-number">23</span>&lt;=target[<span class="hljs-number">0</span>]&lt;=<span class="hljs-number">30</span> <span class="hljs-keyword">and</span> <span class="hljs-number">40</span>&lt;=target[<span class="hljs-number">1</span>]&lt;=<span class="hljs-number">46</span>
+   v=json.loads((R/<span class="hljs-string">&#x27;work/170-magwin-frozen.json&#x27;</span>).read_text());v[<span class="hljs-string">&#x27;position&#x27;</span>]=pos
+   v[<span class="hljs-string">&#x27;events&#x27;</span>]={k:e <span class="hljs-keyword">for</span> k,e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items() <span class="hljs-keyword">if</span> <span class="hljs-built_in">int</span>(k)&lt;<span class="hljs-number">77</span>}
+   keys=plan_route(v,target);<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(keys)&lt;=<span class="hljs-number">12</span>
+   proof.update(position=pos,goal=target,keys=keys)
+   seq=[a <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> keys <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> (k.removeprefix(<span class="hljs-string">&#x27;jump:&#x27;</span>)+<span class="hljs-string">&#x27;:&#x27;</span>+<span class="hljs-built_in">str</span>(step_hold),<span class="hljs-string">&#x27;wait:&#x27;</span>+<span class="hljs-built_in">str</span>(step_wait))]
+  <span class="hljs-keyword">elif</span> route:
+   <span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> json.loads(Path(route).read_text()):
+    key=step[<span class="hljs-string">&#x27;key&#x27;</span>];<span class="hljs-keyword">assert</span> key <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;left&#x27;</span>,<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-string">&#x27;jump:up&#x27;</span>,<span class="hljs-string">&#x27;jump:down&#x27;</span>,<span class="hljs-string">&#x27;jump:left&#x27;</span>,<span class="hljs-string">&#x27;jump:right&#x27;</span>] <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> step.get(<span class="hljs-string">&#x27;action&#x27;</span>)
+    seq += [key.removeprefix(<span class="hljs-string">&#x27;jump:&#x27;</span>)+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:&#x27;</span>+<span class="hljs-built_in">str</span>(step.get(<span class="hljs-string">&#x27;wait&#x27;</span>,<span class="hljs-number">.5</span> <span class="hljs-keyword">if</span> key.startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>) <span class="hljs-keyword">else</span> <span class="hljs-number">.10</span>))]
+  <span class="hljs-keyword">else</span>:
+   keys=os.environ.get(<span class="hljs-string">&#x27;REBORN_POST_BATTLE_MOVES&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).split(<span class="hljs-string">&#x27;,&#x27;</span>)
+   <span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;<span class="hljs-built_in">len</span>(keys)&lt;=<span class="hljs-number">12</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;left&#x27;</span>,<span class="hljs-string">&#x27;right&#x27;</span>]<span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> keys)
+   seq=[v <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> keys <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> (k+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.10&#x27;</span>)]
+  act(*seq)
+  proof[<span class="hljs-string">&#x27;input_end_epoch&#x27;</span>]=time.time();(R/<span class="hljs-string">&#x27;work/fast-chest-transition.json&#x27;</span>).write_text(json.dumps(proof,indent=<span class="hljs-number">2</span>))
+  <span class="hljs-keyword">with</span> (R/<span class="hljs-string">&#x27;recordings/fast-world-transitions.jsonl&#x27;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>) <span class="hljs-keyword">as</span> stream:stream.write(json.dumps(proof)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FAST PUBLIC MAP INTERCEPTION&#x27;</span>,proof,flush=<span class="hljs-literal">True</span>)
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/chest_await.py&#x27;</span>),<span class="hljs-string">&#x27;--world-open&#x27;</span>],check=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">return</span>
+ <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;No verified text-free map within 12 seconds; no route input sent&#x27;</span>)
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:finish()
+</code></pre>
+  </body>
+</html>

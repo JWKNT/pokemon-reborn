@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>magikarp_begin179.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of magikarp_begin179.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Start the normal Magikarp quest; halt after the first inspected double battle.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ e=<span class="hljs-built_in">dict</span>(os.environ,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>);e.pop(<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>,<span class="hljs-literal">None</span>)
+ <span class="hljs-keyword">if</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;battle_move&#x27;</span>]:e[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>,env=e)
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--quest-started&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;Gigalith&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>)
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-number">116</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">34</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+ run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>,<span class="hljs-string">&#x27;--source&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">34</span>)
+ run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">34</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>)
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Magikarp179-started&#x27;</span>)
+s=json.loads((R/<span class="hljs-string">&#x27;notes/Magikarp179-started-navigation.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;155&#x27;</span>]==<span class="hljs-number">1</span>
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--opal-outside&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">530</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">530</span>,<span class="hljs-number">11</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">522</span>,<span class="hljs-number">27</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Magikarp179-goons-ready&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">62</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>,<span class="hljs-string">&#x27;--source&#x27;</span>,<span class="hljs-number">62</span>,<span class="hljs-number">5</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">62</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;StreetRat&#x27;</span>,<span class="hljs-string">&#x27;Arnie &amp; Milhouse&#x27;</span>,<span class="hljs-string">&#x27;--active-dialogue&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read,act
+p=R/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>;c=json.loads(p.read_text())
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;bag&#x27;</span> <span class="hljs-keyword">in</span> t
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> c.get(<span class="hljs-string">&#x27;battle_turbo_enabled&#x27;</span>) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> c.get(<span class="hljs-string">&#x27;overworld_turbo_enabled&#x27;</span>)
+act(<span class="hljs-string">&#x27;m:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);c.update(battle_turbo_enabled=<span class="hljs-literal">True</span>,battle_turbo=<span class="hljs-literal">True</span>);p.write_text(json.dumps(c,indent=<span class="hljs-number">2</span>))
+<span class="hljs-comment"># Both Lv11 foes are vulnerable to the reviewed spread Rock Slide;</span>
+<span class="hljs-comment"># the two level95 leads have it in slot3. Guard each public actor prompt.</span>
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;swampert&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;suampert&#x27;</span> <span class="hljs-keyword">in</span> t
+run(<span class="hljs-string">&#x27;battle_move&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>);t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;gigalith&#x27;</span> <span class="hljs-keyword">in</span> t
+run(<span class="hljs-string">&#x27;battle_move&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>);run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FIRST QUEST DOUBLE BATTLE REVIEW&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

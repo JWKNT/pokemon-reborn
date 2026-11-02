@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>magikarp_transfer_probe.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of magikarp_transfer_probe.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Read only installed transfer declarations for quest route planning.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+rows=[]
+<span class="hljs-title class_">Dir</span>[<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data/Map[0-9]*.rxdata&#x27;</span>].each <span class="hljs-keyword">do</span> |<span class="hljs-params">path</span>|
+ mid=<span class="hljs-title class_">File</span>.basename(path)[<span class="hljs-regexp">/\d+/</span>].to_i
+ h=plain(load_rgss(path))
+ h[<span class="hljs-string">&#x27;events&#x27;</span>].each <span class="hljs-keyword">do</span> |<span class="hljs-params">eid,ev</span>|
+  ev[<span class="hljs-string">&#x27;pages&#x27;</span>].each_with_index <span class="hljs-keyword">do</span> |<span class="hljs-params">p,pi</span>|
+   p[<span class="hljs-string">&#x27;list&#x27;</span>].each <span class="hljs-keyword">do</span> |<span class="hljs-params">c</span>|
+    <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span> &amp;&amp; c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]==<span class="hljs-number">0</span>
+     rows &lt;&lt; {<span class="hljs-symbol">map:</span>mid,<span class="hljs-symbol">event:</span>eid.to_i,<span class="hljs-symbol">x:</span>ev[<span class="hljs-string">&#x27;x&#x27;</span>],<span class="hljs-symbol">y:</span>ev[<span class="hljs-string">&#x27;y&#x27;</span>],<span class="hljs-symbol">page:</span>pi,<span class="hljs-symbol">condition:</span>p[<span class="hljs-string">&#x27;condition&#x27;</span>],<span class="hljs-symbol">destination:</span>c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>,<span class="hljs-number">3</span>]}
+    <span class="hljs-keyword">end</span>
+   <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">end</span>
+ <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+<span class="hljs-title class_">File</span>.write(<span class="hljs-string">&#x27;work/179-installed-transfers.json&#x27;</span>,<span class="hljs-variable constant_">JSON</span>.generate(rows))
+puts <span class="hljs-variable constant_">JSON</span>.generate(rows.select{|<span class="hljs-params">r</span>| [<span class="hljs-number">533</span>,<span class="hljs-number">536</span>,<span class="hljs-number">613</span>,<span class="hljs-number">693</span>,<span class="hljs-number">324</span>].<span class="hljs-keyword">include</span>?(r[<span class="hljs-symbol">:destination</span>][<span class="hljs-number">0</span>])}.uniq{|<span class="hljs-params">r</span>| [r[<span class="hljs-symbol">:map</span>],r[<span class="hljs-symbol">:event</span>],r[<span class="hljs-symbol">:destination</span>]]})
+</code></pre>
+  </body>
+</html>

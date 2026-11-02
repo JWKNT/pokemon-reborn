@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>picnic384_return.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of picnic384_return.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bring the saved Complete Zygarde to Shelly through normal travel.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,subprocess,sys
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;56&#x27;</span>,REBORN_ROUTE_STEP_PAUSE=<span class="hljs-string">&#x27;.12&#x27;</span>)
+steps=[(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">827</span>,<span class="hljs-number">826</span>),(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">826</span>,<span class="hljs-number">527</span>),(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">525</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Rayquaza&#x27;</span>),(<span class="hljs-string">&#x27;connected_walk&#x27;</span>,<span class="hljs-number">525</span>,<span class="hljs-number">544</span>,<span class="hljs-number">8</span>,<span class="hljs-number">7</span>),(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">544</span>,<span class="hljs-number">12</span>,<span class="hljs-string">&#x27;enter&#x27;</span>),(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">150</span>,<span class="hljs-number">153</span>),(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">153</span>,<span class="hljs-number">133</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)]
+<span class="hljs-keyword">for</span> s,*a <span class="hljs-keyword">in</span> steps:
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;PICNIC384&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-string">&#x27;scripts/&#x27;</span>+s+<span class="hljs-string">&#x27;.py&#x27;</span>,*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_mime_fairy_review.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_mime_fairy_review.py"><code class="hljs language-python"><span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> unittest
+
+<span class="hljs-keyword">from</span> mime_fairy_review <span class="hljs-keyword">import</span> ROOT, aroma_incoming, build_report, moonblast
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">MimeFairyReviewTests</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_compiled_owned_tm99_incompatibility</span>(<span class="hljs-params">self</span>):
+        compiled = json.loads((ROOT / <span class="hljs-string">&quot;work/mime-owned-compiled-compatibility.json&quot;</span>).read_text())
+        <span class="hljs-keyword">for</span> species <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;SWOOBAT&quot;</span>, <span class="hljs-string">&quot;AMPHAROS&quot;</span>, <span class="hljs-string">&quot;LUDICOLO&quot;</span>):
+            <span class="hljs-variable language_">self</span>.assertNotIn(<span class="hljs-string">&quot;DAZZLINGGLEAM&quot;</span>, compiled[species][<span class="hljs-string">&quot;compatiblemoves&quot;</span>])
+            <span class="hljs-variable language_">self</span>.assertNotIn(<span class="hljs-string">&quot;DAZZLINGGLEAM&quot;</span>, [m <span class="hljs-keyword">for</span> _, m <span class="hljs-keyword">in</span> compiled[species][<span class="hljs-string">&quot;Moveset&quot;</span>]])
+            <span class="hljs-variable language_">self</span>.assertNotIn(<span class="hljs-string">&quot;DAZZLINGGLEAM&quot;</span>, compiled[species].get(<span class="hljs-string">&quot;EggMoves&quot;</span>) <span class="hljs-keyword">or</span> [])
+            <span class="hljs-variable language_">self</span>.assertNotIn(<span class="hljs-string">&quot;DAZZLINGGLEAM&quot;</span>, compiled[species].get(<span class="hljs-string">&quot;RelearnerMoves&quot;</span>) <span class="hljs-keyword">or</span> [])
+        <span class="hljs-keyword">for</span> preevolution <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;WOOBAT&quot;</span>, <span class="hljs-string">&quot;MAREEP&quot;</span>, <span class="hljs-string">&quot;FLAAFFY&quot;</span>, <span class="hljs-string">&quot;LOTAD&quot;</span>, <span class="hljs-string">&quot;LOMBRE&quot;</span>):
+            <span class="hljs-variable language_">self</span>.assertNotIn(<span class="hljs-string">&quot;DAZZLINGGLEAM&quot;</span>, compiled[preevolution].get(<span class="hljs-string">&quot;EggMoves&quot;</span>) <span class="hljs-keyword">or</span> [])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_gift_does_not_require_mime_victory</span>(<span class="hljs-params">self</span>):
+        source = json.loads((ROOT / <span class="hljs-string">&quot;work/mime-sylveon-order-static-774.json&quot;</span>).read_text())
+        page = source[<span class="hljs-string">&quot;events&quot;</span>][<span class="hljs-string">&quot;128&quot;</span>][<span class="hljs-string">&quot;pages&quot;</span>][<span class="hljs-number">0</span>]
+        <span class="hljs-variable language_">self</span>.assertFalse(page[<span class="hljs-string">&quot;condition&quot;</span>][<span class="hljs-string">&quot;variable_valid&quot;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(page[<span class="hljs-string">&quot;condition&quot;</span>][<span class="hljs-string">&quot;switch2_id&quot;</span>], <span class="hljs-number">1064</span>)
+        <span class="hljs-variable language_">self</span>.assertNotIn(<span class="hljs-string">&quot;475&quot;</span>, <span class="hljs-built_in">str</span>(page[<span class="hljs-string">&quot;list&quot;</span>]))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_one_boost_ohko_requires_measured_spa</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.assertLess(moonblast(<span class="hljs-number">193</span>, <span class="hljs-number">526</span>)[<span class="hljs-number">0</span>], <span class="hljs-number">704</span>)
+        <span class="hljs-variable language_">self</span>.assertGreaterEqual(moonblast(<span class="hljs-number">195</span>, <span class="hljs-number">526</span>)[<span class="hljs-number">0</span>], <span class="hljs-number">704</span>)
+        <span class="hljs-variable language_">self</span>.assertGreaterEqual(moonblast(<span class="hljs-number">193</span>, <span class="hljs-number">526</span>, boost=<span class="hljs-number">4</span>)[<span class="hljs-number">0</span>], <span class="hljs-number">704</span>)
+        <span class="hljs-variable language_">self</span>.assertLess(moonblast(<span class="hljs-number">214</span>, <span class="hljs-number">526</span>, drop=<span class="hljs-number">0</span>, boost=<span class="hljs-number">6</span>)[<span class="hljs-number">0</span>], <span class="hljs-number">704</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_midturn_special_defense_drop_is_material</span>(<span class="hljs-params">self</span>):
+        first = aroma_incoming(<span class="hljs-number">279</span>)[<span class="hljs-string">&quot;FLASHCANNON&quot;</span>][<span class="hljs-string">&quot;critical&quot;</span>][<span class="hljs-number">1</span>]
+        lowered = aroma_incoming(<span class="hljs-number">279</span>, stage=-<span class="hljs-number">1</span>)[<span class="hljs-string">&quot;FLASHCANNON&quot;</span>][<span class="hljs-string">&quot;critical&quot;</span>][<span class="hljs-number">1</span>]
+        <span class="hljs-variable language_">self</span>.assertLess(first * <span class="hljs-number">2</span>, <span class="hljs-number">345</span>)
+        <span class="hljs-variable language_">self</span>.assertGreater(first + lowered, <span class="hljs-number">345</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_crit_bypasses_positive_stage_but_keeps_misty</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.assertEqual(aroma_incoming(<span class="hljs-number">342</span>, stage=<span class="hljs-number">2</span>)[<span class="hljs-string">&quot;FLASHCANNON&quot;</span>][<span class="hljs-string">&quot;critical&quot;</span>],
+                         aroma_incoming(<span class="hljs-number">342</span>)[<span class="hljs-string">&quot;FLASHCANNON&quot;</span>][<span class="hljs-string">&quot;critical&quot;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(build_report()[<span class="hljs-string">&quot;trainer_stats&quot;</span>][<span class="hljs-string">&quot;MRMIME&quot;</span>], [<span class="hljs-number">704</span>, <span class="hljs-number">38</span>, <span class="hljs-number">420</span>, <span class="hljs-number">34</span>, <span class="hljs-number">526</span>, <span class="hljs-number">540</span>])
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    unittest.main()
+</code></pre>
+  </body>
+</html>

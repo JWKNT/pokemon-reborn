@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Void route after Glass — installed 19.5.43">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="void-route-plan-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/void-route-plan-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/void-route-plan-2026-10-03.md.html">
+    <title>void-route-plan-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">void-route-plan-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 11.5 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · first used Oct 3 11:30</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Void route after Glass — installed 19.5.43</h2>
+<p>Read-only extraction, 2026-10-03. No gameplay, save, runtime, or navigation data was changed. This plans the mandatory route from Glass&#39;s victory transfer <strong>754[31,12]</strong> to PULSE Hypno <strong>758[28,105]</strong>. Coordinates/step counts below are static proposals; refresh observed/native state after every dialogue or touch cutscene before executing another movement queue. <a href="https://bigjra.github.io/reborn/#inside-the-void">BigJRA&#39;s Void section</a> supplies narrative context; installed events take precedence.</p>
+<h3>Preparation and route boundaries</h3>
+<ol>
+<li>Let arrival autorun <strong>754E8</strong> finish. It faces the player left and sets the Pokémon Center return point; it does <strong>not</strong> heal or move the player off31,12.</li>
+<li><strong>Use the ordinary Light Shard754E5[17,12].</strong> Approach16,12, face RIGHT and bump it. Event314 fully heals the six, including PP/fainted members; self-A then consumes the shard. This is the normal game event, not a scripted heal.</li>
+<li>The fixed Glass six continue through the Void. No normal PC/roster replacement was found in754–759. Bag operations remain available outside conversations/battles. Teach owned <strong>TM20 Safeguard to Arcanine</strong>, replacing ExtremeSpeed after Glass; retain Crunch, MorningSun and Flamethrower. Refresh remaining UltraPotion/FullHeal/XSpeed/XSpDef/XAttack counts after the chain.</li>
+<li>The last safe planned square is <strong>758[28,106]</strong>. One UP enters the boss player-touch event at28,105. Check party order/HP/moves/items and save normally before that step. The boss victory branch does <strong>not</strong> heal everyone; event314 is in its loss branch.</li>
+</ol>
+<h3>Mandatory map/event chain</h3>
+<p>“Face” is the proposed player tile immediately beside an action NPC. Touch events activate by walking onto the listed tile. Dialogue controls must stop and resolve before resuming the route.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Map</th>
+<th>Target / player face</th>
+<th>Required interaction and result</th>
+<th align="right">Proposed movement from previous endpoint</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>754</td>
+<td>LightShard E5[17,12] / <strong>16,12 RIGHT</strong></td>
+<td>Bump to fully heal.</td>
+<td align="right">31 steps from31,12</td>
+</tr>
+<tr>
+<td>754</td>
+<td>Conductor E2[14,79] / <strong>14,78 DOWN</strong></td>
+<td>Talk; no choice. Self-A removes this physical gate.</td>
+<td align="right">68</td>
+</tr>
+<tr>
+<td>754</td>
+<td>Ame E3, <strong>touch58,80</strong></td>
+<td>Along the route, stop for intro touchE6[16,80]. Ame cutscene transfers to<strong>755[60,81]</strong>.</td>
+<td align="right">46</td>
+</tr>
+<tr>
+<td>755</td>
+<td>Mudkip E24[62,65] / <strong>62,64 DOWN</strong></td>
+<td>ArrivalAme E5 resolves first. Mandatory route touches Victoria E11[99,94] (sets391=25). Talk to <strong>Mudkip</strong>, choose <strong>Yes</strong>. Our starter variable26=13 selects this event. Transfer to756 preserves the player&#39;s current coordinates, normally<strong>62,64</strong>.</td>
+<td align="right">179</td>
+</tr>
+<tr>
+<td>756</td>
+<td>Cain E3[100,69] / <strong>99,69 RIGHT</strong></td>
+<td>Talk; no choice. Gate disappears.</td>
+<td align="right">84</td>
+</tr>
+<tr>
+<td>756</td>
+<td>Julia E2[119,43] / <strong>119,44 UP</strong></td>
+<td>Talk; no choice. Gate disappears.</td>
+<td align="right">45</td>
+</tr>
+<tr>
+<td>756</td>
+<td>Fern E4[102,19] / <strong>102,20 UP</strong></td>
+<td>Talk; no choice. Sets391=26 and transfers to<strong>757[102,20]</strong>.</td>
+<td align="right">41</td>
+</tr>
+<tr>
+<td>757</td>
+<td>Florinia E2[132,15] / <strong>132,16 UP</strong></td>
+<td>Talk; no choice. Self-A removes gate.</td>
+<td align="right">74</td>
+</tr>
+<tr>
+<td>757</td>
+<td>Anna E14[163,188] / <strong>164,188 LEFT</strong></td>
+<td>Follow the long loop, resolving all touch scenes listed below. Talk to Anna; gate disappears.</td>
+<td align="right">342</td>
+</tr>
+<tr>
+<td>757</td>
+<td>Cain E16[139,157] / <strong>138,157 RIGHT</strong></td>
+<td>Talk; no choice. Gate disappears.</td>
+<td align="right">73</td>
+</tr>
+<tr>
+<td>757</td>
+<td>Kiki E17[132,107] / <strong>132,108 UP</strong></td>
+<td>Talk; no choice. Gate disappears.</td>
+<td align="right">57</td>
+</tr>
+<tr>
+<td>757</td>
+<td>Lin E24[121,82] / <strong>121,81 DOWN</strong></td>
+<td>On the way resolve Kiki touchE65[132,104] and Cain sceneE76[156,23]. Talk to Lin; her runtime move route sets through, fades and removes her sprite. There is no blank replacement page to infer this from.</td>
+<td align="right">270</td>
+</tr>
+<tr>
+<td>757</td>
+<td>Radomus E26[107,146] / <strong>107,145 DOWN</strong></td>
+<td>Talk; no choice. Long animation removes both Radomus and LunaE147[107,150], then sets switch973. Wait for completion.</td>
+<td align="right">78</td>
+</tr>
+<tr>
+<td>757</td>
+<td>Zina E27[120,159] / <strong>120,158 DOWN</strong></td>
+<td>Talk; no choice. Story transfers to<strong>758[120,158]</strong>, sets return point; no heal.</td>
+<td align="right">26</td>
+</tr>
+<tr>
+<td>758</td>
+<td>Pre-Hypno safe tile <strong>28,106</strong></td>
+<td>Route touches baby-voice E17[28,134]; resolve it. Stop at28,106 to prepare/save. <strong>Do not queue the last UP automatically.</strong></td>
+<td align="right">210</td>
+</tr>
+</tbody></table></div>
+<p>The Florinia→Anna loop crosses these meaningful automatic scenes, in order: <strong>Corey E29[172,10]</strong> (391→27; E3[172,9] is its alternate trigger), <strong>Cal/Shelly E6[187,77] then E34[187,80]</strong> (parallel animation, autorun391→28), <strong>Blake/Cal E54[157,135] then E55[157,138]</strong> (parallel animation, autorun391→29), and <strong>Heather/Sigmund E13[182,169], E56[188,175], E57[178,179]</strong> (the last has a parallel follow-up). These pauses are story activity, not a pathfinding failure. Give each its normal dialogue/animation completion and re-read coordinates. Cain touchE76 later sets391→30 and clears his associated scene actorE77; E84[156,20] is an alternate trigger.</p>
+<p>Optional conversational branches do not block this extraction. Aya757E20 and lucidCain757E21 are beside the later loop; if speaking to lucidCain, <strong>Yes or No both continue and both give the same286+1 affinity point</strong> (increment occurs after the choice block). There is no mandatory choice there. The only progression choice in the extracted route is <strong>Mudkip Yes</strong>. The subsequent758 history branches need not all be visited to reach Hypno; the source passability route reaches the boss via the baby-voice scene.</p>
+<h3>Hypno: scarce supplies and proposed shortcuts</h3>
+<p>Exact trainer <strong>HYPNO/Hypno/0</strong>, level100 PULSEPsychic/Dark/NoGuard/BigRoot; Hypnosis, DreamEater, DarkPulse, CalmMind. Starlight boosts Dark/Psychic power1.5 and makes Dark attacks also receive Fairy effectiveness. Hypno is196Speed; Arc is176 before an XSpeed,352 afterward. Safeguard prevents Hypnosis even with NoGuard (<code>Battle_Effects.rb</code> sleep/status gate).</p>
+<p>Arc remains the practical existing-team answer: XSpeed, maintain five-turn Safeguard while awake, boost SpDef/heal as required, and use <strong>physical Crunch</strong>. Approximate unboosted damage76–90 means at most6 ordinary hits; oneXAttack gives150–177/3hits, two give224–264/2hits. XAttack0 before Glass is not a hard block: the six-hit plan is longer and consumes more healing/guard renewals. ThreeXSpDef gives+6; against Hypno+6SpA, ordinary DarkPulse is about109–128 into Arc+6SpDef. Observe CalmMind, critical hits and guard expiration instead of issuing blind multi-turn attack queues. A FullHeal can wake Arc before a previously selected DreamEater resolves, but the AI is not guaranteed to choose that move. All Xitems target their <strong>own acting Pokémon</strong>, never its ally.</p>
+<ul>
+<li><strong>Excadrill HornDrill is not a NoGuard shortcut:</strong> installed OHKO accuracy code rejects a higher-level target <strong>before</strong> testing NoGuard (<code>Battle_MoveEffects.rb:3284</code>).90&lt;100, so it fails.</li>
+<li><strong>PerishSong would work in principle</strong> against this NoGuard, non-Soundproof opponent; it is not an accuracy trick. None of the fixed Glass six knows it. Boxed Kricketune50 does know it, but cannot be withdrawn inside this route. Do not assume a new team.</li>
+<li><strong>Current Cofa DestinyBond is legal but unreliable as a shortcut.</strong> Cofa62Speed is slower than Hypno196, and unboosted Starlight DarkPulse can already KO its270HP/239SpDef before it acts. DestinyBond has ordinary priority; consecutive use alternates success/failure outside Haunted. Safeguard on Arc then switching does not guarantee a safe Cofa turn. A confirmed FocusSash could permit a different setup, but no such held-item availability is assumed. Cofa would need threeXSpeed to outrun Hypno (+4 only186; +6 is248), making its setup more costly and exposed than Arc&#39;s. Do not replace the safe Arc plan with a hoped-for Hypnosis/CalmMind turn.</li>
+</ul>
+<h3>Source-only route artifacts</h3>
+<ul>
+<li><code>scripts/void_source_extract.rb</code> reads installed map files754–759 only and outputs every event page/command to<code>work/void-source-event-index.json</code>.</li>
+<li><code>scripts/void_static_paths.py</code> reads already extracted<code>work/void-map-754.json</code>…<code>758.json</code> only. It has no UI/game-driver imports and no native/save/navigation access. Its main function modifies only RAM copies to represent source-confirmed gates disappearing, then prints proposed directional runs to<code>work/void-static-paths.json</code>.</li>
+<li>These snapshots use hypothetical future story flags and reset actor positions; they are <strong>not fresh observed state</strong>. Long runs are planning aids. The controlling agent should split them at<code>touch_stops</code>, allow native story scripts to resolve, then use current observed coordinates/event pages for the next queue.</li>
+</ul>
+<h3>Guarded normal-control batch helper</h3>
+<p><code>scripts/void_batch_route.py</code> now implements all15 mandatory phases, using current observed coordinates and active installed event pages rather than replaying the static runs. <strong>Syntax/source boundaries checked only; it has not been run against the UI.</strong> It defaults to56-tile chunks, ends each chunk at the first meaningful touch, resolves only approved installed scenes, and refuses an unknown touch/choice/battle/capture failure. The boss tile28,105 is always blocked in its planning model. Existing <code>play.act</code> capture and session-limit guards remain in force.</p>
+<p>For a cautious first live segment, run <code>python3 scripts/void_batch_route.py --stop-phase ame</code>; it consumes the ordinary shard, verifies the normal heal with one native checkpoint, teaches Arc Safeguard over its verified ExtremeSpeed slot, then stops on755. Running without a stop flag continues to758[28,106], verifies/saves the safe approach, and leaves Hypno unstarted. It does <strong>not</strong> save-quit or start archive entries; those remain the controlling agent&#39;s responsibility.</p>
+<p>Actual14:03 frozen Hypno readiness has Safeguard <strong>8/25 PP, PP-Up0</strong>: normal machine teaching preserves <code>min(old currentPP,new totalPP)</code>, so the previously healed ExtremeSpeed8 becomes Safeguard8. Every other move is fullPP. The final-only readiness verifier now allows exactly this source-backed Arc90 slot/order while retaining strict LightShard/fullPP checks; it records the partial8/25 honestly. Eight casts suffice for the short reviewed Hypno plan. See <code>notes/hypno-tm-pp-carryover-2026-10-03.md</code>; do not replay the route or spend recovery items just to satisfy the old blanket fullPP assertion.</p>
+<p>Resume supports <code>--from-phase</code> names: <code>shard</code>, <code>conductor</code>, <code>ame</code>, <code>mudkip</code>, <code>cain-first</code>, <code>julia</code>, <code>fern</code>, <code>florinia</code>, <code>anna</code>, <code>cain-second</code>, <code>kiki</code>, <code>lin</code>, <code>radomus</code>, <code>zina</code>, <code>hypno-approach</code>. Without that flag it chooses the first phase on the observed current map and skips source-confirmed completed gates. Noninitial-map/position resume takes one normal checkpoint to refresh true event conditions first. It refuses to skip the mandatory shard if its consumed self-switch is absent. Lin&#39;s end-of-scene self-A governs the planner-only removal of her runtime-faded sprite, including removing a stale override after an earlier save was restored. Resume requires an actual <strong>overworld</strong>, with pending dialogue/menus resolved first; it never guesses its way through a partially completed cutscene.</p>
+<p>Completion receipts go to<code>work/void-batch-progress.json</code>; only completed, source-confirmed scene effects are mirrored into navigation notes. No receipt is treated as game-state proof. If a chunk stops early, inspect the actual screen and resume from the appropriate phase after settling its known scene; do not assume all queued inputs completed.</p>
+<p>An optional source754E14 prompt, “Skip cutscenes on this file?”, can be unlocked by another file through global<code>voidskip</code>. The helper does not activate that event. If the exact prompt is already open at startup, it chooses <strong>No</strong> using verified labels so the full story stays recorded. Other unexpected choices stop the run. Source-anchored BGM changes are logged through the existing dialogue helper where those events contain music commands.</p>
+<p>After victory, continue the story normally: Luna758E35[40,176] transfers to759[40,176], and759E5[43,191] exits to735[18,18]. Hypno is the next eligible major archive entry after the three Glass rounds; no Void conversation belongs in the major-fights compilation.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

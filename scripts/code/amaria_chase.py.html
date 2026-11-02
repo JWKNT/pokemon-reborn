@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>amaria_chase.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of amaria_chase.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Locate wandering Amaria from current game pixels, then approach with normal keys.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os
+os.environ[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> route,groupby
+sys.path.insert(<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;/tmp/reborn-vision-deps&#x27;</span>)
+<span class="hljs-keyword">import</span> cv2,numpy <span class="hljs-keyword">as</span> np
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+m,e=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">3</span>]);<span class="hljs-keyword">assert</span> m <span class="hljs-keyword">in</span>[<span class="hljs-number">680</span>,<span class="hljs-number">683</span>]
+sheet=np.array(Image.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Graphics/Characters/trchar069e.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>))
+model=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(m),<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],stderr=subprocess.DEVNULL))
+cs=model[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(e)][<span class="hljs-string">&#x27;list&#x27;</span>];blocks=[]
+choice_at=<span class="hljs-built_in">next</span>((i <span class="hljs-keyword">for</span> i,c <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(cs)<span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">102</span>),<span class="hljs-built_in">len</span>(cs))
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">sum</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">101</span> <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs[:choice_at])&gt;=<span class="hljs-number">4</span>, <span class="hljs-string">&#x27;Opening too short for four neighboring confirm probes&#x27;</span>
+<span class="hljs-keyword">for</span> command <span class="hljs-keyword">in</span> cs:
+ <span class="hljs-keyword">if</span> command[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">101</span>:blocks.append(<span class="hljs-built_in">str</span>(command[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]))
+ <span class="hljs-keyword">elif</span> command[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">401</span> <span class="hljs-keyword">and</span> blocks:blocks[-<span class="hljs-number">1</span>]+=<span class="hljs-string">&#x27; &#x27;</span>+<span class="hljs-built_in">str</span>(command[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>])
+<span class="hljs-keyword">import</span> difflib
+norm=<span class="hljs-keyword">lambda</span> z:re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,z.lower().replace(<span class="hljs-string">&#x27;pokemon reborn&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>))
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">dialogue</span>(<span class="hljs-params">t</span>):<span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(norm(t))&gt;<span class="hljs-number">10</span> <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;amaria&#x27;</span><span class="hljs-keyword">in</span> t.lower()<span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,norm(t),norm(b)).ratio()&gt;<span class="hljs-number">.8</span> <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> blocks))
+low_count=<span class="hljs-number">0</span>
+<span class="hljs-keyword">for</span> iteration <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">45</span>):
+ rows=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(z[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> rows)
+ <span class="hljs-keyword">if</span> dialogue(text):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;AMARIA DIALOGUE VERIFIED&#x27;</span>,text,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> (<span class="hljs-string">&#x27;yes&#x27;</span><span class="hljs-keyword">in</span> text.lower().split()<span class="hljs-keyword">and</span><span class="hljs-string">&#x27;no&#x27;</span><span class="hljs-keyword">in</span> text.lower().split()), <span class="hljs-string">&#x27;Choice reached; select explicitly before continuing&#x27;</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(text.replace(<span class="hljs-string">&#x27;Pokemon Reborn&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).strip())&lt;<span class="hljs-number">15</span>,(<span class="hljs-string">&#x27;Unexpected dialogue&#x27;</span>,text)
+ <span class="hljs-comment"># The coordinate frame froze the NPC while it was displayed. Match that</span>
+ <span class="hljs-comment"># untouched screenshot; position conversion uses the verified512x384 viewport.</span>
+ im=Image.<span class="hljs-built_in">open</span>(NATIVE);<span class="hljs-keyword">assert</span> im.size==(<span class="hljs-number">2272</span>,<span class="hljs-number">1816</span>)
+ canvas=im.crop((<span class="hljs-number">112</span>,<span class="hljs-number">132</span>,<span class="hljs-number">2160</span>,<span class="hljs-number">1668</span>)).resize((<span class="hljs-number">512</span>,<span class="hljs-number">384</span>),Image.Resampling.NEAREST)
+ gray=cv2.cvtColor(np.array(canvas.convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)),cv2.COLOR_RGB2GRAY);hits=[]
+ <span class="hljs-keyword">for</span> yy <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  <span class="hljs-keyword">for</span> xx <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+   tpl=sheet[yy*<span class="hljs-number">42</span>:(yy+<span class="hljs-number">1</span>)*<span class="hljs-number">42</span>,xx*<span class="hljs-number">42</span>:(xx+<span class="hljs-number">1</span>)*<span class="hljs-number">42</span>]
+   result=cv2.matchTemplate(gray,cv2.cvtColor(tpl[:,:,:<span class="hljs-number">3</span>],cv2.COLOR_RGB2GRAY),cv2.TM_CCOEFF_NORMED,mask=tpl[:,:,<span class="hljs-number">3</span>]);result[(~np.isfinite(result))|(result&gt;<span class="hljs-number">1.0001</span>)|(result&lt; -<span class="hljs-number">1.0001</span>)]=<span class="hljs-number">0</span>
+   _,score,_,xy=cv2.minMaxLoc(result);hits.append((score,xy,xx,yy))
+ score,xy,xx,yy=<span class="hljs-built_in">max</span>(hits)
+ dx=(xy[<span class="hljs-number">0</span>]+<span class="hljs-number">21</span>-<span class="hljs-number">256</span>)/<span class="hljs-number">32</span>;dy=(xy[<span class="hljs-number">1</span>]+<span class="hljs-number">42</span>-<span class="hljs-number">208</span>)/<span class="hljs-number">32</span>
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;LIVE AMARIA&#x27;</span>,iteration,<span class="hljs-built_in">round</span>(score,<span class="hljs-number">3</span>),<span class="hljs-string">&#x27;relative&#x27;</span>,<span class="hljs-built_in">round</span>(dx,<span class="hljs-number">2</span>),<span class="hljs-built_in">round</span>(dy,<span class="hljs-number">2</span>),flush=<span class="hljs-literal">True</span>)
+ low_count=low_count+<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> score&lt;<span class="hljs-number">.82</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+ <span class="hljs-keyword">if</span> score&lt;<span class="hljs-number">.82</span> <span class="hljs-keyword">and</span> low_count&gt;=<span class="hljs-number">4</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Amaria sprite not visible after color-cycle review&#x27;</span>)
+ <span class="hljs-keyword">if</span> score&lt;<span class="hljs-number">.82</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">abs</span>(dx)+<span class="hljs-built_in">abs</span>(dy)&lt;<span class="hljs-number">1.7</span>:
+  <span class="hljs-comment"># A nearby swimmer can overlap Aster and obscure the template. This</span>
+  <span class="hljs-comment"># source-reviewed opening has enough dialogue before any choice</span>
+  <span class="hljs-comment"># here; brief turns/confirm cover the four neighboring tiles.</span>
+  act(<span class="hljs-string">&#x27;up:.03&#x27;</span>,<span class="hljs-string">&#x27;c:.08&#x27;</span>,<span class="hljs-string">&#x27;left:.03&#x27;</span>,<span class="hljs-string">&#x27;c:.08&#x27;</span>,<span class="hljs-string">&#x27;down:.03&#x27;</span>,<span class="hljs-string">&#x27;c:.08&#x27;</span>,<span class="hljs-string">&#x27;right:.03&#x27;</span>,<span class="hljs-string">&#x27;c:.08&#x27;</span>,<span class="hljs-string">&#x27;wait:.25&#x27;</span>)
+  <span class="hljs-keyword">if</span> score&lt;<span class="hljs-number">.82</span>:
+   t=read()
+   <span class="hljs-keyword">if</span> dialogue(t):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;AMARIA DIALOGUE VERIFIED&#x27;</span>,t,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+   <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(t.replace(<span class="hljs-string">&#x27;Pokemon Reborn&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).strip())&lt;<span class="hljs-number">15</span>,(<span class="hljs-string">&#x27;Unexpected partial-sprite dialogue&#x27;</span>,t)
+   act(<span class="hljs-string">&#x27;wait:.8&#x27;</span>)
+  <span class="hljs-keyword">continue</span>
+ direction=(<span class="hljs-string">&#x27;right&#x27;</span><span class="hljs-keyword">if</span> dx&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span><span class="hljs-string">&#x27;left&#x27;</span>)<span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(dx)&gt;<span class="hljs-built_in">abs</span>(dy)<span class="hljs-keyword">else</span>(<span class="hljs-string">&#x27;down&#x27;</span><span class="hljs-keyword">if</span> dy&gt;<span class="hljs-number">0</span> <span class="hljs-keyword">else</span><span class="hljs-string">&#x27;up&#x27;</span>)
+ act(direction+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.25&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Wandering NPC chase budget exhausted&#x27;</span>)
+</code></pre>
+  </body>
+</html>

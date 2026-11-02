@@ -1,0 +1,64 @@
+{
+  "purpose": "12 BP for reserve natures, 50 XL candies, 4 Heart Scales",
+  "wins": [
+    {
+      "trainer": "Luna13",
+      "bp": 4,
+      "bag_items": 0,
+      "observed_victory_epoch": 1791415668.2211149,
+      "log": "notes/battle-logs/2026-10-07_19-22-09 - Aster vs. Dark Dreamer Luna (Fairy Tale Field Singles).txt",
+      "strategy": "Reflect / Light Screen, Mega Mawile one SD; Iron Muk/Weavile/Hydra, Sucker Hoopa. Low-HP Maw fell to Bisharp Sucker after seed-stall SD; Swampert EQ killed Bisharp. Altaria Moonblast and Amoo Giga Drain chipped Absol; Zapdos Drill Peck finished. Repeat: use one Ultra Potion during Bisharp seed shield, then Iron Head at +3 instead of wasting a second SD."
+    },
+    {
+      "trainer": "Luna13",
+      "bp": 4,
+      "bag_items": {
+        "Ultra Potion": 1
+      },
+      "observed_victory_epoch": 1791416162.6278222,
+      "log": "notes/battle-logs/2026-10-07_19-30-59 - Aster vs. Dark Dreamer Luna (Fairy Tale Field Singles).txt",
+      "strategy": "Guarded opening script succeeded. Cryo survived, switch cost extra Reflect turn; one Ultra Potion did not preserve Mawile. Sucker chipped Bisharp, Swampert EQ finished. Zapdos Thunder paralyzed Absol, Drill Peck finished. Buy Discharge/Play Rough before further farming."
+    },
+    {
+      "trainer": "Luna13",
+      "bp": 4,
+      "bag_items": {
+        "Ultra Potion": 2,
+        "Revive": 2,
+        "X Defend": 1,
+        "X Attack": 1
+      },
+      "observed_victory_epoch": 1791417863.151247,
+      "log": "notes/battle-logs/2026-10-07_19-50-28 - Aster vs. Dark Dreamer Luna (Fairy Tale Field Singles).txt",
+      "strategy": "FullboostdidnotOHKOBisharpthroughseedDefenseboost; BisharpSwordsDanceonpotioncauseddanger. RevivedMawiledemegas+IntimidatetriggeredDefiant. ZapXDefendabsorbedSucker,DischargeKO. AltariasacrevivedMaw tolockHydraintoDragonPulse; healMawonswitchAbsol,PlayRoughOHKOAbsol. DrawFlashCannonwithMawSucker,SwampXAttackWaterfalltwicefinished. RetirecurrentLunafarmuntilpropercounterteam."
+    }
+  ],
+  "capture_plan": "Catch useful one-time legends; Suicune and likely Entei. Zapdos/Azelf/Cresselia already captured and trained.",
+  "purchases": [
+    {
+      "Heart Scale": 2,
+      "BP": 2
+    },
+    {
+      "Timid Mint": 2,
+      "BP": 2
+    },
+    {
+      "Bold Mint": 1,
+      "BP": 1
+    },
+    {
+      "Exp Candy XL": 50,
+      "BP": 5
+    },
+    {
+      "Heart Scale": 2,
+      "BP": 2
+    }
+  ],
+  "remaining_BP": 0,
+  "next": "Onyx: Zapdos Discharge replacing Zap Cannon slot1; Mawile Play Rough replacing False Swipe slot0. Apply Zapdos Timid mint. Next4BP win buys50XL(5BP)+2HeartScales(2BP). Before beastboss/wildchain restoreFalseSwipe viaTM54 overIronHeadslot1.",
+  "upgrades_verified": "Postgame241-MoveUpgrades: Zapdos Discharge1, Timid natureflag,349SpA328Speed; MawilePlayRough0.",
+  "next_BP_plan": "Two initial SD for+6; Iron Muk/Weavile/Hydra; SuckerHoopa; onePotionBisharpseed then +6SuckerBisharp/Absol. Stops onunexpectedHP/screens.",
+  "status": "BPtargetcomplete; applyremainingmints/TWave/candies/questteam"
+}

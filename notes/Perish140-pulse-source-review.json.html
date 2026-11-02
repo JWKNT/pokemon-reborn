@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="source-reviewed proposal; execute only after measured Kricketune prep checkpoint">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Perish140-pulse-source-review.json">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/Perish140-pulse-source-review.json.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/Perish140-pulse-source-review.json.html">
+    <title>Perish140-pulse-source-review.json · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">Perish140-pulse-source-review.json</h1>
+        <p class="task-meta">JSON · 2.2 KB · <a href="/pokemon-reborn/reasoning/20/">Task 20</a> · first used Oct 4 04:15</p>
+      </header>
+      <article class="note-body" data-fragment>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="Contents of Perish140-pulse-source-review.json"><code class="hljs language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;status&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;source-reviewed proposal; execute only after measured Kricketune prep checkpoint&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;sources&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-string">&quot;work/Kricketune140-owned-frozen.json&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;installed Battle_MoveEffects.rb6438-6475&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;installed Battle.rb5810-5828&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;installed Trainers.rb14-31&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-string">&quot;installed Reborn/trainertext.rb Zero2052 and Mime7280&quot;</span>
+  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;rationale&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Owned Kricketune already has PerishSong. Both trainer PULSE mons have no boss flag or Soundproof and cannot switch after their owner has no reserve. FullRestore/Moonlight do not erase PerishSong. Saves one-to-two HeartScale detours.&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Zero&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;entry&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Preserve fullHP Kricketune with FocusSash until finalClaw. If hail exists, decline free switch; wait for active ally to faint, then choose Kricketune after endround for fullHP Sash. Never normal switch into Claw attack then hail.&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;turn&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;FullHP Sash survives single-hit Claw move; PerishSong then faint/normal switch. Observe count3 at first endround, then three additional rounds to0 using living reserves/revives. FullRestore does not clear count.&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;not_guaranteed&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Must first win Spiritomb/Houndoom/Honchkrow/Weavile/Umbreon and preserve normal healthy reserves; Sash must remain unspent.&quot;</span>
+  <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Mime&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;entry&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Kricketune+Sylveon leads, fully healed. Require measured KricketuneHP&gt;100 andSpeed&gt;87. Mime100 NightShade100 cannotKO fullKrick; first-turn Instruct has no previous Aromatisse move; other Mime moves do not prevent Song. Krick moves before Aroma87.&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;turn1&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Kricketune PerishSong, SylveonMistyTerrain if available; confirm visible song/counters.&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;following&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Switch both own singers out before count0 (prefer T2), handle any faint replacements normally. Mime only has one owner Pokemon; cannot switch and falls on fourth endround including casting. Sigmund may switch Aroma normally; inspect visible named arrivals and continue full fight.&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;bag_correction&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;X battler items allowed only slot0 or when0fainted, and skip ownslot2. Ordinary medicine item registration does not invoke this X-item skip. Earlier two-actor XSpecial planning was invalid.&quot;</span>
+  <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;candy&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Four owned XL candies reserved for Kricketune to gain HP/speed. Verify actual stats after normal candy; no level95 assumption.&quot;</span>
+<span class="hljs-punctuation">}</span></code></pre>
+      </article>
+    </main>
+  </body>
+</html>

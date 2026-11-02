@@ -1,0 +1,24 @@
+"""Reviewed foot/train departure and main-route desert pickups, no runtime edits."""
+from play import *
+from locate import locate
+def r(s,*a):subprocess.run([sys.executable,str(ROOT/'scripts'/(s+'.py')),*map(str,a)],check=True)
+def note(variables=None,switches=None):
+ p=ROOT/'notes/navigation-state.json';v=json.loads(p.read_text())
+ for group,values in [('variables',variables),('switches',switches)]:
+  if values:v[group].update({str(k):val for k,val in values.items()})
+ p.write_text(json.dumps(v))
+r('eventq',38,6,'enter');r('city_enter',519,530);r('city_enter',530,591)
+r('eventq',591,6,'talk');r('choose_dialog','Yes|No','Yes');r('linear_dialog',591,6,'--active','--past-choice')
+note({322:1},{820:True});r('eventq',591,19,'enter')
+act('wait:14');r('linear_dialog',694,1,'--source-page',3,'--burst')
+m,x,y=locate();assert m in [694,703,704,705]
+note({360:{694:1,703:2,704:3,705:4}[m]},switches={827:True,829:False})
+r('use_field_item','Super Repel');r('eventq',m,34,'item');note(switches={813:True})
+if m==694:r('eventq',m,89,'item');r('mark_event',m,89)
+elif m==705:r('eventq',m,95,'item');r('mark_event',m,95)
+else:raise SystemExit('Alternate layout lacks planned seed: inspect legitimate pickup route')
+r('eventq',m,26,'item');r('mark_event',m,26)
+r('checkpoint','Desert-castle-supplies-ready')
+r('city_enter',m,687);r('eventq',687,15,'enter')
+r('room_plan','--maps','664,663','--start','664,52,44','--goal','663,22','--output','work/g15-scrap-entry-room-plan.json')
+print('DESERT SUPPLIES + SCRAP CAR ENTRY COMPLETE',flush=True)

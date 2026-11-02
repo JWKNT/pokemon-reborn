@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>sugiline341_escape.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of sugiline341_escape.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal walking from the publicly observed frozen coordinate popup, no runtime reads.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> route_readonly <span class="hljs-keyword">import</span> route
+rows=snap();text=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;13&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;37&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;660&#x27;</span> <span class="hljs-keyword">in</span> text <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;map&#x27;</span> <span class="hljs-keyword">in</span> text.lower(),text
+v=json.loads((ROOT/<span class="hljs-string">&#x27;work/341-map660.json&#x27;</span>).read_text());v[<span class="hljs-string">&#x27;position&#x27;</span>]=[<span class="hljs-number">13</span>,<span class="hljs-number">37</span>]
+path=route(v,(<span class="hljs-number">14</span>,<span class="hljs-number">9</span>));<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-string">&#x27;left&#x27;</span>,<span class="hljs-string">&#x27;right&#x27;</span>] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> path)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;REVIEWED WALK&#x27;</span>,<span class="hljs-built_in">len</span>(path),flush=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;c&#x27;</span>,*[k+<span class="hljs-string">&#x27;:.12&#x27;</span> <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> path],<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;d:1.0&#x27;</span>,<span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

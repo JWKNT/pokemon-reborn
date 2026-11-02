@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>hops.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of hops.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+<span class="hljs-comment"># Each waypoint is immediately before a known, observed map doorway.</span>
+<span class="hljs-keyword">for</span> spec <span class="hljs-keyword">in</span> sys.argv[<span class="hljs-number">1</span>:]:
+ x,y,key=spec.split(<span class="hljs-string">&#x27;,&#x27;</span>);save()
+ result=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/nav.py&#x27;</span>),x,y,<span class="hljs-string">&#x27;--go&#x27;</span>])
+ <span class="hljs-keyword">if</span> result.returncode: sys.exit(result.returncode)
+ act(key,<span class="hljs-string">&#x27;wait:2&#x27;</span>);r=snap()
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;HOP&#x27;</span>,spec,<span class="hljs-string">&#x27; &#x27;</span>.join(a[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> r),flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(a[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.73</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(a[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">20</span> <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> r):sys.exit(<span class="hljs-number">2</span>)
+</code></pre>
+  </body>
+</html>

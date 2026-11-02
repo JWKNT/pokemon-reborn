@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glitch_spinner_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glitch_spinner_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only routing for Rocket Hideout&#x27;s installed forced-movement arrows.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> nav <span class="hljs-keyword">import</span> *
+MOVE={<span class="hljs-number">1</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-number">2</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">3</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">4</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)}
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">spinner_plan</span>(<span class="hljs-params">v,goal</span>):
+ arrows={}
+ <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values():
+  cs=e.get(<span class="hljs-string">&#x27;list&#x27;</span>)<span class="hljs-keyword">or</span>[]
+  routes=[c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;list&#x27;</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">209</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]==-<span class="hljs-number">1</span>]
+  <span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>]!=<span class="hljs-number">1</span> <span class="hljs-keyword">or</span> <span class="hljs-built_in">len</span>(routes)!=<span class="hljs-number">1</span>:<span class="hljs-keyword">continue</span>
+  codes=[m[<span class="hljs-string">&#x27;code&#x27;</span>]<span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> routes[<span class="hljs-number">0</span>]]
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">all</span>(c <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>,<span class="hljs-number">31</span>,<span class="hljs-number">32</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> codes):<span class="hljs-keyword">continue</span>
+  moves=[MOVE[c]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> codes <span class="hljs-keyword">if</span> c <span class="hljs-keyword">in</span> MOVE]
+  <span class="hljs-keyword">if</span> moves:arrows[(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>])]=moves
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">follow</span>(<span class="hljs-params">pos</span>):
+  seen=<span class="hljs-built_in">set</span>();count=<span class="hljs-number">0</span>
+  <span class="hljs-keyword">while</span> pos <span class="hljs-keyword">in</span> arrows:
+   <span class="hljs-keyword">if</span> pos <span class="hljs-keyword">in</span> seen:<span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;Spinner cycle&#x27;</span>)
+   seen.add(pos)
+   <span class="hljs-keyword">for</span> dx,dy <span class="hljs-keyword">in</span> arrows[pos]:pos=(pos[<span class="hljs-number">0</span>]+dx,pos[<span class="hljs-number">1</span>]+dy);count+=<span class="hljs-number">1</span>
+  <span class="hljs-keyword">return</span> pos,count
+ g=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>);start=<span class="hljs-built_in">tuple</span>(v[<span class="hljs-string">&#x27;position&#x27;</span>]);q=[(<span class="hljs-number">0</span>,start)];dist={start:<span class="hljs-number">0</span>};prev={start:<span class="hljs-literal">None</span>}
+ <span class="hljs-keyword">while</span> q:
+  cost,p=heapq.heappop(q)
+  <span class="hljs-keyword">if</span> cost!=dist[p]:<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">if</span> p==goal:<span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">for</span> key,n <span class="hljs-keyword">in</span> g.get(p,[]):
+   <span class="hljs-keyword">try</span>:end,hops=follow(n)
+   <span class="hljs-keyword">except</span> ValueError:<span class="hljs-keyword">continue</span>
+   <span class="hljs-keyword">if</span> end <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> g <span class="hljs-keyword">and</span> end!=goal:<span class="hljs-keyword">continue</span>
+   nc=cost+<span class="hljs-number">1</span>+hops*<span class="hljs-number">.2</span>
+   <span class="hljs-keyword">if</span> nc&lt;dist.get(end,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):
+    dist[end]=nc;prev[end]=(p,<span class="hljs-string">&#x27;spin:&#x27;</span>+key <span class="hljs-keyword">if</span> hops <span class="hljs-keyword">else</span> key,hops);heapq.heappush(q,(nc,end))
+ <span class="hljs-keyword">if</span> goal <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> prev:<span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&#x27;No spinner route&#x27;</span>)
+ result=[];p=goal
+ <span class="hljs-keyword">while</span> prev[p]:
+  old,k,hops=prev[p];result.append({<span class="hljs-string">&#x27;from&#x27;</span>:old,<span class="hljs-string">&#x27;to&#x27;</span>:p,<span class="hljs-string">&#x27;key&#x27;</span>:k,<span class="hljs-string">&#x27;forced_tiles&#x27;</span>:hops});p=old
+ <span class="hljs-keyword">return</span> result[::-<span class="hljs-number">1</span>]
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ mid,sx,sy,tx,ty=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:]);<span class="hljs-keyword">assert</span> mid==<span class="hljs-number">448</span>
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(sx),<span class="hljs-built_in">str</span>(sy)],stderr=subprocess.DEVNULL))
+ <span class="hljs-built_in">print</span>(json.dumps(spinner_plan(v,(tx,ty)),indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

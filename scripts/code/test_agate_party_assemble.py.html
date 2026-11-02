@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_agate_party_assemble.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_agate_party_assemble.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure/source Agate assembly fixtures; no actual UI or native claims.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">import</span> unittest
+<span class="hljs-keyword">from</span> agate_party_assemble <span class="hljs-keyword">import</span> (START,FINAL,CF_EV,CF_MOVES,card_slot,final_proof,
+                                  preflight,source_proof,trainer_hazards)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">frozen_fixture</span>(<span class="hljs-params">stage=<span class="hljs-number">51</span></span>):
+    names=[<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Excadrill&#x27;</span>]
+    party=[]
+    <span class="hljs-keyword">for</span> species,name <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(START,names):
+        party.append({<span class="hljs-string">&#x27;species&#x27;</span>:species,<span class="hljs-string">&#x27;name&#x27;</span>:name,<span class="hljs-string">&#x27;level&#x27;</span>:<span class="hljs-number">90</span>,<span class="hljs-string">&#x27;hp&#x27;</span>:<span class="hljs-number">252</span>,<span class="hljs-string">&#x27;totalhp&#x27;</span>:<span class="hljs-number">252</span>,
+                      <span class="hljs-string">&#x27;status&#x27;</span>:<span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;item&#x27;</span>:<span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;nature&#x27;</span>:<span class="hljs-string">&#x27;TIMID&#x27;</span>,<span class="hljs-string">&#x27;ev&#x27;</span>:[<span class="hljs-number">0</span>]*<span class="hljs-number">6</span>,
+                      <span class="hljs-string">&#x27;attack&#x27;</span>:<span class="hljs-number">93</span>,<span class="hljs-string">&#x27;defense&#x27;</span>:<span class="hljs-number">333</span>,<span class="hljs-string">&#x27;spatk&#x27;</span>:<span class="hljs-number">210</span>,<span class="hljs-string">&#x27;spdef&#x27;</span>:<span class="hljs-number">218</span>,<span class="hljs-string">&#x27;speed&#x27;</span>:<span class="hljs-number">68</span>,
+                      <span class="hljs-string">&#x27;moves&#x27;</span>:[{<span class="hljs-string">&#x27;move&#x27;</span>:m,<span class="hljs-string">&#x27;pp&#x27;</span>:<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;ppup&#x27;</span>:<span class="hljs-number">0</span>} <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> CF_MOVES]})
+    party[<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;ev&#x27;</span>]=<span class="hljs-built_in">list</span>(CF_EV)
+    party[<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;move&#x27;</span>]=<span class="hljs-string">&#x27;FLY&#x27;</span>
+    <span class="hljs-keyword">return</span> ({<span class="hljs-string">&#x27;map&#x27;</span>:<span class="hljs-number">355</span>,<span class="hljs-string">&#x27;position&#x27;</span>:[<span class="hljs-number">30</span>,<span class="hljs-number">13</span>],<span class="hljs-string">&#x27;party&#x27;</span>:party,<span class="hljs-string">&#x27;trainer&#x27;</span>:{<span class="hljs-string">&#x27;money&#x27;</span>:<span class="hljs-number">2000</span>},
+             <span class="hljs-string">&#x27;bag&#x27;</span>:{<span class="hljs-string">&#x27;contents&#x27;</span>:{<span class="hljs-string">&#x27;ULTRAPOTION&#x27;</span>:<span class="hljs-number">40</span>,<span class="hljs-string">&#x27;FOCUSSASH&#x27;</span>:<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;POWERLENS&#x27;</span>:<span class="hljs-number">1</span>}}},
+            {<span class="hljs-string">&#x27;variables&#x27;</span>:{<span class="hljs-string">&#x27;391&#x27;</span>:stage},<span class="hljs-string">&#x27;switches&#x27;</span>:{<span class="hljs-string">&#x27;5&#x27;</span>:<span class="hljs-literal">False</span>,<span class="hljs-string">&#x27;989&#x27;</span>:<span class="hljs-literal">False</span>,<span class="hljs-string">&#x27;990&#x27;</span>:<span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;259&#x27;</span>:<span class="hljs-literal">True</span>},
+             <span class="hljs-string">&#x27;self_switches&#x27;</span>:{}})
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Guards</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_installed_pc_south_setter_commitment_and_fresh_cursor</span>(<span class="hljs-params">self</span>):
+        p=source_proof()
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;normal_setter&#x27;</span>],[<span class="hljs-number">763</span>,<span class="hljs-number">30</span>,<span class="hljs-number">62</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;stop&#x27;</span>],[<span class="hljs-number">355</span>,<span class="hljs-number">38</span>,<span class="hljs-number">25</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;approach_stop&#x27;</span>],[<span class="hljs-number">763</span>,<span class="hljs-number">45</span>,<span class="hljs-number">53</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;assembly_pc&#x27;</span>],[<span class="hljs-number">355</span>,<span class="hljs-number">5</span>,<span class="hljs-number">38</span>,<span class="hljs-number">25</span>,<span class="hljs-string">&#x27;Up&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertFalse(p[<span class="hljs-string">&#x27;fly_to_agate&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;west_entry_stop&#x27;</span>],[<span class="hljs-number">763</span>,<span class="hljs-number">13</span>,<span class="hljs-number">54</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;west_entry_requires_stage&#x27;</span>],<span class="hljs-number">52</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;agate_assembly_pc&#x27;</span>],[<span class="hljs-number">752</span>,<span class="hljs-number">7</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;agate_assembly_stop&#x27;</span>],[<span class="hljs-number">763</span>,<span class="hljs-number">46</span>,<span class="hljs-number">70</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;fresh_box_cursor&#x27;</span>],<span class="hljs-number">0</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;swap1&#x27;</span>],[<span class="hljs-number">1</span>,<span class="hljs-number">11</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Kricketune&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;swap2&#x27;</span>],[<span class="hljs-number">1</span>,<span class="hljs-number">6</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;Hexan&#x27;</span>,<span class="hljs-string">&#x27;Kricketune&#x27;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;commitment&#x27;</span>],[[x,<span class="hljs-number">52</span>] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">43</span>,<span class="hljs-number">49</span>)])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_only_finished_build_known_stage_and_carrier_allowed</span>(<span class="hljs-params">self</span>):
+        s,n=frozen_fixture();<span class="hljs-variable language_">self</span>.assertEqual(preflight(s,n)[<span class="hljs-string">&#x27;initial_stage&#x27;</span>],<span class="hljs-number">51</span>)
+        <span class="hljs-keyword">for</span> mutation <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;stage&#x27;</span>,<span class="hljs-string">&#x27;moves&#x27;</span>,<span class="hljs-string">&#x27;carrier&#x27;</span>,<span class="hljs-string">&#x27;order&#x27;</span>]:
+            a,b=copy.deepcopy((s,n))
+            <span class="hljs-keyword">if</span> mutation==<span class="hljs-string">&#x27;stage&#x27;</span>:b[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]=<span class="hljs-number">53</span>
+            <span class="hljs-keyword">elif</span> mutation==<span class="hljs-string">&#x27;moves&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;move&#x27;</span>]=<span class="hljs-string">&#x27;SHADOWBALL&#x27;</span>
+            <span class="hljs-keyword">elif</span> mutation==<span class="hljs-string">&#x27;carrier&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]=<span class="hljs-number">0</span>
+            <span class="hljs-keyword">else</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>],a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>]=a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>],a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>]
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(a,b)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_normal_mint_override_is_effective_nature</span>(<span class="hljs-params">self</span>):
+        s,n=frozen_fixture();s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>].update(nature=<span class="hljs-string">&#x27;CALM&#x27;</span>,natureflag=<span class="hljs-string">&#x27;TIMID&#x27;</span>)
+        preflight(s,n)
+        s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;natureflag&#x27;</span>]=<span class="hljs-string">&#x27;CALM&#x27;</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s,n)
+        s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;natureflag&#x27;</span>]=<span class="hljs-literal">None</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s,n)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_active_ricardo_cannot_be_walked_through_to_set_stage</span>(<span class="hljs-params">self</span>):
+        s,n=frozen_fixture();n[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;989&#x27;</span>]=<span class="hljs-literal">True</span>
+        <span class="hljs-variable language_">self</span>.assertIn((<span class="hljs-number">30</span>,<span class="hljs-number">62</span>),trainer_hazards(n))
+        <span class="hljs-variable language_">self</span>.assertTrue(preflight(s,n)[<span class="hljs-string">&#x27;optional_setter_blocked&#x27;</span>])
+        indexed={m[<span class="hljs-string">&#x27;species&#x27;</span>]:m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>]}
+        cryo=copy.deepcopy(indexed[<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span>]);cryo.update(species=<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span>,name=<span class="hljs-string">&#x27;Hexan&#x27;</span>,item=<span class="hljs-string">&#x27;FOCUSSASH&#x27;</span>)
+        assembled=copy.deepcopy(s);assembled.update(<span class="hljs-built_in">map</span>=<span class="hljs-number">763</span>,position=[<span class="hljs-number">46</span>,<span class="hljs-number">70</span>])
+        assembled[<span class="hljs-string">&#x27;party&#x27;</span>]=[copy.deepcopy(indexed[v]) <span class="hljs-keyword">if</span> v!=<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span> <span class="hljs-keyword">else</span> cryo <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> FINAL]
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(assembled,n,phase=<span class="hljs-string">&#x27;approach&#x27;</span>)
+        n[<span class="hljs-string">&#x27;self_switches&#x27;</span>][<span class="hljs-string">&#x27;763,48,A&#x27;</span>]=<span class="hljs-literal">True</span>
+        <span class="hljs-variable language_">self</span>.assertNotIn((<span class="hljs-number">30</span>,<span class="hljs-number">62</span>),trainer_hazards(n))
+        preflight(assembled,n,phase=<span class="hljs-string">&#x27;approach&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_party_card_geometry_rejects_missing_duplicate_or_wrong_name</span>(<span class="hljs-params">self</span>):
+        rows=[{<span class="hljs-string">&#x27;text&#x27;</span>:<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>:<span class="hljs-number">.1</span>,<span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.15</span>},{<span class="hljs-string">&#x27;text&#x27;</span>:<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>:<span class="hljs-number">.6</span>,<span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.195</span>}]
+        <span class="hljs-variable language_">self</span>.assertEqual(card_slot(rows,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>),<span class="hljs-number">0</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(card_slot(rows,<span class="hljs-string">&#x27;Arcanine&#x27;</span>),<span class="hljs-number">1</span>)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):card_slot(rows,<span class="hljs-string">&#x27;Hexan&#x27;</span>)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):card_slot(rows+[<span class="hljs-built_in">dict</span>(rows[<span class="hljs-number">0</span>])],<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):card_slot([{<span class="hljs-string">&#x27;text&#x27;</span>:<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>:<span class="hljs-number">.1</span>,<span class="hljs-string">&#x27;y&#x27;</span>:<span class="hljs-number">.9</span>}],<span class="hljs-string">&#x27;Arcanine&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_final_proof_checks_sash_full_pp_order_stage_and_consumption</span>(<span class="hljs-params">self</span>):
+        before,nav=frozen_fixture()
+        indexed={m[<span class="hljs-string">&#x27;species&#x27;</span>]:m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> before[<span class="hljs-string">&#x27;party&#x27;</span>]}
+        after=copy.deepcopy(before);after.update(<span class="hljs-built_in">map</span>=<span class="hljs-number">355</span>,position=[<span class="hljs-number">38</span>,<span class="hljs-number">25</span>])
+        cryo=copy.deepcopy(before[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>]);cryo.update(species=<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span>,name=<span class="hljs-string">&#x27;Hexan&#x27;</span>,item=<span class="hljs-string">&#x27;FOCUSSASH&#x27;</span>)
+        after[<span class="hljs-string">&#x27;party&#x27;</span>]=[copy.deepcopy(indexed[s]) <span class="hljs-keyword">if</span> s!=<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span> <span class="hljs-keyword">else</span> cryo <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> FINAL]
+        maxima={m:<span class="hljs-number">10</span> <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> CF_MOVES}
+        final_proof(before,after,nav,maxima,phase=<span class="hljs-string">&#x27;assemble&#x27;</span>,initial_stage=<span class="hljs-number">51</span>)
+        <span class="hljs-keyword">for</span> mutation <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;sash&#x27;</span>,<span class="hljs-string">&#x27;hp&#x27;</span>,<span class="hljs-string">&#x27;pp&#x27;</span>,<span class="hljs-string">&#x27;stage&#x27;</span>,<span class="hljs-string">&#x27;medicine&#x27;</span>,<span class="hljs-string">&#x27;order&#x27;</span>]:
+            a,b=copy.deepcopy((after,nav))
+            <span class="hljs-keyword">if</span> mutation==<span class="hljs-string">&#x27;sash&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">5</span>][<span class="hljs-string">&#x27;item&#x27;</span>]=<span class="hljs-literal">None</span>
+            <span class="hljs-keyword">elif</span> mutation==<span class="hljs-string">&#x27;hp&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]-=<span class="hljs-number">1</span>
+            <span class="hljs-keyword">elif</span> mutation==<span class="hljs-string">&#x27;pp&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>][<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;pp&#x27;</span>]=<span class="hljs-number">9</span>
+            <span class="hljs-keyword">elif</span> mutation==<span class="hljs-string">&#x27;stage&#x27;</span>:b[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]=<span class="hljs-number">53</span>
+            <span class="hljs-keyword">elif</span> mutation==<span class="hljs-string">&#x27;medicine&#x27;</span>:a[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;ULTRAPOTION&#x27;</span>]=<span class="hljs-number">39</span>
+            <span class="hljs-keyword">else</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>],a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>]=a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>],a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>]
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):final_proof(before,a,b,maxima,phase=<span class="hljs-string">&#x27;assemble&#x27;</span>,initial_stage=<span class="hljs-number">51</span>)
+        approach_before=copy.deepcopy(after);approach_before.update(<span class="hljs-built_in">map</span>=<span class="hljs-number">763</span>,position=[<span class="hljs-number">30</span>,<span class="hljs-number">62</span>])
+        approach_after=copy.deepcopy(after)
+        approach_after.update(<span class="hljs-built_in">map</span>=<span class="hljs-number">763</span>,position=[<span class="hljs-number">45</span>,<span class="hljs-number">53</span>]);nav[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]=<span class="hljs-number">52</span>
+        final_proof(approach_before,approach_after,nav,maxima,phase=<span class="hljs-string">&#x27;approach&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_west_entry_requires_fixed_six_and_registered_restoration_page</span>(<span class="hljs-params">self</span>):
+        before,nav=frozen_fixture()
+        indexed={m[<span class="hljs-string">&#x27;species&#x27;</span>]:m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> before[<span class="hljs-string">&#x27;party&#x27;</span>]}
+        cryo=copy.deepcopy(indexed[<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span>]);cryo.update(species=<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span>,name=<span class="hljs-string">&#x27;Hexan&#x27;</span>,item=<span class="hljs-string">&#x27;FOCUSSASH&#x27;</span>)
+        before[<span class="hljs-string">&#x27;party&#x27;</span>]=[copy.deepcopy(indexed[s]) <span class="hljs-keyword">if</span> s!=<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span> <span class="hljs-keyword">else</span> cryo <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> FINAL]
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(before,nav,phase=<span class="hljs-string">&#x27;west-entry&#x27;</span>)
+        nav[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;988&#x27;</span>]=<span class="hljs-literal">True</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(before,nav,phase=<span class="hljs-string">&#x27;west-entry&#x27;</span>)
+        nav[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]=<span class="hljs-number">52</span>
+        <span class="hljs-variable language_">self</span>.assertEqual(preflight(before,nav,phase=<span class="hljs-string">&#x27;west-entry&#x27;</span>)[<span class="hljs-string">&#x27;phase&#x27;</span>],<span class="hljs-string">&#x27;west-entry&#x27;</span>)
+        before[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">5</span>][<span class="hljs-string">&#x27;item&#x27;</span>]=<span class="hljs-literal">None</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(before,nav,phase=<span class="hljs-string">&#x27;west-entry&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_agate_assembly_requires52_conscious_travel_party_and_explicit_lead</span>(<span class="hljs-params">self</span>):
+        s,n=frozen_fixture();s.update(<span class="hljs-built_in">map</span>=<span class="hljs-number">763</span>,position=[<span class="hljs-number">31</span>,<span class="hljs-number">61</span>])
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s,n,phase=<span class="hljs-string">&#x27;agate-assemble&#x27;</span>)
+        n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]=<span class="hljs-number">52</span>
+        preflight(s,n,phase=<span class="hljs-string">&#x27;agate-assemble&#x27;</span>)
+        s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>],s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>]=s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>],s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>]
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s,n,phase=<span class="hljs-string">&#x27;agate-assemble&#x27;</span>)
+        preflight(s,n,phase=<span class="hljs-string">&#x27;agate-assemble&#x27;</span>,incoming_lead=<span class="hljs-string">&#x27;Swampert&#x27;</span>)
+        s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>],s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">3</span>]=s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">3</span>],s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>]
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s,n,phase=<span class="hljs-string">&#x27;agate-assemble&#x27;</span>,incoming_lead=<span class="hljs-string">&#x27;Swampert&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_only_agate_assembly_accepts_injured_conscious_statusfree_members</span>(<span class="hljs-params">self</span>):
+        s,n=frozen_fixture();s.update(<span class="hljs-built_in">map</span>=<span class="hljs-number">763</span>,position=[<span class="hljs-number">31</span>,<span class="hljs-number">61</span>]);n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]=<span class="hljs-number">52</span>
+        s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]=<span class="hljs-number">1</span>;s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]=<span class="hljs-number">25</span>
+        preflight(s,n,phase=<span class="hljs-string">&#x27;agate-assemble&#x27;</span>)
+        s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;status&#x27;</span>]=<span class="hljs-string">&#x27;POISON&#x27;</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s,n,phase=<span class="hljs-string">&#x27;agate-assemble&#x27;</span>)
+        s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;status&#x27;</span>]=<span class="hljs-literal">None</span>;s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]=<span class="hljs-number">0</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s,n,phase=<span class="hljs-string">&#x27;agate-assemble&#x27;</span>)
+        s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]=s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>][<span class="hljs-string">&#x27;totalhp&#x27;</span>]+<span class="hljs-number">1</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s,n,phase=<span class="hljs-string">&#x27;agate-assemble&#x27;</span>)
+        indexed={m[<span class="hljs-string">&#x27;species&#x27;</span>]:m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>]}
+        cryo=copy.deepcopy(indexed[<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span>]);cryo.update(species=<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span>,name=<span class="hljs-string">&#x27;Hexan&#x27;</span>,item=<span class="hljs-string">&#x27;FOCUSSASH&#x27;</span>)
+        s[<span class="hljs-string">&#x27;party&#x27;</span>]=[copy.deepcopy(indexed[v]) <span class="hljs-keyword">if</span> v!=<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span> <span class="hljs-keyword">else</span> cryo <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> FINAL]
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(s,n,phase=<span class="hljs-string">&#x27;approach&#x27;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_agate_final_proof_handles_incoming_swamp_lead_without_inventing_party_order</span>(<span class="hljs-params">self</span>):
+        before,n=frozen_fixture();before.update(<span class="hljs-built_in">map</span>=<span class="hljs-number">763</span>,position=[<span class="hljs-number">31</span>,<span class="hljs-number">61</span>]);n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]=<span class="hljs-number">52</span>
+        before[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>],before[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>]=before[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">2</span>],before[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>]
+        indexed={m[<span class="hljs-string">&#x27;species&#x27;</span>]:m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> before[<span class="hljs-string">&#x27;party&#x27;</span>]}
+        cryo=copy.deepcopy(indexed[<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span>]);cryo.update(species=<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span>,name=<span class="hljs-string">&#x27;Hexan&#x27;</span>,item=<span class="hljs-string">&#x27;FOCUSSASH&#x27;</span>)
+        after=copy.deepcopy(before);after.update(<span class="hljs-built_in">map</span>=<span class="hljs-number">763</span>,position=[<span class="hljs-number">46</span>,<span class="hljs-number">70</span>])
+        after[<span class="hljs-string">&#x27;party&#x27;</span>]=[copy.deepcopy(indexed[v]) <span class="hljs-keyword">if</span> v!=<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span> <span class="hljs-keyword">else</span> cryo <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> FINAL]
+        maxima={m:<span class="hljs-number">10</span> <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> CF_MOVES}
+        final_proof(before,after,n,maxima,phase=<span class="hljs-string">&#x27;agate-assemble&#x27;</span>,initial_stage=<span class="hljs-number">52</span>)
+        after[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;item&#x27;</span>]=<span class="hljs-string">&#x27;POWERLENS&#x27;</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):final_proof(before,after,n,maxima,phase=<span class="hljs-string">&#x27;agate-assemble&#x27;</span>,initial_stage=<span class="hljs-number">52</span>)
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:unittest.main()
+</code></pre>
+  </body>
+</html>

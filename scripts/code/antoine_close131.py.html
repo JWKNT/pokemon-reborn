@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>antoine_close131.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of antoine_close131.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Close observed ordinary victory and save its outside-battle evidence once.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,time
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,read
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;defeated&#x27;</span> <span class="hljs-keyword">in</span> read().lower()
+<span class="hljs-keyword">for</span> script,args <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;victory_outro&#x27;</span>,[]),(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,[<span class="hljs-string">&#x27;finish&#x27;</span>,<span class="hljs-string">&#x27;--world-verified&#x27;</span>]),(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,[<span class="hljs-string">&#x27;Agate-Antoine-won131&#x27;</span>])]:
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{script}</span>.py&#x27;</span>),*args],check=<span class="hljs-literal">True</span>)
+s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Agate-Antoine-won131-status.json&#x27;</span>).read_text())
+n=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Agate-Antoine-won131-navigation.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">763</span> <span class="hljs-keyword">and</span> n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]==<span class="hljs-number">52</span> <span class="hljs-keyword">and</span> n[<span class="hljs-string">&#x27;self_switches&#x27;</span>][<span class="hljs-string">&#x27;763,49,A&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>
+p=ROOT/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>;p.unlink()
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ORDINARY ANTOINE WIN VERIFIED; NO GAUNTLET START&#x27;</span>,s[<span class="hljs-string">&#x27;position&#x27;</span>],flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

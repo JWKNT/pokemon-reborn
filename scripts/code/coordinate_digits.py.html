@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>coordinate_digits.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of coordinate_digits.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only pixel-template correction for the native coordinate popup digits.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,pathlib
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+ROOT=pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">fix_coordinates</span>(<span class="hljs-params">path,old,cropped=<span class="hljs-literal">False</span></span>):
+ templates=json.loads((ROOT/<span class="hljs-string">&#x27;work/coordinate-digit-templates.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;templates&#x27;</span>]
+ im=Image.<span class="hljs-built_in">open</span>(path).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=im.size
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> cropped:im=im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.09</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.75</span>),<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.91</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.86</span>)))
+ w,h=im.size
+ hh=<span class="hljs-built_in">round</span>(h*<span class="hljs-number">.525</span>);ww=<span class="hljs-built_in">min</span>(w,<span class="hljs-built_in">round</span>(w*<span class="hljs-number">.92</span>));cols=[<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">max</span>(im.getpixel((x,y)))&lt;<span class="hljs-number">150</span> <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(hh))&gt;=<span class="hljs-number">5</span> <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(ww)]
+ runs=[];i=<span class="hljs-number">0</span>
+ <span class="hljs-keyword">while</span> i&lt;<span class="hljs-built_in">len</span>(cols):
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> cols[i]:i+=<span class="hljs-number">1</span>;<span class="hljs-keyword">continue</span>
+  a=i
+  <span class="hljs-keyword">while</span> i&lt;<span class="hljs-built_in">len</span>(cols)<span class="hljs-keyword">and</span> cols[i]:i+=<span class="hljs-number">1</span>
+  runs.append((a,i))
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(runs)&lt;<span class="hljs-number">12</span>:<span class="hljs-keyword">return</span> old
+ widths=<span class="hljs-built_in">sorted</span>(b-a <span class="hljs-keyword">for</span> a,b <span class="hljs-keyword">in</span> runs[:<span class="hljs-number">14</span>]);typical=widths[<span class="hljs-built_in">len</span>(widths)//<span class="hljs-number">2</span>]
+ commas=[i <span class="hljs-keyword">for</span> i,(a,b)<span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(runs)<span class="hljs-keyword">if</span> b-a&lt;typical*<span class="hljs-number">.5</span>][:<span class="hljs-number">3</span>]
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(commas)!=<span class="hljs-number">3</span>:<span class="hljs-keyword">return</span> old
+ groups=[runs[<span class="hljs-number">1</span>:commas[<span class="hljs-number">0</span>]],runs[commas[<span class="hljs-number">0</span>]+<span class="hljs-number">2</span>:commas[<span class="hljs-number">1</span>]],runs[commas[<span class="hljs-number">1</span>]+<span class="hljs-number">4</span>:commas[<span class="hljs-number">2</span>]]]
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">all</span>(<span class="hljs-number">1</span>&lt;=<span class="hljs-built_in">len</span>(g)&lt;=<span class="hljs-number">3</span> <span class="hljs-keyword">for</span> g <span class="hljs-keyword">in</span> groups):<span class="hljs-keyword">return</span> old
+ result=[]
+ <span class="hljs-keyword">for</span> g,number <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(groups,old):
+  digits=[];original=<span class="hljs-built_in">str</span>(number)
+  <span class="hljs-keyword">for</span> index,(a,b)<span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(g):
+   pts=[(x,y)<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(a,b)<span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(hh)<span class="hljs-keyword">if</span> <span class="hljs-built_in">max</span>(im.getpixel((x,y)))&lt;<span class="hljs-number">150</span>]
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> pts:<span class="hljs-keyword">return</span> old
+   x0,y0=<span class="hljs-built_in">min</span>(x <span class="hljs-keyword">for</span> x,y <span class="hljs-keyword">in</span> pts),<span class="hljs-built_in">min</span>(y <span class="hljs-keyword">for</span> x,y <span class="hljs-keyword">in</span> pts);x1,y1=<span class="hljs-built_in">max</span>(x <span class="hljs-keyword">for</span> x,y <span class="hljs-keyword">in</span> pts)+<span class="hljs-number">1</span>,<span class="hljs-built_in">max</span>(y <span class="hljs-keyword">for</span> x,y <span class="hljs-keyword">in</span> pts)+<span class="hljs-number">1</span>
+   mask=Image.new(<span class="hljs-string">&#x27;L&#x27;</span>,(x1-x0,y1-y0));mask.putdata([<span class="hljs-number">255</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">max</span>(im.getpixel((x,y)))&lt;<span class="hljs-number">150</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span> <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(y0,y1)<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(x0,x1)]);mask=mask.resize((<span class="hljs-number">10</span>,<span class="hljs-number">20</span>),Image.Resampling.NEAREST)
+   sig=<span class="hljs-string">&#x27;&#x27;</span>.join(<span class="hljs-string">&#x27;1&#x27;</span><span class="hljs-keyword">if</span> z <span class="hljs-keyword">else</span><span class="hljs-string">&#x27;0&#x27;</span><span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> mask.getdata());scores=<span class="hljs-built_in">sorted</span>((<span class="hljs-built_in">sum</span>(a!=b <span class="hljs-keyword">for</span> a,b <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(sig,s))/<span class="hljs-number">200</span>,k)<span class="hljs-keyword">for</span> k,s <span class="hljs-keyword">in</span> templates.items())
+   <span class="hljs-keyword">if</span> scores[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>]&lt;=<span class="hljs-number">.01</span> <span class="hljs-keyword">and</span> (<span class="hljs-built_in">len</span>(scores)&lt;<span class="hljs-number">2</span> <span class="hljs-keyword">or</span> scores[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>]&gt;<span class="hljs-number">.04</span>):digits.append(scores[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>])
+   <span class="hljs-keyword">elif</span> <span class="hljs-built_in">len</span>(g)==<span class="hljs-built_in">len</span>(original):digits.append(original[index])
+   <span class="hljs-keyword">else</span>:<span class="hljs-keyword">return</span> old
+  result.append(<span class="hljs-built_in">int</span>(<span class="hljs-string">&#x27;&#x27;</span>.join(digits)))
+ <span class="hljs-keyword">return</span> <span class="hljs-built_in">tuple</span>(result)
+</code></pre>
+  </body>
+</html>

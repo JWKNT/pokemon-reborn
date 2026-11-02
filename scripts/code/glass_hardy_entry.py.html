@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_hardy_entry.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_hardy_entry.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed exterior metal plate, service entrance, Bennett choice and wakeup.
+Route notes only mirror visibly completed source transitions; no game writes.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">stage</span>(<span class="hljs-params">n</span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]=n;p.write_text(json.dumps(v))
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--bennett-active&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">731</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">70</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">70</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>);stage(<span class="hljs-number">7</span>)
+ <span class="hljs-comment"># Installed plate event requires approach from west, facing right.</span>
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">72</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">72</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--world-settle&#x27;</span>,<span class="hljs-number">15</span>);stage(<span class="hljs-number">9</span>)
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">83</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">83</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>);stage(<span class="hljs-number">10</span>)
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">715</span>,<span class="hljs-number">63</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">733</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">733</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>);stage(<span class="hljs-number">12</span>)
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">733</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ <span class="hljs-comment"># Walking to elevator landing starts the installed Bennett scene.</span>
+ p=ROOT/<span class="hljs-string">&#x27;notes/route-next.json&#x27;</span>;p.write_text(json.dumps([[<span class="hljs-number">733</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">28</span>,<span class="hljs-number">40</span>,[]]]))
+ run(<span class="hljs-string">&#x27;queue_route&#x27;</span>,p)
+run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;To be stronger than anyone|To win Luna|To make things different|No&#x27;</span>,<span class="hljs-string">&#x27;To make things different&#x27;</span>,<span class="hljs-string">&#x27;--source&#x27;</span>,<span class="hljs-number">733</span>,<span class="hljs-number">9</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">733</span>,<span class="hljs-number">9</span>,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>,<span class="hljs-string">&#x27;--world-settle&#x27;</span>,<span class="hljs-number">20</span>);stage(<span class="hljs-number">13</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;GLASS WAKEUP READY&#x27;</span>,locate(<span class="hljs-number">733</span>),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

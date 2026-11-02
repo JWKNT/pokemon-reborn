@@ -1,0 +1,2 @@
+Klinklang is pure Steel, Ground weakness 2x. Prior summary incorrectly called it Electric/Steel. Public work/169-frey-gear.log shows TWO Altaria Earthquakes (226 ->123 ->29), not one 197-damage hit. Do not repeat that calculation error.
+Frey2 intercepted farther south from staged checkpoint by right/down6/left after Continue load wait3; public trainer intro1791182134.216304.

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_nw_rail_queue.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_nw_rail_queue.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal-control implementation of the source-reviewed rock-loading puzzle.
+Stop on routing/dialogue/save mismatch; never force through a blocked climb.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,sys,subprocess
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+plan=json.loads((R/<span class="hljs-string">&#x27;work/193-nw-rail-guide-plan.json&#x27;</span>).read_text())
+start=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>])<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+prefix=sys.argv[<span class="hljs-number">2</span>]<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;NW193-rail&#x27;</span>
+env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;112&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/name),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>,env=env)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">state</span>():<span class="hljs-keyword">return</span> json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+s=state()
+<span class="hljs-keyword">if</span> start==<span class="hljs-number">1</span>:
+ <span class="hljs-keyword">for</span> kind,values <span class="hljs-keyword">in</span> plan[<span class="hljs-string">&#x27;initial&#x27;</span>].items():
+  <span class="hljs-keyword">for</span> key,value <span class="hljs-keyword">in</span> values.items():<span class="hljs-keyword">assert</span> s[kind][key]==value,(kind,key,s[kind][key],value)
+<span class="hljs-keyword">for</span> i,step <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(plan[<span class="hljs-string">&#x27;steps&#x27;</span>],<span class="hljs-number">1</span>):
+ <span class="hljs-keyword">if</span> i&lt;start:<span class="hljs-keyword">continue</span>
+ s=state();run(<span class="hljs-string">&#x27;overworld.py&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;load&#x27;</span><span class="hljs-keyword">in</span> step:
+  <span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;499&#x27;</span>]==<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1148&#x27;</span>]
+  run(<span class="hljs-string">&#x27;victory_nw_cliff_event.py&#x27;</span>,<span class="hljs-number">786</span>,<span class="hljs-number">97</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;dialog.py&#x27;</span>,<span class="hljs-string">&#x27;--yes&#x27;</span>,<span class="hljs-string">&#x27;--limit=8&#x27;</span>)
+ <span class="hljs-keyword">elif</span> <span class="hljs-string">&#x27;lever&#x27;</span><span class="hljs-keyword">in</span> step:
+  <span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(step[<span class="hljs-string">&#x27;switch&#x27;</span>])]!=step[<span class="hljs-string">&#x27;after&#x27;</span>]
+  run(<span class="hljs-string">&#x27;victory_nw_cliff_event.py&#x27;</span>,<span class="hljs-number">786</span>,step[<span class="hljs-string">&#x27;lever&#x27;</span>],<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;play.py&#x27;</span>,<span class="hljs-string">&#x27;wait:3&#x27;</span>)
+ <span class="hljs-keyword">else</span>:
+  var=<span class="hljs-string">&#x27;498&#x27;</span><span class="hljs-keyword">if</span> step[<span class="hljs-string">&#x27;cart&#x27;</span>]==<span class="hljs-number">94</span> <span class="hljs-keyword">else</span><span class="hljs-string">&#x27;499&#x27;</span>;<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;variables&#x27;</span>][var]==step[<span class="hljs-string">&#x27;before&#x27;</span>]
+  run(<span class="hljs-string">&#x27;victory_nw_cliff_event.py&#x27;</span>,<span class="hljs-number">786</span>,step[<span class="hljs-string">&#x27;cart&#x27;</span>],<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;play.py&#x27;</span>,<span class="hljs-string">&#x27;wait:12&#x27;</span>)
+ run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">f&#x27;<span class="hljs-subst">{prefix}</span>-<span class="hljs-subst">{i}</span>&#x27;</span>);run(<span class="hljs-string">&#x27;party_open.py&#x27;</span>);s=state()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;load&#x27;</span><span class="hljs-keyword">in</span> step:<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1148&#x27;</span>]
+ <span class="hljs-keyword">elif</span> <span class="hljs-string">&#x27;lever&#x27;</span><span class="hljs-keyword">in</span> step:<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(step[<span class="hljs-string">&#x27;switch&#x27;</span>])]==step[<span class="hljs-string">&#x27;after&#x27;</span>]
+ <span class="hljs-keyword">else</span>:
+  <span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;variables&#x27;</span>][var]==step[<span class="hljs-string">&#x27;after&#x27;</span>]
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;cart_to&#x27;</span><span class="hljs-keyword">in</span> step <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;pillar&#x27;</span><span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> step:<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;786&#x27;</span>][<span class="hljs-built_in">str</span>(step[<span class="hljs-string">&#x27;cart&#x27;</span>])]==step[<span class="hljs-string">&#x27;cart_to&#x27;</span>]
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;deposit&#x27;</span><span class="hljs-keyword">in</span> step:<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(step[<span class="hljs-string">&#x27;deposit&#x27;</span>])] <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1148&#x27;</span>]
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;pillar&#x27;</span><span class="hljs-keyword">in</span> step:<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(step[<span class="hljs-string">&#x27;pillar&#x27;</span>])]
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NW RAIL VERIFIED&#x27;</span>,i,step,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NORTHWEST PILLAR COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

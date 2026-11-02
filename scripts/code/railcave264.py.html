@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>railcave264.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of railcave264.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Follow the installed two-rock Railcave route using ordinary recorded input.
+
+Map251 event5 supplies the deterministic negative-progress sequence. Only
+navigation notes are updated after an observed transfer; game data is untouched.
+Start in the Railcave. Each ordinary save verifies actual puzzle progress,
+because identical room coordinates alone cannot prove exactly one transition.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+
+statefile=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>
+directions=[<span class="hljs-number">4</span>,<span class="hljs-number">4</span>,<span class="hljs-number">1</span>,<span class="hljs-number">4</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">4</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>]
+events={<span class="hljs-number">1</span>:<span class="hljs-number">3</span>,<span class="hljs-number">2</span>:<span class="hljs-number">2</span>,<span class="hljs-number">3</span>:<span class="hljs-number">4</span>,<span class="hljs-number">4</span>:<span class="hljs-number">1</span>}
+<span class="hljs-keyword">for</span> attempt <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">20</span>):
+    actual=locate()
+    <span class="hljs-keyword">if</span> actual[<span class="hljs-number">0</span>]==<span class="hljs-number">252</span>:
+        <span class="hljs-keyword">break</span>
+    <span class="hljs-keyword">assert</span> actual[<span class="hljs-number">0</span>]==<span class="hljs-number">251</span>, (<span class="hljs-string">&#x27;Railcave room review&#x27;</span>,actual)
+    subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+    state=json.loads(statefile.read_text())
+    progress=state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;146&#x27;</span>]
+    <span class="hljs-keyword">assert</span> -<span class="hljs-number">9</span>&lt;=progress&lt;=<span class="hljs-number">0</span>, (<span class="hljs-string">&#x27;Puzzle progress review&#x27;</span>,progress)
+    direction=directions[-progress]
+    <span class="hljs-keyword">assert</span> state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;148&#x27;</span>]==direction
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SAVED TWO-ROCK PROGRESS&#x27;</span>,progress,<span class="hljs-string">&#x27;NEXT&#x27;</span>,direction,flush=<span class="hljs-literal">True</span>)
+    subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/eventq.py&#x27;</span>),<span class="hljs-string">&#x27;251&#x27;</span>,<span class="hljs-built_in">str</span>(events[direction]),<span class="hljs-string">&#x27;enter&#x27;</span>],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">else</span>:
+    <span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Railcave bounded doorway limit&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/checkpoint.py&#x27;</span>),<span class="hljs-string">&#x27;Postgame264-RailcaveReached&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

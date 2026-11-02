@@ -1,0 +1,47 @@
+{
+  "created_epoch": 1791744430.31801,
+  "source": "work/298-all854.json event82 page0",
+  "source_sha256": "000f897d16bbad1ca8a5d883d42bdb2b4465c4ec3d4f42b31983566e1c861820",
+  "round_ids": [
+    176,
+    177,
+    178
+  ],
+  "full_party": 6,
+  "partner": [
+    "EUPHIE",
+    "Euphie",
+    0
+  ],
+  "rules": "One uninterrupted chain; loss resets entire chain. No saves between rounds. Exact static builds frozen before entry and public party order reviewed at each entry.",
+  "healing_evidence": "Event82 command136 HealAll before round1; installed Scripts/Trainers.rb229-233 calls pbHealAll after partnered double battle.",
+  "plan": "Magearna Calm Mind and Trick Room with spread Dazzling Gleam; preserve Mawile physical setup and Volcanion Haze for the final evasion/Psych Up team. Round2 sun demands focused play against fire threats.",
+  "archive": "Only whole winning chain published, shared attempt total, each completed log counted for exact bag use. Public screens only during battles.",
+  "session299_prefix_pending_rebase": {
+    "old_frames": 132588,
+    "new_frames": 154878,
+    "reason": "Session299 began while closed298 was being reviewed;298 now published. Correct299 metadata once recorder closes, before staging175."
+  },
+  "cresselia_item_plan": "Power Weight halves Speed256\u2192128, improving Psychic/Moonlight ordering under Trick Room; no stat or save editing.",
+  "round1_public_positions": {
+    "evidence": "work/299-round1-enter.log and first command screenshot directly viewed",
+    "own_left_upper_hud": "Magearna / Aster",
+    "own_right_lower_hud": "Rotom / Euphie",
+    "foe_left_lower_hud": "Purugly / Noel",
+    "foe_right_upper_hud": "Ninetales / Anna",
+    "mage_hp_guard": "--double default; do NOT pass --hp-lower"
+  },
+  "mechanics_correction": "Installed Battle_MoveEffects.rb8175\u20138178: Trick Room lasts8turns on PsychicTerrain. Earlier5turn assumption was wrong. Round1/2 ordinary foes have normalEV spreads and5\u201331IVs; onlyNostra andround3 rosters have252inallEVs. Read opponent-rosters.json rather than earlier summary generalization.",
+  "round1_public_progress": "At turn8: own Cresselia switched in vs seededSlowbro andLickilicky; Magearna+6boosts intentionally relinquished to preserve lowHP, Volcanion healthy. AllyHoopa active. Gardevoir,Nostra,Purugly,Clefable defeated. TwoFullRestores used; all ownmonsalive.",
+  "battle_party_order_provenance": "Installed Battle.rb406 initializes separate @partyorder; pbReplace1840\u20131856 changes only this UIorder, and pbInitialize references immutable actual party indices. No normal outside-battle party changes during chain; original Magearna,Mawile,Volcanion,Cresselia,Zapdos,Swampert remains next-round starting order.",
+  "round2_public_positions": {
+    "evidence": "work/300-r2-enter.log and directly viewed first command",
+    "allied_left": "Aster / Magearna upperHP",
+    "allied_right": "Euphie / Rotom lowerHP",
+    "opposing_left": "Laura / Whimsicott lowerHUD",
+    "opposing_right": "Charlotte / Ninetales upperHUD",
+    "healing": "Magearna publicly fullHP again; enginefullheal and initialpartyorderconfirmed"
+  },
+  "chain1_result": "Round1 won, round2 reset at epoch1791747205.759678. Full preentry reloaded, chain2 begun in300. Failed chain1 retained in journey only.",
+  "round2_revision": "Do not hard switch Magearna on first turn. Ninetales sun HeatWave should leave room for boosted PsychicTerrain CalmMind; heal then TrickRoom as HP requires. Keep setup before opposing seeded Noivern/Magearna snowball. All6autoheal between rounds."
+}

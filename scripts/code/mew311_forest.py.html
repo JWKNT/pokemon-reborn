@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mew311_forest.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mew311_forest.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed forest chase via normal controls, with fresh ordinary checkpoint gates.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,pathlib
+R=pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a,check=<span class="hljs-literal">True</span></span>):<span class="hljs-keyword">return</span> subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{s}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=check)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">stage</span>(<span class="hljs-params">label,want</span>):
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+ n=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-navigation.json&#x27;</span>).read_text())
+ <span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;636&#x27;</span>]==want,(label,n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;636&#x27;</span>])
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;875,69,41&#x27;</span>,check=<span class="hljs-literal">False</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">875</span>,<span class="hljs-number">13</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--world-settle&#x27;</span>,<span class="hljs-number">12</span>)
+stage(<span class="hljs-string">&#x27;Mew311-ForestExit&#x27;</span>,<span class="hljs-number">12</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">875</span>,<span class="hljs-number">9</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;840,152,111&#x27;</span>,check=<span class="hljs-literal">False</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">840</span>,<span class="hljs-number">157</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--world-settle&#x27;</span>,<span class="hljs-number">9</span>)
+stage(<span class="hljs-string">&#x27;Mew311-Rhodochrine&#x27;</span>,<span class="hljs-number">13</span>)
+run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;840,137,69&#x27;</span>,check=<span class="hljs-literal">False</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">840</span>,<span class="hljs-number">162</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--world-settle&#x27;</span>,<span class="hljs-number">12</span>)
+stage(<span class="hljs-string">&#x27;Mew311-FernCaged&#x27;</span>,<span class="hljs-number">17</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">840</span>,<span class="hljs-number">13</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Mew311-FernFreed&#x27;</span>)
+n=json.loads((R/<span class="hljs-string">&#x27;notes/Mew311-FernFreed-navigation.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> n[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1384&#x27;</span>]
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">840</span>,<span class="hljs-number">14</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">840</span>,<span class="hljs-number">14</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--until-choice&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FERN FAST TRAVEL YES/NO READY; answer Yes after public review&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

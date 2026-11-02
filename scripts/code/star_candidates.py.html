@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>star_candidates.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of star_candidates.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Offline Mastermind planning from publicly observed yellow/white feedback only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> itertools,json,sys
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> Counter
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np
+p=Path(sys.argv[<span class="hljs-number">1</span>]);history=json.loads(p.read_text()) <span class="hljs-keyword">if</span> p.exists() <span class="hljs-keyword">else</span> []
+allc=np.array([a <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> itertools.product(<span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>,<span class="hljs-number">5</span>),repeat=<span class="hljs-number">7</span>)<span class="hljs-keyword">if</span> <span class="hljs-built_in">max</span>(Counter(a).values())&lt;=<span class="hljs-number">3</span>],dtype=np.int8)
+a=allc.copy()
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">counts</span>(<span class="hljs-params">a</span>):<span class="hljs-keyword">return</span> np.array([(a==v).<span class="hljs-built_in">sum</span>(axis=<span class="hljs-number">1</span>)<span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>,<span class="hljs-number">5</span>)]).T
+<span class="hljs-keyword">for</span> h <span class="hljs-keyword">in</span> history:
+ g=np.array(h[<span class="hljs-string">&#x27;guess&#x27;</span>]);gold=np.minimum(counts(a),counts(g[<span class="hljs-literal">None</span>,:])[<span class="hljs-number">0</span>]).<span class="hljs-built_in">sum</span>(axis=<span class="hljs-number">1</span>);white=(a==g).<span class="hljs-built_in">sum</span>(axis=<span class="hljs-number">1</span>)
+ a=a[(gold==h[<span class="hljs-string">&#x27;yellow&#x27;</span>])&amp;(white==h[<span class="hljs-string">&#x27;white&#x27;</span>])]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(a),<span class="hljs-string">&#x27;Inconsistent public feedback; review before further input&#x27;</span>
+<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> history:guess=[<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>]
+<span class="hljs-keyword">elif</span> <span class="hljs-built_in">len</span>(a)==<span class="hljs-number">1</span>:guess=a[<span class="hljs-number">0</span>].tolist()
+<span class="hljs-keyword">else</span>:
+ rng=np.random.default_rng(<span class="hljs-number">215</span>);pool=allc <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(a)&lt;=<span class="hljs-number">64</span> <span class="hljs-keyword">else</span> (a <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(a)&lt;=<span class="hljs-number">256</span> <span class="hljs-keyword">else</span> a[rng.choice(<span class="hljs-built_in">len</span>(a),<span class="hljs-number">256</span>,replace=<span class="hljs-literal">False</span>)])
+ ac=counts(a);last=np.array(history[-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;guess&#x27;</span>]);best=<span class="hljs-literal">None</span>
+ <span class="hljs-keyword">for</span> g <span class="hljs-keyword">in</span> pool:
+  gold=np.minimum(ac,counts(g[<span class="hljs-literal">None</span>,:])[<span class="hljs-number">0</span>]).<span class="hljs-built_in">sum</span>(axis=<span class="hljs-number">1</span>);white=(a==g).<span class="hljs-built_in">sum</span>(axis=<span class="hljs-number">1</span>);freq=np.bincount(gold*<span class="hljs-number">8</span>+white,minlength=<span class="hljs-number">64</span>)
+  score=(<span class="hljs-built_in">int</span>((freq*freq).<span class="hljs-built_in">sum</span>()),<span class="hljs-built_in">int</span>((g!=last).<span class="hljs-built_in">sum</span>()),<span class="hljs-built_in">tuple</span>(g))
+  <span class="hljs-keyword">if</span> best <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> score&lt;best:best=score;guess=g.tolist()
+<span class="hljs-built_in">print</span>(json.dumps({<span class="hljs-string">&#x27;remaining&#x27;</span>:<span class="hljs-built_in">len</span>(a),<span class="hljs-string">&#x27;next_guess&#x27;</span>:guess,<span class="hljs-string">&#x27;public_guesses&#x27;</span>:<span class="hljs-built_in">len</span>(history)}))
+</code></pre>
+  </body>
+</html>

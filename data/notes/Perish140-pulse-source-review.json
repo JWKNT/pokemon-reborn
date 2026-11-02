@@ -1,0 +1,23 @@
+{
+  "status": "source-reviewed proposal; execute only after measured Kricketune prep checkpoint",
+  "sources": [
+    "work/Kricketune140-owned-frozen.json",
+    "installed Battle_MoveEffects.rb6438-6475",
+    "installed Battle.rb5810-5828",
+    "installed Trainers.rb14-31",
+    "installed Reborn/trainertext.rb Zero2052 and Mime7280"
+  ],
+  "rationale": "Owned Kricketune already has PerishSong. Both trainer PULSE mons have no boss flag or Soundproof and cannot switch after their owner has no reserve. FullRestore/Moonlight do not erase PerishSong. Saves one-to-two HeartScale detours.",
+  "Zero": {
+    "entry": "Preserve fullHP Kricketune with FocusSash until finalClaw. If hail exists, decline free switch; wait for active ally to faint, then choose Kricketune after endround for fullHP Sash. Never normal switch into Claw attack then hail.",
+    "turn": "FullHP Sash survives single-hit Claw move; PerishSong then faint/normal switch. Observe count3 at first endround, then three additional rounds to0 using living reserves/revives. FullRestore does not clear count.",
+    "not_guaranteed": "Must first win Spiritomb/Houndoom/Honchkrow/Weavile/Umbreon and preserve normal healthy reserves; Sash must remain unspent."
+  },
+  "Mime": {
+    "entry": "Kricketune+Sylveon leads, fully healed. Require measured KricketuneHP>100 andSpeed>87. Mime100 NightShade100 cannotKO fullKrick; first-turn Instruct has no previous Aromatisse move; other Mime moves do not prevent Song. Krick moves before Aroma87.",
+    "turn1": "Kricketune PerishSong, SylveonMistyTerrain if available; confirm visible song/counters.",
+    "following": "Switch both own singers out before count0 (prefer T2), handle any faint replacements normally. Mime only has one owner Pokemon; cannot switch and falls on fourth endround including casting. Sigmund may switch Aroma normally; inspect visible named arrivals and continue full fight.",
+    "bag_correction": "X battler items allowed only slot0 or when0fainted, and skip ownslot2. Ordinary medicine item registration does not invoke this X-item skip. Earlier two-actor XSpecial planning was invalid."
+  },
+  "candy": "Four owned XL candies reserved for Kricketune to gain HP/speed. Verify actual stats after normal candy; no level95 assumption."
+}

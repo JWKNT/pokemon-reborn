@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>genesect317_timer_batch.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of genesect317_timer_batch.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded Genesect throws; fresh public HUDs, healing checks, stop on capture.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> public_owned_hp <span class="hljs-keyword">import</span> parse <span class="hljs-keyword">as</span> parse_hp
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">owned_hp</span>(<span class="hljs-params">rows,total</span>):
+ hp=parse_hp(rows,total)
+ <span class="hljs-keyword">if</span> hp <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:<span class="hljs-keyword">return</span> hp
+ im=Image.<span class="hljs-built_in">open</span>(STATE);w,h=im.size
+ crop=ROOT/<span class="hljs-string">&quot;work/317-public-hp-crop.png&quot;</span>
+ im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.54</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.46</span>),<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.97</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.69</span>))).resize((<span class="hljs-number">1200</span>,<span class="hljs-number">600</span>)).save(crop)
+ observed=json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&quot;scripts/observe&quot;</span>),<span class="hljs-built_in">str</span>(crop)]))
+ text=<span class="hljs-string">&quot; &quot;</span>.join(r[<span class="hljs-string">&quot;text&quot;</span>]<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> observed)
+ <span class="hljs-keyword">with</span> (ROOT/<span class="hljs-string">&quot;recordings/public-hp-crops.jsonl&quot;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&quot;a&quot;</span>)<span class="hljs-keyword">as</span> f:f.write(json.dumps(<span class="hljs-built_in">dict</span>(epoch=time.time(),text=text))+<span class="hljs-string">&quot;\n&quot;</span>)
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&quot;Zeraora&quot;</span> <span class="hljs-keyword">in</span> text,text
+ values=[<span class="hljs-built_in">int</span>(a)<span class="hljs-keyword">for</span> a,b <span class="hljs-keyword">in</span> re.findall(<span class="hljs-string">r&quot;(\d+)\s*/\s*(\d+)&quot;</span>,text)<span class="hljs-keyword">if</span> <span class="hljs-built_in">int</span>(b)==total <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;=<span class="hljs-built_in">int</span>(a)&lt;=total]
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(values)==<span class="hljs-number">1</span>,text
+ <span class="hljs-keyword">return</span> values[<span class="hljs-number">0</span>]
+limit=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=limit&lt;=<span class="hljs-number">4</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(limit):
+ rows=snap();low=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows).lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(k <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;gotcha&#x27;</span>,<span class="hljs-string">&#x27;was caught&#x27;</span>,<span class="hljs-string">&#x27;nickname&#x27;</span>,<span class="hljs-string">&#x27;pokedex&#x27;</span>,<span class="hljs-string">&#x27;party is full&#x27;</span>]):<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;genesect&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;zeraora&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;par&#x27;</span> <span class="hljs-keyword">in</span> low,<span class="hljs-string">&#x27;Capture state review&#x27;</span>
+ hp=owned_hp(rows,<span class="hljs-number">371</span>);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;Observed HP before throw&#x27;</span>,hp,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> hp&lt;<span class="hljs-number">180</span>:
+  run(<span class="hljs-string">&#x27;battle_item&#x27;</span>,<span class="hljs-string">&#x27;Ultra Potion&#x27;</span>,<span class="hljs-string">&#x27;Zeraora&#x27;</span>);run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>);rows=snap()
+  <span class="hljs-keyword">assert</span> owned_hp(rows,<span class="hljs-number">371</span>)&gt;=<span class="hljs-number">180</span>,<span class="hljs-string">&#x27;Review healing turn&#x27;</span>
+ run(<span class="hljs-string">&#x27;throw_ball&#x27;</span>,<span class="hljs-string">&#x27;Timer Ball&#x27;</span>)
+ rows=snap();low=<span class="hljs-string">&#x27; &#x27;</span>.join(r[<span class="hljs-string">&#x27;text&#x27;</span>]<span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> rows).lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(k <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;gotcha&#x27;</span>,<span class="hljs-string">&#x27;was caught&#x27;</span>,<span class="hljs-string">&#x27;nickname&#x27;</span>,<span class="hljs-string">&#x27;pokedex&#x27;</span>,<span class="hljs-string">&#x27;party is full&#x27;</span>]):<span class="hljs-keyword">break</span>
+ run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+</code></pre>
+  </body>
+</html>

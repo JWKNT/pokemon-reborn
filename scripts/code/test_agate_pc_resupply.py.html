@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_agate_pc_resupply.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_agate_pc_resupply.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Synthetic/source supply-trip checks only; never call public controls.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> subprocess
+<span class="hljs-keyword">import</span> unittest
+<span class="hljs-keyword">from</span> agate_pc_resupply <span class="hljs-keyword">import</span> (CART,COST,FINAL,clear_completed_street_rays,
+                              final_proof,preflight,source_proof)
+
+ROOT=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">fixture</span>():
+    <span class="hljs-comment"># Explicit closed pre-street snapshot, cloned only in memory. The victory</span>
+    <span class="hljs-comment"># flags below are synthetic future fixtures, not saved/native evidence.</span>
+    status=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Agate-final-six-south-ready130-status.json&#x27;</span>).read_text())
+    nav=json.loads((ROOT/<span class="hljs-string">&#x27;notes/Agate-final-six-south-ready130-navigation.json&#x27;</span>).read_text())
+    <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> [<span class="hljs-number">45</span>,<span class="hljs-number">46</span>,<span class="hljs-number">49</span>]:nav.setdefault(<span class="hljs-string">&#x27;self_switches&#x27;</span>,{})[<span class="hljs-string">f&#x27;763,<span class="hljs-subst">{e}</span>,A&#x27;</span>]=<span class="hljs-literal">True</span>
+    <span class="hljs-keyword">return</span> status,nav
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Tests</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_installed_cart_shop_and_safe_geometry</span>(<span class="hljs-params">self</span>):
+        p=source_proof()
+        <span class="hljs-variable language_">self</span>.assertEqual(COST,<span class="hljs-number">4350</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;shop&#x27;</span>],[<span class="hljs-number">4</span>,<span class="hljs-number">4</span>]);<span class="hljs-variable language_">self</span>.assertEqual(p[<span class="hljs-string">&#x27;stop&#x27;</span>],[<span class="hljs-number">763</span>,<span class="hljs-number">46</span>,<span class="hljs-number">70</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual((p[<span class="hljs-string">&#x27;box1_slot&#x27;</span>],p[<span class="hljs-string">&#x27;party_slot&#x27;</span>]),(<span class="hljs-number">11</span>,<span class="hljs-number">5</span>))
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_completed_streets_stage_membership_and_sash_required</span>(<span class="hljs-params">self</span>):
+        s,n=fixture();<span class="hljs-variable language_">self</span>.assertEqual(preflight(s,n)[<span class="hljs-string">&#x27;total_cost&#x27;</span>],<span class="hljs-number">4350</span>)
+        <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;stage&#x27;</span>,<span class="hljs-string">&#x27;street&#x27;</span>,<span class="hljs-string">&#x27;membership&#x27;</span>,<span class="hljs-string">&#x27;money&#x27;</span>,<span class="hljs-string">&#x27;sash&#x27;</span>,<span class="hljs-string">&#x27;north&#x27;</span>]:
+            a,b=copy.deepcopy((s,n))
+            <span class="hljs-keyword">if</span> key==<span class="hljs-string">&#x27;stage&#x27;</span>:b[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]=<span class="hljs-number">53</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;street&#x27;</span>:b[<span class="hljs-string">&#x27;self_switches&#x27;</span>][<span class="hljs-string">&#x27;763,45,A&#x27;</span>]=<span class="hljs-literal">False</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;membership&#x27;</span>:b[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;175&#x27;</span>]=<span class="hljs-number">6</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;money&#x27;</span>:a[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]=<span class="hljs-number">4349</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;sash&#x27;</span>:<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> a[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;CRYOGONAL&#x27;</span>)[<span class="hljs-string">&#x27;item&#x27;</span>]=<span class="hljs-literal">None</span>
+            <span class="hljs-keyword">else</span>:a[<span class="hljs-string">&#x27;position&#x27;</span>]=[<span class="hljs-number">45</span>,<span class="hljs-number">52</span>]
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):preflight(a,b)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_normal_nurse_allows_injuries_and_any_reviewed_six_order</span>(<span class="hljs-params">self</span>):
+        s,n=fixture();s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]=<span class="hljs-number">0</span>;s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;status&#x27;</span>]=<span class="hljs-string">&#x27;BURN&#x27;</span>
+        s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>],s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">5</span>]=s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">5</span>],s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>]
+        preflight(s,n)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_completed_ray_cleanup_is_narrow_and_preserves_actual_npcs</span>(<span class="hljs-params">self</span>):
+        _,nav=fixture()
+        original={(<span class="hljs-number">37</span>,y)<span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">59</span>,<span class="hljs-number">64</span>)}|{(<span class="hljs-number">42</span>,y)<span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">55</span>,<span class="hljs-number">61</span>)}
+        other={(<span class="hljs-number">45</span>,<span class="hljs-number">52</span>),(<span class="hljs-number">70</span>,<span class="hljs-number">44</span>),(<span class="hljs-number">20</span>,<span class="hljs-number">72</span>)}
+        nav.setdefault(<span class="hljs-string">&#x27;avoid&#x27;</span>,{})[<span class="hljs-string">&#x27;763&#x27;</span>]=<span class="hljs-built_in">list</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">list</span>,original|other))
+        <span class="hljs-comment"># Hypothetical post-victory approached NPC coordinates, fixture only.</span>
+        nav[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;763&#x27;</span>][<span class="hljs-string">&#x27;49&#x27;</span>]=[<span class="hljs-number">37</span>,<span class="hljs-number">62</span>]
+        nav[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;763&#x27;</span>][<span class="hljs-string">&#x27;45&#x27;</span>]=[<span class="hljs-number">42</span>,<span class="hljs-number">58</span>]
+        nav[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;763&#x27;</span>][<span class="hljs-string">&#x27;46&#x27;</span>]=[<span class="hljs-number">42</span>,<span class="hljs-number">55</span>]
+        before=copy.deepcopy(nav)
+        cleaned,proof=clear_completed_street_rays(nav)
+        <span class="hljs-variable language_">self</span>.assertEqual(nav,before,<span class="hljs-string">&#x27;Pure review must not mutate supplied evidence&#x27;</span>)
+        retained=<span class="hljs-built_in">set</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">tuple</span>,cleaned[<span class="hljs-string">&#x27;avoid&#x27;</span>][<span class="hljs-string">&#x27;763&#x27;</span>]))
+        <span class="hljs-variable language_">self</span>.assertTrue(other&lt;=retained)
+        <span class="hljs-variable language_">self</span>.assertTrue({(<span class="hljs-number">37</span>,<span class="hljs-number">62</span>),(<span class="hljs-number">42</span>,<span class="hljs-number">58</span>),(<span class="hljs-number">42</span>,<span class="hljs-number">55</span>)}&lt;=retained)
+        <span class="hljs-variable language_">self</span>.assertTrue({(<span class="hljs-number">37</span>,<span class="hljs-number">63</span>),(<span class="hljs-number">42</span>,<span class="hljs-number">60</span>)}&lt;=retained,<span class="hljs-string">&#x27;Original NPC origin guards are preserved&#x27;</span>)
+        <span class="hljs-variable language_">self</span>.assertNotIn((<span class="hljs-number">37</span>,<span class="hljs-number">59</span>),retained);<span class="hljs-variable language_">self</span>.assertNotIn((<span class="hljs-number">42</span>,<span class="hljs-number">56</span>),retained)
+        <span class="hljs-variable language_">self</span>.assertTrue(<span class="hljs-built_in">set</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">tuple</span>,proof[<span class="hljs-string">&#x27;removed&#x27;</span>]))&lt;=original)
+        bad=copy.deepcopy(nav);bad[<span class="hljs-string">&#x27;self_switches&#x27;</span>][<span class="hljs-string">&#x27;763,46,A&#x27;</span>]=<span class="hljs-literal">False</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):clear_completed_street_rays(bad)
+        bad=copy.deepcopy(nav);<span class="hljs-keyword">del</span> bad[<span class="hljs-string">&#x27;positions&#x27;</span>][<span class="hljs-string">&#x27;763&#x27;</span>][<span class="hljs-string">&#x27;45&#x27;</span>]
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):clear_completed_street_rays(bad)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_final_exact_purchases_identity_and_hp_pp</span>(<span class="hljs-params">self</span>):
+        before,nav=fixture();after=copy.deepcopy(before)
+        after[<span class="hljs-string">&#x27;position&#x27;</span>]=[<span class="hljs-number">46</span>,<span class="hljs-number">70</span>];after[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]-=COST
+        <span class="hljs-keyword">for</span> k,_,q,_ <span class="hljs-keyword">in</span> CART:after[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][k]=after[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>].get(k,<span class="hljs-number">0</span>)+q
+        code=<span class="hljs-string">&quot;require_relative &#x27;scripts/read_rgss&#x27;; h=load_rgss(&#x27;/Applications/Reborn.app/Contents/Game/Data/moves.dat&#x27;); puts JSON.generate(h.transform_values{|m|m.instance_variable_get(:@maxpp)})&quot;</span>
+        maxima=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-string">&#x27;-e&#x27;</span>,code],cwd=ROOT,stderr=subprocess.DEVNULL))
+        <span class="hljs-keyword">for</span> mon <span class="hljs-keyword">in</span> after[<span class="hljs-string">&#x27;party&#x27;</span>]:
+            <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> mon[<span class="hljs-string">&#x27;moves&#x27;</span>]:m[<span class="hljs-string">&#x27;pp&#x27;</span>]=maxima[m[<span class="hljs-string">&#x27;move&#x27;</span>]]*(<span class="hljs-number">5</span>+m.get(<span class="hljs-string">&#x27;ppup&#x27;</span>,<span class="hljs-number">0</span>))//<span class="hljs-number">5</span>
+        final_proof(before,after,nav,maxima)
+        <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;money&#x27;</span>,<span class="hljs-string">&#x27;bag&#x27;</span>,<span class="hljs-string">&#x27;held&#x27;</span>,<span class="hljs-string">&#x27;hp&#x27;</span>,<span class="hljs-string">&#x27;pp&#x27;</span>,<span class="hljs-string">&#x27;move&#x27;</span>,<span class="hljs-string">&#x27;order&#x27;</span>,<span class="hljs-string">&#x27;north&#x27;</span>]:
+            a,b=copy.deepcopy((after,nav))
+            <span class="hljs-keyword">if</span> key==<span class="hljs-string">&#x27;money&#x27;</span>:a[<span class="hljs-string">&#x27;trainer&#x27;</span>][<span class="hljs-string">&#x27;money&#x27;</span>]+=<span class="hljs-number">1</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;bag&#x27;</span>:a[<span class="hljs-string">&#x27;bag&#x27;</span>][<span class="hljs-string">&#x27;contents&#x27;</span>][<span class="hljs-string">&#x27;XSPEED&#x27;</span>]-=<span class="hljs-number">1</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;held&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">5</span>][<span class="hljs-string">&#x27;item&#x27;</span>]=<span class="hljs-literal">None</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;hp&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">3</span>][<span class="hljs-string">&#x27;hp&#x27;</span>]-=<span class="hljs-number">1</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;pp&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">3</span>][<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;pp&#x27;</span>]-=<span class="hljs-number">1</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;move&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">3</span>][<span class="hljs-string">&#x27;moves&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;move&#x27;</span>]=<span class="hljs-string">&#x27;FLY&#x27;</span>
+            <span class="hljs-keyword">elif</span> key==<span class="hljs-string">&#x27;order&#x27;</span>:a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>],a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>]=a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">1</span>],a[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>]
+            <span class="hljs-keyword">else</span>:a[<span class="hljs-string">&#x27;position&#x27;</span>]=[<span class="hljs-number">45</span>,<span class="hljs-number">53</span>]
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):final_proof(before,a,b,maxima)
+
+
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:unittest.main()
+</code></pre>
+  </body>
+</html>

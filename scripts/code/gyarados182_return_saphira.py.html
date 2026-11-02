@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>gyarados182_return_saphira.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of gyarados182_return_saphira.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Restore the battle six through normal PC menus and return to the nurse.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,os,json
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+s=json.loads((R/<span class="hljs-string">&#x27;notes/Gyarados182-Supplies-ready-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">5</span>][<span class="hljs-string">&#x27;species&#x27;</span>]==<span class="hljs-string">&#x27;TRANQUILL&#x27;</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">38</span>
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*args</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,n,*args,flush=<span class="hljs-literal">True</span>)
+ e=<span class="hljs-built_in">dict</span>(os.environ,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+ <span class="hljs-keyword">if</span> n <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-string">&#x27;q&#x27;</span>):e[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>,env=e)
+
+run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Fairy Gem&#x27;</span>,<span class="hljs-string">&#x27;Sylveon&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">414</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>);run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">414</span>,<span class="hljs-number">22</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">772</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;pc_open_reviewed&#x27;</span>);run(<span class="hljs-string">&#x27;pc_exchange_named&#x27;</span>,<span class="hljs-number">15</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>)
+run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Gyarados&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-string">&#x27;Sylveon&#x27;</span>,<span class="hljs-string">&#x27;Cofagrigus&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;Gigalith&#x27;</span>)
+run(<span class="hljs-string">&#x27;saphira_return_trained&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Saphira182-Gyarados-ready&#x27;</span>)
+s=json.loads((R/<span class="hljs-string">&#x27;notes/Saphira182-Gyarados-ready-status.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> [m[<span class="hljs-string">&#x27;species&#x27;</span>]<span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>]]==[<span class="hljs-string">&#x27;GYARADOS&#x27;</span>,<span class="hljs-string">&#x27;ARCANINE&#x27;</span>,<span class="hljs-string">&#x27;SYLVEON&#x27;</span>,<span class="hljs-string">&#x27;COFAGRIGUS&#x27;</span>,<span class="hljs-string">&#x27;SWAMPERT&#x27;</span>,<span class="hljs-string">&#x27;GIGALITH&#x27;</span>]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(m[<span class="hljs-string">&#x27;level&#x27;</span>]==<span class="hljs-number">95</span> <span class="hljs-keyword">and</span> m[<span class="hljs-string">&#x27;hp&#x27;</span>]==m[<span class="hljs-string">&#x27;totalhp&#x27;</span>] <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> m[<span class="hljs-string">&#x27;status&#x27;</span>]<span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;party&#x27;</span>])
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;item&#x27;</span>]==<span class="hljs-string">&#x27;PERSIMBERRY&#x27;</span> <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;party&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;ev&#x27;</span>]==[<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>]
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SAPHIRA PARTY VERIFIED; NO BATTLE STARTED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

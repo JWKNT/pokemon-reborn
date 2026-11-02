@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>surface_walk.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of surface_walk.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute a bounded surface path through normal game controls, verifying progress.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> surface_plan <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+mid,tx,ty=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">4</span>]);stalls=<span class="hljs-number">0</span>;previous=<span class="hljs-literal">None</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">handle_common_wild</span>(<span class="hljs-params">t</span>):
+ approved=[<span class="hljs-string">&#x27;spheal&#x27;</span>,<span class="hljs-string">&#x27;delibird&#x27;</span>,<span class="hljs-string">&#x27;beartic&#x27;</span>,<span class="hljs-string">&#x27;dew gong&#x27;</span>,<span class="hljs-string">&#x27;dewgong&#x27;</span>,<span class="hljs-string">&#x27;cryogonal&#x27;</span>,<span class="hljs-string">&#x27;jynx&#x27;</span>,<span class="hljs-string">&#x27;sneasel&#x27;</span>,<span class="hljs-string">&#x27;piloswine&#x27;</span>,<span class="hljs-string">&#x27;swinub&#x27;</span>,<span class="hljs-string">&#x27;cubchoo&#x27;</span>,<span class="hljs-string">&#x27;bergmite&#x27;</span>,<span class="hljs-string">&#x27;seel&#x27;</span>,<span class="hljs-string">&#x27;wailmer&#x27;</span>,<span class="hljs-string">&#x27;lumineon&#x27;</span>,<span class="hljs-string">&#x27;wishiwashi&#x27;</span>,<span class="hljs-string">&#x27;golduck&#x27;</span>]
+ <span class="hljs-keyword">if</span> mid==<span class="hljs-number">375</span> <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;delibird&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27; hp&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(t.split()) <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t):
+  <span class="hljs-comment"># Normal return encounter visually observed in session292.</span>
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>),<span class="hljs-string">&#x27;--since&#x27;</span>,<span class="hljs-built_in">str</span>(action_started)],check=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+ <span class="hljs-keyword">if</span> mid==<span class="hljs-number">232</span>:
+  <span class="hljs-comment"># Reviewed installed Tanzan Cove water encounters, below Arcanine79.</span>
+  approved=[<span class="hljs-string">&#x27;ducklett&#x27;</span>,<span class="hljs-string">&#x27;lumineon&#x27;</span>,<span class="hljs-string">&#x27;seaking&#x27;</span>,<span class="hljs-string">&#x27;swanna&#x27;</span>]
+  <span class="hljs-keyword">if</span> (<span class="hljs-string">&#x27; hp&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(t.split()) <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t) <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> approved):
+   subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>),<span class="hljs-string">&#x27;--since&#x27;</span>,<span class="hljs-built_in">str</span>(action_started)],check=<span class="hljs-literal">True</span>)
+   <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+ <span class="hljs-keyword">if</span> mid==<span class="hljs-number">467</span> <span class="hljs-keyword">or</span> mid <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">497</span>,<span class="hljs-number">506</span>):
+  <span class="hljs-comment"># Installed WTC Surf encounter pool: Gulpin, Grimer, Muk, Swalot.</span>
+  approved=[<span class="hljs-string">&#x27;gulp&#x27;</span>,<span class="hljs-string">&#x27;grimer&#x27;</span>,<span class="hljs-string">&#x27;muk&#x27;</span>,<span class="hljs-string">&#x27;sualot&#x27;</span>,<span class="hljs-string">&#x27;swalot&#x27;</span>]
+  <span class="hljs-keyword">if</span> (<span class="hljs-string">&#x27; hp&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(t.split()) <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t) <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> approved):
+   subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>),<span class="hljs-string">&#x27;--since&#x27;</span>,<span class="hljs-built_in">str</span>(action_started)],check=<span class="hljs-literal">True</span>)
+   <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+ <span class="hljs-keyword">if</span> mid <span class="hljs-keyword">in</span> [<span class="hljs-number">359</span>,<span class="hljs-number">380</span>,<span class="hljs-number">430</span>,<span class="hljs-number">390</span>,<span class="hljs-number">364</span>,<span class="hljs-number">366</span>,<span class="hljs-number">373</span>] <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27; hp&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27; &#x27;</span>.join(t.split()) <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t) <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(z <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> approved):
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+ <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+action_started=time.time()
+<span class="hljs-keyword">for</span> iteration <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">100</span>):
+ <span class="hljs-keyword">if</span> handle_common_wild(read().lower()):<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">try</span>:m,x,y=locate(mid)
+ <span class="hljs-keyword">except</span> SystemExit <span class="hljs-keyword">as</span> error:
+  <span class="hljs-keyword">if</span> error.code==<span class="hljs-number">2</span> <span class="hljs-keyword">and</span> handle_common_wild(read().lower()):<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">raise</span>
+ <span class="hljs-keyword">except</span> subprocess.CalledProcessError <span class="hljs-keyword">as</span> error:
+  <span class="hljs-keyword">if</span> error.returncode!=<span class="hljs-number">2</span>:<span class="hljs-keyword">raise</span>
+  recovered=<span class="hljs-literal">False</span>
+  <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">30</span>):
+   h=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+   recovered=h.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">and</span> time.time()-h.get(<span class="hljs-string">&#x27;epoch&#x27;</span>,<span class="hljs-number">0</span>)&lt;<span class="hljs-number">2</span>
+   <span class="hljs-keyword">if</span> recovered:<span class="hljs-keyword">break</span>
+   time.sleep(<span class="hljs-number">.5</span>)
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> recovered:<span class="hljs-keyword">raise</span>
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CAPTURE RECOVERED during coordinate check&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">continue</span>
+ stalls=stalls+<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> previous==(m,x,y) <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+ previous=(m,x,y)
+ <span class="hljs-keyword">if</span> stalls&gt;=<span class="hljs-number">3</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Surface route stalled; inspect the obstruction&#x27;</span>)
+ <span class="hljs-keyword">if</span> m!=mid:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Surface map transition review&#x27;</span>)
+ <span class="hljs-keyword">if</span> (x,y)==(tx,ty):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SURFACE ROUTE COMPLETE&#x27;</span>,mid,x,y,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-built_in">str</span>(x),<span class="hljs-built_in">str</span>(y)],stderr=subprocess.DEVNULL))
+ steps=surface_plan(v,(tx,ty));first=steps[<span class="hljs-number">0</span>];chunk=[]
+ <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> steps:
+  <span class="hljs-comment"># Fiore and Ametrine Core have source-reviewed automatic dry touch jumps.</span>
+  <span class="hljs-comment"># Queue a bounded dry section, then verify the actual landing coordinate.</span>
+  <span class="hljs-keyword">if</span> mid <span class="hljs-keyword">in</span> [<span class="hljs-number">679</span>,<span class="hljs-number">870</span>,<span class="hljs-number">872</span>] <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> first[<span class="hljs-string">&#x27;from&#x27;</span>][<span class="hljs-number">2</span>] <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> s[<span class="hljs-string">&#x27;to&#x27;</span>][<span class="hljs-number">2</span>] <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;:&#x27;</span><span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;key&#x27;</span>] <span class="hljs-keyword">or</span> s[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>) <span class="hljs-keyword">or</span> (mid <span class="hljs-keyword">in</span> [<span class="hljs-number">870</span>,<span class="hljs-number">872</span>] <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;slide:&#x27;</span>))):
+   chunk.append(s)
+   <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(chunk)&gt;=(<span class="hljs-number">12</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(<span class="hljs-string">&#x27;:&#x27;</span> <span class="hljs-keyword">in</span> step[<span class="hljs-string">&#x27;key&#x27;</span>] <span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> chunk) <span class="hljs-keyword">else</span> <span class="hljs-number">24</span>):<span class="hljs-keyword">break</span>
+   <span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;:&#x27;</span> <span class="hljs-keyword">in</span> s[<span class="hljs-string">&#x27;key&#x27;</span>]:
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> chunk:chunk.append(s)
+   <span class="hljs-keyword">elif</span> mid <span class="hljs-keyword">in</span> [<span class="hljs-number">374</span>,<span class="hljs-number">439</span>] <span class="hljs-keyword">and</span> first[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>) <span class="hljs-keyword">and</span> s[<span class="hljs-string">&#x27;key&#x27;</span>]==first[<span class="hljs-string">&#x27;key&#x27;</span>] <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(chunk)&lt;<span class="hljs-number">8</span>:
+    chunk.append(s);<span class="hljs-keyword">continue</span>
+   <span class="hljs-keyword">else</span>:<span class="hljs-keyword">break</span>
+   <span class="hljs-keyword">if</span> mid <span class="hljs-keyword">in</span> [<span class="hljs-number">374</span>,<span class="hljs-number">439</span>] <span class="hljs-keyword">and</span> first[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):<span class="hljs-keyword">continue</span>
+   <span class="hljs-keyword">break</span>
+  <span class="hljs-keyword">if</span> first[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;jump:&#x27;</span>):<span class="hljs-keyword">break</span>
+  chunk.append(s)
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(chunk)&gt;=<span class="hljs-number">24</span>:<span class="hljs-keyword">break</span>
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;SURFACE&#x27;</span>,first[<span class="hljs-string">&#x27;from&#x27;</span>],<span class="hljs-string">&#x27;→&#x27;</span>,chunk[-<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;to&#x27;</span>],<span class="hljs-built_in">len</span>(chunk),<span class="hljs-string">&#x27;edges&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+ action_started=time.time()
+ <span class="hljs-keyword">if</span> first[<span class="hljs-string">&#x27;key&#x27;</span>].startswith(<span class="hljs-string">&#x27;surf:&#x27;</span>):
+  direction=first[<span class="hljs-string">&#x27;key&#x27;</span>].split(<span class="hljs-string">&#x27;:&#x27;</span>)[<span class="hljs-number">1</span>]
+  act(direction+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.8&#x27;</span>);t=read().lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+  compact_prompt=re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,t)
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;surf&#x27;</span> <span class="hljs-keyword">in</span> compact_prompt <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;youliketosurf&#x27;</span> <span class="hljs-keyword">in</span> compact_prompt <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;wouldyouliketo&#x27;</span> <span class="hljs-keyword">in</span> compact_prompt.replace(<span class="hljs-string">&#x27;hould&#x27;</span>,<span class="hljs-string">&#x27;would&#x27;</span>)):
+   subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>],check=<span class="hljs-literal">True</span>)
+   t=read().lower()
+  <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;used surf&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;surf!&#x27;</span> <span class="hljs-keyword">in</span> t:act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+  <span class="hljs-keyword">elif</span> <span class="hljs-built_in">len</span>(t.splitlines())&lt;=<span class="hljs-number">3</span>:act(<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+  <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Surf boarding review: &#x27;</span>+t)
+ <span class="hljs-keyword">else</span>:
+  seq=[]
+  <span class="hljs-keyword">for</span> key,g <span class="hljs-keyword">in</span> groupby(chunk,key=<span class="hljs-keyword">lambda</span> z:z[<span class="hljs-string">&#x27;key&#x27;</span>]):
+   n=<span class="hljs-built_in">len</span>(<span class="hljs-built_in">list</span>(g))
+   <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;:&#x27;</span> <span class="hljs-keyword">in</span> key:seq.extend([key.split(<span class="hljs-string">&#x27;:&#x27;</span>)[<span class="hljs-number">1</span>]+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2.5&#x27;</span>]*n)
+   <span class="hljs-keyword">elif</span> <span class="hljs-string">&#x27;--hold-straights&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">and</span> n&gt;<span class="hljs-number">1</span>:seq.append(key+<span class="hljs-string">&#x27;:&#x27;</span>+<span class="hljs-built_in">str</span>(<span class="hljs-built_in">round</span>(n*<span class="hljs-number">.1</span>+<span class="hljs-number">.02</span>,<span class="hljs-number">3</span>)))
+   <span class="hljs-keyword">else</span>:seq.extend([key+<span class="hljs-string">&#x27;:.12&#x27;</span>]*n)
+  <span class="hljs-keyword">try</span>:act(*seq)
+  <span class="hljs-keyword">except</span> subprocess.CalledProcessError <span class="hljs-keyword">as</span> error:
+   <span class="hljs-keyword">if</span> error.returncode!=<span class="hljs-number">2</span>:<span class="hljs-keyword">raise</span>
+   recovered=<span class="hljs-literal">False</span>
+   <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">30</span>):
+    h=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+    recovered=h.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">and</span> time.time()-h.get(<span class="hljs-string">&#x27;epoch&#x27;</span>,<span class="hljs-number">0</span>)&lt;<span class="hljs-number">2</span>
+    <span class="hljs-keyword">if</span> recovered:<span class="hljs-keyword">break</span>
+    time.sleep(<span class="hljs-number">.5</span>)
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> recovered:<span class="hljs-keyword">raise</span>
+   <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CAPTURE RECOVERED; replan from actual position&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+   <span class="hljs-keyword">continue</span>
+ r=snap();t=<span class="hljs-string">&#x27; &#x27;</span>.join(z[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> r).lower()
+ <span class="hljs-keyword">if</span> handle_common_wild(t):<span class="hljs-keyword">continue</span>
+ compact=<span class="hljs-string">&#x27;&#x27;</span>.join(t.split())
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;repel&#x27;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">and</span> (<span class="hljs-string">&#x27;woreoff&#x27;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;uoreoff&#x27;</span> <span class="hljs-keyword">in</span> compact):
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/renew_repel.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+  <span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(w <span class="hljs-keyword">in</span> t <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;repel&#x27;</span>,<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27; hp&#x27;</span>,<span class="hljs-string">&#x27;yes&#x27;</span>]) <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(z[<span class="hljs-string">&#x27;text&#x27;</span>].strip().lower()==<span class="hljs-string">&#x27;no&#x27;</span> <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> r) <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(z[<span class="hljs-string">&#x27;y&#x27;</span>]&gt;<span class="hljs-number">.73</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(z[<span class="hljs-string">&#x27;text&#x27;</span>])&gt;<span class="hljs-number">22</span> <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> r):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Surface dialogue/battle review: &#x27;</span>+t)
+ <span class="hljs-comment"># The next iteration observes the real endpoint before planning further inputs.</span>
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Surface iteration limit&#x27;</span>)
+</code></pre>
+  </body>
+</html>

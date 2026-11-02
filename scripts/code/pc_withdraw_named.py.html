@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>pc_withdraw_named.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of pc_withdraw_named.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Withdraw a verified selected-box Pokemon into a free party slot using normal PC menus.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> difflib
+_play_act=act
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">act</span>(<span class="hljs-params">*keys</span>):
+ _play_act(*[v <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> keys <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> ((k,<span class="hljs-string">&quot;wait:.15&quot;</span>) <span class="hljs-keyword">if</span> k.startswith((<span class="hljs-string">&quot;up:&quot;</span>,<span class="hljs-string">&quot;down:&quot;</span>,<span class="hljs-string">&quot;left:&quot;</span>,<span class="hljs-string">&quot;right:&quot;</span>)) <span class="hljs-keyword">else</span> (k,))])
+slot=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);name=sys.argv[<span class="hljs-number">2</span>];<span class="hljs-keyword">assert</span> <span class="hljs-number">0</span>&lt;=slot&lt;<span class="hljs-number">30</span>
+boxnumber=<span class="hljs-built_in">int</span>(sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--box&#x27;</span>)+<span class="hljs-number">1</span>]) <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--box&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=boxnumber&lt;=<span class="hljs-number">50</span>
+norm=<span class="hljs-keyword">lambda</span> s:re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,s.lower())
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">verify</span>(<span class="hljs-params">t</span>):
+ <span class="hljs-keyword">assert</span> norm(name) <span class="hljs-keyword">in</span> norm(t) <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(difflib.SequenceMatcher(<span class="hljs-literal">None</span>,name.lower(),w.lower()).ratio()&gt;=<span class="hljs-number">.8</span> <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> t.split()),t
+t=read()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;organize&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;move pok&#x27;</span> <span class="hljs-keyword">in</span> t.lower():act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:1.5&#x27;</span>);t=read()
+<span class="hljs-keyword">assert</span> re.search(<span class="hljs-string">r&#x27;b(?:l)?ox\s*&#x27;</span>+<span class="hljs-built_in">str</span>(boxnumber)+<span class="hljs-string">r&#x27;\b&#x27;</span>,t,re.I),<span class="hljs-string">&#x27;Fresh selected box cursor0 required: &#x27;</span>+t
+act(*([<span class="hljs-string">&#x27;right:.12&#x27;</span>]*(slot%<span class="hljs-number">6</span>)),*([<span class="hljs-string">&#x27;down:.12&#x27;</span>]*(slot//<span class="hljs-number">6</span>)),<span class="hljs-string">&#x27;wait:.4&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>);verify(t)
+act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Move|Summary|Multi-Move|Withdraw|Item|Mark|Release|Cancel&#x27;</span>,<span class="hljs-string">&#x27;Withdraw&#x27;</span>],check=<span class="hljs-literal">True</span>)
+t=read();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;full&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t.lower(),t
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/choose_dialog.py&#x27;</span>),<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;No&#x27;</span>],check=<span class="hljs-literal">True</span>)
+act(<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/overworld.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_open.py&#x27;</span>)],check=<span class="hljs-literal">True</span>);verify(read())
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/overworld.py&#x27;</span>)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;WITHDRAW VERIFIED IN PUBLIC PARTY&#x27;</span>,name,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

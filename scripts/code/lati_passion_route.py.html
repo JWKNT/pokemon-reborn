@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>lati_passion_route.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of lati_passion_route.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed post-Joy route through the tower, using only ordinary UI helpers.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;LEG&#x27;</span>,name,*args,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/name),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-comment"># The bridge&#x27;s forced movement is explicit because the ordinary surface</span>
+<span class="hljs-comment"># graph does not model its four-tile crossing.</span>
+run(<span class="hljs-string">&#x27;surface_walk.py&#x27;</span>,<span class="hljs-number">857</span>,<span class="hljs-number">29</span>,<span class="hljs-number">47</span>)
+run(<span class="hljs-string">&#x27;play.py&#x27;</span>,<span class="hljs-string">&#x27;left:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:2&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">857</span>,<span class="hljs-number">32</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">859</span>,<span class="hljs-number">35</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">859</span>,<span class="hljs-number">37</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">857</span>,<span class="hljs-number">40</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">857</span>,<span class="hljs-number">41</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">857</span>,<span class="hljs-number">38</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">859</span>,<span class="hljs-number">39</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">859</span>,<span class="hljs-number">41</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">857</span>,<span class="hljs-number">89</span>,<span class="hljs-string">&#x27;talk&#x27;</span>)
+run(<span class="hljs-string">&#x27;dialog.py&#x27;</span>,<span class="hljs-string">&#x27;--limit&#x27;</span>,<span class="hljs-number">45</span>)
+</code></pre>
+  </body>
+</html>

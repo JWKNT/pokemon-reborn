@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>party_front.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of party_front.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Arrange named front party slots once, verifying the visible cards after each swap.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> party_cursor <span class="hljs-keyword">import</span> selected_card, selection_path
+<span class="hljs-keyword">import</span> difflib
+
+names = sys.argv[<span class="hljs-number">1</span>:]
+<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span> &lt;= <span class="hljs-built_in">len</span>(names) &lt;= <span class="hljs-number">6</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(<span class="hljs-built_in">set</span>(names)) == <span class="hljs-built_in">len</span>(names)
+subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/party_open.py&#x27;</span>)], check=<span class="hljs-literal">True</span>)
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">card_for</span>(<span class="hljs-params">name, rows</span>):
+    matches = []
+    <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> rows:
+        word = re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, v[<span class="hljs-string">&#x27;text&#x27;</span>].lower())
+        <span class="hljs-keyword">if</span> name.lower()==<span class="hljs-string">&#x27;mew&#x27;</span> <span class="hljs-keyword">and</span> word==<span class="hljs-string">&#x27;hew&#x27;</span>: word=<span class="hljs-string">&#x27;mew&#x27;</span>
+        score = difflib.SequenceMatcher(<span class="hljs-literal">None</span>, name.lower(), word).ratio()
+        <span class="hljs-keyword">if</span> score &gt;= <span class="hljs-number">.78</span> <span class="hljs-keyword">and</span> <span class="hljs-number">.1</span> &lt; v[<span class="hljs-string">&#x27;y&#x27;</span>] &lt; <span class="hljs-number">.7</span>:
+            col = <span class="hljs-built_in">int</span>(v[<span class="hljs-string">&#x27;x&#x27;</span>] &gt; <span class="hljs-number">.5</span>)
+            row = <span class="hljs-built_in">round</span>((v[<span class="hljs-string">&#x27;y&#x27;</span>]-(<span class="hljs-number">.15</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> col <span class="hljs-keyword">else</span> <span class="hljs-number">.195</span>))/<span class="hljs-number">.21</span>)
+            <span class="hljs-keyword">if</span> row <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>]: matches.append((score, row*<span class="hljs-number">2</span>+col))
+    <span class="hljs-keyword">assert</span> matches, (<span class="hljs-string">&#x27;Named party card not found&#x27;</span>, name)
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">max</span>(matches)[<span class="hljs-number">1</span>]
+
+<span class="hljs-keyword">for</span> destination, name <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(names):
+    rows = snap()
+    source = card_for(name, rows)
+    <span class="hljs-keyword">if</span> source == destination: <span class="hljs-keyword">continue</span>
+    keys = selection_path(selected_card(STATE), destination)
+    <span class="hljs-keyword">if</span> keys: act(*keys, <span class="hljs-string">&#x27;wait:.3&#x27;</span>); snap()
+    <span class="hljs-keyword">assert</span> selected_card(STATE) == destination
+    act(<span class="hljs-string">&#x27;a&#x27;</span>, <span class="hljs-string">&#x27;wait:.4&#x27;</span>, *selection_path(destination, source), <span class="hljs-string">&#x27;wait:.3&#x27;</span>)
+    snap()
+    <span class="hljs-keyword">assert</span> selected_card(STATE) == source
+    act(<span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-string">&#x27;wait:2&#x27;</span>)
+    <span class="hljs-keyword">assert</span> card_for(name, snap()) == destination, <span class="hljs-string">&#x27;Party swap result review&#x27;</span>
+<span class="hljs-keyword">for</span> destination, name <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(names):
+    <span class="hljs-keyword">assert</span> card_for(name, snap()) == destination
+subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/overworld.py&#x27;</span>)], check=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NAMED PARTY FRONT VERIFIED&#x27;</span>, names, flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

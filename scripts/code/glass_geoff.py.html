@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_geoff.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_geoff.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Reviewed first Glass server room: Geoff, then Glaceon follows normally.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">732</span>,<span class="hljs-number">52</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">737</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;MeteorAceM&#x27;</span>,<span class="hljs-string">&#x27;Geoff&#x27;</span>)
+run(<span class="hljs-string">&#x27;trainer_plan&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/glass-geoff-plan.json&#x27;</span>,ROOT/<span class="hljs-string">&#x27;work/glass-geoff-live.log&#x27;</span>,<span class="hljs-string">&#x27;--stop-after-battle&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">737</span>,<span class="hljs-number">4</span>,<span class="hljs-string">&#x27;--source-page&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--past-battle&#x27;</span>,<span class="hljs-string">&#x27;--after-last-battle&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--world-settle&#x27;</span>,<span class="hljs-number">15</span>)
+run(<span class="hljs-string">&#x27;trainer_music&#x27;</span>,<span class="hljs-string">&#x27;finish&#x27;</span>,<span class="hljs-string">&#x27;--world-verified&#x27;</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;391&#x27;</span>]=<span class="hljs-number">20</span>;v[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;946&#x27;</span>]=<span class="hljs-literal">True</span>;p.write_text(json.dumps(v))
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Glass-Geoff-and-Glaceon&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;GEOFF ROOM COMPLETE; OBSERVE GLACEON PET PROMPT NEXT&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>saphira_pair_training.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of saphira_pair_training.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal controls for a bounded, saved-EV-verified two-participant training plan.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,os,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ[<span class="hljs-string">&#x27;REBORN_COORD_CACHE&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+TARGETS=<span class="hljs-string">&#x27;Noibat,Woobat&#x27;</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;STAGE&#x27;</span>,s,*a,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>,cwd=R)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">checkpoint</span>(<span class="hljs-params">label,swamp_ev,arca_ev</span>):
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+ st=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-status.json&#x27;</span>).read_text())
+ <span class="hljs-keyword">for</span> species,expected <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;SWAMPERT&#x27;</span>,swamp_ev),(<span class="hljs-string">&#x27;ARCANINE&#x27;</span>,arca_ev)]:
+  m=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> st[<span class="hljs-string">&#x27;party&#x27;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;species&#x27;</span>]==species)
+  <span class="hljs-keyword">assert</span> m[<span class="hljs-string">&#x27;ev&#x27;</span>]==expected,(species,m[<span class="hljs-string">&#x27;ev&#x27;</span>],expected)
+ <span class="hljs-keyword">return</span> st
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">bulk</span>(<span class="hljs-params">n,pair=<span class="hljs-literal">True</span></span>):
+ a=[<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-number">1</span>,n,<span class="hljs-string">&#x27;--targets&#x27;</span>,TARGETS,<span class="hljs-string">&#x27;--flex-targets&#x27;</span>,<span class="hljs-string">&#x27;--ev-ledger&#x27;</span>]
+ <span class="hljs-keyword">if</span> pair:a+=[<span class="hljs-string">&#x27;--hunter&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;--relead-hunter&#x27;</span>]
+ run(<span class="hljs-string">&#x27;train_wild_bulk&#x27;</span>,*a)
+phase=sys.argv[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">if</span> phase==<span class="hljs-string">&#x27;prepare&#x27;</span>:
+ run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Weight&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>)
+ run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Lens&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>)
+ run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>)
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">355</span>,<span class="hljs-number">118</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;heal&#x27;</span>)
+ run(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Tranquill&#x27;</span>)
+ run(<span class="hljs-string">&#x27;q&#x27;</span>,<span class="hljs-string">&#x27;519,9,60,left,wait:2&#x27;</span>,<span class="hljs-string">&#x27;530,94,13,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;519,29,11,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;513,15,8,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;519,58,11,right,wait:2&#x27;</span>,<span class="hljs-string">&#x27;633,10,8&#x27;</span>)
+ checkpoint(<span class="hljs-string">&#x27;Saphira-pair-training-ready&#x27;</span>,[<span class="hljs-number">32</span>,<span class="hljs-number">155</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">34</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">107</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>])
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;pilot&#x27;</span>:
+ <span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> read,act
+ run(<span class="hljs-string">&#x27;hunt_target&#x27;</span>,TARGETS,<span class="hljs-string">&#x27;--expire-repel&#x27;</span>)
+ run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,TARGETS,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">0</span>)
+ t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;hp&#x27;</span> <span class="hljs-keyword">in</span> t,t
+ p=R/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>;x=json.loads(p.read_text())
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> x.get(<span class="hljs-string">&#x27;battle_turbo_enabled&#x27;</span>,<span class="hljs-literal">False</span>):
+  act(<span class="hljs-string">&#x27;tab&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>);x.update(battle_turbo=<span class="hljs-literal">True</span>,battle_turbo_enabled=<span class="hljs-literal">True</span>,battle_turbo_enabled_epoch=time.time(),battle_turbo_evidence=<span class="hljs-string">&#x27;Normal Tab at observed Railnet practice command; fresh game turbo initially off.&#x27;</span>);p.write_text(json.dumps(x,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+ <span class="hljs-comment"># Already at a reviewed target; hunter will recognize it without walking.</span>
+ <span class="hljs-comment"># Do not invoke party_front from inside the battle.</span>
+ run(<span class="hljs-string">&#x27;train_wild_bulk&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--hunter&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;--targets&#x27;</span>,TARGETS,<span class="hljs-string">&#x27;--flex-targets&#x27;</span>,<span class="hljs-string">&#x27;--ev-ledger&#x27;</span>)
+ checkpoint(<span class="hljs-string">&#x27;Saphira-pair-training-pilot&#x27;</span>,[<span class="hljs-number">64</span>,<span class="hljs-number">155</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">34</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">139</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>])
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;weight-lens&#x27;</span>:
+ bulk(<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">2</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">2</span> <span class="hljs-keyword">else</span> <span class="hljs-number">6</span>)
+ checkpoint(<span class="hljs-string">&#x27;Saphira-pair-weight-lens-done&#x27;</span>,[<span class="hljs-number">252</span>,<span class="hljs-number">155</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">34</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>])
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;bracer-weight&#x27;</span>:
+ run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Bracer&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>)
+ run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Power Weight&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>)
+ bulk(<span class="hljs-number">4</span>)
+ checkpoint(<span class="hljs-string">&#x27;Saphira-pair-bracer-weight-done&#x27;</span>,[<span class="hljs-number">252</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">162</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>])
+<span class="hljs-keyword">elif</span> phase==<span class="hljs-string">&#x27;arcanine-finish&#x27;</span>:
+ run(<span class="hljs-string">&#x27;party_front&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>)
+ bulk(<span class="hljs-number">3</span>,<span class="hljs-literal">False</span>)
+ checkpoint(<span class="hljs-string">&#x27;Saphira-pair-training-complete&#x27;</span>,[<span class="hljs-number">252</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">252</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>])
+ run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Wave Incense&#x27;</span>,<span class="hljs-string">&#x27;Swampert&#x27;</span>)
+ run(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Charcoal&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unknown phase&#x27;</span>)
+</code></pre>
+  </body>
+</html>

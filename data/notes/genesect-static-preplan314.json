@@ -1,0 +1,22 @@
+{
+  "source": "Installed map877 event3 page1 and trainers.dat; no live battle inspection",
+  "lead": "Volcanion",
+  "opening": "Verify public opponent columns. Flamethrower Dhelmise; Steam Eruption Steelix; Flamethrower Ferrothorn/Bisharp. Klefki Light Screen may require two hits.",
+  "cautions": [
+    "ShortCircuit boosts Electric attacks and gives ZapCannon80 accuracy; Probopass and special Genesect warrant a switch review.",
+    "Volcanion faster than most bulky Steel opponents; Genesect faster.",
+    "NaturePower becomes Discharge; changes field toFactory. Do not assume same field persists.",
+    "Preserve NPC partner; no spread attack without allied-damage review.",
+    "Cresselia Levitate is a defensive switch for Earthquake; Magearna gains SoulHeart on any faint.",
+    "Marshadowcatch deferred safely inBox3; no needtrainbeforeallSteelroute."
+  ],
+  "major_ids": {
+    "Aya": 186,
+    "Arclight": 187,
+    "Cain": 188,
+    "Titania": 189,
+    "Hardy": 190
+  },
+  "save_policy": "Save normally before each separate encounter; no artificial gauntlet restriction.",
+  "epoch": 1791784389.539275
+}

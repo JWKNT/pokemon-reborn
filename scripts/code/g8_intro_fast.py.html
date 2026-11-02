@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>g8_intro_fast.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of g8_intro_fast.py"><code class="hljs language-python"><span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+<span class="hljs-keyword">import</span> re
+<span class="hljs-comment"># Inspected event29312: no choices before Cain&#x27;s arrival, which is many lines before battle.</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">40</span>):
+ t=read();low=t.lower();<span class="hljs-built_in">print</span>(t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;cain:&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;another guest&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">or</span> re.search(<span class="hljs-string">r&#x27;\bhp\b|\bfight\b|\bvs\b&#x27;</span>,low):<span class="hljs-keyword">break</span>
+ im=Image.<span class="hljs-built_in">open</span>(STATE).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>);w,h=im.size;b=im.crop((<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.08</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.75</span>),<span class="hljs-built_in">int</span>(w*<span class="hljs-number">.90</span>),<span class="hljs-built_in">int</span>(h*<span class="hljs-number">.87</span>)))
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">min</span>(p)&gt;<span class="hljs-number">210</span> <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> b.getdata())/(b.width*b.height)&gt;<span class="hljs-number">.55</span>:act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.3&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.3&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:0.3&#x27;</span>)
+ <span class="hljs-keyword">else</span>:act(<span class="hljs-string">&#x27;wait:1&#x27;</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Story guard&#x27;</span>)
+(ROOT/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>).write_text(<span class="hljs-string">&#x27;{}&#x27;</span>)
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_batch.py&#x27;</span>),<span class="hljs-string">&#x27;Swampert&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;muk&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

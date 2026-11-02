@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>calcenon388_return.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of calcenon388_return.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal reward equipment and return, stopping before final-tier trigger.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+p=Path(<span class="hljs-string">&#x27;work/calcenon388-reward-queue.json&#x27;</span>)
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">60</span>):
+ j=json.loads(p.read_text())
+ <span class="hljs-keyword">if</span> j[<span class="hljs-string">&#x27;done&#x27;</span>]==<span class="hljs-number">9</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> j.get(<span class="hljs-string">&#x27;pending&#x27;</span>):<span class="hljs-keyword">break</span>
+ time.sleep(<span class="hljs-number">1</span>)
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Reward checkpoint unfinished&#x27;</span>)
+<span class="hljs-keyword">for</span> cmd <span class="hljs-keyword">in</span> [(<span class="hljs-string">&#x27;give_held&#x27;</span>,<span class="hljs-string">&#x27;Mewtwonite Y&#x27;</span>,<span class="hljs-string">&#x27;Mewtwo&#x27;</span>,<span class="hljs-string">&#x27;--pocket&#x27;</span>,<span class="hljs-string">&#x27;Crystals&#x27;</span>),(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">527</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Rayquaza&#x27;</span>),(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Nightclub388-TierBoundary&#x27;</span>)]:
+ <span class="hljs-built_in">print</span>(cmd,flush=<span class="hljs-literal">True</span>);subprocess.run([sys.executable,<span class="hljs-string">&#x27;scripts/&#x27;</span>+cmd[<span class="hljs-number">0</span>]+<span class="hljs-string">&#x27;.py&#x27;</span>,*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,cmd[<span class="hljs-number">1</span>:])],check=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

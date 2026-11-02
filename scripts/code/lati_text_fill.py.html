@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>lati_text_fill.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of lati_text_fill.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Type one reviewed quest answer through native UI; never confirm it automatically.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+answers={<span class="hljs-string">&#x27;GMKR@&#x27;</span>,<span class="hljs-string">&#x27;K=XJ7&#x27;</span>,<span class="hljs-string">&#x27;F5@@5#&#x27;</span>,<span class="hljs-string">&#x27;%5H&#x27;</span>,<span class="hljs-string">&#x27;YGFFX5M&#x27;</span>,<span class="hljs-string">&#x27;?RG@&#x27;</span>,<span class="hljs-string">&#x27;J5TR&#x27;</span>}
+answer=sys.argv[<span class="hljs-number">1</span>];<span class="hljs-keyword">assert</span> answer <span class="hljs-keyword">in</span> answers
+text=read().lower();compact=re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,text)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;whatisit&#x27;</span> <span class="hljs-keyword">in</span> compact <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;keyboard&#x27;</span> <span class="hljs-keyword">in</span> compact,(<span class="hljs-string">&#x27;Expected empty quest keyboard entry&#x27;</span>,text)
+act(<span class="hljs-string">&#x27;wait:.1&#x27;</span>)
+start=time.time()
+subprocess.run([<span class="hljs-string">&#x27;/usr/bin/osascript&#x27;</span>,<span class="hljs-string">&#x27;-e&#x27;</span>,<span class="hljs-string">&#x27;on run argv\n tell application &quot;System Events&quot; to keystroke (item 1 of argv)\nend run&#x27;</span>,answer],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">with</span> (ROOT/<span class="hljs-string">&#x27;recordings/actions.jsonl&#x27;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>)<span class="hljs-keyword">as</span> f:f.write(json.dumps({<span class="hljs-string">&#x27;start&#x27;</span>:start,<span class="hljs-string">&#x27;end&#x27;</span>:time.time(),<span class="hljs-string">&#x27;keys&#x27;</span>:<span class="hljs-string">&#x27;native text entry &#x27;</span>+answer})+<span class="hljs-string">&#x27;\n&#x27;</span>)
+act(<span class="hljs-string">&#x27;wait:.5&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TEXT ENTERED; INSPECT BEFORE PRESSING RETURN&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

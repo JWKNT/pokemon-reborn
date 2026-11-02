@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>neoteric378_finish_training.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of neoteric378_finish_training.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Sequential normal-UI training and candy preparation, with resumable action receipt.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,json,subprocess,sys,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;84&#x27;</span>)
+base=json.loads((R/<span class="hljs-string">&#x27;work/neoteric378-training-queue.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> base[<span class="hljs-string">&#x27;done&#x27;</span>]==<span class="hljs-number">24</span> <span class="hljs-keyword">and</span> base[<span class="hljs-string">&#x27;pending&#x27;</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>
+steps=[(<span class="hljs-string">&#x27;kyogre378_training&#x27;</span>,<span class="hljs-string">&#x27;hp&#x27;</span>),(<span class="hljs-string">&#x27;kyogre378_training&#x27;</span>,<span class="hljs-string">&#x27;spa&#x27;</span>),(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Rayquaza&#x27;</span>),(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">519</span>,<span class="hljs-number">116</span>,<span class="hljs-string">&#x27;enter&#x27;</span>),(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">38</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;talk&#x27;</span>),(<span class="hljs-string">&#x27;heal&#x27;</span>,),(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Neoteric378-KyogreCandyReady&#x27;</span>),(<span class="hljs-string">&#x27;postgame_candy_spend&#x27;</span>,<span class="hljs-string">&#x27;Neoteric378-KyogreCandyReady&#x27;</span>,<span class="hljs-number">145</span>)]
+p=R/<span class="hljs-string">&#x27;work/neoteric378-finish-training.json&#x27;</span>;j=json.loads(p.read_text()) <span class="hljs-keyword">if</span> p.exists() <span class="hljs-keyword">else</span> <span class="hljs-built_in">dict</span>(done=<span class="hljs-number">0</span>,steps=steps)
+<span class="hljs-keyword">assert</span> j.get(<span class="hljs-string">&#x27;pending&#x27;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>,<span class="hljs-string">&#x27;Prior outcome must be reviewed first&#x27;</span>
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(j[<span class="hljs-string">&#x27;done&#x27;</span>],<span class="hljs-built_in">len</span>(steps)):
+ j[<span class="hljs-string">&#x27;pending&#x27;</span>]=<span class="hljs-built_in">dict</span>(index=i,command=steps[i],epoch=time.time());p.write_text(json.dumps(j,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;KYOGRE TRAINING&#x27;</span>,i,*steps[i],flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{steps[i][<span class="hljs-number">0</span>]}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,steps[i][<span class="hljs-number">1</span>:])],check=<span class="hljs-literal">True</span>)
+ j.update(done=i+<span class="hljs-number">1</span>,pending=<span class="hljs-literal">None</span>);p.write_text(json.dumps(j,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;KYOGRE TRAINING COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mega_ring_source_probe.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mega_ring_source_probe.rb"><code class="hljs language-ruby"><span class="hljs-comment"># Static installed-data research only. No saves, runtime, input or battle logs.</span>
+require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+root = <span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Data&#x27;</span>
+tokens = <span class="hljs-string">%w[MEGARING MEGA-Z MEGA\ Z ARCAUTOGRAPH MCKREZZYAUTOGRAPH HEADPHONES]</span>
+result = {<span class="hljs-symbol">origin:</span> <span class="hljs-string">&#x27;Installed map declarations only; not current event state.&#x27;</span>, <span class="hljs-symbol">events:</span> []}
+<span class="hljs-title class_">Dir</span>.glob(<span class="hljs-title class_">File</span>.join(root, <span class="hljs-string">&#x27;Map[0-9][0-9][0-9].rxdata&#x27;</span>)).sort.each <span class="hljs-keyword">do</span> |<span class="hljs-params">path</span>|
+  map = load_rgss(path)
+  map.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@events</span>).each <span class="hljs-keyword">do</span> |<span class="hljs-params">eid, event</span>|
+    text = event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@pages</span>).map {|<span class="hljs-params">p</span>| p.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@list</span>).map {|<span class="hljs-params">c</span>| c.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@parameters</span>).to_s}.join(<span class="hljs-string">&quot;\n&quot;</span>)}.join(<span class="hljs-string">&quot;\n&quot;</span>)
+    found = tokens.select {|<span class="hljs-params">t</span>| text.upcase.<span class="hljs-keyword">include</span>?(t)}
+    conditions = event.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@pages</span>).map {|<span class="hljs-params">p</span>| plain(p.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@condition</span>))}
+    quest_variable = conditions.any? {|<span class="hljs-params">c</span>| c[<span class="hljs-string">&#x27;variable_valid&#x27;</span>] &amp;&amp; c[<span class="hljs-string">&#x27;variable_id&#x27;</span>] == <span class="hljs-number">160</span>}
+    map_id = <span class="hljs-title class_">File</span>.basename(path)[<span class="hljs-number">3</span>,<span class="hljs-number">3</span>].to_i
+    shop_or_owner = [<span class="hljs-number">23</span>,<span class="hljs-number">58</span>,<span class="hljs-number">324</span>,<span class="hljs-number">534</span>,<span class="hljs-number">826</span>].<span class="hljs-keyword">include</span>?(map_id) &amp;&amp; text.match?(<span class="hljs-regexp">/LOUDRED|JIGGLYPUFF|MAKUHITA|ROGGENROLA|VANILLITE|Santiago|Eustace|Lillin|McKrezzy|Felicia|pbAddPokemon/</span>)
+    chain = text.match?(<span class="hljs-regexp">/Eustace|Santiago|Colin|Matthew|MASTERMIND/</span>) &amp;&amp; map_id &lt; <span class="hljs-number">830</span>
+    nightclub_boundary = map_id == <span class="hljs-number">826</span> &amp;&amp; eid == <span class="hljs-number">9</span>
+    <span class="hljs-keyword">next</span> <span class="hljs-keyword">if</span> found.empty? &amp;&amp; !quest_variable &amp;&amp; !shop_or_owner &amp;&amp; !chain &amp;&amp; !nightclub_boundary
+    result[<span class="hljs-symbol">:events</span>] &lt;&lt; {<span class="hljs-symbol">map:</span> <span class="hljs-title class_">File</span>.basename(path)[<span class="hljs-number">3</span>,<span class="hljs-number">3</span>].to_i, <span class="hljs-symbol">id:</span> eid, <span class="hljs-symbol">tokens:</span> found, <span class="hljs-symbol">event:</span> plain(event)}
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate(result)
+</code></pre>
+  </body>
+</html>

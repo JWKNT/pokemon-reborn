@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>titans250_ice.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of titans250_ice.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Execute the installed untimed ice puzzle via normal keys and public coordinates.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os
+os.environ[<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>]=<span class="hljs-string">&#x27;1&#x27;</span>
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> *
+steps=json.loads((ROOT/<span class="hljs-string">&#x27;work/250-ice-plan.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">825</span>)==(<span class="hljs-number">825</span>,<span class="hljs-number">22</span>,<span class="hljs-number">23</span>)
+mask=<span class="hljs-number">8</span>
+<span class="hljs-keyword">for</span> i,s <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(steps):
+ act(s[<span class="hljs-string">&#x27;key&#x27;</span>]+<span class="hljs-string">&#x27;:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:&#x27;</span>+(<span class="hljs-string">&#x27;1.4&#x27;</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(s[<span class="hljs-string">&#x27;trail&#x27;</span>])&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;.10&#x27;</span>))
+ <span class="hljs-keyword">if</span> s[<span class="hljs-string">&#x27;mask&#x27;</span>]!=mask:
+  <span class="hljs-keyword">if</span> s[<span class="hljs-string">&#x27;mask&#x27;</span>]==<span class="hljs-number">31</span>:act(<span class="hljs-string">&#x27;wait:2&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+  pos=locate(<span class="hljs-number">825</span>);<span class="hljs-keyword">assert</span> pos==(<span class="hljs-number">825</span>,*s[<span class="hljs-string">&#x27;end&#x27;</span>]),(i,s,pos)
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ICE CRACK&#x27;</span>,i,s,flush=<span class="hljs-literal">True</span>);mask=s[<span class="hljs-string">&#x27;mask&#x27;</span>]
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ICE INPUTS COMPLETE; verify quest state&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

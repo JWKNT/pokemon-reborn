@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ametrine_return_and_first_pair.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ametrine_return_and_first_pair.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Return through the separated cliff passage and start the inspected Meteor pair.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/s),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">stage</span>(<span class="hljs-params">k,v</span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;d=json.loads(p.read_text());d[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-built_in">str</span>(k)]=v;p.write_text(json.dumps(d))
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--from-secret&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ run(<span class="hljs-string">&#x27;surface_event.py&#x27;</span>,<span class="hljs-number">439</span>,<span class="hljs-number">25</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);<span class="hljs-keyword">assert</span> locate()[<span class="hljs-number">0</span>]==<span class="hljs-number">440</span>
+ run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">440</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);<span class="hljs-keyword">assert</span> locate()[<span class="hljs-number">0</span>]==<span class="hljs-number">374</span>
+run(<span class="hljs-string">&#x27;surface_event.py&#x27;</span>,<span class="hljs-number">374</span>,<span class="hljs-number">11</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);<span class="hljs-keyword">assert</span> locate()[<span class="hljs-number">0</span>]==<span class="hljs-number">457</span>
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">457</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);stage(<span class="hljs-number">74</span>,<span class="hljs-number">1</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">457</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;choose_dialog.py&#x27;</span>,<span class="hljs-string">&#x27;Ground Floor|Top Floor&#x27;</span>,<span class="hljs-string">&#x27;Ground Floor&#x27;</span>);stage(<span class="hljs-number">74</span>,<span class="hljs-number">0</span>)
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">457</span>,<span class="hljs-number">6</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">457</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);<span class="hljs-keyword">assert</span> locate()[<span class="hljs-number">0</span>]==<span class="hljs-number">439</span>
+run(<span class="hljs-string">&#x27;surface_walk.py&#x27;</span>,<span class="hljs-number">439</span>,<span class="hljs-number">24</span>,<span class="hljs-number">82</span>)
+run(<span class="hljs-string">&#x27;trainer_music.py&#x27;</span>,<span class="hljs-string">&#x27;start&#x27;</span>,<span class="hljs-string">&#x27;MeteorAceM&#x27;</span>,<span class="hljs-string">&#x27;Bruno &amp; Ray&#x27;</span>)
+act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:1&#x27;</span>);stage(<span class="hljs-number">193</span>,<span class="hljs-number">21</span>)
+run(<span class="hljs-string">&#x27;battle_batch.py&#x27;</span>,<span class="hljs-string">&#x27;Mienshao&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;Arcanine,Raticate&#x27;</span>,<span class="hljs-string">&#x27;--double&#x27;</span>,<span class="hljs-string">&#x27;--target&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FIRST METEOR TURN REVIEW&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

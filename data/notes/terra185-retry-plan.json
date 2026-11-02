@@ -1,0 +1,19 @@
+{
+  "updated_epoch": 1791237352.7386298,
+  "entry": "Terra185-entry2",
+  "attempt": 2,
+  "change": "Cryogonal91 replaces Arcanine95: Light Screen / Ice Beam / Recover / Freeze-Dry",
+  "opening": [
+    "Swampert Earthquake vs Excadrill",
+    "Cofagrigus Trick Room then Curse vs Porygon-Z",
+    "Sylveon immediately on Cofagrigus faint: Misty Terrain, Wish; heal only if necessary",
+    "Mienshao High Jump Kick vs Chansey, preserve Fake Out for fresh entry vs Donphan"
+  ],
+  "priorities": [
+    "Preserve Excadrill for Quagsire",
+    "Keep Misty active before Quagsire enters: Synthetic Seed has no Glitch activation on Misty",
+    "Cryogonal Recover / Light Screen sustainable support; Freeze-Dry if Quagsire retains Water/Ground",
+    "Normal reset if key strategy clearly fails; no live battle-log reads"
+  ],
+  "helper": "scripts/fontless_move.py performs one reviewed move from public baked command buttons; no battle internals"
+}

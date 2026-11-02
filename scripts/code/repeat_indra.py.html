@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>repeat_indra.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of repeat_indra.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Repeat inspected Indra practice via UI; stop on any unreviewed matchup or result.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+rounds=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=rounds&lt;=<span class="hljs-number">8</span>
+<span class="hljs-keyword">if</span> locate(<span class="hljs-number">355</span>)!=(<span class="hljs-number">355</span>,<span class="hljs-number">40</span>,<span class="hljs-number">16</span>):<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Start next to Indra at35540,16&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script,*args,expected=<span class="hljs-literal">None</span></span>):
+ p=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/script),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],capture_output=<span class="hljs-literal">True</span>,text=<span class="hljs-literal">True</span>)
+ <span class="hljs-built_in">print</span>(p.stdout[-<span class="hljs-number">1600</span>:],flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> expected <span class="hljs-keyword">and</span> expected <span class="hljs-keyword">in</span> (p.stdout+p.stderr):<span class="hljs-keyword">return</span> p.stdout
+ <span class="hljs-keyword">if</span> p.returncode:<span class="hljs-keyword">raise</span> SystemExit(p.stderr <span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;Helper stopped for review&#x27;</span>)
+ <span class="hljs-keyword">return</span> p.stdout
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(rounds):
+ start=time.time();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;INDRA ROUND START&#x27;</span>,i+<span class="hljs-number">1</span>,start,flush=<span class="hljs-literal">True</span>)
+ act(<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.5&#x27;</span>)
+ run(<span class="hljs-string">&#x27;dialog.py&#x27;</span>,<span class="hljs-string">&#x27;--yes&#x27;</span>,<span class="hljs-string">&#x27;--limit=25&#x27;</span>,expected=<span class="hljs-string">&#x27;BATTLE/LEARNING REVIEW&#x27;</span>)
+ run(<span class="hljs-string">&#x27;battle_batch.py&#x27;</span>,<span class="hljs-string">&#x27;Swoobat&#x27;</span>,<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;--foes&#x27;</span>,<span class="hljs-string">&#x27;scizor,empoleon,ribombee,hawlucha,toucannon,ursaring,tsareena,carbink,castform,musharna&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">0</span>)
+ t=read().lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> t:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Battle command menu review&#x27;</span>)
+ out=run(<span class="hljs-string">&#x27;indra_battle.py&#x27;</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;INDRA VICTORY&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> out:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Training battle needs review&#x27;</span>)
+ run(<span class="hljs-string">&#x27;dialog.py&#x27;</span>,<span class="hljs-string">&#x27;--limit=20&#x27;</span>)
+ t=read().lower()
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(t.splitlines())&gt;<span class="hljs-number">3</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Post-prize state review: &#x27;</span>+t)
+ <span class="hljs-keyword">with</span> (ROOT/<span class="hljs-string">&#x27;recordings/training-events.jsonl&#x27;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>) <span class="hljs-keyword">as</span> f:f.write(json.dumps({<span class="hljs-string">&#x27;start&#x27;</span>:start,<span class="hljs-string">&#x27;end&#x27;</span>:time.time(),<span class="hljs-string">&#x27;trainer&#x27;</span>:<span class="hljs-string">&#x27;Indra&#x27;</span>,<span class="hljs-string">&#x27;victory&#x27;</span>:<span class="hljs-literal">True</span>,<span class="hljs-string">&#x27;round_in_batch&#x27;</span>:i+<span class="hljs-number">1</span>})+<span class="hljs-string">&#x27;\n&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;INDRA ROUND COMPLETE&#x27;</span>,i+<span class="hljs-number">1</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

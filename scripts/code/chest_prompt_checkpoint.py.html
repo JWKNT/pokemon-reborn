@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>chest_prompt_checkpoint.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of chest_prompt_checkpoint.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal D quicksave, retaining the game&#x27;s Saved message (Mid_quicksave locks routes).&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> hashlib <span class="hljs-keyword">import</span> sha256
+name=sys.argv[<span class="hljs-number">1</span>];<span class="hljs-keyword">assert</span> name.replace(<span class="hljs-string">&#x27;-&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>).isalnum()
+p=pathlib.Path.home()/<span class="hljs-string">&#x27;Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>;before=p.stat().st_mtime
+act(<span class="hljs-string">&#x27;d:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.35&#x27;</span>)
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;would you like to save the game&#x27;</span> <span class="hljs-keyword">in</span> t,t
+act(<span class="hljs-string">&#x27;c:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.6&#x27;</span>)
+t=read().lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;saved the game&#x27;</span> <span class="hljs-keyword">in</span> t <span class="hljs-keyword">and</span> p.stat().st_mtime&gt;before,t
+shutil.copy2(p,ROOT/<span class="hljs-string">&#x27;backups&#x27;</span>/<span class="hljs-string">f&#x27;Aster-<span class="hljs-subst">{name}</span>.rxdata&#x27;</span>)
+raw=subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/status_full.rb&#x27;</span>)],stderr=subprocess.DEVNULL);(ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>-status.json&#x27;</span>).write_bytes(raw)
+subprocess.run([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/sync_navigation.rb&#x27;</span>)],stderr=subprocess.DEVNULL,check=<span class="hljs-literal">True</span>)
+shutil.copy2(ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>,ROOT/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{name}</span>-navigation.json&#x27;</span>)
+navigation=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+<span class="hljs-keyword">assert</span> navigation[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;1074&#x27;</span>) <span class="hljs-keyword">and</span> navigation[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-string">&#x27;478&#x27;</span>,<span class="hljs-number">0</span>)&gt;<span class="hljs-number">0</span>, <span class="hljs-string">&#x27;Normal save preserved, but defense inactive; do not promote as retained victory&#x27;</span>
+<span class="hljs-keyword">assert</span> navigation[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-string">&#x27;479&#x27;</span>,<span class="hljs-number">5</span>)&lt;<span class="hljs-number">5</span>, <span class="hljs-string">&#x27;Chest failure pending; checkpoint requires review&#x27;</span>
+c=json.loads((ROOT/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>).read_text());c.update(native_checkpoint=name,canonical_native_sha256=sha256(p.read_bytes()).hexdigest(),next_action=<span class="hljs-string">&#x27;Saved message remains open; inspect current checkpoint and intercept the next remaining wave.&#x27;</span>)
+(ROOT/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>).write_text(json.dumps(c,indent=<span class="hljs-number">2</span>))
+jp=ROOT/c[<span class="hljs-string">&#x27;active_gauntlet_journal&#x27;</span>];j=json.loads(jp.read_text());j.setdefault(<span class="hljs-string">&#x27;checkpoints&#x27;</span>,[]).append({<span class="hljs-string">&#x27;label&#x27;</span>:name,<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;native_sha256&#x27;</span>:c[<span class="hljs-string">&#x27;canonical_native_sha256&#x27;</span>],<span class="hljs-string">&#x27;method&#x27;</span>:<span class="hljs-string">&#x27;Normal D quicksave; Saved message left open; game-native Mid_quicksave freezes enemy routes&#x27;</span>});jp.write_text(json.dumps(j,indent=<span class="hljs-number">2</span>))
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;NORMAL QUICK SAVE VERIFIED; SAVED MESSAGE REMAINS OPEN&#x27;</span>,name,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

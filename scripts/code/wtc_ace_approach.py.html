@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>wtc_ace_approach.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of wtc_ace_approach.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Open the office, heal, refuse Taka, and enter the reviewed Ace encounter.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+
+stage=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>])<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">name,*args</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(name+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">1</span>:
+ s=json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+ <span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-string">&#x27;276&#x27;</span>)==<span class="hljs-number">24</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(s[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-built_in">str</span>(i))==<span class="hljs-number">3</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">256</span>,<span class="hljs-number">265</span>))
+ <span class="hljs-keyword">assert</span> locate(<span class="hljs-number">505</span>)[<span class="hljs-number">0</span>]==<span class="hljs-number">505</span>
+ run(<span class="hljs-string">&#x27;surface_walk&#x27;</span>,<span class="hljs-number">505</span>,<span class="hljs-number">24</span>,<span class="hljs-number">11</span>)
+ run(<span class="hljs-string">&#x27;wtc_gate&#x27;</span>,<span class="hljs-number">505</span>,<span class="hljs-number">38</span>)
+ run(<span class="hljs-string">&#x27;touch_heal&#x27;</span>,<span class="hljs-number">505</span>,<span class="hljs-number">18</span>,<span class="hljs-string">&#x27;--surface&#x27;</span>)
+ run(<span class="hljs-string">&#x27;party_lead&#x27;</span>,<span class="hljs-string">&#x27;Arcanine&#x27;</span>)
+ run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;WTC-Ace-ready&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;ACE PREPARATION COMPLETE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">2</span>:
+ run(<span class="hljs-string">&#x27;surface_event&#x27;</span>,<span class="hljs-number">505</span>,<span class="hljs-number">20</span>,<span class="hljs-string">&#x27;enter&#x27;</span>)
+ run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,<span class="hljs-number">478</span>,<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;--until-choice&#x27;</span>,<span class="hljs-string">&#x27;--past-battle&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--log-scripted-bgm&#x27;</span>)
+ run(<span class="hljs-string">&#x27;choose_dialog&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;No&#x27;</span>)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TAKA BATTLE REFUSED THROUGH NORMAL CHOICE&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> stage&lt;=<span class="hljs-number">3</span>:
+ run(<span class="hljs-string">&#x27;trainer_enter&#x27;</span>,<span class="hljs-number">478</span>,<span class="hljs-number">10</span>,<span class="hljs-string">&#x27;ACESPADES&#x27;</span>,<span class="hljs-string">&#x27;Ace of Spades&#x27;</span>,<span class="hljs-string">&#x27;--active-dialogue&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>)
+</code></pre>
+  </body>
+</html>

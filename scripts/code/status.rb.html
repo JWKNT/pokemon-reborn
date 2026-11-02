@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>status.rb</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of status.rb"><code class="hljs language-ruby">require_relative <span class="hljs-string">&#x27;read_rgss&#x27;</span>
+v=load_rgss(<span class="hljs-string">&#x27;/Users/jw/Library/Application Support/Pokemon Reborn/Game_3.rxdata&#x27;</span>)
+t=v[<span class="hljs-symbol">:Trainer</span>]
+puts <span class="hljs-variable constant_">JSON</span>.pretty_generate({<span class="hljs-symbol">map:</span>v[<span class="hljs-symbol">:map_id</span>],<span class="hljs-symbol">position:</span>v[<span class="hljs-symbol">:position</span>],<span class="hljs-symbol">trainer:</span>plain(t).slice(<span class="hljs-string">&#x27;name&#x27;</span>,<span class="hljs-string">&#x27;money&#x27;</span>,<span class="hljs-string">&#x27;badges&#x27;</span>),<span class="hljs-symbol">party:</span>t.instance_variable_get(<span class="hljs-symbol">:</span><span class="hljs-variable">@party</span>).map{|<span class="hljs-params">p</span>|plain(p).slice(<span class="hljs-string">&#x27;species&#x27;</span>,<span class="hljs-string">&#x27;name&#x27;</span>,<span class="hljs-string">&#x27;level&#x27;</span>,<span class="hljs-string">&#x27;hp&#x27;</span>,<span class="hljs-string">&#x27;totalhp&#x27;</span>,<span class="hljs-string">&#x27;status&#x27;</span>,<span class="hljs-string">&#x27;item&#x27;</span>,<span class="hljs-string">&#x27;moves&#x27;</span>)},<span class="hljs-symbol">bag:</span>plain(v[<span class="hljs-symbol">:PokemonBag</span>])})
+</code></pre>
+  </body>
+</html>

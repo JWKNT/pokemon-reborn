@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>roost390_route.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of roost390_route.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal exit from cleared Prisma and reviewed Scrapyard Roost/PP recovery trip.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+steps=[(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">896</span>,<span class="hljs-number">128</span>,<span class="hljs-string">&#x27;enter&#x27;</span>),(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">896</span>,<span class="hljs-number">185</span>),(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">185</span>,<span class="hljs-number">184</span>),(<span class="hljs-string">&#x27;city_enter&#x27;</span>,<span class="hljs-number">184</span>,<span class="hljs-number">551</span>),(<span class="hljs-string">&#x27;fly_to&#x27;</span>,<span class="hljs-number">693</span>,<span class="hljs-string">&#x27;--carrier&#x27;</span>,<span class="hljs-string">&#x27;Rayquaza&#x27;</span>)]
+plan=json.load(<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;work/389-roost-train-plan2.json&#x27;</span>))
+steps += [(<span class="hljs-string">&#x27;eventq&#x27;</span>,s[<span class="hljs-string">&#x27;map&#x27;</span>],s[<span class="hljs-string">&#x27;event&#x27;</span>],<span class="hljs-string">&#x27;enter&#x27;</span>) <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> plan[<span class="hljs-string">&#x27;transfers&#x27;</span>]]
+steps += [(<span class="hljs-string">&#x27;ride_train&#x27;</span>,<span class="hljs-number">663</span>,<span class="hljs-number">154</span>,<span class="hljs-number">370</span>),(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">663</span>,<span class="hljs-number">16</span>,<span class="hljs-string">&#x27;item&#x27;</span>),(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">663</span>,<span class="hljs-number">15</span>,<span class="hljs-string">&#x27;item&#x27;</span>),(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,<span class="hljs-string">&#x27;Scrapyard390-RoostSupplies&#x27;</span>)]
+p=Path(<span class="hljs-string">&#x27;work/390-roost-queue.json&#x27;</span>);j=json.loads(p.read_text())<span class="hljs-keyword">if</span> p.exists()<span class="hljs-keyword">else</span> <span class="hljs-built_in">dict</span>(done=<span class="hljs-number">0</span>,steps=steps)
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> j.get(<span class="hljs-string">&#x27;pending&#x27;</span>),<span class="hljs-string">&#x27;Inspect interrupted action before resuming&#x27;</span>
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(j[<span class="hljs-string">&#x27;done&#x27;</span>],<span class="hljs-built_in">len</span>(steps)):
+ cmd=steps[i];j[<span class="hljs-string">&#x27;pending&#x27;</span>]=<span class="hljs-built_in">dict</span>(index=i,command=cmd,epoch=time.time());p.write_text(json.dumps(j,indent=<span class="hljs-number">2</span>));<span class="hljs-built_in">print</span>(cmd,flush=<span class="hljs-literal">True</span>)
+ subprocess.run([sys.executable,<span class="hljs-string">&#x27;scripts/&#x27;</span>+cmd[<span class="hljs-number">0</span>]+<span class="hljs-string">&#x27;.py&#x27;</span>,*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,cmd[<span class="hljs-number">1</span>:])],check=<span class="hljs-literal">True</span>)
+ j.update(done=i+<span class="hljs-number">1</span>,pending=<span class="hljs-literal">None</span>);p.write_text(json.dumps(j,indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

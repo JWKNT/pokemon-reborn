@@ -1,0 +1,13 @@
+{
+  "epoch": 1791400499.900712,
+  "trainer": [
+    "LUNA",
+    "Luna",
+    13
+  ],
+  "field": "FAIRYTALE",
+  "objective": "4 BP for ExpAll and Heart Scales",
+  "plan": "Reflect then Light Screen, Mawile Mega Swords Dance twice and boosted Iron Head; adapt to visible switches. No live hidden data.",
+  "source": "Installed TrainerSelect.rb fieldtext.rb and trainers.dat read outside battle",
+  "selected_major": false
+}

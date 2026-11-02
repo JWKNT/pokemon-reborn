@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>ray368_marker.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of ray368_marker.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read only the visible Region Map marker from the recorded game preview.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np
+<span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">marker</span>():
+ im=Image.<span class="hljs-built_in">open</span>(R/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>).resize((<span class="hljs-number">512</span>,<span class="hljs-number">384</span>)).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+ a=np.array(Image.<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;/Applications/Reborn.app/Contents/Game/Graphics/Pictures/rayquazaMarker.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGBA&#x27;</span>))
+ mask=a[:,:,<span class="hljs-number">3</span>]&gt;<span class="hljs-number">200</span>;s=[]
+ <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">19</span>):
+  <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">15</span>):
+   u,v=<span class="hljs-number">121</span>+<span class="hljs-number">16</span>*x,<span class="hljs-number">31</span>+<span class="hljs-number">16</span>*y
+   c=np.array(im.crop((u,v,u+<span class="hljs-number">46</span>,v+<span class="hljs-number">34</span>)))
+   s.append((<span class="hljs-built_in">float</span>(np.mean(<span class="hljs-built_in">abs</span>(c.astype(<span class="hljs-built_in">float</span>)[mask]-a[:,:,:<span class="hljs-number">3</span>].astype(<span class="hljs-built_in">float</span>)[mask]))),x,y))
+ s.sort();<span class="hljs-keyword">assert</span> s[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>]&lt;<span class="hljs-number">25</span> <span class="hljs-keyword">and</span> s[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>]-s[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>]&gt;<span class="hljs-number">15</span>, s[:<span class="hljs-number">3</span>]
+ result=<span class="hljs-built_in">dict</span>(epoch=time.time(),grid=<span class="hljs-built_in">list</span>(s[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>:]),error=s[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>],next_error=s[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>],source=<span class="hljs-string">&#x27;Recorded visible Region Map marker&#x27;</span>)
+ <span class="hljs-keyword">with</span> (R/<span class="hljs-string">&#x27;notes/ray368-visible-marker.jsonl&#x27;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>) <span class="hljs-keyword">as</span> f:f.write(json.dumps(result)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+ <span class="hljs-keyword">return</span> result
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:<span class="hljs-built_in">print</span>(json.dumps(marker()))
+</code></pre>
+  </body>
+</html>

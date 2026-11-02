@@ -1,0 +1,36 @@
+{
+  "fixed_lead": "Cofagrigus",
+  "warmup": {
+    "opponents": [
+      "Diana",
+      "Kenan"
+    ],
+    "archive": "full journey only",
+    "opening": "Trick Room, then Shadow Ball against Grumpig; stop on Noctowl immunity or changed target"
+  },
+  "113": {
+    "opponents": [
+      "Blake",
+      "Fern"
+    ],
+    "partner": "Florinia",
+    "opening": "Trick Room; choose burn or Destiny Bond according to observed remaining HP. Minior/Gliscor are Ciel, not this roster."
+  },
+  "114": {
+    "trainer_slot1": "John",
+    "trainer_slot3": "Solaris",
+    "partner": "Julia",
+    "opening": "Switch full Arcanine for Scizor and Flamethrower target3; Cryogonal Freeze-Dry Whiscash target1 on safe entry. Preserve CF for Garchomp."
+  },
+  "heals": "The installed pbDoubleTrainerBattle fully heals player and partner after each preceding win; preserve fixed build for archive continuity.",
+  "planned_supplies": {
+    "Hyper Potion": 12,
+    "Super Repel": 8,
+    "Cotton Candy": 4
+  },
+  "prices": {
+    "Hyper Potion": 1000,
+    "Super Repel": 700,
+    "Cotton Candy": 5000
+  }
+}

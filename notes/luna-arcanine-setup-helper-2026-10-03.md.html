@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Luna round-2 guarded setup queue">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="luna-arcanine-setup-helper-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/luna-arcanine-setup-helper-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/luna-arcanine-setup-helper-2026-10-03.md.html">
+    <title>luna-arcanine-setup-helper-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">luna-arcanine-setup-helper-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 5.3 KB · <a href="/pokemon-reborn/reasoning/17/">Task 17</a> · committed Oct 3 13:14</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Luna round-2 guarded setup queue</h2>
+<p><code>scripts/luna_arcanine_setup.py</code> queues only the reviewed Arcanine setup. Run
+once at the <strong>first command menu</strong>, with <strong>Lv90 Arcanine versus Lv83 Weavile</strong>,
+before any manually used X items. Recording must already be healthy, and the
+root controller must be the only game-input owner.</p>
+<pre class="ui-code ui-code--wrap" tabindex="0" aria-label="sh example"><code class="hljs">python3 scripts/luna_arcanine_setup.py --journal notes/luna-arcanine-setup-attempt-N.json</code></pre>
+<p>Replace <code>N</code> with the actual new whole-gauntlet attempt. Do not reuse a journal
+or restart the eight-item queue in the middle of an already prepared battle.
+The helper deliberately refuses an existing journal. If actual visible maximum
+HP changed after round 1 EV gain, pass that observed number with
+<code>--expected-max-hp 295</code> (default 294). This option does not read native saves.</p>
+<p>One narrowly bounded exception is <code>--resume-initial-guard</code>: it can reuse an
+existing journal <strong>only</strong> when no initial state was accepted, no item action
+was recorded, no item is pending and the run is not complete. It preserves
+the earlier stop reason/time in <code>initial_guard_stop_history</code>. This retries
+the same untouched first command after an OCR correction, without claiming
+a new attempt. It refuses any possibly advanced battle. The level parser
+normalizes diacritics and o/q→0 only inside an explicit Lv/Lu numeric token;
+it accepts the observed <code>Lụ9o</code> as Lv90 and still rejects other levels.</p>
+<p>The fixed setup is X Defend → X Speed → X Defend → two X Sp.Def → three X
+Sp.Atk. All X items target the active Arcanine through <code>--active</code>; potions and
+Full Heal use the ordinary party target selector. Before each action the
+helper requires two stable rendered-UI checks of the command prompt, both HUD
+names and exact levels, numeric current/maximum HP, the visible HP gauge and
+the status badge. It inserts an Ultra Potion when HP is below 180, then a Full
+Heal for poison only once HP is at least 180. Paralysis, sleep, burn, frozen
+status, an unreadable badge, an unfamiliar actor/foe or ambiguous HP stops the
+queue before another item. Immediate re-poisoning after a cure also stops it.</p>
+<p>The status check uses the <strong>installed static graphic assets</strong>, compared with
+the rendered HUD, rather than treating missing PSN OCR as healthy. Source
+geometry is <code>PBScene.rb</code> and <code>PokemonDataBox.refresh/update</code> in
+<code>Battle_Scene.rb</code>: player badge at (326,228), HP gauge at (404,232), with the
+selected HUD&#39;s legitimate two-pixel vertical bob considered. <strong>Native screenshot
+pixels differ from ScreenCaptureKit points.</strong> Inspection of the existing
+<code>work/state-native.png</code> (no new capture) calibrated its 2272×1816 shadowed retina
+image to game canvas <strong><code>112,132,2048,1536</code></strong>. Its window starts at y76, the
+title bar is 56 pixels high, and the game starts at y132. This is the automatic
+preset for that exact image size; 1024×796 unshadowed captures use
+<code>0,28,1024,768</code>. Any other size stops before input and requires a verified
+<code>--canvas left,top,width,height</code> rather than loosening HP/status guards.</p>
+<p>Each action is written as <code>pending</code> <strong>before</strong> input. Successful setup steps
+require the <strong>rendered boost panel</strong> to match the exact expected stage sprites
+before and after the item. <code>statdis1.png</code>/<code>statdis2.png</code> are composed in the
+installed draw order at game coordinates246,188, considering both legal bob
+positions. The expected value must beat every alternate legal−6…+6 value for
+each of the seven stats, so a small unchanged icon cannot pass a loose overall
+image threshold. Initial zero stages are also required. Visible stat-rise
+messages from <code>recordings/screens.jsonl</code> are recorded when available; battle
+turbo may legitimately complete them before the next screenshot.</p>
+<p>For Ultra Potion, either the actual visible restored-HP message or a stable
+numeric/bar-proved HP increase is required. There is no passive HP recovery
+for this Charcoal Arcanine against Weavile&#39;s four damaging moves. If a critical
+hit makes post-potion HP no higher than before and the effect text was missed,
+the helper leaves that item pending for manual review. For Full Heal, either
+effect text or a template-proved poison→healthy badge transition is required.
+All of this is public rendered-UI evidence, not a battle log, live AI, runtime,
+RNG or save inspection. A timeout or other uncertainty also leaves the pending
+entry; never replay it blindly. The script has no resume facility because a
+partially executed item cannot safely be assumed unused.</p>
+<p>Defaults allow at most 22 total item actions, eight Ultra Potions and six Full
+Heals. After the eight proved setup actions it restores the same HP/status
+safety floor if needed, then stops at the command menu <strong>before attacking</strong>.
+The journal reports the proved intended stages: Defense +4, Speed +2,
+Sp.Def +4, Sp.Atk +6. It never imports legacy top-level battle scripts; only
+<code>play.py</code> is imported and the reviewed, bounded item/readiness helpers are
+invoked as subprocesses. All game input still goes through the recording and
+session-limit guards in <code>play.act</code> and <code>scripts/key</code>.</p>
+<p>Validation performed: Python syntax compilation only. <strong>No helper execution,
+game input, live screenshot capture or native save modification was performed
+during development.</strong> The first live invocation can stop conservatively on
+OCR, template or geometry differences and should be supervised by the root
+controller. No attacking helper is referenced or called.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>devon_conveyor_probe.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of devon_conveyor_probe.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded field-radio-safe empirical probe; choose no subsequent route.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> ROOT,act,read
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">629</span>)==(<span class="hljs-number">629</span>,<span class="hljs-number">26</span>,<span class="hljs-number">11</span>)
+p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;s=json.loads(p.read_text());old=s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;342&#x27;</span>];n=(<span class="hljs-number">3</span>-old)%<span class="hljs-number">3</span>
+<span class="hljs-keyword">if</span> n:act(*<span class="hljs-built_in">sum</span>(([<span class="hljs-string">&#x27;a:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:.4&#x27;</span>]<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n)),[]))
+s[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;342&#x27;</span>]=<span class="hljs-number">3</span>;p.write_text(json.dumps(s))
+act(<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;wait:3&#x27;</span>);<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>);actual=locate(<span class="hljs-number">629</span>);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TERRAIN TO EVENT PROBE END&#x27;</span>,actual,flush=<span class="hljs-literal">True</span>)
+(ROOT/<span class="hljs-string">&#x27;notes/devon-629-conveyor-probe.json&#x27;</span>).write_text(json.dumps({<span class="hljs-string">&#x27;start&#x27;</span>:[<span class="hljs-number">629</span>,<span class="hljs-number">26</span>,<span class="hljs-number">11</span>],<span class="hljs-string">&#x27;radio&#x27;</span>:<span class="hljs-number">3</span>,<span class="hljs-string">&#x27;input&#x27;</span>:<span class="hljs-string">&#x27;up:.12&#x27;</span>,<span class="hljs-string">&#x27;observed_end&#x27;</span>:actual},indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+</code></pre>
+  </body>
+</html>

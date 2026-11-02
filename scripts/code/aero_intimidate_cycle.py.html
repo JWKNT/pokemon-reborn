@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>aero_intimidate_cycle.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of aero_intimidate_cycle.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Three reviewed Arcanine/Klinklang cycles, public command/HP guards each turn.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+cycles=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]) <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">3</span>
+<span class="hljs-keyword">assert</span> <span class="hljs-number">1</span>&lt;=cycles&lt;=<span class="hljs-number">5</span>
+partner=sys.argv[sys.argv.index(<span class="hljs-string">&quot;--partner&quot;</span>)+<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;--partner&quot;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;Klinklang&quot;</span>
+<span class="hljs-keyword">assert</span> partner <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;Klinklang&quot;</span>,<span class="hljs-string">&quot;Excadrill&quot;</span>]
+turbo=<span class="hljs-string">&#x27;--turbo&#x27;</span> <span class="hljs-keyword">in</span> sys.argv
+control=ROOT/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">turbo_state</span>(<span class="hljs-params">enabled</span>):
+ d=json.loads(control.read_text());d.update(battle_turbo_enabled=enabled,battle_turbo=enabled,overworld_turbo_enabled=<span class="hljs-literal">False</span>);control.write_text(json.dumps(d,indent=<span class="hljs-number">2</span>))
+<span class="hljs-keyword">if</span> turbo:
+ d=json.loads(control.read_text());<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> d.get(<span class="hljs-string">&#x27;battle_turbo_enabled&#x27;</span>,<span class="hljs-literal">False</span>),<span class="hljs-string">&#x27;Turbo starting state must be verified OFF&#x27;</span>
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> read().lower(),<span class="hljs-string">&#x27;Turbo only in observed battle command screen&#x27;</span>
+ act(<span class="hljs-string">&#x27;m:.12&#x27;</span>);turbo_state(<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">try</span>:
+ <span class="hljs-keyword">for</span> index,name <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>([partner,<span class="hljs-string">&#x27;Arcanine&#x27;</span>]*cycles,<span class="hljs-number">1</span>):
+  t=read();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(n <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;aerodactyl&#x27;</span>,<span class="hljs-string">&#x27;herodactyl&#x27;</span>]),t
+  result=subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/battle_switch.py&#x27;</span>),name],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=<span class="hljs-literal">True</span>)
+  <span class="hljs-built_in">print</span>(result.stdout,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">assert</span> result.returncode==<span class="hljs-number">0</span>
+  t=read();low=t.lower();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;fight&#x27;</span> <span class="hljs-keyword">in</span> low <span class="hljs-keyword">and</span> name.lower() <span class="hljs-keyword">in</span> low,t
+  hp=re.findall(<span class="hljs-string">r&#x27;(\d+)\s*/\s*(290|362|399)&#x27;</span>,t);<span class="hljs-keyword">assert</span> hp,<span class="hljs-string">&#x27;Own HP needs review: &#x27;</span>+t
+  current,total=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,hp[-<span class="hljs-number">1</span>]);<span class="hljs-keyword">assert</span> current&gt;=<span class="hljs-number">100</span>,(name,current,<span class="hljs-string">&#x27;Cycle stopped for recovery&#x27;</span>)
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;CYCLE VERIFIED&#x27;</span>,index,name,current,total,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">finally</span>:
+ <span class="hljs-keyword">if</span> turbo:
+  act(<span class="hljs-string">&#x27;m:.12&#x27;</span>);turbo_state(<span class="hljs-literal">False</span>)
+  <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TURBO RESTORED OFF&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

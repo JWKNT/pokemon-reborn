@@ -1,0 +1,16 @@
+{
+  "reviewed_epoch": 1791919298.075316,
+  "source": "Installed Map888 static events; no battle runtime reads",
+  "after_round2": "Finish event22 commands496\u2013777 to variable664=8, then normal save checkpoint.",
+  "capture_events": {
+    "16": "Reshiram125 at10,52; BlueFlare/Crunch/FireBlast/HyperVoice",
+    "17": "Zekrom125 at58,59; BoltStrike/HyperVoice/Thunder/Crunch",
+    "18": "Kyurem125 at9,2; HyperVoice/Blizzard/DragonPulse/Endeavor"
+  },
+  "correction": "Event40 contains an old Kyurem trainer+wild110 sequence but sits at0,0 with no event202/209 movement references anywhere inMap888. Do not assume it is the next required boss, enter it deliberately, or stage major211 for it without actual route evidence. The active post-round2 sequence relocates event18 to9,2 and enables its wild125 page.",
+  "capture_plan": "Save before one-time encounters. Preserve the legends for future teams; wild encounters remain in journey only. Zekrom is Electric so Thunder Wave will not paralyze it; use an appropriate alternative or Timer Balls.",
+  "next_story": "After three legend resolutions,664 should11 and56951. Review event38/52 Umbral Ace route, stage the next actual trainer as next major ID.",
+  "zekrom_exit_correction": "Event52 page0 includes ELSE: if664isnot11,1857iscleared. CaptureZekromfirst, exit38while6649, thenReshiram/Kyurem; leave via887andprepareAce. Do notreturnthrough38whenallthreecomplete untilready.",
+  "umbral_team_source": "work/352-umbral-team.json",
+  "umbral_plan": "Owned Darkrai135 Box2 slot26 alreadyTimid252SpA252Speed, DarkPulse/BrickBreak/NastyPlot/DarkVoid. ConsiderNewWorldDarkPulseboost versus all Psychic enemies, thenMawile/MagearnaagainstSableyeZoroark. Withdrawaftercaptures; inspectfullstatsanditem."
+}

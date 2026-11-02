@@ -1,0 +1,44 @@
+{
+  "provisional_relearn_order": [
+    "RETALIATE",
+    "FURYCUTTER",
+    "PURSUIT",
+    "AUTOTOMIZE",
+    "SLASH",
+    "IRONDEFENSE",
+    "NIGHTSLASH",
+    "POWERTRICK",
+    "HEADSMASH",
+    "SWORDSDANCE",
+    "AERIALACE",
+    "KINGSSHIELD"
+  ],
+  "king_shield_index": 11,
+  "must_verify_selected_move_before_accepting": true,
+  "remaining_steps": [
+    "Finish JB4 and save with 36XL banked",
+    "Compute exact candies needed to110 from frozen owned EXP",
+    "Use DuskStone after SacredSword confirmed",
+    "Aegislash learn KingsShield overDestinyBond2 viaOnyx116,1",
+    "TM75SwordsDance overIronHead0",
+    "8PowerWeight +8PowerBracer directweakwildKOs633",
+    "HeldSpellTag;heal;normalcheckpoint"
+  ],
+  "candidate_training_route": [
+    "519,9,60,left,wait:2",
+    "530,94,13,right,wait:2",
+    "519,29,11,right,wait:2",
+    "513,15,8,right,wait:2",
+    "519,58,11,right,wait:2",
+    "633,10,8"
+  ],
+  "ev_final": [
+    252,
+    252,
+    0,
+    0,
+    6,
+    0
+  ],
+  "ev_note": "After HP/Attack cap, one PowerBand KO fills remaining6SpDef EVs (same stat gain as4); all stages require frozen checkpoint reconciliation."
+}

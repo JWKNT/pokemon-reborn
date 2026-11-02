@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>play.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of play.py"><code class="hljs language-python"><span class="hljs-keyword">import</span> subprocess,json,time,pathlib,sys,re,shutil,os
+<span class="hljs-keyword">from</span> input_owner <span class="hljs-keyword">import</span> acquire
+acquire()
+ROOT=pathlib.Path(__file__).resolve().parent.parent
+KEY=<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(<span class="hljs-string">&#x27;key_fast&#x27;</span> <span class="hljs-keyword">if</span> os.environ.get(<span class="hljs-string">&#x27;REBORN_FAST_KEYS&#x27;</span>)==<span class="hljs-string">&#x27;1&#x27;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;key&#x27;</span>)); STATE=ROOT/<span class="hljs-string">&#x27;state.png&#x27;</span>
+NATIVE=ROOT/<span class="hljs-string">&#x27;work/state-native.png&#x27;</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">verify_capture_frame</span>():
+ framing=ROOT/<span class="hljs-string">&#x27;recordings/capture-frame.json&#x27;</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> framing.exists():<span class="hljs-keyword">return</span>
+ expected=json.loads(framing.read_text())
+ health=json.loads((ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>).read_text())
+ <span class="hljs-keyword">if</span> health.get(<span class="hljs-string">&#x27;pid&#x27;</span>)!=expected[<span class="hljs-string">&#x27;pid&#x27;</span>]:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Capture framing receipt belongs to another recorder; verify framing before input&#x27;</span>)
+ info=subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>)],text=<span class="hljs-literal">True</span>)
+ block=<span class="hljs-built_in">next</span>((b <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> info.split(<span class="hljs-string">&#x27;]\n&#x27;</span>) <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;Pokemon Reborn&#x27;</span> <span class="hljs-keyword">in</span> b),<span class="hljs-string">&#x27;&#x27;</span>)
+ bounds={k:<span class="hljs-built_in">float</span>(re.search(<span class="hljs-string">r&#x27;\b&#x27;</span>+k+<span class="hljs-string">r&#x27; = ([\d.-]+);&#x27;</span>,block)[<span class="hljs-number">1</span>]) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;X&#x27;</span>,<span class="hljs-string">&#x27;Y&#x27;</span>,<span class="hljs-string">&#x27;Width&#x27;</span>,<span class="hljs-string">&#x27;Height&#x27;</span>]}
+ <span class="hljs-keyword">if</span> bounds!=expected[<span class="hljs-string">&#x27;bounds&#x27;</span>]:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Game window moved outside verified capture framing; input blocked: &#x27;</span>+<span class="hljs-built_in">str</span>(bounds))
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">act</span>(<span class="hljs-params">*keys</span>):
+ league_path=ROOT/<span class="hljs-string">&#x27;notes/active-league-chain.json&#x27;</span>
+ <span class="hljs-keyword">if</span> league_path.exists() <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(k.split(<span class="hljs-string">&#x27;:&#x27;</span>)[<span class="hljs-number">0</span>]==<span class="hljs-string">&#x27;d&#x27;</span> <span class="hljs-keyword">and</span> k!=<span class="hljs-string">&#x27;d:1.0&#x27;</span> <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> keys):
+  <span class="hljs-keyword">if</span> json.loads(league_path.read_text()).get(<span class="hljs-string">&#x27;status&#x27;</span>) <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;active&#x27;</span>,<span class="hljs-string">&#x27;failed&#x27;</span>]:
+   <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Hard League no-save guard: quicksave input prohibited during the chain&#x27;</span>)
+ verify_capture_frame()
+ control=ROOT/<span class="hljs-string">&#x27;notes/current-run-control.json&#x27;</span>
+ <span class="hljs-keyword">if</span> control.exists():
+  settings=json.loads(control.read_text())
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> settings.get(<span class="hljs-string">&#x27;cleanup_mode&#x27;</span>,<span class="hljs-literal">False</span>):
+   <span class="hljs-keyword">if</span> time.time()&gt;=settings.get(<span class="hljs-string">&#x27;deadline_epoch&#x27;</span>,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)) <span class="hljs-keyword">or</span> settings.get(<span class="hljs-string">&#x27;last_usage_used_percent&#x27;</span>,<span class="hljs-number">0</span>)&gt;=settings.get(<span class="hljs-string">&#x27;usage_stop_used_percent&#x27;</span>,<span class="hljs-number">95</span>):
+    <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Session limit reached: stop gameplay and enter save/quit cleanup mode&#x27;</span>)
+ hold=<span class="hljs-built_in">float</span>(os.environ.get(<span class="hljs-string">&#x27;REBORN_CONFIRM_HOLD&#x27;</span>,<span class="hljs-string">&#x27;0.12&#x27;</span>));<span class="hljs-keyword">assert</span> <span class="hljs-number">.04</span>&lt;=hold&lt;=<span class="hljs-number">.3</span>
+ keys=<span class="hljs-built_in">tuple</span>(k+<span class="hljs-string">&#x27;:&#x27;</span>+<span class="hljs-built_in">str</span>(hold) <span class="hljs-keyword">if</span> k <span class="hljs-keyword">in</span> (<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>) <span class="hljs-keyword">else</span> k <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> keys)
+ subprocess.run([KEY,*keys],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">snap</span>():
+ capture_epoch=time.time()
+ <span class="hljs-keyword">match</span>=<span class="hljs-literal">None</span>
+ <span class="hljs-keyword">for</span> attempt <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>):
+  info=subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>)],text=<span class="hljs-literal">True</span>)
+  gameinfo=<span class="hljs-built_in">next</span>((block <span class="hljs-keyword">for</span> block <span class="hljs-keyword">in</span> info.split(<span class="hljs-string">&#x27;]\n&#x27;</span>) <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;Pokemon Reborn&#x27;</span> <span class="hljs-keyword">in</span> block),<span class="hljs-string">&#x27;&#x27;</span>)
+  <span class="hljs-keyword">match</span>=re.search(<span class="hljs-string">r&#x27;kCGWindowNumber[^0-9]+(\d+)&#x27;</span>,gameinfo)
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">match</span>:<span class="hljs-keyword">break</span>
+  time.sleep(<span class="hljs-number">.25</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">match</span>:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;No visible Reborn window&#x27;</span>)
+ health_path=ROOT/<span class="hljs-string">&#x27;recordings/capture-health.json&#x27;</span>
+ health=json.loads(health_path.read_text()) <span class="hljs-keyword">if</span> health_path.exists() <span class="hljs-keyword">else</span> {}
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;preview_epoch&#x27;</span> <span class="hljs-keyword">in</span> health:
+  <span class="hljs-comment"># Observe a newly recorded frame rather than starting a competing capture.</span>
+  <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">40</span>):
+   health=json.loads(health_path.read_text())
+   <span class="hljs-keyword">if</span> health.get(<span class="hljs-string">&#x27;active&#x27;</span>) <span class="hljs-keyword">and</span> health.get(<span class="hljs-string">&#x27;preview_epoch&#x27;</span>,<span class="hljs-number">0</span>)&gt;=capture_epoch <span class="hljs-keyword">and</span> time.time()-health[<span class="hljs-string">&#x27;epoch&#x27;</span>]&lt;<span class="hljs-number">2</span>:<span class="hljs-keyword">break</span>
+   time.sleep(<span class="hljs-number">.1</span>)
+  <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&#x27;Fresh recorded observation unavailable; inputs remain blocked&#x27;</span>)
+  <span class="hljs-keyword">from</span> PIL <span class="hljs-keyword">import</span> Image
+  frame=Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;recordings/capture-preview.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+  <span class="hljs-keyword">assert</span> frame.size==(<span class="hljs-number">852</span>,<span class="hljs-number">640</span>)
+  canvas=Image.<span class="hljs-built_in">open</span>(ROOT/<span class="hljs-string">&#x27;work/capture-preview-frame-template.png&#x27;</span>).convert(<span class="hljs-string">&#x27;RGB&#x27;</span>)
+  <span class="hljs-keyword">assert</span> canvas.size==(<span class="hljs-number">2272</span>,<span class="hljs-number">1816</span>), <span class="hljs-string">&#x27;Preview framing requires revalidation&#x27;</span>
+  canvas.paste(frame.resize((<span class="hljs-number">2048</span>,<span class="hljs-number">1536</span>)),(<span class="hljs-number">112</span>,<span class="hljs-number">134</span>));canvas.save(STATE)
+ <span class="hljs-keyword">else</span>:
+  subprocess.run([<span class="hljs-string">&#x27;/usr/sbin/screencapture&#x27;</span>,<span class="hljs-string">&#x27;-x&#x27;</span>,<span class="hljs-string">&#x27;-l&#x27;</span>,<span class="hljs-keyword">match</span>[<span class="hljs-number">1</span>],<span class="hljs-built_in">str</span>(STATE)],check=<span class="hljs-literal">True</span>)
+ result=json.loads(subprocess.check_output([<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/observe&#x27;</span>),<span class="hljs-built_in">str</span>(STATE)]))
+ <span class="hljs-keyword">with</span> (ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).<span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;a&#x27;</span>) <span class="hljs-keyword">as</span> f:f.write(json.dumps({<span class="hljs-string">&#x27;epoch&#x27;</span>:capture_epoch,<span class="hljs-string">&#x27;ocr_complete_epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;text&#x27;</span>:[v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> result]})+<span class="hljs-string">&#x27;\n&#x27;</span>)
+ shutil.copyfile(STATE,NATIVE)
+ subprocess.run([<span class="hljs-string">&#x27;/usr/bin/sips&#x27;</span>,<span class="hljs-string">&#x27;-Z&#x27;</span>,<span class="hljs-string">&#x27;1100&#x27;</span>,<span class="hljs-built_in">str</span>(STATE)],stdout=subprocess.DEVNULL)
+ <span class="hljs-keyword">return</span> result
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">read</span>():
+ r=snap(); <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;\n&#x27;</span>.join(v[<span class="hljs-string">&#x27;text&#x27;</span>] <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> r)
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span>: act(*sys.argv[<span class="hljs-number">1</span>:])
+ <span class="hljs-built_in">print</span>(read())
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>glass_b1_card.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of glass_b1_card.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal B1F ice bridges, Meteor Card, and opening Noel/Anna pods.
+No optional trainer or pallet detours; stops at any unreviewed state.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/s),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">mirror</span>(<span class="hljs-params">ss</span>):
+ p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>;v=json.loads(p.read_text());v[<span class="hljs-string">&#x27;switches&#x27;</span>].update(ss);p.write_text(json.dumps(v))
+<span class="hljs-keyword">for</span> eid,sw <span class="hljs-keyword">in</span> [(<span class="hljs-number">9</span>,<span class="hljs-number">941</span>),(<span class="hljs-number">10</span>,<span class="hljs-number">942</span>),(<span class="hljs-number">16</span>,<span class="hljs-number">943</span>)]:
+ <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> json.loads((ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-built_in">str</span>(sw)):
+  run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">732</span>,eid,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">732</span>,eid,<span class="hljs-string">&#x27;--active&#x27;</span>);mirror({<span class="hljs-built_in">str</span>(sw):<span class="hljs-literal">True</span>})
+run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">732</span>,<span class="hljs-number">61</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">736</span>,<span class="hljs-number">32</span>,<span class="hljs-string">&#x27;item&#x27;</span>);run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">736</span>,<span class="hljs-number">75</span>,<span class="hljs-string">&#x27;item&#x27;</span>)
+<span class="hljs-keyword">for</span> eid <span class="hljs-keyword">in</span> [<span class="hljs-number">67</span>,<span class="hljs-number">68</span>]:
+ run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">736</span>,eid,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;choose_dialog.py&#x27;</span>,<span class="hljs-string">&#x27;Yes|No&#x27;</span>,<span class="hljs-string">&#x27;Yes&#x27;</span>);run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,<span class="hljs-number">736</span>,eid,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--past-choice&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Glass-Meteor-Card-pods&#x27;</span>);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;METEOR CARD AND BOTH PODS OBSERVED&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

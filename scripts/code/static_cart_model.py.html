@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>static_cart_model.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of static_cart_model.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Interpret only installed RPG event switch branches and cart translations.
+No live game state access or input. This is an offline route-planning model.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">cart_transition</span>(<span class="hljs-params">commands, variable, state, switches, position, directions=<span class="hljs-literal">False</span></span>):
+ var={variable:state};xy=<span class="hljs-built_in">list</span>(position);active=[<span class="hljs-literal">True</span>];conditions={};done=<span class="hljs-literal">False</span>;face=<span class="hljs-literal">None</span>
+ <span class="hljs-keyword">for</span> cmd <span class="hljs-keyword">in</span> commands:
+  code,depth,p=cmd[<span class="hljs-string">&#x27;code&#x27;</span>],cmd[<span class="hljs-string">&#x27;indent&#x27;</span>],cmd[<span class="hljs-string">&#x27;parameters&#x27;</span>]
+  <span class="hljs-keyword">if</span> code==<span class="hljs-number">111</span>:
+   parent=<span class="hljs-built_in">all</span>(active[:depth+<span class="hljs-number">1</span>])
+   <span class="hljs-keyword">if</span> p[<span class="hljs-number">0</span>]==<span class="hljs-number">0</span>:condition=<span class="hljs-built_in">bool</span>(switches[p[<span class="hljs-number">1</span>]])==(p[<span class="hljs-number">2</span>]==<span class="hljs-number">0</span>)
+   <span class="hljs-keyword">elif</span> p[<span class="hljs-number">0</span>]==<span class="hljs-number">1</span>:
+    <span class="hljs-keyword">assert</span> p[<span class="hljs-number">2</span>]==<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> p[<span class="hljs-number">4</span>]==<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> p[<span class="hljs-number">1</span>]==variable,p
+    condition=var[p[<span class="hljs-number">1</span>]]==p[<span class="hljs-number">3</span>]
+   <span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> ValueError((<span class="hljs-string">&#x27;Unsupported condition&#x27;</span>,p))
+   active=active[:depth+<span class="hljs-number">1</span>]+[parent <span class="hljs-keyword">and</span> condition];conditions[depth]=(parent,condition)
+  <span class="hljs-keyword">elif</span> code==<span class="hljs-number">411</span>:
+   parent,condition=conditions[depth];active=active[:depth+<span class="hljs-number">1</span>]+[parent <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> condition]
+  <span class="hljs-keyword">elif</span> code==<span class="hljs-number">412</span>:active=active[:depth+<span class="hljs-number">1</span>]
+  <span class="hljs-keyword">elif</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">all</span>(active):<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">elif</span> code==<span class="hljs-number">122</span>:
+   <span class="hljs-keyword">if</span> p[<span class="hljs-number">0</span>]==variable:<span class="hljs-keyword">assert</span> p[<span class="hljs-number">1</span>]==variable <span class="hljs-keyword">and</span> p[<span class="hljs-number">2</span>:<span class="hljs-number">4</span>]==[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>];var[variable]=p[<span class="hljs-number">4</span>]
+  <span class="hljs-keyword">elif</span> code==<span class="hljs-number">209</span>:
+   <span class="hljs-keyword">if</span> p[<span class="hljs-number">0</span>]!=<span class="hljs-number">0</span>:<span class="hljs-keyword">continue</span>
+   <span class="hljs-keyword">for</span> move <span class="hljs-keyword">in</span> p[<span class="hljs-number">1</span>][<span class="hljs-string">&#x27;list&#x27;</span>]:
+    c=move[<span class="hljs-string">&#x27;code&#x27;</span>]
+    <span class="hljs-keyword">if</span> c <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>]:
+     dx,dy={<span class="hljs-number">1</span>:(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),<span class="hljs-number">2</span>:(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">3</span>:(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),<span class="hljs-number">4</span>:(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>)}[c];xy[<span class="hljs-number">0</span>]+=dx;xy[<span class="hljs-number">1</span>]+=dy;face=(dx,dy)
+    <span class="hljs-keyword">elif</span> c <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">15</span>,<span class="hljs-number">16</span>,<span class="hljs-number">17</span>,<span class="hljs-number">18</span>,<span class="hljs-number">19</span>,<span class="hljs-number">27</span>,<span class="hljs-number">28</span>,<span class="hljs-number">29</span>,<span class="hljs-number">30</span>,<span class="hljs-number">31</span>,<span class="hljs-number">32</span>,<span class="hljs-number">33</span>,<span class="hljs-number">34</span>,<span class="hljs-number">35</span>,<span class="hljs-number">36</span>,<span class="hljs-number">37</span>,<span class="hljs-number">38</span>,<span class="hljs-number">39</span>,<span class="hljs-number">40</span>,<span class="hljs-number">41</span>,<span class="hljs-number">42</span>,<span class="hljs-number">43</span>,<span class="hljs-number">44</span>]:<span class="hljs-keyword">raise</span> ValueError((<span class="hljs-string">&#x27;Unsupported move&#x27;</span>,move))
+ <span class="hljs-keyword">return</span> (var[variable],<span class="hljs-built_in">tuple</span>(xy),face) <span class="hljs-keyword">if</span> directions <span class="hljs-keyword">else</span> (var[variable],<span class="hljs-built_in">tuple</span>(xy))
+</code></pre>
+  </body>
+</html>

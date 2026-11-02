@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>test_agate_supply_queue.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of test_agate_supply_queue.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Pure frozen/proposed fixtures and installed source reads; never controls game.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> unittest
+
+<span class="hljs-keyword">from</span> agate_supply_queue <span class="hljs-keyword">import</span> (ROOT, ITEMS, FINAL_EV, FINAL_MOVES, plan,
+                                final_proof, overworld_guard, source_proof,
+                                vendor_guard)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">fixture</span>(<span class="hljs-params">mid=<span class="hljs-number">519</span></span>):
+    status = json.loads((ROOT / <span class="hljs-string">&quot;notes/Void-Hypno-won-128-status.json&quot;</span>).read_text())
+    navigation = json.loads((ROOT / <span class="hljs-string">&quot;notes/Void-Hypno-won-128-navigation.json&quot;</span>).read_text())
+    <span class="hljs-comment"># Hypothetical future build/training fixture, never native accomplishment.</span>
+    status[<span class="hljs-string">&quot;map&quot;</span>] = mid
+    status[<span class="hljs-string">&quot;trainer&quot;</span>][<span class="hljs-string">&quot;money&quot;</span>] -= <span class="hljs-number">17000</span>
+    cf = <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> status[<span class="hljs-string">&quot;party&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;COFAGRIGUS&quot;</span>)
+    cf.update(nature=<span class="hljs-string">&quot;TIMID&quot;</span>, ev=<span class="hljs-built_in">list</span>(FINAL_EV), item=<span class="hljs-string">&quot;POWERLENS&quot;</span>, hp=<span class="hljs-number">240</span>,
+              totalhp=<span class="hljs-number">252</span>, attack=<span class="hljs-number">93</span>, defense=<span class="hljs-number">333</span>, spatk=<span class="hljs-number">210</span>, spdef=<span class="hljs-number">218</span>, speed=<span class="hljs-number">68</span>)
+    cf[<span class="hljs-string">&quot;moves&quot;</span>] = [<span class="hljs-built_in">dict</span>(move=m, pp=<span class="hljs-number">10</span>, ppup=<span class="hljs-number">0</span>) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> FINAL_MOVES]
+    <span class="hljs-comment"># Normal carrier-for-KG exchange is hypothetical for this test fixture only.</span>
+    kg = <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> status[<span class="hljs-string">&quot;party&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;KLINKLANG&quot;</span>)
+    kg.update(species=<span class="hljs-string">&quot;TRANQUILL&quot;</span>, name=<span class="hljs-string">&quot;Tranquill&quot;</span>, hp=<span class="hljs-number">100</span>,
+              moves=[<span class="hljs-built_in">dict</span>(move=<span class="hljs-string">&quot;FLY&quot;</span>, pp=<span class="hljs-number">10</span>, ppup=<span class="hljs-number">0</span>)])
+    <span class="hljs-keyword">return</span> status, navigation
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">after_shopping</span>(<span class="hljs-params">status, proposal</span>):
+    after = copy.deepcopy(status)
+    after[<span class="hljs-string">&quot;map&quot;</span>] = <span class="hljs-number">355</span>
+    after[<span class="hljs-string">&quot;trainer&quot;</span>][<span class="hljs-string">&quot;money&quot;</span>] = proposal[<span class="hljs-string">&quot;expected_money&quot;</span>]
+    <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> proposal[<span class="hljs-string">&quot;cart&quot;</span>]:
+        bag = after[<span class="hljs-string">&quot;bag&quot;</span>][<span class="hljs-string">&quot;contents&quot;</span>]
+        bag[row[<span class="hljs-string">&quot;item&quot;</span>]] = bag.get(row[<span class="hljs-string">&quot;item&quot;</span>], <span class="hljs-number">0</span>) + row[<span class="hljs-string">&quot;quantity&quot;</span>]
+    <span class="hljs-keyword">return</span> after
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AgateSupplyQueueTest</span>(unittest.TestCase):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_frozen_deficits_and_no_double_reserve</span>(<span class="hljs-params">self</span>):
+        status, navigation = fixture()
+        proposal = plan(status, navigation)
+        <span class="hljs-variable language_">self</span>.assertEqual(proposal[<span class="hljs-string">&quot;total_cost&quot;</span>], <span class="hljs-number">23050</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(proposal[<span class="hljs-string">&quot;expected_money&quot;</span>], <span class="hljs-number">34130</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual([(r[<span class="hljs-string">&quot;item&quot;</span>], r[<span class="hljs-string">&quot;quantity&quot;</span>]) <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> proposal[<span class="hljs-string">&quot;cart&quot;</span>]],
+                         [(<span class="hljs-string">&quot;XSPECIAL&quot;</span>, <span class="hljs-number">5</span>), (<span class="hljs-string">&quot;XSPEED&quot;</span>, <span class="hljs-number">3</span>), (<span class="hljs-string">&quot;XDEFEND&quot;</span>, <span class="hljs-number">3</span>),
+                          (<span class="hljs-string">&quot;XATTACK&quot;</span>, <span class="hljs-number">2</span>), (<span class="hljs-string">&quot;REVIVALHERB&quot;</span>, <span class="hljs-number">2</span>), (<span class="hljs-string">&quot;ULTRAPOTION&quot;</span>, <span class="hljs-number">10</span>)])
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-built_in">list</span>(proposal[<span class="hljs-string">&quot;commands&quot;</span>]),
+                         [<span class="hljs-string">&quot;dept&quot;</span>, <span class="hljs-string">&quot;herbs&quot;</span>, <span class="hljs-string">&quot;ultra&quot;</span>, <span class="hljs-string">&quot;return-circus&quot;</span>])
+        checkpoints = [c <span class="hljs-keyword">for</span> cmds <span class="hljs-keyword">in</span> proposal[<span class="hljs-string">&quot;commands&quot;</span>].values() <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cmds
+                       <span class="hljs-keyword">if</span> c[<span class="hljs-string">&quot;script&quot;</span>] == <span class="hljs-string">&quot;checkpoint&quot;</span>]
+        <span class="hljs-variable language_">self</span>.assertEqual(checkpoints, [<span class="hljs-built_in">dict</span>(script=<span class="hljs-string">&quot;checkpoint&quot;</span>, args=[<span class="hljs-string">&quot;Circus-restocked129&quot;</span>])])
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_training_consumed_ultra_recomputed</span>(<span class="hljs-params">self</span>):
+        status, navigation = fixture()
+        status[<span class="hljs-string">&quot;bag&quot;</span>][<span class="hljs-string">&quot;contents&quot;</span>][<span class="hljs-string">&quot;ULTRAPOTION&quot;</span>] = <span class="hljs-number">28</span>
+        proposal = plan(status, navigation)
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-built_in">next</span>(c[<span class="hljs-string">&quot;quantity&quot;</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> proposal[<span class="hljs-string">&quot;cart&quot;</span>]
+                              <span class="hljs-keyword">if</span> c[<span class="hljs-string">&quot;item&quot;</span>] == <span class="hljs-string">&quot;ULTRAPOTION&quot;</span>), <span class="hljs-number">12</span>)
+        status[<span class="hljs-string">&quot;trainer&quot;</span>][<span class="hljs-string">&quot;money&quot;</span>] = proposal[<span class="hljs-string">&quot;total_cost&quot;</span>] - <span class="hljs-number">1</span>
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            plan(status, navigation)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_partial_training_or_wrong_carrier_fails</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">for</span> mutation <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;ev&quot;</span>, <span class="hljs-string">&quot;item&quot;</span>, <span class="hljs-string">&quot;fly&quot;</span>):
+            status, navigation = fixture()
+            cf = <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> status[<span class="hljs-string">&quot;party&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;COFAGRIGUS&quot;</span>)
+            <span class="hljs-keyword">if</span> mutation == <span class="hljs-string">&quot;ev&quot;</span>:
+                cf[<span class="hljs-string">&quot;ev&quot;</span>][<span class="hljs-number">3</span>] = <span class="hljs-number">32</span>
+            <span class="hljs-keyword">elif</span> mutation == <span class="hljs-string">&quot;item&quot;</span>:
+                cf[<span class="hljs-string">&quot;item&quot;</span>] = <span class="hljs-literal">None</span>
+            <span class="hljs-keyword">else</span>:
+                <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> status[<span class="hljs-string">&quot;party&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;TRANQUILL&quot;</span>)[<span class="hljs-string">&quot;moves&quot;</span>] = []
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+                plan(status, navigation)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_wrong_floor_or_herb_page_fails</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-keyword">for</span> key, value, field <span class="hljs-keyword">in</span> [(<span class="hljs-string">&quot;719&quot;</span>, <span class="hljs-literal">True</span>, <span class="hljs-string">&quot;switches&quot;</span>), (<span class="hljs-string">&quot;719&quot;</span>, <span class="hljs-literal">None</span>, <span class="hljs-string">&quot;switches&quot;</span>),
+                                  (<span class="hljs-string">&quot;175&quot;</span>, <span class="hljs-number">6</span>, <span class="hljs-string">&quot;variables&quot;</span>)]:
+            status, navigation = fixture()
+            navigation[field][key] = value
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+                plan(status, navigation)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_resume_requires_earlier_targets_complete</span>(<span class="hljs-params">self</span>):
+        status, navigation = fixture(<span class="hljs-number">520</span>)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            plan(status, navigation, <span class="hljs-string">&quot;herbs&quot;</span>)
+        <span class="hljs-keyword">for</span> key, (phase, _, target, _) <span class="hljs-keyword">in</span> ITEMS.items():
+            <span class="hljs-keyword">if</span> phase == <span class="hljs-string">&quot;dept&quot;</span>:
+                status[<span class="hljs-string">&quot;bag&quot;</span>][<span class="hljs-string">&quot;contents&quot;</span>][key] = target
+        proposal = plan(status, navigation, <span class="hljs-string">&quot;herbs&quot;</span>)
+        <span class="hljs-variable language_">self</span>.assertEqual(<span class="hljs-built_in">list</span>(proposal[<span class="hljs-string">&quot;commands&quot;</span>]), [<span class="hljs-string">&quot;herbs&quot;</span>, <span class="hljs-string">&quot;ultra&quot;</span>, <span class="hljs-string">&quot;return-circus&quot;</span>])
+        <span class="hljs-variable language_">self</span>.assertEqual(proposal[<span class="hljs-string">&quot;total_cost&quot;</span>], <span class="hljs-number">17600</span>)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            plan(status, navigation, <span class="hljs-string">&quot;ultra&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_final_bag_money_and_party_reconciled</span>(<span class="hljs-params">self</span>):
+        status, navigation = fixture()
+        proposal = plan(status, navigation)
+        good = after_shopping(status, proposal)
+        final_proof(status, good, proposal)
+        <span class="hljs-keyword">for</span> mutation <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;money&quot;</span>, <span class="hljs-string">&quot;bag&quot;</span>, <span class="hljs-string">&quot;held&quot;</span>):
+            bad = copy.deepcopy(good)
+            <span class="hljs-keyword">if</span> mutation == <span class="hljs-string">&quot;money&quot;</span>:
+                bad[<span class="hljs-string">&quot;trainer&quot;</span>][<span class="hljs-string">&quot;money&quot;</span>] -= <span class="hljs-number">350</span>
+            <span class="hljs-keyword">elif</span> mutation == <span class="hljs-string">&quot;bag&quot;</span>:
+                bad[<span class="hljs-string">&quot;bag&quot;</span>][<span class="hljs-string">&quot;contents&quot;</span>][<span class="hljs-string">&quot;XSPECIAL&quot;</span>] -= <span class="hljs-number">1</span>
+            <span class="hljs-keyword">else</span>:
+                <span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> bad[<span class="hljs-string">&quot;party&quot;</span>] <span class="hljs-keyword">if</span> m[<span class="hljs-string">&quot;species&quot;</span>] == <span class="hljs-string">&quot;COFAGRIGUS&quot;</span>)[<span class="hljs-string">&quot;item&quot;</span>] = <span class="hljs-literal">None</span>
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+                final_proof(status, bad, proposal)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_public_screen_guards</span>(<span class="hljs-params">self</span>):
+        overworld_guard(<span class="hljs-string">&quot;Pokemon Reborn&quot;</span>)
+        vendor_guard(<span class="hljs-string">&quot;Pokemon Reborn\nWelcome!\nHow may I serve you?\nBuy\nSell\nQuit&quot;</span>)
+        <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;Buy\nSell\nQuit&quot;</span>, <span class="hljs-string">&quot;Would you like to save the game?\nYes\nNo&quot;</span>,
+                     <span class="hljs-string">&quot;Cofagrigus HP\nFight\nBag&quot;</span>):
+            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+                overworld_guard(text)
+        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>.assertRaises(ValueError):
+            vendor_guard(<span class="hljs-string">&quot;BREAK: Hello there, stranger!\nBuy\nSell\nQuit&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">test_installed_source_stock_price_and_pages</span>(<span class="hljs-params">self</span>):
+        _, navigation = fixture()
+        facts = source_proof(navigation)
+        <span class="hljs-variable language_">self</span>.assertEqual([(f[<span class="hljs-string">&quot;map&quot;</span>], f[<span class="hljs-string">&quot;event&quot;</span>], f[<span class="hljs-string">&quot;page&quot;</span>]) <span class="hljs-keyword">for</span> f <span class="hljs-keyword">in</span> facts],
+                         [(<span class="hljs-number">4</span>, <span class="hljs-number">4</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">38</span>, <span class="hljs-number">5</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">611</span>, <span class="hljs-number">2</span>, <span class="hljs-number">0</span>)])
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    unittest.main()
+</code></pre>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "epoch": 1791814178.5591471,
+  "verified_static_route": [
+    [
+      "eventq",
+      530,
+      56,
+      "enter"
+    ],
+    [
+      "eventq",
+      56,
+      5,
+      "enter"
+    ],
+    [
+      "eventq",
+      522,
+      38,
+      "enter"
+    ]
+  ],
+  "reason": "Portal garden enclosed. Direct route from Fly530 or east522 has no path. House56 connects street53032,15 to garden52287,78.",
+  "arrival": [
+    879,
+    68,
+    139
+  ],
+  "execution": "verified arrived879 viahouse56"
+}

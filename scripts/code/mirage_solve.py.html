@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>mirage_solve.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of mirage_solve.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only mirror-block solver, including access to each pushing side.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,subprocess,sys
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque
+<span class="hljs-keyword">from</span> route_readonly <span class="hljs-keyword">import</span> route,ROOT
+specs=[(<span class="hljs-number">668</span>,<span class="hljs-number">23</span>,<span class="hljs-number">24</span>,<span class="hljs-number">0</span>),(<span class="hljs-number">670</span>,<span class="hljs-number">53</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>),(<span class="hljs-number">671</span>,<span class="hljs-number">10</span>,<span class="hljs-number">32</span>,<span class="hljs-number">2</span>),(<span class="hljs-number">672</span>,<span class="hljs-number">49</span>,<span class="hljs-number">1</span>,<span class="hljs-number">3</span>),(<span class="hljs-number">674</span>,<span class="hljs-number">109</span>,<span class="hljs-number">34</span>,<span class="hljs-number">4</span>),(<span class="hljs-number">673</span>,<span class="hljs-number">92</span>,<span class="hljs-number">8</span>,<span class="hljs-number">5</span>)]
+results=[]
+<span class="hljs-keyword">for</span> mid,pe,se,stage <span class="hljs-keyword">in</span> specs:
+ v=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(mid),<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,json.dumps({<span class="hljs-string">&#x27;variables&#x27;</span>:{<span class="hljs-string">&#x27;377&#x27;</span>:stage},<span class="hljs-string">&#x27;reset_positions&#x27;</span>:<span class="hljs-literal">True</span>})],stderr=subprocess.DEVNULL))
+ a=v[<span class="hljs-string">&#x27;events&#x27;</span>].pop(<span class="hljs-built_in">str</span>(pe));b=v[<span class="hljs-string">&#x27;events&#x27;</span>].pop(<span class="hljs-built_in">str</span>(se));stone_blocked={(e[<span class="hljs-string">&#x27;x&#x27;</span>],e[<span class="hljs-string">&#x27;y&#x27;</span>]) <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values() <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> e[<span class="hljs-string">&#x27;through&#x27;</span>]};v[<span class="hljs-string">&#x27;position&#x27;</span>]=[-<span class="hljs-number">1</span>,-<span class="hljs-number">1</span>];g=route(v,<span class="hljs-literal">None</span>,<span class="hljs-literal">True</span>)
+ pos=(a[<span class="hljs-string">&#x27;x&#x27;</span>],a[<span class="hljs-string">&#x27;y&#x27;</span>]);other=(b[<span class="hljs-string">&#x27;x&#x27;</span>],b[<span class="hljs-string">&#x27;y&#x27;</span>]);goals=[c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">3</span>]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> a[<span class="hljs-string">&#x27;list&#x27;</span>]<span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">111</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][:<span class="hljs-number">2</span>]<span class="hljs-keyword">in</span> [[<span class="hljs-number">1</span>,<span class="hljs-number">47</span>],[<span class="hljs-number">1</span>,<span class="hljs-number">48</span>]]];goal=(<span class="hljs-built_in">tuple</span>(goals[:<span class="hljs-number">2</span>]),<span class="hljs-built_in">tuple</span>(goals[<span class="hljs-number">2</span>:]))
+ dirs=[(<span class="hljs-string">&#x27;up&#x27;</span>,<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>),(<span class="hljs-string">&#x27;down&#x27;</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>),(<span class="hljs-string">&#x27;left&#x27;</span>,-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>),(<span class="hljs-string">&#x27;right&#x27;</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>)]
+ <span class="hljs-keyword">def</span> <span class="hljs-title function_">reach</span>(<span class="hljs-params">start,p,o</span>):
+  seen={start};todo=[start]
+  <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> todo:
+   <span class="hljs-keyword">for</span> _,n <span class="hljs-keyword">in</span> g.get(x,[]):
+    <span class="hljs-keyword">if</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> seen <span class="hljs-keyword">and</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [p,o]:seen.add(n);todo.append(n)
+  <span class="hljs-keyword">return</span> seen
+ roots=[(pos[<span class="hljs-number">0</span>]-dx,pos[<span class="hljs-number">1</span>]-dy) <span class="hljs-keyword">for</span> k,dx,dy <span class="hljs-keyword">in</span> dirs <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(kk==k <span class="hljs-keyword">and</span> n==pos <span class="hljs-keyword">for</span> kk,n <span class="hljs-keyword">in</span> g.get((pos[<span class="hljs-number">0</span>]-dx,pos[<span class="hljs-number">1</span>]-dy),[]))]
+ <span class="hljs-keyword">assert</span> roots
+ start=(pos,other,roots[<span class="hljs-number">0</span>]);q=deque([(start,[])]);seen=<span class="hljs-built_in">set</span>();solution=<span class="hljs-literal">None</span>
+ <span class="hljs-keyword">while</span> q:
+  (p,o,player),path=q.popleft()
+  <span class="hljs-keyword">if</span> (p,o)==goal:solution=path;<span class="hljs-keyword">break</span>
+  accessible=reach(player,p,o);key=(p,o,<span class="hljs-built_in">min</span>(accessible))
+  <span class="hljs-keyword">if</span> key <span class="hljs-keyword">in</span> seen:<span class="hljs-keyword">continue</span>
+  seen.add(key)
+  <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(seen)&lt;<span class="hljs-number">150000</span>,<span class="hljs-string">&#x27;Bound reached&#x27;</span>
+  <span class="hljs-keyword">for</span> k,dx,dy <span class="hljs-keyword">in</span> dirs:
+   before=(p[<span class="hljs-number">0</span>]-dx,p[<span class="hljs-number">1</span>]-dy)
+   <span class="hljs-keyword">if</span> before <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> accessible:<span class="hljs-keyword">continue</span>
+   pn=<span class="hljs-built_in">next</span>((n <span class="hljs-keyword">for</span> kk,n <span class="hljs-keyword">in</span> g.get(p,[])<span class="hljs-keyword">if</span> kk==k <span class="hljs-keyword">and</span> n!=o <span class="hljs-keyword">and</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> stone_blocked),p)
+   on=<span class="hljs-built_in">next</span>((n <span class="hljs-keyword">for</span> kk,n <span class="hljs-keyword">in</span> g.get(o,[])<span class="hljs-keyword">if</span> kk==k <span class="hljs-keyword">and</span> n!=pn <span class="hljs-keyword">and</span> n <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> stone_blocked),o)
+   <span class="hljs-keyword">if</span> (pn,on)==(p,o):<span class="hljs-keyword">continue</span>
+   step={<span class="hljs-string">&#x27;direction&#x27;</span>:k,<span class="hljs-string">&#x27;primary_before&#x27;</span>:p,<span class="hljs-string">&#x27;primary_after&#x27;</span>:pn,<span class="hljs-string">&#x27;secondary_before&#x27;</span>:o,<span class="hljs-string">&#x27;secondary_after&#x27;</span>:on,<span class="hljs-string">&#x27;stand&#x27;</span>:before}
+   q.append(((pn,on,before),path+[step]))
+ <span class="hljs-keyword">assert</span> solution,(mid,<span class="hljs-built_in">len</span>(seen),<span class="hljs-string">&#x27;No solution&#x27;</span>)
+ r={<span class="hljs-string">&#x27;map&#x27;</span>:mid,<span class="hljs-string">&#x27;event&#x27;</span>:pe,<span class="hljs-string">&#x27;partner&#x27;</span>:se,<span class="hljs-string">&#x27;stage&#x27;</span>:stage,<span class="hljs-string">&#x27;goals&#x27;</span>:goals,<span class="hljs-string">&#x27;states&#x27;</span>:<span class="hljs-built_in">len</span>(seen),<span class="hljs-string">&#x27;steps&#x27;</span>:solution};results.append(r)
+ <span class="hljs-built_in">print</span>(mid,<span class="hljs-built_in">len</span>(solution),<span class="hljs-built_in">len</span>(seen),flush=<span class="hljs-literal">True</span>)
+ (ROOT/<span class="hljs-string">&#x27;work/243-mirage-solved.json&#x27;</span>).write_text(json.dumps(results,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+</code></pre>
+  </body>
+</html>

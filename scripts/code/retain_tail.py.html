@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>retain_tail.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of retain_tail.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Retain automatic battle animation after an early UI guard stops issuing inputs.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,pathlib,time
+ROOT=pathlib.Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">retain</span>(<span class="hljs-params">epoch=<span class="hljs-literal">None</span>,seconds=<span class="hljs-number">12</span></span>):
+ now=time.time() <span class="hljs-keyword">if</span> epoch <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> epoch
+ <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>((ROOT/<span class="hljs-string">&#x27;recordings&#x27;</span>).glob(<span class="hljs-string">&#x27;session-???.json&#x27;</span>),reverse=<span class="hljs-literal">True</span>):
+  m=json.loads(p.read_text())
+  <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;start_epoch&#x27;</span>]&lt;=now <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;stop_epoch&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> m:
+   m.setdefault(<span class="hljs-string">&#x27;include_intervals&#x27;</span>,[]).append([now-m[<span class="hljs-string">&#x27;start_epoch&#x27;</span>],now-m[<span class="hljs-string">&#x27;start_epoch&#x27;</span>]+seconds]);p.write_text(json.dumps(m,indent=<span class="hljs-number">2</span>));<span class="hljs-keyword">return</span>
+</code></pre>
+  </body>
+</html>

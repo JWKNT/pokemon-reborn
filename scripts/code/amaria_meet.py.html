@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>amaria_meet.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of amaria_meet.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Complete one reviewed choice-free maze conversation, then update route notes only.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+m,e,before,after=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,sys.argv[<span class="hljs-number">1</span>:<span class="hljs-number">5</span>]);p=ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>
+state=json.loads(p.read_text());<span class="hljs-keyword">assert</span> state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;381&#x27;</span>]==before
+model=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(m),<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],stderr=subprocess.DEVNULL))
+cs=model[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(e)][<span class="hljs-string">&#x27;list&#x27;</span>]
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">122</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>]==[<span class="hljs-number">381</span>,<span class="hljs-number">381</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,after]<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs)
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]<span class="hljs-keyword">in</span>[<span class="hljs-number">102</span>,<span class="hljs-number">103</span>,<span class="hljs-number">104</span>,<span class="hljs-number">301</span>]<span class="hljs-keyword">or</span> <span class="hljs-string">&#x27;Battle(&#x27;</span><span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>])<span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">s,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(s+<span class="hljs-string">&#x27;.py&#x27;</span>)),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>)
+run(<span class="hljs-string">&#x27;eventq&#x27;</span>,m,e,<span class="hljs-string">&#x27;talk&#x27;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;amaria&#x27;</span><span class="hljs-keyword">in</span> read().lower(),<span class="hljs-string">&#x27;No visible Amaria dialogue; route notes unchanged&#x27;</span>
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>,m,e,<span class="hljs-string">&#x27;--active&#x27;</span>,<span class="hljs-string">&#x27;--burst&#x27;</span>)
+observed=locate(m);<span class="hljs-keyword">assert</span> observed[<span class="hljs-number">0</span>]==m
+state=json.loads(p.read_text());state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;381&#x27;</span>]=after
+state.setdefault(<span class="hljs-string">&#x27;observed_progress&#x27;</span>,[]).append({<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;variable&#x27;</span>:<span class="hljs-number">381</span>,<span class="hljs-string">&#x27;value&#x27;</span>:after,<span class="hljs-string">&#x27;evidence&#x27;</span>:<span class="hljs-string">f&#x27;Completed visible choice-free scene <span class="hljs-subst">{m}</span>/<span class="hljs-subst">{e}</span>, installed quest assignment, returned to observed overworld <span class="hljs-subst">{observed}</span>; route notes only.&#x27;</span>})
+p.write_text(json.dumps(state,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>);<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;OBSERVED MAZE PHASE&#x27;</span>,after,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

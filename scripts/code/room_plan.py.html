@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>room_plan.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of room_plan.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Plan reviewed, choice-free transfers across disconnected interior rooms.
+This reads installed maps and the saved/observed navigation snapshot only.
+It prints a plan; it never issues game input.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> argparse,copy,heapq,json,subprocess
+<span class="hljs-keyword">from</span> route_readonly <span class="hljs-keyword">import</span> ROOT,route
+p=argparse.ArgumentParser();p.add_argument(<span class="hljs-string">&#x27;--maps&#x27;</span>,required=<span class="hljs-literal">True</span>);p.add_argument(<span class="hljs-string">&#x27;--start&#x27;</span>,required=<span class="hljs-literal">True</span>);p.add_argument(<span class="hljs-string">&#x27;--goal&#x27;</span>,required=<span class="hljs-literal">True</span>,<span class="hljs-built_in">help</span>=<span class="hljs-string">&#x27;map,event&#x27;</span>);p.add_argument(<span class="hljs-string">&#x27;--output&#x27;</span>);a=p.parse_args()
+allowed=<span class="hljs-built_in">list</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,a.maps.split(<span class="hljs-string">&#x27;,&#x27;</span>)));start=<span class="hljs-built_in">tuple</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,a.start.split(<span class="hljs-string">&#x27;,&#x27;</span>)));gm,ge=<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>,a.goal.split(<span class="hljs-string">&#x27;,&#x27;</span>));<span class="hljs-keyword">assert</span> start[<span class="hljs-number">0</span>] <span class="hljs-keyword">in</span> allowed <span class="hljs-keyword">and</span> gm <span class="hljs-keyword">in</span> allowed
+models={m:json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/route_map.rb&#x27;</span>),<span class="hljs-built_in">str</span>(m),<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>],stderr=subprocess.DEVNULL)) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> allowed}
+reachability={}
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">sides</span>(<span class="hljs-params">v,e,kind</span>):
+ key=(v[<span class="hljs-string">&#x27;map&#x27;</span>],*v[<span class="hljs-string">&#x27;position&#x27;</span>])
+ <span class="hljs-keyword">if</span> key <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> reachability:reachability[key]=route(v,<span class="hljs-literal">None</span>)
+ distances=reachability[key]
+ required={c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">2</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">or</span> [] <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">111</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>])&gt;=<span class="hljs-number">3</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][:<span class="hljs-number">2</span>]==[<span class="hljs-number">6</span>,-<span class="hljs-number">1</span>]}
+ result=[]
+ <span class="hljs-keyword">for</span> dx,dy,direction <span class="hljs-keyword">in</span> [(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">8</span>),(<span class="hljs-number">0</span>,-<span class="hljs-number">1</span>,<span class="hljs-number">2</span>),(<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">4</span>),(-<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">6</span>)]:
+  <span class="hljs-keyword">if</span> required <span class="hljs-keyword">and</span> direction <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> required:<span class="hljs-keyword">continue</span>
+  point=(e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx,e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy)
+  <span class="hljs-keyword">if</span> point <span class="hljs-keyword">in</span> distances:result.append((distances[point],point))
+ <span class="hljs-keyword">return</span> result
+dist={start:<span class="hljs-number">0</span>};queue=[(<span class="hljs-number">0</span>,start)];previous={};finish=<span class="hljs-literal">None</span>
+<span class="hljs-keyword">while</span> queue:
+ cost,node=heapq.heappop(queue)
+ <span class="hljs-keyword">if</span> cost!=dist[node]:<span class="hljs-keyword">continue</span>
+ m,x,y=node;v=<span class="hljs-built_in">dict</span>(models[m],position=[x,y])
+ <span class="hljs-keyword">if</span> m==gm:
+  ss=sides(v,v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(ge)],<span class="hljs-string">&#x27;talk&#x27;</span>)
+  <span class="hljs-keyword">if</span> ss:finish=(node,<span class="hljs-built_in">min</span>(ss));<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">for</span> eid,e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items():
+  cs=e[<span class="hljs-string">&#x27;list&#x27;</span>] <span class="hljs-keyword">or</span> []
+  dests={<span class="hljs-built_in">tuple</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">1</span>:<span class="hljs-number">4</span>]) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs <span class="hljs-keyword">if</span> c[<span class="hljs-string">&#x27;code&#x27;</span>]==<span class="hljs-number">201</span> <span class="hljs-keyword">and</span> c[<span class="hljs-string">&#x27;parameters&#x27;</span>][<span class="hljs-number">0</span>]==<span class="hljs-number">0</span>}
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(dests)!=<span class="hljs-number">1</span>:<span class="hljs-keyword">continue</span>
+  dest=<span class="hljs-built_in">next</span>(<span class="hljs-built_in">iter</span>(dests))
+  <span class="hljs-keyword">if</span> dest[<span class="hljs-number">0</span>] <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> allowed:<span class="hljs-keyword">continue</span>
+  <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">in</span> [<span class="hljs-number">102</span>,<span class="hljs-number">103</span>,<span class="hljs-number">104</span>,<span class="hljs-number">301</span>] <span class="hljs-keyword">or</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>]) <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;pbTrainerBattle&#x27;</span>,<span class="hljs-string">&#x27;pbDoubleTrainerBattle&#x27;</span>,<span class="hljs-string">&#x27;pbWildBattle&#x27;</span>]) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cs):<span class="hljs-keyword">continue</span>
+  ss=sides(v,e,<span class="hljs-string">&#x27;enter&#x27;</span>)
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> ss:<span class="hljs-keyword">continue</span>
+  extra,_=<span class="hljs-built_in">min</span>(ss);nc=cost+extra+<span class="hljs-number">15</span>
+  <span class="hljs-keyword">if</span> nc&lt;dist.get(dest,<span class="hljs-built_in">float</span>(<span class="hljs-string">&#x27;inf&#x27;</span>)):
+   dist[dest]=nc;previous[dest]=(node,{<span class="hljs-string">&#x27;map&#x27;</span>:m,<span class="hljs-string">&#x27;event&#x27;</span>:<span class="hljs-built_in">int</span>(eid),<span class="hljs-string">&#x27;kind&#x27;</span>:<span class="hljs-string">&#x27;enter&#x27;</span>,<span class="hljs-string">&#x27;arrival&#x27;</span>:<span class="hljs-built_in">list</span>(dest)})
+   heapq.heappush(queue,(nc,dest))
+<span class="hljs-keyword">assert</span> finish,<span class="hljs-string">&#x27;No reviewed room passage found&#x27;</span>
+node,approach=finish;steps=[]
+<span class="hljs-keyword">while</span> node!=start:node,step=previous[node];steps.append(step)
+steps.reverse();result={<span class="hljs-string">&#x27;start&#x27;</span>:<span class="hljs-built_in">list</span>(start),<span class="hljs-string">&#x27;transfers&#x27;</span>:steps,<span class="hljs-string">&#x27;goal&#x27;</span>:{<span class="hljs-string">&#x27;map&#x27;</span>:gm,<span class="hljs-string">&#x27;event&#x27;</span>:ge,<span class="hljs-string">&#x27;approach&#x27;</span>:<span class="hljs-built_in">list</span>(approach[<span class="hljs-number">1</span>])},<span class="hljs-string">&#x27;source&#x27;</span>:<span class="hljs-string">&#x27;Installed maps and read-only saved/observed navigation notes&#x27;</span>}
+<span class="hljs-built_in">print</span>(json.dumps(result,indent=<span class="hljs-number">2</span>))
+<span class="hljs-keyword">if</span> a.output:<span class="hljs-built_in">open</span>(a.output,<span class="hljs-string">&#x27;w&#x27;</span>).write(json.dumps(result,indent=<span class="hljs-number">2</span>)+<span class="hljs-string">&#x27;\n&#x27;</span>)
+</code></pre>
+  </body>
+</html>

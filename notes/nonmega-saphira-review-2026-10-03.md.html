@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Future non-Mega Saphira fallback — installed-source review">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="nonmega-saphira-review-2026-10-03.md">
+    <meta property="og:url" content="https://jehlp.net/pokemon-reborn/notes/nonmega-saphira-review-2026-10-03.md.html">
+    <meta property="og:site_name" content="jehlp.net">
+    <meta name="theme-color" content="#fbfaf7">
+    <link rel="canonical" href="https://jehlp.net/pokemon-reborn/notes/nonmega-saphira-review-2026-10-03.md.html">
+    <title>nonmega-saphira-review-2026-10-03.md · Notes · Pokémon Reborn · jehlp.net</title>
+    <link rel="icon" href="https://jehlp.net/site-theme/v2/favicons/pokemon-reborn.png" type="image/png">
+    <script src="https://jehlp.net/site-theme/v2/theme.js?v=20261009-reading-folio"></script>
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/base.css?v=20261102-code">
+    <link rel="stylesheet" href="https://jehlp.net/site-theme/v2/components.css?v=20261102-code">
+    <link rel="stylesheet" href="/pokemon-reborn/assets/styles.css?v=20261102-reborn2">
+  </head>
+  <body data-site-tone="teal">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header site-header--identity">
+      <div class="site-brand"><img class="site-mark" src="https://jehlp.net/site-theme/v2/marks/pokemon-reborn.png" width="32" height="32" alt=""><span class="site-title">Pokémon Reborn</span></div>
+      <nav aria-label="Site links"><a href="/pokemon-reborn/">Overview</a><a href="/pokemon-reborn/reasoning/">Reasoning</a><a href="/pokemon-reborn/notes/">Notes</a><a href="/pokemon-reborn/scripts/">Scripts</a><span class="site-utility-pair"><a class="site-home" href="https://jehlp.net/" aria-label="Home — jehlp.net" title="Home — jehlp.net"><span aria-hidden="true">✳</span></a><button class="theme-toggle" type="button" data-theme-toggle aria-label="Use dark theme" aria-pressed="false">◐</button></span></nav>
+    </header>
+    <main id="main" tabindex="-1" class="reborn-main note-page">
+      <header class="page-head">
+        <h1 class="note-name">nonmega-saphira-review-2026-10-03.md</h1>
+        <p class="task-meta">Markdown · 13.4 KB · <a href="/pokemon-reborn/reasoning/23/">Task 23</a> · first used Oct 4 20:40</p>
+      </header>
+      <article class="note-body" data-fragment>
+<div class="note-prose prose"><h2>Future non-Mega Saphira fallback — installed-source review</h2>
+<p><strong>Proposal only; nothing trained, obtained or executed.</strong> Reads installed source/extracts and historical Glass-post-gauntlet Swampert IVs only. No controls, runtime, live save/logs, opponent AI/PP or active recordings were read. Calculator: <code>scripts/nonmega_saphira_review.py</code>; full tables: <code>work/nonmega-saphira-damage-review.json</code>. Five pure mechanic fixtures and syntax checks pass. Existing Mega/route notes remain unchanged.</p>
+<h3>Better practical primary: Impish AV Swampert</h3>
+<p>Independent follow-up validates <strong>Impish95 EV[252,0,100,0,52,104] → 363HP/242Atk/232Def/155SpA/197SpDef/160Speed</strong>, effective AV SpDef295.5. Outgoing attacks and speed are unchanged from the Careful tables below. This is the preferred AV build if choosing the normal non-Mega branch: it trades some Noivern comfort for survival against the two <strong>unboosted</strong> Sash dragons&#39; criticals.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Incoming move</th>
+<th align="right">Ordinary at +0SpDef</th>
+<th align="right">Ordinary at +2SpDef</th>
+<th align="right">Ordinary at +6SpDef</th>
+<th align="right">Critical despite +6SpDef</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Seeded Noivern DragonPulse</td>
+<td align="right">186–218</td>
+<td align="right">94–110</td>
+<td align="right">48–56</td>
+<td align="right">278–327</td>
+</tr>
+<tr>
+<td>Seeded Noivern Boomburst</td>
+<td align="right">136–160</td>
+<td align="right">69–81</td>
+<td align="right">35–41</td>
+<td align="right">204–240</td>
+</tr>
+<tr>
+<td>Seeded+FlashFire Flamethrower</td>
+<td align="right">98–116</td>
+<td align="right">50–59</td>
+<td align="right">26–30</td>
+<td align="right">147–173</td>
+</tr>
+</tbody></table></div>
+<p>Use <strong>HP&gt;330</strong> for Noivern while its DragonPulse remains; after ten public uses, <strong>HP&gt;245</strong> covers remaining criticals. Heal fully before the first exposed setup. One XSpDef first still helps; ordinary+2SpDef DragonPulse can leave253, so the larger325/330 critical guard generally calls for more healing than Careful. No premature setup queue is certified.</p>
+<p>On first Sash strike, require enemy Attack/Speed still+0 and <strong>HP&gt;337 for Salamence / HP&gt;355 for Haxorus</strong> (small margins over source base critical ceilings334/351). If that strike leaves1HP and the foe used DD, +6Speed640 is still faster than one field DD: <strong>kill next command without an extra heal</strong>. If it attacked unboosted, the guarded HP survives its source critical and the next command also kills. Neither dragon has priority. Actual enemy FullRestore uses its own turn; Sash remains consumed. This establishes those individual two-command branches, not a blanket whole-fight guarantee.</p>
+<p>Do not silently assume the HP guard at the next dragon: the preceding opponent may have damaged Swamp, and <strong>healing on a new Haxorus turn can let it DD before our first strike</strong>. Then boosted criticals are no longer covered (Hax +2Atk DragonClaw594–699 into this build). Garchomp lacks DD and its base maximum critical DragonClaw324 / EQ270 can be survived at fullHP while healing, but the post-heal damage does not restore a guaranteed Haxorus opening guard. The practical plan must inspect that exact transition and accept a reviewed contingency/critical risk if the clean guard is absent. Free-entry priority and normal Revive are backups; no guaranteed unbroken solo sweep is claimed.</p>
+<p>For all medical/physical tables not explicitly marked Impish below, the original <strong>Careful</strong> calculation is retained as a comparison, not the recommended physical build. Source report now contains both named builds. Ring+Mega is still a valid normal alternate preparation; the AV branch avoids assuming a Ring, but does not erase every critical/setup risk.</p>
+<h3>Careful comparison and common prerequisites</h3>
+<p><strong>Careful Swampert95 with Assault Vest is a practical normal-control fallback</strong>, but not a certified solo sweep. EV <code>[252,0,0,0,152,104]</code>, historical IV <code>[9,30,12,7,10,18]</code> gives <strong>363HP / 242Atk / 187Def / 155SpA / 243SpDef / 160Speed</strong>. Vest contributes <strong>364.5 effective SpDef</strong>, including on critical hits; it is not rounded to364 before the installed final calculation. +6Speed is640, narrowly above one Dragon&#39;s Den DD Charizard-X638, Salamence630, Haxorus610; above ScarfGarchomp480 and Noivern360. Fresh measured stats, nature, EVs, full HP/PP, Vest and actual medicine stock govern execution.</p>
+<p>Replace Protect with an ordinary attack: <strong>Earthquake / RockSlide / Surf / Waterfall</strong> is sufficient. AV prevents status <strong>moves</strong>, not normal self-target X items or Bag healing (<code>Battle.rb:1271</code>; <code>ItemEffects.rb:3230–3479</code>). Surf is utility; <strong>do not use it twice</strong> while preserving Dragon&#39;s Den. No automatic offensive action should silently change the field.</p>
+<p>AV ownership is <strong>not assumed</strong> (another agent reports frozen post-Hypno bag0). Normal installed pickup: <strong>Underground Railnet602 E17[17,7]</strong>, <code>Kernel.pbItemBall(:ASSAULTVEST)</code>, then self-switchA hides it. Restored Railnet519 E215–219 at[59,13..9], page1 requires <strong>switch652</strong>, transfers right-facing player to602[1,15..11]. Return602 E1–5 left edge[0,11..15]→519[58,9..13]. Item-page and entry extracts are <code>work/nonmega-saphira-assaultvest-events.json</code> and <code>work/nonmega-saphira-av-route-source.json</code>. Verify uncollected self-switch and route normally; this is source availability, not proof it is currently reachable/uncollected. The other Vest rewards are782 Victory Road PC and827 Nightclub, so do not assume those solve pre-Saphira stock.</p>
+<p><strong>Current funding prerequisite:</strong> the sibling&#39;s explicitly frozen post-Hypno128 navigation has652false, so this pickup is currently locked. Its complete installed entrance scan found only the restored519 entries. Normal pre-Saphira unlock is GrandHall38 E37 <strong>Railnet Reconstruction</strong>, base100,000 funding; the source counter for a partly funded project&#39;s remaining amount must be proved in its ordinary UI, not interpreted as zero/free. Frozen money74,180 would be25,820 short if the project is wholly unfunded. See <code>work/mega-ring-railnet-funding-source.json</code>. The later postgame Lumi setter does not establish a present route. AV setup therefore includes normal funding/earnings as well as pickup and training.</p>
+<p>Stock true full healing (MaxPotion/FullRestore), normal status cures, Revives and each planned X item before tournament commitment. UltraPotion200 cannot always restore the HP guard after a critical. A practical budget is approximately20–25 full heals, including contingency rather than a claimed exact consumption count. None is assumed currently owned.</p>
+<h3>Noivern opening: substantially safer than bare Swampert</h3>
+<p>Installed Noivern95:296HP/278SpA/360Speed; ElementalSeed gives <strong>+1SpA (417)</strong> plus FlashFire. Infiltrator bypasses screens. Dragon&#39;s Den boosts Dragon/Fire1.5; FlashFire independently adds1.5 to Fire attack. AV remains active when criticals ignore positive SpDef stages.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Attack</th>
+<th align="right">Ordinary, +0SpDef</th>
+<th align="right">Ordinary, +2SpDef</th>
+<th align="right">Ordinary, +6SpDef</th>
+<th align="right">Critical, even +6SpDef</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DragonPulse</td>
+<td align="right">151–178</td>
+<td align="right">77–90</td>
+<td align="right">40–47</td>
+<td align="right">227–267</td>
+</tr>
+<tr>
+<td>Boomburst</td>
+<td align="right">111–130</td>
+<td align="right">56–66</td>
+<td align="right">29–34</td>
+<td align="right">166–195</td>
+</tr>
+<tr>
+<td>Flamethrower</td>
+<td align="right">80–94</td>
+<td align="right">40–47</td>
+<td align="right">20–24</td>
+<td align="right">120–141</td>
+</tr>
+</tbody></table></div>
+<p>Lead full-HP Swamp. <strong>Use one XSpDef first</strong>, then inspect actual damage before each next command. While DragonPulse remains usable, require <strong>HP&gt;270</strong> before an exposed setup/attack; priority full-heal otherwise. It survives the source maximum critical from that guarded HP. Ordinary unboosted hit could leave185, so heal before trying the second setup action. At +2SpDef, full363→worst ordinary90→273 leaves room for one further guarded action; after another ordinary hit inspect/heal. Do not chain setup after an unobserved critical.</p>
+<p>Build the necessary <strong>three XSpeed, three XAttack, three XDefense, one XAccuracy</strong> on Noivern, raising SpDef farther only if healing budget/observed damage calls for it. Each standard X item gives two stages. Visible Defog reduces our evasion, not accuracy stages. Noivern offers no recovery, recoil or status move; it will not be damaged while setting up. Guard Struggle/visible PP exhaustion; avoid unnecessarily extending setup to exhaustion. Counting ten public DragonPulses permits the lower <strong>HP&gt;200</strong> critical guard afterward, but PP must be counted from visible move messages, never queried at runtime. Burn from Flamethrower requires an ordinary status cure/full restore before physical finishing; cure costs a turn and needs the HP guard.</p>
+<h3>Finishing sequence and the real limits</h3>
+<p>These are source core/modifier ranges at +6Atk, unchanged Dragon&#39;s Den:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>
+<thead>
+<tr>
+<th>Opponent</th>
+<th align="right">Attack / damage</th>
+<th align="right">HP</th>
+<th>Branch</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Noivern</td>
+<td align="right">RockSlide411–484</td>
+<td align="right">296</td>
+<td>One landed hit; require +2accuracy first.</td>
+</tr>
+<tr>
+<td>Salamence</td>
+<td align="right">RockSlide406–478</td>
+<td align="right">319</td>
+<td>Full-HP Sash leaves1HP; second landed hit needed.</td>
+</tr>
+<tr>
+<td>Garchomp</td>
+<td align="right">EQ352–414</td>
+<td align="right">344</td>
+<td>Guaranteed minimum exceeds HP by only8; actual attack≥242 and no reduction required.</td>
+</tr>
+<tr>
+<td>Haxorus</td>
+<td align="right">EQ372–438</td>
+<td align="right">279</td>
+<td>Full-HP Sash leaves1HP; second EQ needed.</td>
+</tr>
+<tr>
+<td>MegaCharizardX</td>
+<td align="right">EQ612–720</td>
+<td align="right">289</td>
+<td>One hit; prove Mega form/grounded Dragon-Fire typing before assuming Ground connects.</td>
+</tr>
+<tr>
+<td>Dragonite</td>
+<td align="right">RockSlide169–199 at fullHP;338–398 after Multiscale breaks</td>
+<td align="right">386</td>
+<td>Iapapa and three team FullRestores prevent a promised two-hit finish; Curse insurance preferred.</td>
+</tr>
+</tbody></table></div>
+<p><strong>Heal before the initial Sash hit; minimize extra turns afterward.</strong> At +6Def, Salamence/Haxorus ordinary DragonClaw is≤72/74 unboosted, ≤140/146 after one DD; full363 survives one ordinary exposed turn. +6Speed remains faster after <strong>one</strong> field DD, so the next attack can finish the visible1HP survivor. Source Haxorus uses <strong>PoisonJab</strong>, not GunkShot.</p>
+<p>The Sash turns remain real critical risk: criticals retain enemy positive Attack while discarding our defensive stages. At full363, Salamence unboosted DragonClaw critical353–415 can KO; Haxorus370–435 always KOs. After one field DD (+2Atk), corresponding criticals700–824 /737–867; EQ critical456/482 can also KO. <strong>No HP threshold makes those boosted criticals safe with this build.</strong> Do not describe XDefense as protection against them. A second DD gives speed945/915 and invalidates the planned speed edge. Healing/other extra turns can allow that extra DD; observe stages/messages rather than assuming one. Enemy FullRestore at1HP uses its turn; the consumed Sash stays consumed, so another full-HP lethal hit can finish if our attack still meets the table.</p>
+<p>Garchomp has no DD: avoid spending an exposed turn on it; immediate EQ is the safer action. Its unboosted DragonClaw critical341–402 can KO full363; EQ critical285–335 is survivable at fullHP. CharX unboosted contact DragonClaw critical448–527 (ToughClaws1.3) already KOs; immediate EQ before it moves is preferable to trying to heal against it. The640 versus638 speed edge is only two points and does not survive a speed drop or second DD.</p>
+<p>If Swamp actually falls leaving a visible1HP Sash opponent, a <strong>free replacement</strong> with normally taught priority (Arc ExtremeSpeed or Mien FakeOut) can clean up; inspect remaining HP, priority, source move legality, and enemy FullRestore inventory. An enemy full heal before priority may prevent that cleanup. Do not promise a hot switch preserves Swamp&#39;s boosts. Regular Revive/rebuild is a contingency, not the original sweep continuing unchanged.</p>
+<p>For Dragonite, preserve a <strong>full-HP Cofa/intact normal FocusSash</strong> with Ghost Curse and a living reserve. Its free entry after a real Swamp faint can apply Curse through a single hit; ExtremeSpeed is immune, and the half-HP Curse cost may sacrifice Cofa after applying it. A hot switch consuming Sash before the next turn is not equivalent. Require visible Curse effect, then stall ticks with legitimate heals/revives while tracking berry/FullRestore healing. Sash ownership is another explicit prerequisite (frozen post-Hypno bag0 is not an available Sash); optional ordinary Scarborough/penthouse purchase requires its own completed normal quest. Alternate Perish backup likewise needs actual surviving singer/PP and a living bench. Do not start the locked chest/Steelix/Saphira preparation on assumed items.</p>
+<h3>Sylveon/Misty/Cryogonal alternative</h3>
+<p>Misty changes the entire field for5 turns or8 with a real AmplifieldRock (<code>MoveEffects.rb:8389</code>); it cannot refresh while already active. Defog may remove it to Indoor, and timer expiry restores the backup. Never queue actions against a presumed refreshed field. Fairy immunity to Dragon is useful, but a HP+Defense Sylveon has an unsafe Den opening: even a worst-IV Bold95 HP252/Def252 build&#39;s345HP can be exceeded by seeded FlashFire critical Flamethrower (~404). Special bulk or an independently proved opening guard is necessary. Calm95 HP252/SpDef252 has guaranteed minimum345HP/342SpDef even IV0, and its source maximum seeded Den Flamethrower critical is below300; this is a possible normal bulky lead, not a trained roster claim.</p>
+<p>Cryo&#39;s IceBeam gains value after Misty/Indoor/Cave removes Den penalties, but the original six&#39;s exact future95 Cryo stats were not supplied here; no numerical solo sweep is certified. Opponent Steel/Poison coverage, finite terrain turns and setup crits remain. <strong>Two Surf field conversion to Cave introduces the second-EQ ceiling-collapse trap</strong>; do not use a generic EQ sweep after conversion.</p>
+<p>An attractive theoretical fresh-Misty BatonPass into Swamp would preserve boosts while covering the two Sashes. <strong>The guaranteed Sylveon gift cannot currently be assumed to do this:</strong> installed Sylveon natural/relearner list has no BatonPass; compatiblemoves alone is not a tutor. Reborn&#39;s ordinary reminder does not add Eevee&#39;s pre-evolution natural list. A separately acquired Eevee can normally learn BatonPass before evolution, but that is an extra unreviewed acquisition/training branch, so it is not the recommendation here.</p>
+<p>Primary proof anchors: <code>Reborn/fieldtext.rb:1850–1913</code> (Den/seed), <code>Battle_Field.rb:953–964</code> (Dragon defense), <code>Battle_Move.rb:1785/1879/1947/1987/2078/2110/2212–2215</code> (stages/FlashFire/AV/crit/type/final rounding), <code>Battle.rb:1271</code> (AV status move gate), <code>MoveRelearner.rb:1–36</code> / <code>Pokemon.rb:324</code> (legal reminder), fixed <code>work/saphira-installed-team.json</code>.</p>
+</div>
+      </article>
+    </main>
+  </body>
+</html>

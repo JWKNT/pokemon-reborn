@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>star_fill_initial.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of star_fill_initial.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Normal controls for first seven-star guess, starting at first slot&#x27;s open menu.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">import</span> json
+colors=[<span class="hljs-string">&#x27;Ruby&#x27;</span>,<span class="hljs-string">&#x27;Sapphire&#x27;</span>,<span class="hljs-string">&#x27;Emerald&#x27;</span>,<span class="hljs-string">&#x27;Amethyst&#x27;</span>];guess=[<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>]
+receipt=[]
+<span class="hljs-keyword">for</span> i,color <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(guess):
+ <span class="hljs-keyword">if</span> i:
+  act(<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;up:.06&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>,<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>)
+  t=read();<span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;sapphire&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;emerald&#x27;</span> <span class="hljs-keyword">in</span> t.lower(),(<span class="hljs-string">&#x27;Star menu review&#x27;</span>,i,t)
+ <span class="hljs-keyword">if</span> color&gt;<span class="hljs-number">1</span>:act(*([<span class="hljs-string">&#x27;down:.12&#x27;</span>]*(color-<span class="hljs-number">1</span>)))
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.25&#x27;</span>);t=read();<span class="hljs-built_in">print</span>(i,colors[color-<span class="hljs-number">1</span>],t,flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">assert</span> <span class="hljs-string">&#x27;loaded&#x27;</span> <span class="hljs-keyword">in</span> t.lower() <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;star&#x27;</span> <span class="hljs-keyword">in</span> t.lower(),(<span class="hljs-string">&#x27;Placement review&#x27;</span>,i,t)
+ receipt.append({<span class="hljs-string">&#x27;slot&#x27;</span>:i,<span class="hljs-string">&#x27;color&#x27;</span>:color,<span class="hljs-string">&#x27;epoch&#x27;</span>:time.time(),<span class="hljs-string">&#x27;public&#x27;</span>:t});(ROOT/<span class="hljs-string">&#x27;work/star-initial-fill.json&#x27;</span>).write_text(json.dumps(receipt,indent=<span class="hljs-number">2</span>))
+ act(<span class="hljs-string">&#x27;c&#x27;</span>,<span class="hljs-string">&#x27;wait:.2&#x27;</span>)
+(ROOT/<span class="hljs-string">&#x27;work/star-slots.json&#x27;</span>).write_text(json.dumps(guess))
+<span class="hljs-built_in">print</span>(read(),flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

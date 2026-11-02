@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>hunt_surf_pool.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of hunt_surf_pool.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Hunt reviewed153 pool using short reversible sweeps; stop at wanted wild or unknown UI.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+<span class="hljs-keyword">import</span> difflib
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">153</span>)<span class="hljs-keyword">in</span>[(<span class="hljs-number">153</span>,<span class="hljs-number">18</span>,<span class="hljs-number">44</span>),(<span class="hljs-number">153</span>,<span class="hljs-number">19</span>,<span class="hljs-number">44</span>),(<span class="hljs-number">153</span>,<span class="hljs-number">20</span>,<span class="hljs-number">44</span>)]
+subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/surface_walk.py&#x27;</span>),<span class="hljs-string">&#x27;153&#x27;</span>,<span class="hljs-string">&#x27;19&#x27;</span>,<span class="hljs-string">&#x27;44&#x27;</span>],check=<span class="hljs-literal">True</span>);targets=[<span class="hljs-string">&#x27;lombre&#x27;</span>,<span class="hljs-string">&#x27;ludicolo&#x27;</span>]
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">100</span>):
+ t=read();low=t.lower();<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;POOL&#x27;</span>,i,t.replace(<span class="hljs-string">&#x27;\n&#x27;</span>,<span class="hljs-string">&#x27; | &#x27;</span>),flush=<span class="hljs-literal">True</span>)
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(n <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> targets):<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;TARGET FOUND&#x27;</span>,flush=<span class="hljs-literal">True</span>);<span class="hljs-keyword">break</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;repel&#x27;</span> <span class="hljs-keyword">in</span> low:
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/renew_repel.py&#x27;</span>),<span class="hljs-string">&#x27;--cancel&#x27;</span>],check=<span class="hljs-literal">True</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(s <span class="hljs-keyword">in</span> low <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;fight&#x27;</span>,<span class="hljs-string">&#x27;hp&#x27;</span>,<span class="hljs-string">&#x27;wild&#x27;</span>,<span class="hljs-string">&#x27;safely&#x27;</span>,<span class="hljs-string">&#x27;escape&#x27;</span>]):
+  subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts/flee.py&#x27;</span>)],check=<span class="hljs-literal">True</span>);<span class="hljs-keyword">continue</span>
+ <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(t.splitlines())&gt;<span class="hljs-number">3</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Unknown pool dialogue&#x27;</span>)
+ act(*([<span class="hljs-string">&#x27;right:.12&#x27;</span>,<span class="hljs-string">&#x27;left:.12&#x27;</span>]*<span class="hljs-number">8</span>))
+<span class="hljs-keyword">else</span>:<span class="hljs-keyword">raise</span> SystemExit(<span class="hljs-string">&#x27;Hunt iteration limit&#x27;</span>)
+</code></pre>
+  </body>
+</html>

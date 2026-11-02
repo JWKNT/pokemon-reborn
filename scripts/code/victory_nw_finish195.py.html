@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>victory_nw_finish195.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of victory_nw_finish195.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Exit the fourth pillar via normal cliffs and speak to Charlotte.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> os,sys,json,subprocess
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>];env=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;112&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/n),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],check=<span class="hljs-literal">True</span>,env=env)
+n=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> <span class="hljs-built_in">all</span>(n[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-built_in">str</span>(i)]<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">1132</span>,<span class="hljs-number">1133</span>,<span class="hljs-number">1134</span>,<span class="hljs-number">1135</span>])
+<span class="hljs-keyword">assert</span> n[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;1154&#x27;</span>] <span class="hljs-keyword">and</span> n[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;475&#x27;</span>]==<span class="hljs-number">119</span>
+run(<span class="hljs-string">&#x27;overworld.py&#x27;</span>);run(<span class="hljs-string">&#x27;victory_nw_cliff_event.py&#x27;</span>,<span class="hljs-number">811</span>,<span class="hljs-number">7</span>,<span class="hljs-string">&#x27;enter&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Charlotte195-four-pillars&#x27;</span>);run(<span class="hljs-string">&#x27;party_open.py&#x27;</span>)
+s=json.loads((R/<span class="hljs-string">&#x27;notes/Charlotte195-four-pillars-status.json&#x27;</span>).read_text());<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;map&#x27;</span>]==<span class="hljs-number">788</span>
+run(<span class="hljs-string">&#x27;overworld.py&#x27;</span>);run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">788</span>,<span class="hljs-number">51</span>,<span class="hljs-string">&#x27;talk&#x27;</span>);run(<span class="hljs-string">&#x27;dialog.py&#x27;</span>,<span class="hljs-string">&#x27;--limit=15&#x27;</span>);run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>,<span class="hljs-string">&#x27;Charlotte195-pursuit-ready&#x27;</span>);run(<span class="hljs-string">&#x27;party_open.py&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;FOUR PILLARS COMPLETE; CHARLOTTE SPOKEN&#x27;</span>,flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

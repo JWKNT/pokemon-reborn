@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>void_static_paths.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of void_static_paths.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Read-only offline routes from already extracted Void map JSON.
+
+No imports of the UI/game driver, no native/save/navigation reads or writes.
+Prints proposed paths and story touch events; observed coordinates remain
+authoritative because cutscenes can move actors and update event pages.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque
+<span class="hljs-keyword">from</span> itertools <span class="hljs-keyword">import</span> groupby
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">path</span>(<span class="hljs-params">v, start, goal</span>):
+    w, h = v[<span class="hljs-string">&#x27;width&#x27;</span>], v[<span class="hljs-string">&#x27;height&#x27;</span>]
+    data, pas, pri = v[<span class="hljs-string">&#x27;data&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>], v[<span class="hljs-string">&#x27;passages&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>], v[<span class="hljs-string">&#x27;priorities&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>]
+    blocked = {(e[<span class="hljs-string">&#x27;x&#x27;</span>], e[<span class="hljs-string">&#x27;y&#x27;</span>]) <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values()
+               <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> e[<span class="hljs-string">&#x27;through&#x27;</span>] <span class="hljs-keyword">and</span> e[<span class="hljs-string">&#x27;character&#x27;</span>]}
+    tile_events = {(e[<span class="hljs-string">&#x27;x&#x27;</span>], e[<span class="hljs-string">&#x27;y&#x27;</span>]): e[<span class="hljs-string">&#x27;tile_id&#x27;</span>] <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].values()
+                   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> e[<span class="hljs-string">&#x27;through&#x27;</span>] <span class="hljs-keyword">and</span> e[<span class="hljs-string">&#x27;tile_id&#x27;</span>] &gt;= <span class="hljs-number">0</span>}
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">terrain</span>(<span class="hljs-params">p</span>):
+        x, y = p
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (<span class="hljs-number">0</span> &lt;= x &lt; w <span class="hljs-keyword">and</span> <span class="hljs-number">0</span> &lt;= y &lt; h):
+            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>
+        <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>]:
+            t = data[x + w*y + w*h*z]
+            tag = v[<span class="hljs-string">&#x27;terrain&#x27;</span>][<span class="hljs-string">&#x27;data&#x27;</span>][t]
+            <span class="hljs-keyword">if</span> tag <span class="hljs-keyword">and</span> tag != <span class="hljs-number">13</span>:
+                <span class="hljs-keyword">return</span> tag
+        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">landing</span>(<span class="hljs-params">p</span>):
+        x, y = p
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (<span class="hljs-number">0</span> &lt;= x &lt; w <span class="hljs-keyword">and</span> <span class="hljs-number">0</span> &lt;= y &lt; h) <span class="hljs-keyword">or</span> p <span class="hljs-keyword">in</span> blocked:
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+        <span class="hljs-keyword">if</span> p <span class="hljs-keyword">in</span> tile_events:
+            t = tile_events[p]
+            <span class="hljs-keyword">if</span> pas[t] &amp; <span class="hljs-number">15</span> == <span class="hljs-number">15</span>:
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+            <span class="hljs-keyword">if</span> pri[t] == <span class="hljs-number">0</span>:
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+        <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>]:
+            t = data[x + w*y + w*h*z]
+            <span class="hljs-keyword">if</span> pas[t] &amp; <span class="hljs-number">15</span> == <span class="hljs-number">15</span>:
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+            <span class="hljs-keyword">if</span> pri[t] == <span class="hljs-number">0</span>:
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">okay</span>(<span class="hljs-params">p, d</span>):
+        x, y = p
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> (<span class="hljs-number">0</span> &lt;= x &lt; w <span class="hljs-keyword">and</span> <span class="hljs-number">0</span> &lt;= y &lt; h):
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+        bit = <span class="hljs-number">1</span> &lt;&lt; (d // <span class="hljs-number">2</span> - <span class="hljs-number">1</span>)
+        <span class="hljs-keyword">if</span> p <span class="hljs-keyword">in</span> tile_events:
+            t = tile_events[p]
+            <span class="hljs-keyword">if</span> pas[t] &amp; bit <span class="hljs-keyword">or</span> pas[t] &amp; <span class="hljs-number">15</span> == <span class="hljs-number">15</span>:
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+            <span class="hljs-keyword">if</span> pri[t] == <span class="hljs-number">0</span>:
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+        <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> [<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>]:
+            t = data[x + w*y + w*h*z]
+            <span class="hljs-keyword">if</span> pas[t] &amp; bit <span class="hljs-keyword">or</span> pas[t] &amp; <span class="hljs-number">15</span> == <span class="hljs-number">15</span>:
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+            <span class="hljs-keyword">if</span> pri[t] == <span class="hljs-number">0</span>:
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+
+    q, prev = deque([start]), {start: <span class="hljs-literal">None</span>}
+    <span class="hljs-keyword">while</span> q:
+        p = q.popleft()
+        <span class="hljs-keyword">if</span> p == goal:
+            <span class="hljs-keyword">break</span>
+        <span class="hljs-keyword">for</span> dx, dy, d, name <span class="hljs-keyword">in</span> [(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-string">&#x27;down&#x27;</span>), (-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">4</span>, <span class="hljs-string">&#x27;left&#x27;</span>),
+                                (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">6</span>, <span class="hljs-string">&#x27;right&#x27;</span>), (<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-string">&#x27;up&#x27;</span>)]:
+            n = p[<span class="hljs-number">0</span>]+dx, p[<span class="hljs-number">1</span>]+dy
+            <span class="hljs-keyword">if</span> n <span class="hljs-keyword">in</span> blocked <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> okay(p, d) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> okay(n, <span class="hljs-number">10</span>-d):
+                <span class="hljs-keyword">continue</span>
+            <span class="hljs-keyword">if</span> terrain(n) == <span class="hljs-number">1</span>:
+                n = p[<span class="hljs-number">0</span>]+<span class="hljs-number">2</span>*dx, p[<span class="hljs-number">1</span>]+<span class="hljs-number">2</span>*dy
+                name = <span class="hljs-string">&#x27;jump:&#x27;</span>+name
+                <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> landing(n):
+                    <span class="hljs-keyword">continue</span>
+            <span class="hljs-keyword">if</span> n <span class="hljs-keyword">in</span> prev:
+                <span class="hljs-keyword">continue</span>
+            prev[n] = p, name
+            q.append(n)
+    <span class="hljs-keyword">if</span> goal <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+        <span class="hljs-keyword">return</span> prev
+    <span class="hljs-keyword">if</span> goal <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> prev:
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">f&#x27;No offline path to <span class="hljs-subst">{goal}</span>&#x27;</span>)
+    nodes, keys, p = [goal], [], goal
+    <span class="hljs-keyword">while</span> prev[p]:
+        p, key = prev[p]
+        nodes.append(p)
+        keys.append(key)
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">list</span>(<span class="hljs-built_in">reversed</span>(keys)), <span class="hljs-built_in">list</span>(<span class="hljs-built_in">reversed</span>(nodes))
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">event_leg</span>(<span class="hljs-params">mid, start, eid, v=<span class="hljs-literal">None</span></span>):
+    <span class="hljs-keyword">if</span> v <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+        v = json.loads((ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">f&#x27;void-map-<span class="hljs-subst">{mid}</span>.json&#x27;</span>).read_text())
+    e = v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)]
+    <span class="hljs-keyword">if</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>] == <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> e[<span class="hljs-string">&#x27;character&#x27;</span>]:
+        candidates = [(e[<span class="hljs-string">&#x27;x&#x27;</span>], e[<span class="hljs-string">&#x27;y&#x27;</span>])]
+    <span class="hljs-keyword">else</span>:
+        candidates = [(e[<span class="hljs-string">&#x27;x&#x27;</span>]+dx, e[<span class="hljs-string">&#x27;y&#x27;</span>]+dy)
+                      <span class="hljs-keyword">for</span> dx, dy <span class="hljs-keyword">in</span> [(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>), (<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>), (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>), (-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>)]]
+    options = []
+    <span class="hljs-keyword">for</span> goal <span class="hljs-keyword">in</span> candidates:
+        <span class="hljs-keyword">try</span>:
+            keys, nodes = path(v, start, goal)
+            options.append((<span class="hljs-built_in">len</span>(keys), goal, keys, nodes))
+        <span class="hljs-keyword">except</span> ValueError:
+            <span class="hljs-keyword">pass</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> options:
+        <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">f&#x27;No accessible offline face for <span class="hljs-subst">{mid}</span>E<span class="hljs-subst">{eid}</span>&#x27;</span>)
+    count, goal, keys, nodes = <span class="hljs-built_in">min</span>(options)
+    encountered = []
+    <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> nodes[<span class="hljs-number">1</span>:]:
+        <span class="hljs-keyword">for</span> key, ev <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items():
+            <span class="hljs-keyword">if</span> (ev[<span class="hljs-string">&#x27;x&#x27;</span>], ev[<span class="hljs-string">&#x27;y&#x27;</span>]) == p <span class="hljs-keyword">and</span> ev[<span class="hljs-string">&#x27;trigger&#x27;</span>] == <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(
+                    c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>, <span class="hljs-number">108</span>, <span class="hljs-number">408</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> ev[<span class="hljs-string">&#x27;list&#x27;</span>]):
+                encountered.append({<span class="hljs-string">&#x27;event&#x27;</span>: <span class="hljs-built_in">int</span>(key), <span class="hljs-string">&#x27;name&#x27;</span>: ev[<span class="hljs-string">&#x27;name&#x27;</span>], <span class="hljs-string">&#x27;xy&#x27;</span>: p})
+    <span class="hljs-keyword">return</span> {<span class="hljs-string">&#x27;map&#x27;</span>: mid, <span class="hljs-string">&#x27;start&#x27;</span>: start, <span class="hljs-string">&#x27;target_event&#x27;</span>: eid, <span class="hljs-string">&#x27;approach&#x27;</span>: goal,
+            <span class="hljs-string">&#x27;steps&#x27;</span>: count, <span class="hljs-string">&#x27;runs&#x27;</span>: [[k, <span class="hljs-built_in">len</span>(<span class="hljs-built_in">list</span>(g))] <span class="hljs-keyword">for</span> k, g <span class="hljs-keyword">in</span> groupby(keys)],
+            <span class="hljs-string">&#x27;touch_stops&#x27;</span>: encountered}
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:
+    legs = []
+    <span class="hljs-comment"># Only RAM copies change here. These are source-conditioned route proposals,</span>
+    <span class="hljs-comment"># never observed state or instructions to execute blindly across cutscenes.</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cleared</span>(<span class="hljs-params">v, ids</span>):
+        <span class="hljs-keyword">for</span> eid <span class="hljs-keyword">in</span> ids:
+            v[<span class="hljs-string">&#x27;events&#x27;</span>][<span class="hljs-built_in">str</span>(eid)].update(character=<span class="hljs-string">&#x27;&#x27;</span>, through=<span class="hljs-literal">True</span>, <span class="hljs-built_in">list</span>=[])
+
+    <span class="hljs-keyword">for</span> mid, start, events <span class="hljs-keyword">in</span> [
+            (<span class="hljs-number">754</span>, (<span class="hljs-number">31</span>, <span class="hljs-number">12</span>), [<span class="hljs-number">5</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>]),
+            (<span class="hljs-number">755</span>, (<span class="hljs-number">60</span>, <span class="hljs-number">81</span>), [<span class="hljs-number">24</span>]),
+            (<span class="hljs-number">756</span>, (<span class="hljs-number">62</span>, <span class="hljs-number">64</span>), [<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">4</span>]),
+            (<span class="hljs-number">757</span>, (<span class="hljs-number">102</span>, <span class="hljs-number">20</span>), [<span class="hljs-number">2</span>, <span class="hljs-number">14</span>, <span class="hljs-number">16</span>, <span class="hljs-number">17</span>, <span class="hljs-number">24</span>, <span class="hljs-number">26</span>, <span class="hljs-number">27</span>])]:
+        v = json.loads((ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">f&#x27;void-map-<span class="hljs-subst">{mid}</span>.json&#x27;</span>).read_text())
+        <span class="hljs-keyword">for</span> eid <span class="hljs-keyword">in</span> events:
+            leg = event_leg(mid, start, eid, v)
+            leg[<span class="hljs-string">&#x27;state&#x27;</span>] = <span class="hljs-string">&#x27;hypothetical; refresh observed state after story stops&#x27;</span>
+            legs.append(leg)
+            start = <span class="hljs-built_in">tuple</span>(leg[<span class="hljs-string">&#x27;approach&#x27;</span>])
+            cleared(v, [eid])
+            <span class="hljs-comment"># Lin is removed by a runtime move route. Radomus removes Luna too,</span>
+            <span class="hljs-comment"># then sets switch973; unlike other gates it does not use self-A.</span>
+            <span class="hljs-keyword">if</span> mid == <span class="hljs-number">757</span> <span class="hljs-keyword">and</span> eid == <span class="hljs-number">26</span>:
+                cleared(v, [<span class="hljs-number">147</span>])
+    v = json.loads((ROOT/<span class="hljs-string">&#x27;work&#x27;</span>/<span class="hljs-string">&#x27;void-map-758.json&#x27;</span>).read_text())
+    <span class="hljs-comment"># Stop one tile before the boss touch trigger, never on 758E122[28,105].</span>
+    keys, nodes = path(v, (<span class="hljs-number">120</span>, <span class="hljs-number">158</span>), (<span class="hljs-number">28</span>, <span class="hljs-number">106</span>))
+    legs.append({<span class="hljs-string">&#x27;map&#x27;</span>: <span class="hljs-number">758</span>, <span class="hljs-string">&#x27;start&#x27;</span>: [<span class="hljs-number">120</span>, <span class="hljs-number">158</span>], <span class="hljs-string">&#x27;target_event&#x27;</span>: <span class="hljs-number">122</span>,
+                 <span class="hljs-string">&#x27;approach&#x27;</span>: [<span class="hljs-number">28</span>, <span class="hljs-number">106</span>], <span class="hljs-string">&#x27;steps&#x27;</span>: <span class="hljs-built_in">len</span>(keys),
+                 <span class="hljs-string">&#x27;runs&#x27;</span>: [[k, <span class="hljs-built_in">len</span>(<span class="hljs-built_in">list</span>(g))] <span class="hljs-keyword">for</span> k, g <span class="hljs-keyword">in</span> groupby(keys)],
+                 <span class="hljs-string">&#x27;touch_stops&#x27;</span>: [{<span class="hljs-string">&#x27;event&#x27;</span>: <span class="hljs-built_in">int</span>(eid), <span class="hljs-string">&#x27;name&#x27;</span>: e[<span class="hljs-string">&#x27;name&#x27;</span>],
+                                  <span class="hljs-string">&#x27;xy&#x27;</span>: [e[<span class="hljs-string">&#x27;x&#x27;</span>], e[<span class="hljs-string">&#x27;y&#x27;</span>]]}
+                                 <span class="hljs-keyword">for</span> eid, e <span class="hljs-keyword">in</span> v[<span class="hljs-string">&#x27;events&#x27;</span>].items()
+                                 <span class="hljs-keyword">if</span> (e[<span class="hljs-string">&#x27;x&#x27;</span>], e[<span class="hljs-string">&#x27;y&#x27;</span>]) <span class="hljs-keyword">in</span> nodes[<span class="hljs-number">1</span>:]
+                                 <span class="hljs-keyword">and</span> e[<span class="hljs-string">&#x27;trigger&#x27;</span>] == <span class="hljs-number">1</span>
+                                 <span class="hljs-keyword">and</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>] <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>,<span class="hljs-number">108</span>,<span class="hljs-number">408</span>]
+                                         <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> e[<span class="hljs-string">&#x27;list&#x27;</span>])],
+                 <span class="hljs-string">&#x27;state&#x27;</span>: <span class="hljs-string">&#x27;hypothetical; boss is one UP beyond endpoint&#x27;</span>})
+    <span class="hljs-built_in">print</span>(json.dumps(legs, indent=<span class="hljs-number">2</span>))
+</code></pre>
+  </body>
+</html>

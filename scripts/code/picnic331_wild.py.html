@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>picnic331_wild.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of picnic331_wild.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;One reviewed Rhodochrine apparition through ordinary UI; stop on changed matchup.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> json,os,subprocess,sys,time
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+event=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">1</span>]);actor=sys.argv[<span class="hljs-number">2</span>];slot=<span class="hljs-built_in">int</span>(sys.argv[<span class="hljs-number">3</span>]);<span class="hljs-keyword">assert</span> actor <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Magearna&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>,<span class="hljs-string">&#x27;Volcanion&#x27;</span>,<span class="hljs-string">&#x27;Mawile&#x27;</span>,<span class="hljs-string">&#x27;Darkrai&#x27;</span>] <span class="hljs-keyword">and</span> <span class="hljs-number">0</span>&lt;=slot&lt;<span class="hljs-number">4</span>
+rows=json.loads((R/<span class="hljs-string">&#x27;work/331-picnic-puzzle-mons.json&#x27;</span>).read_text());row=<span class="hljs-built_in">next</span>(m <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> rows <span class="hljs-keyword">if</span> m[<span class="hljs-string">&#x27;event&#x27;</span>]==event)
+<span class="hljs-keyword">assert</span> row[<span class="hljs-string">&#x27;level&#x27;</span>]==<span class="hljs-number">100</span>
+source=json.loads((R/<span class="hljs-string">&#x27;work/331-map886-events.json&#x27;</span>).read_text())[<span class="hljs-built_in">str</span>(event)][<span class="hljs-string">&#x27;pages&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&#x27;list&#x27;</span>]
+<span class="hljs-keyword">assert</span> <span class="hljs-keyword">not</span> <span class="hljs-built_in">any</span>(c[<span class="hljs-string">&#x27;code&#x27;</span>]<span class="hljs-keyword">in</span>[<span class="hljs-number">102</span>,<span class="hljs-number">103</span>,<span class="hljs-number">104</span>,<span class="hljs-number">201</span>,<span class="hljs-number">301</span>] <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> source)
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">sum</span>(<span class="hljs-string">&#x27;pbWildBattle&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(c[<span class="hljs-string">&#x27;parameters&#x27;</span>]) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> source)==<span class="hljs-number">1</span>
+E=<span class="hljs-built_in">dict</span>(os.environ,REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_ROUTE_CHUNK=<span class="hljs-string">&#x27;112&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">n,*a</span>):
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;APPARITION&#x27;</span>,n,*a,flush=<span class="hljs-literal">True</span>);subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{n}</span>.py&#x27;</span>),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,a)],env=E,check=<span class="hljs-literal">True</span>)
+(R/<span class="hljs-string">&#x27;notes/battle-control.json&#x27;</span>).write_text(json.dumps({<span class="hljs-string">&#x27;expected_foes&#x27;</span>:[row[<span class="hljs-string">&#x27;species&#x27;</span>]],<span class="hljs-string">&#x27;scope&#x27;</span>:<span class="hljs-string">&#x27;Installed Rhodochrine puzzle apparition&#x27;</span>}))
+lead=sys.argv[sys.argv.index(<span class="hljs-string">&#x27;--lead&#x27;</span>)+<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--lead&#x27;</span> <span class="hljs-keyword">in</span> sys.argv <span class="hljs-keyword">else</span> actor
+<span class="hljs-keyword">assert</span> lead==actor <span class="hljs-keyword">or</span> (lead==<span class="hljs-string">&#x27;Darkrai&#x27;</span> <span class="hljs-keyword">and</span> actor <span class="hljs-keyword">in</span> [<span class="hljs-string">&#x27;Magearna&#x27;</span>,<span class="hljs-string">&#x27;Zapdos&#x27;</span>])
+before=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;variables&#x27;</span>]
+start=time.time()
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--battle-open&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+ <span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--same-lead&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:run(<span class="hljs-string">&#x27;party_front&#x27;</span>,lead)
+ run(<span class="hljs-string">&#x27;eventq&#x27;</span>,<span class="hljs-number">886</span>,event,<span class="hljs-string">&#x27;talk&#x27;</span>)
+ run(<span class="hljs-string">&#x27;picnic_intercept&#x27;</span>,row[<span class="hljs-string">&#x27;species&#x27;</span>],*([<span class="hljs-string">&#x27;--dark&#x27;</span>] <span class="hljs-keyword">if</span> row[<span class="hljs-string">&#x27;ops&#x27;</span>][<span class="hljs-number">0</span>][<span class="hljs-number">0</span>]==<span class="hljs-number">662</span> <span class="hljs-keyword">else</span> []))
+run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+<span class="hljs-keyword">if</span> lead!=actor:
+ <span class="hljs-keyword">import</span> re,unicodedata
+ text=subprocess.check_output([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/play.py&#x27;</span>)],env=E,text=<span class="hljs-literal">True</span>)
+ norm=<span class="hljs-keyword">lambda</span> x:re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>,<span class="hljs-string">&#x27;&#x27;</span>,unicodedata.normalize(<span class="hljs-string">&#x27;NFKD&#x27;</span>,x.lower()))
+ <span class="hljs-keyword">assert</span> norm(row[<span class="hljs-string">&#x27;species&#x27;</span>]) <span class="hljs-keyword">in</span> norm(text) <span class="hljs-keyword">and</span> norm(lead) <span class="hljs-keyword">in</span> norm(text), <span class="hljs-string">&#x27;Public lead/foe review before switch&#x27;</span>
+ run(<span class="hljs-string">&#x27;battle_switch&#x27;</span>,actor)
+ run(<span class="hljs-string">&#x27;battle_ready&#x27;</span>)
+run(<span class="hljs-string">&#x27;battle_batch&#x27;</span>,actor,slot,<span class="hljs-string">&#x27;--foes&#x27;</span>,row[<span class="hljs-string">&#x27;species&#x27;</span>],<span class="hljs-string">&#x27;--wild&#x27;</span>,<span class="hljs-string">&#x27;--turns&#x27;</span>,<span class="hljs-number">5</span>,<span class="hljs-string">&#x27;--min-hp&#x27;</span>,<span class="hljs-number">.45</span>,<span class="hljs-string">&#x27;--watch&#x27;</span>)
+run(<span class="hljs-string">&#x27;overworld&#x27;</span>)
+label=<span class="hljs-string">f&#x27;Picnic332-Apparition<span class="hljs-subst">{event}</span>&#x27;</span>
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>,label)
+after=json.loads((R/<span class="hljs-string">&#x27;notes&#x27;</span>/<span class="hljs-string">f&#x27;<span class="hljs-subst">{label}</span>-navigation.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;variables&#x27;</span>]
+<span class="hljs-keyword">for</span> op <span class="hljs-keyword">in</span> row[<span class="hljs-string">&#x27;ops&#x27;</span>]:
+ <span class="hljs-keyword">assert</span> after[<span class="hljs-built_in">str</span>(op[<span class="hljs-number">0</span>])]==before[<span class="hljs-built_in">str</span>(op[<span class="hljs-number">0</span>])]-op[<span class="hljs-number">4</span>], <span class="hljs-string">&#x27;Expected puzzle power was not removed; review moving apparition interaction&#x27;</span>
+run(<span class="hljs-string">&#x27;close_wild_music&#x27;</span>,row[<span class="hljs-string">&#x27;species&#x27;</span>],<span class="hljs-string">&#x27;--since&#x27;</span>,start)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;APPARITION WORLD RETURNED&#x27;</span>,event,row[<span class="hljs-string">&#x27;species&#x27;</span>],flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

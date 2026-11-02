@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>beryl_approach.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of beryl_approach.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Unlock the inspected Beryl door and finish Titania&#x27;s initial trap scene.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">from</span> play <span class="hljs-keyword">import</span> *
+<span class="hljs-keyword">from</span> locate <span class="hljs-keyword">import</span> locate
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script, *args</span>):
+    subprocess.run([sys.executable, <span class="hljs-built_in">str</span>(ROOT/<span class="hljs-string">&#x27;scripts&#x27;</span>/(script+<span class="hljs-string">&#x27;.py&#x27;</span>)),
+                    *<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, args)], check=<span class="hljs-literal">True</span>)
+
+p = ROOT/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>
+s = json.loads(p.read_text())
+<span class="hljs-keyword">assert</span> s[<span class="hljs-string">&#x27;variables&#x27;</span>].get(<span class="hljs-string">&#x27;276&#x27;</span>) == <span class="hljs-number">21</span>, <span class="hljs-string">&#x27;Complete the Jasper victory scene first&#x27;</span>
+<span class="hljs-keyword">if</span> <span class="hljs-string">&#x27;--in-beryl&#x27;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> sys.argv:
+    actual = locate(<span class="hljs-number">475</span>)
+    <span class="hljs-keyword">assert</span> actual[<span class="hljs-number">0</span>] == <span class="hljs-number">475</span>
+    run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>, <span class="hljs-number">475</span>, <span class="hljs-number">9</span>, <span class="hljs-number">4</span>, <span class="hljs-built_in">int</span>(s[<span class="hljs-string">&#x27;switches&#x27;</span>].get(<span class="hljs-string">&#x27;410&#x27;</span>, <span class="hljs-literal">False</span>)), <span class="hljs-number">0</span>)
+    began = time.time()
+    run(<span class="hljs-string">&#x27;eventq&#x27;</span>, <span class="hljs-number">475</span>, <span class="hljs-number">21</span>, <span class="hljs-string">&#x27;talk&#x27;</span>)
+    run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>, <span class="hljs-number">475</span>, <span class="hljs-number">21</span>, <span class="hljs-string">&#x27;--active&#x27;</span>, <span class="hljs-string">&#x27;--burst&#x27;</span>)
+    screens = [json.loads(z) <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> (ROOT/<span class="hljs-string">&#x27;recordings/screens.jsonl&#x27;</span>).read_text().splitlines()]
+    <span class="hljs-keyword">assert</span> <span class="hljs-built_in">any</span>(z[<span class="hljs-string">&#x27;epoch&#x27;</span>] &gt;= began <span class="hljs-keyword">and</span> <span class="hljs-string">&#x27;usedtheberylgridkey&#x27;</span> <span class="hljs-keyword">in</span>
+               re.sub(<span class="hljs-string">&#x27;[^a-z]&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27; &#x27;</span>.join(z[<span class="hljs-string">&#x27;text&#x27;</span>]).lower()) <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> screens), \
+               <span class="hljs-string">&#x27;Beryl key use needs review&#x27;</span>
+    s = json.loads(p.read_text()); s[<span class="hljs-string">&#x27;switches&#x27;</span>][<span class="hljs-string">&#x27;547&#x27;</span>] = <span class="hljs-literal">False</span>
+    p.write_text(json.dumps(s))
+    run(<span class="hljs-string">&#x27;wtc_exit&#x27;</span>, <span class="hljs-number">475</span>, <span class="hljs-number">21</span>)
+run(<span class="hljs-string">&#x27;layer_walk&#x27;</span>, <span class="hljs-number">496</span>, <span class="hljs-number">31</span>, <span class="hljs-number">23</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>)
+act(<span class="hljs-string">&#x27;up:.12&#x27;</span>, <span class="hljs-string">&#x27;wait:1.5&#x27;</span>)
+run(<span class="hljs-string">&#x27;linear_dialog&#x27;</span>, <span class="hljs-number">496</span>, <span class="hljs-number">57</span>, <span class="hljs-string">&#x27;--burst&#x27;</span>)
+<span class="hljs-keyword">assert</span> locate(<span class="hljs-number">476</span>) == (<span class="hljs-number">476</span>, <span class="hljs-number">29</span>, <span class="hljs-number">19</span>)
+run(<span class="hljs-string">&#x27;checkpoint&#x27;</span>, <span class="hljs-string">&#x27;WTC-Beryl-low&#x27;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;BERYL INITIAL LOW WATER AND SAVE VERIFIED&#x27;</span>, flush=<span class="hljs-literal">True</span>)
+</code></pre>
+  </body>
+</html>

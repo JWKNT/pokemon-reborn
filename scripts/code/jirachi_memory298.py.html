@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>jirachi_memory298.py</title></head>
+  <body>
+<pre class="ui-code" data-fragment tabindex="0" aria-label="Source of jirachi_memory298.py"><code class="hljs language-python"><span class="hljs-string">&quot;&quot;&quot;Bounded normal-UI Jirachi memory route. Save after each completed scene to verify its story gate.&quot;&quot;&quot;</span>
+<span class="hljs-keyword">import</span> subprocess,sys,json,os
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+R=Path(__file__).resolve().parents[<span class="hljs-number">1</span>]
+os.environ.update(REBORN_FAST_KEYS=<span class="hljs-string">&#x27;1&#x27;</span>,REBORN_COORD_CACHE=<span class="hljs-string">&#x27;1&#x27;</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">script,*args</span>):
+ subprocess.run([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts&#x27;</span>/script),*<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>,args)],check=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">scene</span>(<span class="hljs-params">e,page,stage,kind=<span class="hljs-string">&#x27;talk&#x27;</span>,follow=<span class="hljs-literal">None</span></span>):
+ run(<span class="hljs-string">&#x27;eventq.py&#x27;</span>,<span class="hljs-number">854</span>,e,kind)
+ args=[<span class="hljs-number">854</span>,e,<span class="hljs-string">&#x27;--source-page&#x27;</span>,page,<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--log-scripted-bgm&#x27;</span>]
+ <span class="hljs-keyword">if</span> follow: args += [<span class="hljs-string">&#x27;--follow-source&#x27;</span>,<span class="hljs-number">854</span>,follow[<span class="hljs-number">0</span>],<span class="hljs-string">&#x27;--follow-source-page&#x27;</span>,follow[<span class="hljs-number">1</span>]]
+ run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,*args)
+ run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>)
+ state=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())
+ <span class="hljs-keyword">assert</span> state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;615&#x27;</span>]==stage,(e,stage,state[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;615&#x27;</span>])
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MEMORY STAGE VERIFIED&#x27;</span>,stage,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">touch</span>(<span class="hljs-params">e,page,stage,follow=<span class="hljs-literal">None</span></span>):
+ data=json.loads(subprocess.check_output([<span class="hljs-string">&#x27;ruby&#x27;</span>,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/event_dump.rb&#x27;</span>),<span class="hljs-string">&#x27;854&#x27;</span>,<span class="hljs-built_in">str</span>(e)],stderr=subprocess.DEVNULL))
+ rc=subprocess.call([sys.executable,<span class="hljs-built_in">str</span>(R/<span class="hljs-string">&#x27;scripts/q.py&#x27;</span>),<span class="hljs-string">f&quot;854,<span class="hljs-subst">{data[<span class="hljs-string">&#x27;x&#x27;</span>]}</span>,<span class="hljs-subst">{data[<span class="hljs-string">&#x27;y&#x27;</span>]}</span>&quot;</span>])
+ <span class="hljs-keyword">if</span> rc <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> (<span class="hljs-number">0</span>,<span class="hljs-number">2</span>):<span class="hljs-keyword">raise</span> SystemExit(rc)
+ args=[<span class="hljs-number">854</span>,e,<span class="hljs-string">&#x27;--source-page&#x27;</span>,page,<span class="hljs-string">&#x27;--burst&#x27;</span>,<span class="hljs-string">&#x27;--log-scripted-bgm&#x27;</span>]
+ <span class="hljs-keyword">if</span> follow:args+=[<span class="hljs-string">&#x27;--follow-source&#x27;</span>,<span class="hljs-number">854</span>,follow[<span class="hljs-number">0</span>],<span class="hljs-string">&#x27;--follow-source-page&#x27;</span>,follow[<span class="hljs-number">1</span>]]
+ run(<span class="hljs-string">&#x27;linear_dialog.py&#x27;</span>,*args)
+ run(<span class="hljs-string">&#x27;checkpoint.py&#x27;</span>)
+ actual=json.loads((R/<span class="hljs-string">&#x27;notes/navigation-state.json&#x27;</span>).read_text())[<span class="hljs-string">&#x27;variables&#x27;</span>][<span class="hljs-string">&#x27;615&#x27;</span>]
+ <span class="hljs-keyword">assert</span> actual==stage,(e,stage,actual)
+ <span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;MEMORY STAGE VERIFIED&#x27;</span>,stage,flush=<span class="hljs-literal">True</span>)
+<span class="hljs-keyword">if</span> __name__==<span class="hljs-string">&#x27;__main__&#x27;</span>:
+ scene(<span class="hljs-number">3</span>,<span class="hljs-number">1</span>,<span class="hljs-number">3</span>)
+ scene(<span class="hljs-number">6</span>,<span class="hljs-number">1</span>,<span class="hljs-number">4</span>)
+ scene(<span class="hljs-number">11</span>,<span class="hljs-number">0</span>,<span class="hljs-number">6</span>)
+ scene(<span class="hljs-number">12</span>,<span class="hljs-number">0</span>,<span class="hljs-number">7</span>)
+</code></pre>
+  </body>
+</html>
