@@ -34,7 +34,7 @@
 
   // A link to #file opens that file's panel.
   function openFromHash() {
-    const target = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
     if (!target?.matches('details[data-src]')) return;
     const item = target.closest('[data-filter-item]');
     if (item?.hidden) clearFilter();
