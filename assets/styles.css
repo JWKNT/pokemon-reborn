@@ -73,6 +73,28 @@
 .note-body > :is(.ui-code, .note-prose), .note-prose .ui-code { margin: .75rem 0; }
 .note-prose .ui-code { background: var(--paper); }
 
+/* Video: one embedded player beside its chapter list, as in the Baba Is You
+   catalogue. The page uses the full header frame for the two columns. */
+.reborn-main.video-page { width: var(--site-frame-width, min(72rem, calc(100% - 2 * var(--gutter, 1.5rem)))); }
+.video-layout { display: grid; grid-template-columns: minmax(0, 1.95fr) minmax(17rem, 1fr); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: start; margin-top: 1.75rem; }
+.player-section { min-width: 0; }
+.player-title { margin: 0 0 .75rem; font: 700 1.35rem/1.3 var(--display); overflow-wrap: anywhere; }
+.player-frame { aspect-ratio: 16 / 9; background: #131419; }
+.player-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+.player-meta { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; margin: .8rem 0 0; color: var(--muted-strong); font: var(--text-ui)/1.5 var(--ui, var(--serif)); }
+.player-length { color: var(--muted); font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.player-note { margin: .35rem 0 0; color: var(--muted); font: var(--text-meta)/1.6 var(--ui, var(--serif)); }
+.chapters > h2 { margin: 0; padding-bottom: .45rem; border-bottom: 1px solid var(--line-strong); font: 700 1.12rem/1.3 var(--display); }
+.chapter-list { margin: 0; padding: 0; list-style: none; }
+.chapter-list > li { border-bottom: 1px solid var(--line); }
+.chapter-link { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr) auto; align-items: baseline; gap: .75rem; padding: .55rem .25rem .55rem 0; color: var(--ink); text-decoration: none; }
+.chapter-time, .chapter-length { color: var(--muted); font: var(--text-ui)/1.6 var(--mono); font-variant-numeric: tabular-nums; }
+.chapter-name { font-size: 1rem; line-height: 1.4; overflow-wrap: anywhere; }
+.chapter-link:hover .chapter-name { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .18em; }
+.chapter-link[aria-current="true"] { color: var(--blue-dark); }
+.chapter-link[aria-current="true"] .chapter-time { color: var(--blue); font-weight: 700; }
+@media (max-width: 53rem) { .video-layout { grid-template-columns: minmax(0, 1fr); } }
+
 @media (max-width: 42rem) {
   .sections > li { grid-template-columns: 1fr; }
   .message { grid-template-columns: 1fr; padding: .7rem 0; }
@@ -83,6 +105,6 @@
 }
 @media (prefers-reduced-motion: reduce) { .listing > summary::before { transition: none; } }
 @media print {
-  .listing-tools, .task-pager, .day-index, .listing-fallback { display: none !important; }
+  .listing-tools, .task-pager, .day-index, .listing-fallback, .player-frame, .player-note { display: none !important; }
   .message:target { background: none; box-shadow: none; }
 }
