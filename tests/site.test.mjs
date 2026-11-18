@@ -9,15 +9,16 @@ const read = path => readFileSync(new URL(path, root), 'utf8');
 const selection = JSON.parse(read('data/selection.json'));
 const reasoning = JSON.parse(read('data/reasoning.json'));
 const provenance = JSON.parse(read('data/provenance.json'));
+const video = JSON.parse(read('data/video.json'));
 const notes = selection.notes.map(name => loadNote(name, read(`data/notes/${name}`)));
 const scripts = selection.scripts.map(name => loadScript(name, read(`data/scripts/${name}`)));
-const files = buildSite({ reasoning, provenance, notes, scripts });
+const files = buildSite({ reasoning, provenance, notes, scripts, video });
 const pages = [...files].filter(([path]) => path.endsWith('.html') && !path.startsWith('scripts/code/'));
 const decode = html => html.replace(/<[^>]+>/g, '').replace(/&(lt|gt|quot|#x27|#39|amp);/g, (_, e) => ({ lt: '<', gt: '>', quot: '"', '#x27': "'", '#39': "'", amp: '&' })[e]);
 
 test('committed pages are the deterministic build of the committed data', () => {
   for (const [path, content] of files) assert.equal(read(path), content, `${path}: run npm run build`);
-  for (const dir of ['reasoning', 'notes', 'scripts/code', 'scripts/source']) {
+  for (const dir of ['video', 'reasoning', 'notes', 'scripts/code', 'scripts/source']) {
     const count = readdirSync(new URL(`${dir}/`, root), { recursive: true }).filter(name => /\.(html|txt)$/.test(name)).length;
     assert.equal(count, [...files.keys()].filter(path => path.startsWith(`${dir}/`)).length, `${dir} has no stale files`);
   }
@@ -85,6 +86,23 @@ test('Markdown is escaped and only web links or published files become links', (
   assert.equal(render('<b>[x](https://a.example/)</b>').trim(), '<p>&lt;b&gt;<a href="https://a.example/">x</a>&lt;/b&gt;</p>');
   assert.equal(plainText('one <b>\ntwo\n\nhttps://x.example/a'), '<p>one &lt;b&gt;\ntwo</p>\n<p><a href="https://x.example/a">https://x.example/a</a></p>');
   assert.equal(scriptSummary('a.py', '#!/usr/bin/env python3\n"""Enter a fight.\n\nMore."""\nimport os\n'), 'Enter a fight.');
+});
+
+test('the video page embeds one privacy-enhanced player beside the YouTube chapters', () => {
+  const html = files.get('video/index.html');
+  assert.equal((html.match(/<iframe\b/g) || []).length, 1);
+  assert.match(html, /<iframe id="video-player" src="https:\/\/www\.youtube-nocookie\.com\/embed\/EYW0uMI1gCc\?rel=0&amp;enablejsapi=1" title="I made GPT-6 play Pokémon Reborn for an entire month \(YouTube video player\)"/);
+  assert.doesNotMatch(html, /autoplay=1/);
+  assert.match(html, /<script src="\/pokemon-reborn\/assets\/video\.js\?v=[^"]+" defer><\/script>/);
+  const links = [...html.matchAll(/<a class="chapter-link" href="https:\/\/www\.youtube\.com\/watch\?v=EYW0uMI1gCc(?:&amp;t=(\d+)s)?" data-chapter-start="(\d+)"/g)];
+  assert.equal(links.length, 32);
+  assert.deepEqual(links.map(m => Number(m[2])), video.chapters.map(c => c.start));
+  for (const [, t, start] of links) assert.equal(Number(t || 0), Number(start));
+  assert.match(html, /data-chapter-start="0" aria-current="true"><span class="chapter-time">0:00<\/span><span class="chapter-name">Intro<\/span><span class="chapter-length">3:51<\/span>/);
+  assert.match(html, /<span class="chapter-time">3:02:21<\/span><span class="chapter-name">Epilogue<\/span><span class="chapter-length">4:39<\/span>/);
+  assert.equal((html.match(/aria-current="true"/g) || []).length, 1);
+  assert.throws(() => buildSite({ reasoning, provenance, notes, scripts, video: { ...video, chapters: [{ start: 5, title: 'Late' }, ...video.chapters.slice(1)] } }), /0:00/);
+  for (const [path, page] of pages) if (path !== 'video/index.html') assert.match(page, /<a href="\/pokemon-reborn\/video\/">Video<\/a>/, path);
 });
 
 test('pages share the site frame, identity and canonical routes', () => {

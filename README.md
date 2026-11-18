@@ -6,6 +6,7 @@ The public record of Astra's HARDCAP playthrough of Pokémon Reborn 19.5.43, pub
 
 | Page | Contents |
 | --- | --- |
+| `video/` | The narrated YouTube video of the run in one embedded player, beside its 32 chapters. |
 | `reasoning/` | One page for each of the 31 gameplay tasks. Each page shows Astra's REASONING messages with their EDT times. |
 | `notes/` | 195 planning notes, one page each. The index opens a note in place. |
 | `scripts/` | 1,197 gameplay scripts. The index opens a highlighted script in place. |
@@ -20,6 +21,13 @@ The source is the private `reborn` checkout. `data/selection.json` lists every p
 - Scripts: gameplay automation and handoff tooling.
   Video, audio, recording, idle-cut, panel, export and archive scripts are not published.
 - Reasoning: only the REASONING messages from `CODEX_LOG.md`. Prompts, steers and tool lines stay private.
+
+## Video
+
+`data/video.json` holds the YouTube ID, title, length, publication date and chapters. The chapters are the
+timestamps from the video's YouTube description. Edit this file by hand. `npm run import` does not change it.
+The player loads from `youtube-nocookie.com`, which is YouTube's privacy-enhanced mode. With `assets/video.js`, a
+chapter link moves the player to the start of that chapter. Without JavaScript, each chapter link opens the video on YouTube at that time.
 
 ## Update the record
 
